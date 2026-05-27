@@ -1,0 +1,74 @@
+[
+  {
+    "slug": "00-preface-seven-figures",
+    "title": "图形思考 · 前言与七大图形",
+    "slides": 19,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/00-preface-seven-figures/00-preface-seven-figures-note-slides.html"
+  },
+  {
+    "slug": "01-warmup",
+    "title": "热身运动：熟悉图形 · 图形思考",
+    "slides": 13,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/01-warmup/01-warmup-note-slides.html"
+  },
+  {
+    "slug": "02-relation-exchange",
+    "title": "基础训练一：厘清关系，交换图",
+    "slides": 18,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/02-relation-exchange/02-relation-exchange-note-slides.html"
+  },
+  {
+    "slug": "03-structure-tree",
+    "title": "基础训练二：全面掌握具体内容，树状图",
+    "slides": 24,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/03-structure-tree/03-structure-tree-note-slides.html"
+  },
+  {
+    "slug": "04-factor-digging",
+    "title": "基础训练三 深究原因，深挖图",
+    "slides": 22,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/04-factor-digging/04-factor-digging-note-slides.html"
+  },
+  {
+    "slug": "05-position-compare",
+    "title": "基础训练四：事物比较，比较图",
+    "slides": 20,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/05-position-compare/05-position-compare-note-slides.html"
+  },
+  {
+    "slug": "06-steps-flow",
+    "title": "基础训练五：分析流程，流程图 · 图形思考",
+    "slides": 18,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/06-steps-flow/06-steps-flow-note-slides.html"
+  },
+  {
+    "slug": "07-concept-overlap",
+    "title": "基础训练六：组合，重叠图",
+    "slides": 18,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/07-concept-overlap/07-concept-overlap-note-slides.html"
+  },
+  {
+    "slug": "08-policy-pyramid",
+    "title": "基础训练七：掌控方向，金字塔图",
+    "slides": 18,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/08-policy-pyramid/08-policy-pyramid-note-slides.html"
+  },
+  {
+    "slug": "09-application-life-planning",
+    "title": "多角度思维练习与人生规划",
+    "slides": 24,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/09-application-life-planning/09-application-life-planning-note-slides.html"
+  },
+  {
+    "slug": "10-habit-notes",
+    "title": "养成画图习惯：化为随身武器 | 图形思考 · 第10章",
+    "slides": 16,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/10-habit-notes/10-habit-notes-note-slides.html"
+  },
+  {
+    "slug": "11-expression-closing",
+    "title": "图形的表现方式、阐述方式与后记",
+    "slides": 22,
+    "path": "/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/11-expression-closing/11-expression-closing-note-slides.html"
+  }
+]

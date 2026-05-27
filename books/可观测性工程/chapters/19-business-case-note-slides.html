@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>可观测性的商业案例 · 第19章</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child { border-radius: 6px 0 0 6px; }
+.data-table tr > *:last-child  { border-radius: 0 6px 6px 0; }
+.data-table.left td, .data-table.left th { text-align: left; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="第19章·封面" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第19章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">可观测性的商业案例</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">被动与主动变更、投资回报、实践引入、工具选型、以及何时足够好</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Charity Majors · Liz Fong-Jones · George Miranda</div>
+    <div>PDF p175-181</div>
+  </div>
+</section>
+
+<!-- 02 本章路线图 L25 -->
+<section class="slide light" data-theme="light" data-screen-label="Roadmap" data-source="第19章·导言·p175">
+  <div class="chrome"><div>本章路线图</div><div>02 / 17</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">面对急迫挑战，传统方式已经无法解决，可观测性需要商业论证</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">19.1-19.2</div><p class="body-zh" style="margin-top:1vh">被动引入变更的陷阱，以及可观测性在四个维度上的投资回报</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">19.3-19.4</div><p class="body-zh" style="margin-top:1vh">主动变更方法：用 TTD/TTR 构建商业案例，将可观测性作为持续实践引入</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">19.5-19.6</div><p class="body-zh" style="margin-top:1vh">选择合适的工具与探针，识别何时可观测性已达到足够好的状态</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>第19章 · 可观测性的商业案例</div><div>02 / 17</div></div>
+</section>
+
+<!-- 03 19.1 阻力最小路径 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="19.1 被动引入变更·p175">
+  <div class="chrome" style="width:100%"><div>被动引入变更 · 19.1</div><div>03 / 17</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Path of Least Resistance</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">变更艰难，许多组织倾向阻力最小路径。直到传统方法突然失效，才意识到急迫需要可观测性</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">急于解决关键任务通常导致过于简单化的方法，很少产生有用的结果</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p175 · 19.1 被动引入变更的方法</div><div>03 / 17</div></div>
+</section>
+
+<!-- 04 19.1 根因分析的幻觉 + 缺乏可观测性症状 L24 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="19.1 根因分析与症状·p175-176">
+  <div class="chrome"><div>根因分析的陷阱 · 19.1</div><div>04 / 17</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Root Cause Illusion</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">根因分析中找到确凿证据，高管长舒一口气，以为短板已补齐。<cite>p175 · 被动变更的幻觉</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker">Real Questions Unasked</div>
+      <p class="lead-zh" style="max-width:18em">为什么一个文件能造成级联系统故障？使用更不可变的基础设施是否能更好缓解？</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">急于快速修复时，通常只解决最明显的症状，而非根本原因</p>
+    </div>
+  </div>
+  <div class="foot"><div>p175 · 19.1 被动引入变更</div><div>04 / 17</div></div>
+</section>
+
+<!-- 05 19.2 ROI 四维度概述 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="19.2 可观测性的投资回报·p176">
+  <div class="chrome" style="width:100%"><div>投资回报 · 19.2</div><div>05 / 17</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Return on Observability</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">可观测性的核心价值：使团队能够回答以前不可知的问题，解决未知的未知</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">Forrester Research 量化研究：四个重要方面广泛影响最低收益</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p176 · 19.2 可观测性的投资回报</div><div>05 / 17</div></div>
+</section>
+
+<!-- 06 19.2 ROI 四大收益表 L16 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="19.2 ROI 四大收益·p176-177">
+  <div class="chrome"><div>ROI 分解 · 19.2</div><div>06 / 17</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:14em;margin:0 auto">可观测性在四个重要方面影响着最低收益</h2>
+      <table class="data-table keyed left anim-item">
+        <thead>
+          <tr><th>收益维度</th><th>机制</th><th>效果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>更高的增量收入</td><td>提高正常运行时间和性能，通过提高代码质量直接增加收入</td><td>收入增长</td></tr>
+          <tr><td>更快的事件响应节省成本</td><td>更快的 MTTD 和 MTTR，改进查询响应时间，减少待命时间</td><td>人工成本显著降低</td></tr>
+          <tr><td>通过避免事故节省成本</td><td>在问题变得严重和持久之前找到原因，防止事故发生</td><td>事故减少</td></tr>
+          <tr><td>减少员工流失率节省成本</td><td>提高工作满意度，减少倦怠、告警疲劳和周转</td><td>留存率提升</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p176-177 · Forrester Research 量化研究</div><div>06 / 17</div></div>
+</section>
+
+<!-- 07 19.3 主动引入：TTD/TTR L3-a bare -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="19.3 主动引入变更·p177">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">主动引入变更 · 19.3</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">与其等待灾难性故障，不如先发制人</h2>
+      <p class="body-zh anim-item" style="max-width:20em;margin-top:clamp(1.6rem,3.5vh,2.6rem);opacity:.58">早期方法：重视降低检测时间 TTD 和服务修复时间 TTR。虽然不完善，但被广泛理解和接受。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p177 · 19.3 主动引入变更的方法</div><div>07 / 17</div></div>
+</section>
+
+<!-- 08 19.3 三级效益链 L25 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="19.3 主动变更·三级效益·p177">
+  <div class="chrome"><div>三级效益链 · 19.3</div><div>08 / 17</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">可观测性带来的效益逐级放大，从调试加速到业务健康</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta">第一级</div><p class="body-zh" style="margin-top:1vh">发现传统监控隐藏的单个用户问题，降低 TTD；自动化核心分析循环，降低 TTR</p></div>
+        <div class="anim-item"><div class="meta">第二级</div><p class="body-zh" style="margin-top:1vh">减少意外中断修复工作量，降低待命压力，减少积压，更多时间交付新功能。工程团队更快乐、更健康</p></div>
+        <div class="anim-item"><div class="meta">第三级</div><p class="body-zh" style="margin-top:1vh">理解单个用户请求的性能瓶颈，优化服务。更高的客户满意度和留存率。超过半数移动用户在加载超3秒后放弃交易</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p177 · 19.3 主动引入变更</div><div>08 / 17</div></div>
+</section>
+
+<!-- 09 19.4 可观测性是实践 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="19.4 将可观测性引入实践·p178">
+  <div class="chrome" style="width:100%"><div>引入实践 · 19.4</div><div>09 / 17</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Practice, Not Checkbox</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">与安全性一样，可观测性是一种持续实践，不能简单地采用复选框方法来声明已经实现</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">系统可以被观测到，但不意味着它正在被有效地观测。目标是让工程师主动查询，挖掘好奇心</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p178 · 19.4 将可观测性引入实践</div><div>09 / 17</div></div>
+</section>
+
+<!-- 10 19.4 不指责文化与明确范围 L24 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="19.4 心理安全与工作范围·p178">
+  <div class="chrome"><div>文化与范围 · 19.4</div><div>10 / 17</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Psychological Safety</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">不指责的文化培养了一个心理安全的环境，支持实验并奖励好奇的合作。<cite>p178 · DORA 年度报告</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker">Clear Scope</div>
+      <p class="lead-zh" style="max-width:18em">明确工作范围：完全在一个引导性团队或业务线内发生</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">用 TTD 和 TTR 的基线性能度量作为改进基准。明确、配置和编制预算所需的基础设施和平台工作。然后才开始检测和代码分析的技术工作</p>
+    </div>
+  </div>
+  <div class="foot"><div>p178 · 19.4 引入可观测性实践</div><div>10 / 17</div></div>
+</section>
+
+<!-- 11 19.5 OpenTelemetry 标准 L25 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="19.5 探针·OpenTelemetry·p179">
+  <div class="chrome"><div>工具选型 · 19.5</div><div>11 / 17</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">OpenTelemetry 正在成为探针的新兴标准，不再有理由锁定特定供应商</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">探针</div><p class="body-zh" style="margin-top:1vh">OpenTelemetry 支持所有开源的指标和链路跟踪分析平台，几乎被所有商业供应商支持。只需将数据同时发送到多个后端</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">存储与分析</div><p class="body-zh" style="margin-top:1vh">商业供应商通常绑定存储和分析。开源方案需要单独扩展数据存储层。托管开源遥测数据存储市场竞争激烈</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">团队推出</div><p class="body-zh" style="margin-top:1vh">可观测性团队应帮助每个产品团队实现可观测性，而非创建定制工作。工具应为业务节省时间和金钱</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p179-180 · 19.5 使用合适的工具</div><div>11 / 17</div></div>
+</section>
+
+<!-- 12 19.6 何时足够：文化信号 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="19.6 知道何时你有足够的可观测性·p180">
+  <div class="chrome" style="width:100%"><div>足够好的判断 · 19.6</div><div>12 / 17</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Enough Observability</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">当外部的可观测性干预成为正在进行的常规工作中最小的一部分，实践就成为了团队的基线</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">就像团队不会在没有相关测试的情况下合并新代码一样，相关的工具也应成为代码审查的一部分</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p180 · 19.6 知道何时你有足够的可观测性</div><div>12 / 17</div></div>
+</section>
+
+<!-- 13 19.6 两个标志性指标 L3-a bare -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="19.6 两个有用指标·p180">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">足够可观测性的标志 · 19.6</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7vw,6.4rem);max-width:12em;letter-spacing:0">自助式数据请求的显著改进，以及产品管理猜测行为的减少</h2>
+      <p class="body-zh anim-item" style="max-width:20em;margin-top:clamp(1.6rem,3.5vh,2.6rem);opacity:.58">当团队遇到数据无法回答的新问题时，他们会发现花时间填补遥测空白比猜测更容易。遥测应使产品经理和客户成功经理也能回答自己关于生产的问题</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p180 · 19.6 知道何时你有足够的可观测性</div><div>13 / 17</div></div>
+</section>
+
+<!-- 14 结论 L11 guest-mark bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="19.7 结论·p181">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">Conclusion · 19.7</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">代码审查应确保新代码的探针达到适当的可观测性标准，就像确保它也符合安全标准一样</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">可观测性必须作为一种持续性实践来处理。团队必须养成习惯：对代码的任何更改都与适当的探针绑定在一起</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>第19章 · 可观测性的商业案例</div><div>14 / 17</div></div>
+</section>
+
+<!-- 15 核心总结 1/2 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="第19章 核心总结·p175-181">
+  <div class="chrome"><div>核心总结</div><div>15 / 17</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">被动引入变更通常以服务中断为触发点。根因分析常常只解决最明显的症状而非根本原因，过于简化的补救措施让人产生虚假的安全感</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">可观测性在四个维度影响最低收益：更高增量收入、更快事件响应节省成本、通过避免事故节省成本、通过减少员工流失率节省成本</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">主动引入变更优于被动反应。初始案例侧重降低 TTD 和 TTR，早期成果验证后再扩展到全组织。第二级效益是团队健康，第三级是客户满意度和留存率</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>第19章 · 可观测性的商业案例</div><div>15 / 17</div></div>
+</section>
+
+<!-- 16 核心总结 2/2 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="第19章 核心总结·p175-181">
+  <div class="chrome"><div>核心总结</div><div>16 / 17</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">可观测性是持续实践，不是复选框。需要不指责的心理安全文化、明确的工作范围、TTD/TTR 基线度量。团队必须被授权通过询问任意问题来挖掘好奇心</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">OpenTelemetry 是探针的新兴标准，消除供应商锁定。存储与分析方案需仔细评估，拥有无缝衔接的内聚解决方案比维护三四个独立系统更好</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">足够的可观测性标志：自助式一次性数据请求能力显著改进，产品管理猜测行为减少。当添加新探针比猜测问题更容易时，已达平衡状态</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>第19章 · 可观测性的商业案例</div><div>16 / 17</div></div>
+</section>
+
+<!-- 17 结尾回扣 L21 bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Ending" data-source="19.7 结论·p181" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">Next</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em;text-align:center">第20章：工程团队如何与其他内部团队建立联盟，加速可观测性文化落地</h2>
+      <p class="lead-zh anim-item" style="max-width:20em;opacity:.5">可观测性工程 · 第19章 完</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Charity Majors · Liz Fong-Jones · George Miranda</div><div>17 / 17</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-obseng-19';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

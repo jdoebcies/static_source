@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>图形的表现方式、阐述方式与后记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: 设计师工作台 — warm paper tone reminiscent of sketchbook pages,
+     muted terracotta accent evoking hand-drawn annotation marks, dark navy ink for clarity.
+     The palette reflects the book's hand-drawn, notebook-based approach to visual thinking. */
+  --ink:        #1b1b2f;
+  --ink-rgb:    27,27,47;
+  --paper:      #f8f5ef;
+  --paper-rgb:  248,245,239;
+  --accent:     #c7513b;
+  --accent-rgb: 199,81,59;
+  --muted:      #8b8178;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.grid-6       { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+/* custom diagram styles */
+.diagram-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin-top: clamp(1rem, 2vh, 2rem);
+}
+.diagram-label {
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  text-align: center;
+  opacity: .55;
+  margin-top: clamp(.5rem, 1vh, 1rem);
+  letter-spacing: .06em;
+}
+.color-swatch {
+  width: clamp(3rem, 6vw, 5rem);
+  height: clamp(3rem, 6vw, 5rem);
+  border-radius: 3px;
+}
+.shape-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flow-box {
+  border: 1.5px solid rgba(var(--ink-rgb), .25);
+  border-radius: 4px;
+  padding: clamp(.6rem, 1.2vw, 1rem) clamp(.8rem, 1.5vw, 1.2rem);
+  text-align: center;
+  font-family: var(--sans-zh);
+  font-size: clamp(1rem, 1.2vw, 1.3rem);
+  line-height: 1.35;
+}
+.flow-arrow {
+  text-align: center;
+  font-size: clamp(.8rem, 1vw, 1.1rem);
+  opacity: .35;
+  padding: clamp(.2rem, .5vh, .5rem) 0;
+}
+.flow-phase {
+  font-family: var(--mono);
+  font-size: clamp(.7rem, .78vw, .85rem);
+  letter-spacing: .1em;
+  opacity: .45;
+  text-align: center;
+  margin-bottom: clamp(.3rem, .6vh, .6rem);
+}
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 Cover -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="图形思考 第11章" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">图形思考 · 第11章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">图形的表现方式<br>阐述方式与后记</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">图形首先是思考工具，然后才是传达工具</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>樱田润</div>
+    <div>p189, p208</div>
+  </div>
+</section>
+
+<!-- 02 L3-c: 画图的本质 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p190 图形的表现方式、阐述方式" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 表现方式</div><div>02 / 22</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Core</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">画图的本质是传达信息</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">图形不仅是理解事物的工具，也可以借助它将整理好的信息传达给他人</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p190</div><div>02 / 22</div></div>
+</section>
+
+<!-- 03 L25: 精简内容 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p190 传达信息时的注意事项">
+  <div class="chrome"><div>段落拆解 · 精简原则</div><div>03 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">不要随意添加各种信息</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">传达信息时最应该注意的是：不要随意添加各种信息</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">随意添加信息会使整理好的思维变回原始的复杂状态</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">图形表现力的核心不是加东西，是进一步精简</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p190</div><div>03 / 22</div></div>
+</section>
+
+<!-- 04 L9: 五大要素 -->
+<section class="slide light" data-theme="light" data-screen-label="Overview" data-source="p191, p192 表现技巧要点">
+  <div class="chrome"><div>要素 · 表现技巧</div><div>04 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:11em">与图形相关的五大要素</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">①</div><p class="body-zh" style="font-size:clamp(1.8rem,2.2vw,2.4rem);font-family:var(--serif-zh);font-weight:600">尺寸</p><p class="body-zh" style="margin-top:1vh;opacity:.62">等大与非等大传达不同的价值层级</p></div>
+        <div class="anim-item"><div class="kicker">②</div><p class="body-zh" style="font-size:clamp(1.8rem,2.2vw,2.4rem);font-family:var(--serif-zh);font-weight:600">形状</p><p class="body-zh" style="margin-top:1vh;opacity:.62">不同形状表现出事物之间的差异</p></div>
+        <div class="anim-item"><div class="kicker">③</div><p class="body-zh" style="font-size:clamp(1.8rem,2.2vw,2.4rem);font-family:var(--serif-zh);font-weight:600">颜色</p><p class="body-zh" style="margin-top:1vh;opacity:.62">深色比浅色更有存在感</p></div>
+        <div class="anim-item"><div class="kicker">④</div><p class="body-zh" style="font-size:clamp(1.8rem,2.2vw,2.4rem);font-family:var(--serif-zh);font-weight:600">线条</p><p class="body-zh" style="margin-top:1vh;opacity:.62">粗细表现亲疏关系和存在感</p></div>
+        <div class="anim-item"><div class="kicker">⑤</div><p class="body-zh" style="font-size:clamp(1.8rem,2.2vw,2.4rem);font-family:var(--serif-zh);font-weight:600">距离</p><p class="body-zh" style="margin-top:1vh;opacity:.62">近处更亲近，远处更疏远</p></div>
+        <div class="anim-item"><div class="kicker" style="opacity:.3">⚡</div><p class="body-zh" style="margin-top:1vh;opacity:.5">目标是让要点更突出、一目了然、更便于理解</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p191, p192</div><div>04 / 22</div></div>
+</section>
+
+<!-- 05 L27: 尺寸 -->
+<section class="slide light" data-theme="light" data-screen-label="Example" data-source="p193, p194 尺寸">
+  <div class="chrome"><div>要素 ① · 尺寸</div><div>05 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">尺寸决定视觉权重</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">非等大</div>
+          <div class="diagram-row" style="justify-content:flex-start;margin-top:0">
+            <div style="display:flex;flex-direction:column;align-items:center">
+              <svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/></svg>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center">
+              <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="var(--ink)" stroke-width="2"/></svg>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center">
+              <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="var(--ink)" stroke-width="2"/></svg>
+            </div>
+          </div>
+          <p class="body-zh" style="margin-top:1vh">最先映入眼帘的是最大圆，最小圆最没有存在感</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">等大</div>
+          <div class="diagram-row" style="justify-content:flex-start;margin-top:0">
+            <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="var(--ink)" stroke-width="2"/></svg>
+            <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="var(--ink)" stroke-width="2"/></svg>
+            <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="var(--ink)" stroke-width="2"/></svg>
+          </div>
+          <p class="body-zh" style="margin-top:1vh">三个元素尺寸相同，代表它们具有相同价值</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">Key</div>
+          <p class="body-zh" style="margin-top:1vh">将元素的重要程度反映到图形尺寸中，可以更有效传达信息</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p193, p194</div><div>05 / 22</div></div>
+</section>
+
+<!-- 06 L24: 形状 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p195 形状">
+  <div class="chrome"><div>要素 ② · 形状</div><div>06 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem);font-size:clamp(1.6rem,2.4vw,2.4rem)">
+        改变形状可以表示出事物之间的差异
+        <cite>p195 · 形状</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">矩形模块代表公司（组织），圆形模块代表员工和股东（个人）。只改动两个形状，读者就能瞬间区分人与组织</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">原文举例：将员工、股东从矩形改为圆形，立刻与公司形成类别差异感</p>
+      <div class="diagram-row" style="justify-content:flex-start;margin-top:clamp(1rem,2vh,1.6rem);gap:clamp(.8rem,1.5vw,1.5rem)">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <svg width="48" height="32" viewBox="0 0 48 32"><rect x="4" y="4" width="40" height="24" rx="2" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="24" y="21" text-anchor="middle" font-size="10" fill="var(--ink)" font-family="Noto Sans SC">公司</text></svg>
+          <div class="diagram-label">组织</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="16" y="20" text-anchor="middle" font-size="9" fill="var(--ink)" font-family="Noto Sans SC">员工</text></svg>
+          <div class="diagram-label" style="color:var(--accent);opacity:.7">个人</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="16" y="20" text-anchor="middle" font-size="9" fill="var(--ink)" font-family="Noto Sans SC">股东</text></svg>
+          <div class="diagram-label" style="color:var(--accent);opacity:.7">个人</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p195</div><div>06 / 22</div></div>
+</section>
+
+<!-- 07 L24: 颜色 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p196 颜色">
+  <div class="chrome"><div>要素 ③ · 颜色</div><div>07 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem);font-size:clamp(1.6rem,2.4vw,2.4rem)">
+        深色比浅色更有存在感，亮色更凸显存在感
+        <cite>p196 · 颜色</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">将重要部分涂成彩色，看到这张图的人就会知道这部分很重要</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">颜色不是越多越好。理想情况是使用单色系深浅搭配，再另加一种彩色</p>
+      <div class="diagram-row" style="justify-content:flex-start;margin-top:clamp(1rem,2vh,1.6rem);gap:clamp(.5rem,1vw,1rem)">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="color-swatch" style="background:rgba(var(--ink-rgb),.15)"></div>
+          <div class="diagram-label">浅</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="color-swatch" style="background:rgba(var(--ink-rgb),.35)"></div>
+          <div class="diagram-label">中</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="color-swatch" style="background:rgba(var(--ink-rgb),.75)"></div>
+          <div class="diagram-label">深</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="color-swatch" style="background:var(--accent)"></div>
+          <div class="diagram-label" style="color:var(--accent);opacity:.8">重点</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p196</div><div>07 / 22</div></div>
+</section>
+
+<!-- 08 L24: 线条 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p197 线条">
+  <div class="chrome"><div>要素 ④ · 线条</div><div>08 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem);font-size:clamp(1.6rem,2.4vw,2.4rem)">
+        粗细不一的线条可以表现出亲疏关系和不同程度的存在感
+        <cite>p197 · 线条</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">原文举例：公司用粗线连接员工和股东，暗示公司从员工处获取大量能力与时间，从股东处获取大量资金</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">读者不读文字，仅凭线条粗细就能感知关系的不对等</p>
+      <div style="margin-top:clamp(1rem,2vh,1.6rem);display:flex;flex-direction:column;gap:clamp(.6rem,1vh,1rem)">
+        <div style="display:flex;align-items:center;gap:clamp(.5rem,1vw,1rem)">
+          <span style="font-family:var(--mono);font-size:clamp(.7rem,.8vw,.85rem);opacity:.5;min-width:3em">亲密</span>
+          <svg width="120" height="16"><line x1="0" y1="8" x2="110" y2="8" stroke="var(--ink)" stroke-width="4"/></svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:clamp(.5rem,1vw,1rem)">
+          <span style="font-family:var(--mono);font-size:clamp(.7rem,.8vw,.85rem);opacity:.5;min-width:3em">一般</span>
+          <svg width="120" height="16"><line x1="0" y1="8" x2="110" y2="8" stroke="var(--ink)" stroke-width="2"/></svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:clamp(.5rem,1vw,1rem)">
+          <span style="font-family:var(--mono);font-size:clamp(.7rem,.8vw,.85rem);opacity:.5;min-width:3em">疏远</span>
+          <svg width="120" height="16"><line x1="0" y1="8" x2="110" y2="8" stroke="var(--ink)" stroke-width="1"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p197</div><div>08 / 22</div></div>
+</section>
+
+<!-- 09 L24: 距离 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p197, p198 距离">
+  <div class="chrome"><div>要素 ⑤ · 距离</div><div>09 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem);font-size:clamp(1.6rem,2.4vw,2.4rem)">
+        近处的事物与自己的关系较亲近，远处的事物则比较疏远
+        <cite>p198 · 距离</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">人们本能地用物理距离判断心理距离。通过不同的距离来表现不同的含义，可以更准确地传达信息</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">这个原则同样适用于演讲展示中的元素排布</p>
+      <div style="margin-top:clamp(1rem,2vh,1.6rem);display:flex;align-items:center;gap:clamp(.3rem,.5vw,.6rem)">
+        <svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="10" fill="none" stroke="var(--ink)" stroke-width="1.5"/></svg>
+        <svg width="20" height="20" viewBox="0 0 20 20" style="margin-left:clamp(.3rem,.5vw,.6rem)"><circle cx="10" cy="10" r="7" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>
+        <svg width="16" height="16" viewBox="0 0 16 16" style="margin-left:clamp(1.2rem,2.5vw,2.5rem)"><circle cx="8" cy="8" r="5" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".5"/></svg>
+        <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left:clamp(1.8rem,3.5vw,3.5rem)"><circle cx="6" cy="6" r="3.5" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".3"/></svg>
+      </div>
+      <div style="display:flex;gap:clamp(.3rem,.5vw,.6rem);margin-top:.5vh;font-family:var(--mono);font-size:clamp(.65rem,.7vw,.78rem);opacity:.4">
+        <span style="width:28px;text-align:center">近</span>
+        <span style="flex:1"></span>
+        <span style="width:16px;text-align:center;margin-left:clamp(1.2rem,2.5vw,2.5rem)">→</span>
+        <span style="width:12px;text-align:center;margin-left:clamp(1.8rem,3.5vw,3.5rem)">远</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p197, p198</div><div>09 / 22</div></div>
+</section>
+
+<!-- 10 L3-c: 讲解技巧 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p199 讲解技巧要点" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 讲解技巧</div><div>10 / 22</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Transition</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">画好图只是第一步，讲解才算完成传达</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">树状图和深挖图适合个人思考或小范围会议；其余五种图可用于演讲展示</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p199</div><div>10 / 22</div></div>
+</section>
+
+<!-- 11 L29: 五大图形讲解推进 -->
+<section class="slide light" data-theme="light" data-screen-label="Thread" data-source="p199, p202 五种图形的讲解方法">
+  <div class="chrome"><div>脉络 · 讲解推进</div><div>11 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">五种图形的讲解：从结构到细节</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(.6rem,1.2vw,1.4rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">交换图</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.2rem,1.25vw,1.4rem)">先介绍出场人物，再介绍交换内容</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">金字塔图</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.2rem,1.25vw,1.4rem)">先介绍层数和整体构成，再从上到下或从下到上讲解</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">重叠图</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.2rem,1.25vw,1.4rem)">先介绍组成要素，再介绍重叠部分</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">流程图</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.2rem,1.25vw,1.4rem)">先介绍步骤总数，再逐个阐述每个步骤</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">比较图</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.2rem,1.25vw,1.4rem)">先介绍两条数轴，再说明比较对象的位置</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p199, p202</div><div>11 / 22</div></div>
+</section>
+
+<!-- 12 L27: 交换图与金字塔图 -->
+<section class="slide light" data-theme="light" data-screen-label="Example" data-source="p199, p200 交换图与金字塔图">
+  <div class="chrome"><div>讲解 · 交换图 / 金字塔图</div><div>12 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">先框架，再内容</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">交换图</div>
+          <p class="body-zh" style="margin-top:1vh">先介绍出场人物：零售商、批发商和顾客。再介绍三者之间的交换内容。听众先知道谁在场上，再理解彼此关系</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">金字塔图</div>
+          <p class="body-zh" style="margin-top:1vh">先介绍层数：企业发展的三个阶段。最上面是愿景，最下面是基础。然后按从上到下或从下到上的顺序讲解</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">原则</div>
+          <p class="body-zh" style="margin-top:1vh">共性：先给出全局结构（谁在场 / 几层 / 几步），让听众知道当前内容在整体中的位置</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p199, p200</div><div>12 / 22</div></div>
+</section>
+
+<!-- 13 L27: 重叠图与流程图 -->
+<section class="slide light" data-theme="light" data-screen-label="Example" data-source="p200, p201 重叠图与流程图">
+  <div class="chrome"><div>讲解 · 重叠图 / 流程图</div><div>13 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">先要素，后关系</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">重叠图</div>
+          <p class="body-zh" style="margin-top:1vh">先逐一介绍三种组成要素。再介绍重叠部分：请注意这些特征的重叠部分，我公司商品兼备以上所有特征</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">流程图</div>
+          <p class="body-zh" style="margin-top:1vh">先介绍步骤数：从项目开始到正式引用新系统共四个步骤。再逐个阐述每个步骤的详细内容</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">效果</div>
+          <p class="body-zh" style="margin-top:1vh">听众知道目前讲解的内容属于哪个步骤，更易于跟上节奏。重叠部分给人的印象最深刻</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p200, p201</div><div>13 / 22</div></div>
+</section>
+
+<!-- 14 L24: 比较图 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p201, p202 比较图">
+  <div class="chrome"><div>讲解 · 比较图</div><div>14 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem);font-size:clamp(1.6rem,2.4vw,2.4rem)">
+        先介绍两条数轴，再说明比较对象各自所处的位置
+        <cite>p201, p202 · 比较图</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">纵轴代表附加价值，越往上越高。横轴代表价格，左边代表低价，右边代表高价。坐标系先建立，再放入比较对象</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">这是五种图形中最需前置框架的一种，因为比较图的意义完全依赖坐标系的设定</p>
+    </div>
+  </div>
+  <div class="foot"><div>p201, p202</div><div>14 / 22</div></div>
+</section>
+
+<!-- 15 L29: 思考与讲解全流程 -->
+<section class="slide light" data-theme="light" data-screen-label="Thread" data-source="p203, p204 思考与讲解的流程">
+  <div class="chrome"><div>全流程 · 思考与讲解</div><div>15 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3rem)">用图形思考，用图形讲解</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,3vw,3rem);min-height:0">
+        <div class="anim-item" style="border-right:1px solid rgba(var(--ink-rgb),.12);padding-right:clamp(1rem,2vw,2rem)">
+          <div class="flow-phase" style="color:var(--accent)">思考环节</div>
+          <div class="flow-box" style="margin-bottom:clamp(.4rem,.8vh,.7rem)">确定题材</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box" style="margin-bottom:clamp(.4rem,.8vh,.7rem)">确定切入点</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box">理解内容</div>
+          <p class="body-zh" style="margin-top:clamp(1rem,2vh,1.8rem);opacity:.55;font-size:clamp(1.1rem,1.2vw,1.35rem);text-align:left">确定要借助图形思考的题材类型与切入点。要探究深层原因则使用深挖图，要进行比较则使用比较图。到理解内容为止属于思考环节</p>
+        </div>
+        <div class="anim-item" style="padding-left:clamp(1rem,2vw,2rem)">
+          <div class="flow-phase" style="color:var(--accent)">讲解环节</div>
+          <div class="flow-box" style="margin-bottom:clamp(.4rem,.8vh,.7rem)">调整画面外观</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box">调整讲解方式</div>
+          <p class="body-zh" style="margin-top:clamp(1rem,2vh,1.8rem);opacity:.55;font-size:clamp(1.1rem,1.2vw,1.35rem);text-align:left">画好图后调整尺寸、形状、颜色等内容。每种图形的讲解方式各有不同，采取适当的讲解方式更顺利传达理解</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p203, p204</div><div>15 / 22</div></div>
+</section>
+
+<!-- 16 L3-a: 功利性写作不可取 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p206 后记">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem);color:var(--accent);opacity:1">后记</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">
+        功利性写作不可取
+      </h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>樱田润 · 后记</div><div>16 / 22</div></div>
+</section>
+
+<!-- 17 L25: 写作历程 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p206, p207 后记·写作过程">
+  <div class="chrome"><div>后记 · 写作历程</div><div>17 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">把思考工具和演讲工具结合写作，只能写出模棱两可的内容</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">作者一度想同时写演讲画图技巧和排版配色技巧，因为企业和学员的呼声很高</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">但从经验出发，图形首先应该是整理思维的思考工具，其次才能成为演讲工具</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">经过大幅调整，最终定下以思考工具的角度撰写此书</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p206, p207</div><div>17 / 22</div></div>
+</section>
+
+<!-- 18 L28: 一句原话 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Quote" data-source="p207 后记" style="text-align:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-quote">
+      <div class="callout callout-mark anim-item" style="max-width:16em;margin:0 auto;text-align:left;color:var(--paper)">
+        图形首先应该是思考工具，然后才能成为演讲工具
+        <cite>樱田润 · 后记 p207</cite>
+      </div>
+    </div>
+    <div class="w-default" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(2rem,4vh,3rem);text-align:left">
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">回应</div><p class="body-zh" style="margin-top:1vh;color:var(--paper);opacity:.7">回应了整本书的核心争议：市面上大多数图解书只教装饰技巧，没教思考方式</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">重点</div><p class="body-zh" style="margin-top:1vh;color:var(--paper);opacity:.7">思考方式相当于人的内在修养，是最为重要的因素</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">余味</div><p class="body-zh" style="margin-top:1vh;color:var(--paper);opacity:.6">这句话定义了整本书的写作立场，也挑战了读者对图解书的预期</p></div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p207</div><div>18 / 22</div></div>
+</section>
+
+<!-- 19 L25: 实际内容比外观更重要 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p207 实际内容比外观更重要">
+  <div class="chrome"><div>后记 · 内容与外观</div><div>19 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">实际内容比外观更加重要</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">用演讲软件画出精致的渐变配色图，内容却无法让人迅速理解</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">同事随手在白板上画的黑白手绘图，线段弯弯曲曲，却清晰易懂、一目了然</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">字体、颜色等装饰是附加因素，不是本质性因素。本书不包含迅速掌握的速成技巧</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p207</div><div>19 / 22</div></div>
+</section>
+
+<!-- 20 L24: 作者寄语 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p208 后记·作者寄语">
+  <div class="chrome"><div>后记 · 作者寄语</div><div>20 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem);font-size:clamp(1.6rem,2.4vw,2.4rem)">
+        希望阅读本书的读者朋友们也能像我一样，真切地体会到图解的乐趣
+        <cite>樱田润 · 2017年10月 p208</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">本书是一本纯粹的图解书，不是速成类读物，也不是画图的营养剂。培养图形思维能力，需要坚持练习</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">作者历时一年半完成写作，向编辑和家人致谢</p>
+    </div>
+  </div>
+  <div class="foot"><div>p208</div><div>20 / 22</div></div>
+</section>
+
+<!-- 21 L31: 未竟之问 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Open Question" data-source="全书总结">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote">
+      <div class="kicker anim-item">Open Questions</div>
+      <h2 class="h1-zh anim-item" style="max-width:10em;margin:clamp(1rem,3vh,2rem) auto 0">图形思考之后，还需什么</h2>
+      <div style="margin-top:clamp(2rem,4vh,3rem);display:grid;gap:clamp(.8rem,1.5vh,1.2rem);text-align:left">
+        <p class="body-zh anim-item">01 图形的五大表现要素中，哪一项你从未有意识地使用过</p>
+        <p class="body-zh anim-item">02 日常讲解中，五种图形的讲解顺序你是否一直遵循</p>
+        <p class="body-zh anim-item">03 思考环节和讲解环节之间，是否存在一个容易被跳过的检查步骤</p>
+        <p class="body-zh anim-item">04 如果图形思维成为一种习惯，你的日常决策会因此发生什么变化</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>图形思考</div><div>21 / 22</div></div>
+</section>
+
+<!-- 22 L32: 核心总结 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="核心总结 1/2 · p189, p208">
+  <div class="chrome"><div>核心总结</div><div>22 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">图形传达信息时最重要的是不随意添加内容，否则整理好的思维会变回原始的复杂状态。精简比增加更考验功力</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">五大表现要素：尺寸（等大与否决定价值层级）、形状（区分类别）、颜色（深色和亮色具有更强存在感，理想是单色系加一种彩色）、线条（粗细表现亲疏）、距离（近处更亲近）</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">五种图形的讲解共性：先给结构框架（人物、层数、要素、步骤、数轴），让听众知道当前内容在整体中的位置，再填入细节。颠倒顺序会失去听众</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">思考与讲解的完整流程：确定题材→确定切入点→理解内容（思考环节），然后调整画面外观→调整讲解方式（讲解环节）。两个环节不可混淆</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">全书最根本的判断：图形首先是思考工具，然后才是演讲工具。思考方式相当于人的内在修养，是最为重要的因素。实际内容比外观更重要</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">作者经历：试图同时写思考工具和演讲工具两本书的角度，结果只能写出模棱两可的内容。大幅调整后，最终选择以思考工具为核心立场。功利性写作不可取</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · 第11章</div><div>22 / 22</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-11-expression-closing';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

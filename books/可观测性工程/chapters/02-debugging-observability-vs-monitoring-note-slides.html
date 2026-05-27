@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>可观测性工程 · 第2章 · 可观测性和监控之间的调试实践有何不同</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: Observability Engineering is about precision debugging and systematic inquiry.
+     Cool deep blue-grey ink, warm off-white paper, a restrained observability-sky blue accent
+     that feels analytical without being corporate, and cool grey for secondary text.
+     This palette mirrors the book's contrast between old reactive monitoring and new exploratory observability. */
+  --ink:        #1a2436;
+  --ink-rgb:    26,36,54;
+  --paper:      #f9f8f3;
+  --paper-rgb:  249,248,243;
+  --accent:     #3b7dd8;
+  --accent-rgb: 59,125,216;
+  --muted:      #6e7585;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-8-4 { display: grid; grid-template-columns: 8fr 4fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.grid-6       { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.slide-img {
+  overflow: hidden; position: relative;
+  background: rgba(128,128,128,.08); border-radius: 6px;
+}
+.slide-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.img-cap { font-family: var(--mono); font-size: clamp(.7rem, .75vw, .85rem); letter-spacing: .12em; text-transform: uppercase; opacity: .6; margin-top: .8vh; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark --w-statement -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="第2章 p28-33" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第2章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">可观测性和监控之间的调试实践有何不同</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">仪表盘、直觉和被动监控的局限，以及可观测性如何从根本上改变调试流程</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>可观测性工程</div>
+    <div>p28 · 33</div>
+  </div>
+</section>
+
+<!-- 02 L3-a 社论式 bare light --w-statement -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p28 2.1 开头">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">核心主张</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">仪表盘能告诉你已知问题的答案。发现新问题时，它是糟糕的选择。</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>可观测性工程</div><div>02 / 13</div></div>
+</section>
+
+<!-- 03 L25 段落拆解 light --w-default 监控数据的两个消费者 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p28 2.1 监控数据如何用于调试">
+  <div class="chrome"><div>段落拆解 · 监控数据</div><div>03 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">监控系统通过分析指标趋势来检测已知的异常模式</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">监控数据有两个消费者：机器用它触发告警或故障恢复；人用它观察仪表盘上的趋势图表</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">机器做的是二元判断：超过阈值报警，低于阈值恢复。这个阈值由人决定，检测结果永远是二元的</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">这是我们最常用排查故障的方法，也是整个行业默认为正确的故障排查基线</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p28 2.1</div><div>03 / 13</div></div>
+</section>
+
+<!-- 04 L30 双张力 dark --w-default 仪表盘承诺 vs 陷阱 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Dual Tension" data-source="p29 仪表盘陷阱">
+  <div class="chrome"><div>张力 · 仪表盘</div><div>04 / 13</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">承诺</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">一个屏幕看到系统全貌，快速判断各组件的健康状态</h2>
+      <p class="body-zh" style="max-width:15em;opacity:.72">存储成本便宜，处理能力强大，可收集的系统数据几乎是无限的</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">陷阱</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">指标多到不可能全部放入一个仪表盘，汇总平均值掩盖了具体问题</h2>
+      <p class="body-zh" style="max-width:15em;opacity:.72">过滤器受制于预设维度，高基数数据受索引限制，故障排查被开始前的设定绑死</p>
+    </div>
+  </div>
+  <div class="foot"><div>p29</div><div>04 / 13</div></div>
+</section>
+
+<!-- 05 L24 摘录侧注 light --w-default callout-mark 早间仪表盘仪式 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p29-30 2.1.1 早间仪表盘检查">
+  <div class="chrome"><div>Excerpt · 运维仪式</div><div>05 / 13</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">你其实不知道这些图表实际上显示了什么。但你深信它们提供给你的预测能力。<cite>p29 · 30 · 2.1.1</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">工程师通过长期接触生产环境，学会了破译仪表盘上的细微模式来预测问题来源</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">左上角下降加右下角稳定增长代表消息队列问题；直方图每五分钟峰值代表数据库查询出问题。这不是数据告诉你的，是你自己学会的</p>
+    </div>
+  </div>
+  <div class="foot"><div>p29 · 30 · 2.1.1</div><div>05 / 13</div></div>
+</section>
+
+<!-- 06 L27 观点加例证 light --w-default 直觉调试的三个局限 -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="p30-31 2.1.2 三个局限例子">
+  <div class="chrome"><div>例证 · 直觉调试的局限</div><div>06 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">当面对新系统或新问题时，靠直觉读仪表盘的方法完全失效</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">例1 · 相关性不足</div>
+          <p class="body-zh">添加数据库索引后，仪表盘只能显示平均CPU和内存。无法回答查询速度变化、索引选择率、写延迟分布、索引是否让其他索引过时等具体问题</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">例2 · 不深入</div>
+          <p class="body-zh">发现数据过期bug后看到磁盘空间下降，迅速假设问题只限于一个分片。没有意识到由于同步导入操作，另一个分片的磁盘空间其实保持稳定</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">例3 · 工具间跳跃</div>
+          <p class="body-zh">看到错误高峰后，在仪表盘翻页找其他指标中的峰值，跳转到日志工具查找错误，再复制请求ID到链路工具。如果请求没被追踪，就一遍遍重复</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p30 · 31 · 2.1.2</div><div>06 / 13</div></div>
+</section>
+
+<!-- 07 L3-c 上下宣告 dark --w-note 被动监控就是打地鼠 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p31 2.1.3 传统监控是被动的" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 被动监控</div><div>07 / 13</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">2.1.3</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">传统的监控本质上是被动的：用遥测数据玩打地鼠游戏，总是在事后追赶</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">团队常在一次故障后才添加自定义指标，但此时已无法回溯上一次故障。每次故障后追指标，监控成本随指标数量线性增长，最终只能删掉大部分</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p31 · 2.1.3</div><div>07 / 13</div></div>
+</section>
+
+<!-- 08 L16 表格 light --w-wide 监控 vs 可观测性 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p32 2.2 三种差异比较">
+  <div class="chrome"><div>对比 · 监控 vs 可观测性</div><div>08 / 13</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">三种根本差异</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>比较维度</th><th>基于监控的方法</th><th>基于可观测性的方法</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>知识来源</td>
+            <td>依靠惯例知识和资深工程师的个人经验，在团队待得最久的人调试能力最强</td>
+            <td>数据驱动，任何工程师都可以通过探索性问题询问系统，找到答案</td>
+          </tr>
+          <tr>
+            <td>发现能力</td>
+            <td>只能检测已知问题，预设阈值和告警。无法发现未知故障模式</td>
+            <td>通过迭代探索性调查系统地确定任何问题的来源，包括已知和未知故障模式</td>
+          </tr>
+          <tr>
+            <td>诊断信心</td>
+            <td>依赖猜测和直觉确认，容易把症状当原因，可能在没找到根源的情况下修复具体问题</td>
+            <td>有条不紊，用数据一步一步得出结论。每次诊断都是新诊断，不预设结论</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p32 · 2.2</div><div>08 / 13</div></div>
+</section>
+
+<!-- 09 L28 一句原话 bare dark --w-quote callout-mark 最好奇的工程师 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="One Quote" data-source="p32 2.2 最好奇的工程师">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote">
+      <div class="callout callout-mark anim-item" style="max-width:14em;margin:0 auto;text-align:left">
+        实践可观测性的团队里，最好奇的工程师才是最好的调试者
+        <cite>可观测性工程 · p32</cite>
+      </div>
+    </div>
+    <div class="w-default" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(2rem,4vh,3rem);text-align:left">
+      <div class="anim-item">
+        <div class="meta" style="color:var(--accent);opacity:1">回应</div>
+        <p class="body-zh" style="margin-top:1vh">回应了传统监控中资历等于调试能力的默认假设</p>
+      </div>
+      <div class="anim-item">
+        <div class="meta" style="color:var(--accent);opacity:1">重点</div>
+        <p class="body-zh" style="margin-top:1vh">可观测性最需要的技能是跨越不同系统的诊断能力，不是对某一系统的长期直觉积累</p>
+      </div>
+      <div class="anim-item">
+        <div class="meta" style="color:var(--accent);opacity:1">余味</div>
+        <p class="body-zh" style="margin-top:1vh">关键知识从个人经验变成共享事实，团队不再依赖某个待得最久的人</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>p32 · 2.2</div>
+    <div>09 / 13</div>
+  </div>
+</section>
+
+<!-- 10 L25 段落拆解 light --w-default 把每次诊断当新诊断 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p32 2.2 把每次诊断当新诊断">
+  <div class="chrome"><div>段落拆解 · 诊断方法</div><div>10 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">把每一次诊断都当作新诊断，即使触发条件与过去的问题相似</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">在基于监控的方法中，工程师会根据问题行为模式与先前已知问题的相似度来诊断</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">可观测性允许工程师通过系统提供的线索，一步一步诊断，用数据确定正确结论</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">任何工程师都可以诊断任何问题，不需要对复杂系统有长期直觉积累</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p32 · 2.2</div><div>10 / 13</div></div>
+</section>
+
+<!-- 11 L24 摘录侧注 light --w-default callout-mark 上下文切换的代价 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p32-33 2.2 上下文切换">
+  <div class="chrome"><div>Excerpt · 工具切换</div><div>11 / 13</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">这种上下文切换很容易出错，令人筋疲力尽，而且往往是不可能的。<cite>p32 · 33 · 2.2</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">可观测性工具将高基数、高维度遥测数据集中在一个位置，工程师可以轻松缩放或跟随面包屑找到最终答案</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">传统监控要求工程师在仪表盘、日志、链路工具之间手动关联。绘制TCP数据包和HTTP错误之间的相关性时，调查的转换错误率极高</p>
+    </div>
+  </div>
+  <div class="foot"><div>p32 · 33 · 2.2</div><div>11 / 13</div></div>
+</section>
+
+<!-- 12 L32 核心总结 dark --w-default summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p28-33 第2章 核心总结">
+  <div class="chrome"><div>核心总结</div><div>12 / 13</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">传统监控依赖指标和阈值做二元判断，只能发现已知故障模式。仪表盘受制于预设维度和标签，面对新问题时需要工程师凭直觉破译系统信号，是一种完全被动的方式</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">基于直觉的调试有三个典型局限：相关性不足，无法回答具体查询问题；不深入，只能看到表象而误判影响范围；工具间跳跃，手动拼接上下文导致极高的转换错误率</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">监控本质上是事后追赶：每次故障后添加自定义指标，但无法回溯已发生的问题。团队中待得最久的人调试能力最强，知识锁在个人经验里，不具备可传递性</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">可观测性让工程师通过迭代探索性调查系统地确定问题来源。最好奇的工程师成为最好的调试者。每次诊断都是新诊断，用数据一步步得出结论，任何工程师都可以胜任，关键知识从个人经验变成共享事实</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>第2章 · p28 · 33</div><div>12 / 13</div></div>
+</section>
+
+<!-- 13 L21 结尾回扣 bare dark --w-statement -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Close" data-source="p33 2.3 结论" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">第2章 · 结论</div>
+      <h2 class="display-zh anim-item" style="max-width:12em;font-size:clamp(2.6rem,6vw,5.2rem)">可观测性让关键知识从最有经验的工程师的头脑中，转移到共享事实中</h2>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">任何工程师都可以随时探索，不需要十年系统经验的直觉积累</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>第2章 · 结论</div>
+    <div>13 / 13</div>
+  </div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

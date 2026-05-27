@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>不通过可观测性扩展系统的经验教训</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.slide-img {
+  overflow: hidden; position: relative;
+  background: rgba(128,128,128,.08); border-radius: 6px;
+}
+.slide-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.img-cap { font-family: var(--mono); font-size: clamp(.7rem, .75vw, .85rem); letter-spacing: .12em; text-transform: uppercase; opacity: .6; margin-top: .8vh; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child { border-radius: 6px 0 0 6px; }
+.data-table tr > *:last-child  { border-radius: 0 6px 6px 0; }
+
+.evidence-row {
+  display: grid;
+  grid-template-columns: minmax(7em, .34fr) 1fr minmax(4.5em, .18fr);
+  gap: clamp(1rem, 2.5vw, 2.4rem);
+  align-items: center;
+  padding: clamp(1rem, 2.4vh, 1.8rem) 0;
+  border-bottom: 1px solid rgba(var(--paper-rgb), .14);
+}
+.evidence-row strong {
+  font-family: var(--serif-zh);
+  font-size: clamp(1.7rem, 2.2vw, 2.4rem);
+  line-height: 1.12;
+  font-weight: 700;
+}
+.evidence-row p {
+  font-family: var(--sans-zh);
+  font-size: clamp(1.18rem, 1.45vw, 1.65rem);
+  line-height: 1.45;
+  color: rgba(var(--paper-rgb), .78);
+}
+.evidence-row span {
+  font-family: var(--mono);
+  font-size: clamp(.72rem, .75vw, .86rem);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(var(--paper-rgb), .45);
+  text-align: left;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="第3章 p34" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">第 3 章 · 可观测性工程</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">不通过可观测性扩展系统的经验教训</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">Parse 的真实案例：传统监控为什么在分布式系统中失效</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Charity Majors</div>
+    <div>p34 ,  p41</div>
+  </div>
+</section>
+
+<!-- 02 Parse 语境 L5 人物三列 -->
+<section class="slide light" data-theme="light" data-screen-label="Context" data-source="p34 关于Parse的介绍">
+  <div class="chrome"><div>背景 · Parse</div><div>02 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">Parse 是一个移动后端即服务平台，在微服务这个词出现之前就有了微服务架构</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Timeline</div><p class="body-zh" style="margin-top:1vh">2012 年测试阶段加入，2013 年被 Facebook 收购。从 6 万托管应用增长到 100 万以上</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Stack</div><p class="body-zh" style="margin-top:1vh">Ruby on Rails + MongoDB + MySQL + Redis，多租户共享池架构，开发速度优先</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Principle</div><p class="body-zh" style="margin-top:1vh">初创公司失败不是因为选错工具，而是因为没有产品需求或时机不对。选对堆栈让你快速进入市场</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Charity Majors · p34</div><div>02 / 16</div></div>
+</section>
+
+<!-- 03 死亡金属乐队危机 L3-c 上下宣告 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Crisis" data-source="p34-35 死亡金属乐队导致宕机" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>危机 · 第一次崩溃</div><div>03 / 16</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">2012 年 8 月</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">每次乐队直播，Parse 都在几秒钟内倒下</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">一支挪威死亡金属乐队推广的应用首次挤进 iTunes Store 前十。对乐队来说是晚上，对 Parse 是黎明的崩溃。我们遇到了系统扩容的问题</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Charity Majors · p35</div><div>03 / 16</div></div>
+</section>
+
+<!-- 04 传统扩展实践的旧方法 L24 摘录侧注 -->
+<section class="slide light" data-theme="light" data-screen-label="Old Way" data-source="p35 Parse的扩展实践">
+  <div class="chrome"><div>实践 · 旧方法</div><div>04 / 16</div></div>
+  <div class="slide-body">
+    <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+      <div class="anim-item">
+        <div class="kicker">Pattern</div>
+        <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">深入研究，复盘剖析，编写运维手册，制作自定义仪表盘，然后认为问题已解决<cite>p39 Parse的转变实践</cite></div>
+      </div>
+      <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+        <div class="meta" style="color:var(--accent);opacity:1">Why It Fails</div>
+        <p class="lead-zh" style="max-width:18em">这套模式非常适合单体应用，那里很少有真正的新问题</p>
+        <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">但在 Parse 每天遇到一连串截然不同的问题后，所有花在运维手册和自定义仪表盘上的时间都是浪费的。因为再也不会看到同样的问题了</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Charity Majors · p39</div><div>04 / 16</div></div>
+</section>
+
+<!-- 05 架构缺陷 L25 段落拆解 -->
+<section class="slide light" data-theme="light" data-screen-label="Architecture" data-source="p35 Unicorn 工作池架构">
+  <div class="chrome"><div>架构 · 单线程的代价</div><div>05 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">Ruby 不是多线程语言，API 工作池是一个固定池</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Mechanism</div><p class="body-zh" style="margin-top:1vh">任何一个后端稍微变慢，工作池就饱和。后端完全无响应时，整个 Parse 在几秒钟内全部变慢</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Workaround</div><p class="body-zh" style="margin-top:1vh">过度提高配置规格：Unicorn 在正常稳定状态下以 20% 利用率运行，勉强应对可控的访问暴涨</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Decision</div><p class="body-zh" style="margin-top:1vh">放弃 Ruby on Rails，用 Go 完全重写。花了两年多时间重写之前花了一年编写的代码</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Charity Majors · p35</div><div>05 / 16</div></div>
+</section>
+
+<!-- 06 核心判断 L3-a 社论式 bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p36 传统工具不足">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Core Judgment</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7vw,6.8rem);max-width:11em;letter-spacing:0">我们所知道的一切最佳实践，都源于传统方法，根本无法解决分布式微服务时代的问题</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Charity Majors · p36</div><div>06 / 16</div></div>
+</section>
+
+<!-- 07 传统工具无法解决的五类问题 L27 观点加例证 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Problems" data-source="p36 上一代工具不足之处">
+  <div class="chrome" style="width:100%"><div>问题 · 五类新型故障</div><div>07 / 16</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.6rem,3vh,2.4rem);margin:0 auto">
+      <h2 class="h1-zh anim-item" style="max-width:14em;text-align:center;margin:0 auto">上一代工具是为一个可以提前预知问题的世界而建造的</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(1rem,2.5vw,2.5rem)">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">01</div><p class="body-zh" style="margin-top:.6vh;max-width:16em">每隔一天，全新的用户飙升到应用商店前十，而前十用户的负载不是崩溃原因</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">02</div><p class="body-zh" style="margin-top:.6vh;max-width:16em">慢查询列表只是症状而不是原因：微小写入操作的锁饱和让读取变慢</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">03</div><p class="body-zh" style="margin-top:.6vh;max-width:16em">99.9% 可靠性中，0.1% 不是平均分配的：可能只有一个分片被 100% 损坏</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">04</div><p class="body-zh" style="margin-top:.6vh;max-width:16em">每天可能出现新机器人账户，导致 MySQL 主服务器整体系统饱和</p></div>
+        <div class="anim-item" style="grid-column:1/-1;max-width:36em;margin:0 auto"><div class="meta" style="color:var(--accent);opacity:1">05</div><p class="body-zh" style="margin-top:.6vh">商业模式从产品变成平台：用户可以在托管服务上运行任何代码、任何查询，系统控制权丧失</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Charity Majors · p36</div><div>07 / 16</div></div>
+</section>
+
+<!-- 08 从 LAMP 到分布式 L29 文章脉络 timeline-row -->
+<section class="slide light" data-theme="light" data-screen-label="Evolution" data-source="p36-38 向现代系统演进">
+  <div class="chrome"><div>演进 · 系统架构</div><div>08 / 16</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:14em;margin:0 auto clamp(2rem,5vh,4rem)">从单体 LAMP 堆栈到分布式微服务的四次转变</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">转变一</div><p class="body-zh" style="margin-top:1vh">从分解到一个变成多个：一个数据库分裂成多种存储系统</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">转变二</div><p class="body-zh" style="margin-top:1vh">从单体应用迁移到许多较小的微服务，各服务独立演进</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">转变三</div><p class="body-zh" style="margin-top:1vh">从大铁服务器转向容器、函数、无服务器和临时弹性资源</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">转变四</div><p class="body-zh" style="margin-top:1vh">运维和开发之间的组织墙倒塌，代码部署不再冻结，渐进式交付成为常态</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p37, 38 · 可观测性工程</div><div>08 / 16</div></div>
+</section>
+
+<!-- 09 二阶效应 L9 三列要点 -->
+<section class="slide light" data-theme="light" data-screen-label="Second Order" data-source="p38 二阶效应">
+  <div class="chrome"><div>效应 · 二阶</div><div>09 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">分布式的二阶效应：服务行为从根本上变得不可预测</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Availability</div><p class="body-zh" style="margin-top:1vh">从简单二元可用/不可用，变成任意数量的部分故障或无法启用的可用性</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Deployment</div><p class="body-zh" style="margin-top:1vh">代码部署与功能发布解耦：通过功能标志控制，部署不再等于立即上线</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Failure Modes</div><p class="body-zh" style="margin-top:1vh">已知故障的告警系统严重不足：以前从未遇到过、可能再也不会遇到的未知故障频繁发生</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p38 · 可观测性工程</div><div>09 / 16</div></div>
+</section>
+
+<!-- 10 三阶效应：工程师与生产的关系 L24 摘录侧注 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Third Order" data-source="p38-39 向现代化实践变革">
+  <div class="chrome" style="width:100%"><div>效应 · 三阶</div><div>10 / 16</div></div>
+  <div class="slide-body">
+    <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+      <div class="anim-item">
+        <div class="kicker">Shift</div>
+        <div class="callout callout-mark" style="max-width:14em;margin-top:clamp(1rem,2vh,1.6rem)">焦点正在发生巨大的引力转移，从前期生产的重要性转移到熟悉生产的重要性<cite>p39</cite></div>
+      </div>
+      <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+        <div class="meta" style="color:var(--accent);opacity:1">What Changed</div>
+        <p class="lead-zh" style="max-width:20em">不同用户通过不同路由产生差异巨大的体验</p>
+        <p class="body-zh" style="max-width:20em;margin-top:clamp(.8rem,1.5vh,1.4rem)">告警转向仅关注直接影响用户体验的症状。调试器不能再附加到单一运行时。已知重复性故障不再是常态，自动恢复成为新模式</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p39 · 可观测性工程</div><div>10 / 16</div></div>
+</section>
+
+<!-- 11 玻璃城堡 L3-d 偏置式 bare -->
+<section class="slide light bare" data-theme="light" data-screen-label="Glass Castle" data-source="p39 玻璃城堡隐喻">
+  <div class="slide-body bottom" style="align-items:flex-start;justify-content:flex-end;padding-bottom:clamp(5rem,13vh,10rem)">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.2rem,3vh,2rem)">Metaphor</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7vw,6.8rem);max-width:10em;letter-spacing:0">生产早已不再是易碎的玻璃城堡</h2>
+      <p class="lead-zh anim-item" style="max-width:20em;margin-top:clamp(1.6rem,3vh,2.6rem);opacity:.6">越早改变这种观念，团队的生活品质和客户的体验就会越早得到改善</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Charity Majors · p39</div><div>11 / 16</div></div>
+</section>
+
+<!-- 12 英雄文化 L3-c 上下宣告 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Hero Culture" data-source="p40 英雄文化" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>文化 · 英雄</div><div>12 / 16</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Anti-pattern</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">英雄文化太可怕了。对公司不好，对英雄也不好，而且它完全不能规模化扩展</h2>
+      <p class="body-zh anim-item" style="max-width:26em;opacity:.62">蜜月期间凌晨 3 点被电话叫醒，因为 MongoDB 删除了 API 服务。在内心深处，我暗自感觉很棒，因为我被需要。但这对每一个后来加入的工程师来说非常令人沮丧</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Charity Majors · p40</div><div>12 / 16</div></div>
+</section>
+
+<!-- 13 Scuba 发现 L27 观点加例证 -->
+<section class="slide light" data-theme="light" data-screen-label="Scuba" data-source="p40 Scuba 工具">
+  <div class="chrome"><div>转折 · Scuba</div><div>13 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">Scuba 永久性地改变了我对系统进行故障排查的方法</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">What It Is</div><p class="body-zh" style="margin-top:1vh">Facebook 的实时分析数据管理系统，每秒数百万行写入，全内存存储，跨数百台服务器聚合</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">The Key</div><p class="body-zh" style="margin-top:1vh">在无限高基数的维度上近乎实时地对数据进行切片：沿着面包屑的轨迹找到解决方案</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Result</div><p class="body-zh" style="margin-top:1vh">发现新问题根源的时间从几天下降到几分钟甚至几秒钟。不需要提前预测问题</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Charity Majors · p40</div><div>13 / 16</div></div>
+</section>
+
+<!-- 14 故障定位民主化 L11 嘉宾观点 bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Democratizing" data-source="p41 故障定位民主化">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">Guest View</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">最好的故障定位者不再是在那里工作时间最长的人，而是最好奇、最坚持、最有素养的分析工具使用者</h2>
+      <p class="body-zh anim-item" style="max-width:24em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">Charity Majors · 这有效地使对系统及其工程师共享智慧的访问大众化</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p41 · 可观测性工程</div><div>14 / 16</div></div>
+</section>
+
+<!-- 15 表格：旧工具 vs 新能力 L16 -->
+<section class="slide light" data-theme="light" data-screen-label="Comparison" data-source="p40-41 旧工具与新能力对比">
+  <div class="chrome"><div>对比 · 旧 vs 新</div><div>15 / 16</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">传统工具与可观测性分析的能力差距</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>能力</th><th>传统工具（指标/日志/APM）</th><th>可观测性分析（Scuba 式）</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>问题定位方式</td><td>依赖模式匹配，提前预测问题</td><td>从症状开始，沿面包屑轨迹找到根源</td></tr>
+          <tr><td>需要的知识</td><td>锁定在单个工程师脑中的复杂知识</td><td>共享工具中的数据和方法，所有人可见</td></tr>
+          <tr><td>处理未知问题</td><td>无法调查未预测到的问题</td><td>将每个问题都视为新问题来处理</td></tr>
+          <tr><td>跨服务诊断</td><td>需要每个存储系统的专业知识</td><td>跨多个运行时和存储系统，任意切片</td></tr>
+          <tr><td>团队协作</td><td>依赖最资深的英雄工程师</td><td>跟随彼此脚步，追寻彼此路径</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>Charity Majors · p40, 41</div><div>15 / 16</div></div>
+</section>
+
+<!-- 16 核心总结 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p34-41 全章提炼">
+  <div class="chrome" style="width:100%"><div>核心总结</div><div>16 / 16</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.8rem,4vh,3rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">传统监控工具为可提前预知问题的世界而建造。当商业模式从产品变成平台、用户可以在托管服务上运行任意代码时，这套工具链从根本上失效</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">分布式系统带来了三阶效应：服务从二元可用变成部分故障，部署与发布解耦，已知重复性故障被未知故障取代，团队的预生产硬化思维必须扭转为生产优先</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">英雄文化无法规模化。最资深的工程师作为故障定位终点，永远无法享受真正的假期，而后来加入的工程师永远不可能成为最好的故障定位者。这种模式完全没必要</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">高基数实时切片分析（Scuba）不可逆转地改变了做法：从依赖个人经验和模式匹配，变成从数据开始、有条不紊地提问、追踪、直到找到根源。最好的故障定位者变成了最好奇的分析工具使用者</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">一旦有能力提出任何问题、链路追踪每一步、通过观测应用程序输出来了解任何内部系统状态，传统工具的局限性就被消除了。可观测性使实践现代化成为可能</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>第 3 章 · p34, 41</div><div>16 / 16</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-obseng-03';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

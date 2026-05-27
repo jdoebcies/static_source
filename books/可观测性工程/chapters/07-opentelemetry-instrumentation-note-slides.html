@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>遵照OpenTelemetry的探针 · 可观测性工程 第7章</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/*
+ * Palette thesis
+ * OpenTelemetry instrumentation sits at the intersection of open standards and distributed systems.
+ * The deep slate ink reflects infrastructure code and nighttime debugging.
+ * Warm off-white paper keeps long code-reading sessions comfortable.
+ * The deep teal accent evokes open-source green while staying cool and professional,
+ * suiting both the CNCF ecosystem and the precision demanded by observability engineering.
+ */
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #1a6b5a;
+  --accent-rgb: 26,107,90;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.slide-img {
+  overflow: hidden; position: relative;
+  background: rgba(128,128,128,.08); border-radius: 6px;
+}
+.slide-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.img-cap { font-family: var(--mono); font-size: clamp(.7rem, .75vw, .85rem); letter-spacing: .12em; text-transform: uppercase; opacity: .6; margin-top: .8vh; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: left;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p60 第7章" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第7章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">遵照OpenTelemetry的探针</h1>
+      <p class="lead-zh anim-item" style="max-width:20em;opacity:.62">一次埋点，发送到任意后端</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Liz Fong-Jones &amp; George Miranda</div>
+    <div>p60-66</div>
+  </div>
+</section>
+
+<!-- 02 探针的困境 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p60 探针简介" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 厂商锁定</div><div>02 / 14</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Instrumentation Lock-in</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">每次切换后端就要用不同库重写整个探针过程</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">厂商特定的探针方法造成锁定，浪费代码并使测量开销加倍</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p60</div><div>02 / 14</div></div>
+</section>
+
+<!-- 03 OTel标准演进 L29 -->
+<section class="slide light" data-theme="light" data-screen-label="Chapter Flow" data-source="p61 开源探针标准">
+  <div class="chrome"><div>演进 · OpenTelemetry</div><div>03 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">从分裂到统一：开源探针标准的演进路径</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">2016</div><p class="body-zh" style="margin-top:1vh">OpenTracing 由CNCF托管，提供跨语言链路追踪库</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">2017</div><p class="body-zh" style="margin-top:1vh">OpenCensus 由Google资助，补充指标收集能力</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">2019</div><p class="body-zh" style="margin-top:1vh">两者合并为OpenTelemetry，由CNCF负责</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">现在</div><p class="body-zh" style="margin-top:1vh">OTel成为应用探针唯一的开源标准</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p61</div><div>03 / 14</div></div>
+</section>
+
+<!-- 04 OTel核心组件速查 L16 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p61-62 OpenTelemetry概念速成">
+  <div class="chrome"><div>组件 · OpenTelemetry</div><div>04 / 14</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">OpenTelemetry核心组件速查</h2>
+      <table class="data-table anim-item">
+        <thead>
+          <tr><th>组件</th><th>职责</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>API</td><td>规格部分，开发者增加探针的接口，不关心底层实现</td></tr>
+          <tr><td>SDK</td><td>追踪链路状态并批量发送数据的具体实现</td></tr>
+          <tr><td>Tracer</td><td>追踪进程内活跃span，允许访问、修改、结束span</td></tr>
+          <tr><td>Meter</td><td>追踪进程内可用指标的报告，增减数值或按周期检索</td></tr>
+          <tr><td>Context Propagation</td><td>从请求头还原上下文，进程内追踪并在传递时序列化</td></tr>
+          <tr><td>Exporter</td><td>将内存对象转换为特定格式发送到本地或远端后端</td></tr>
+          <tr><td>Collector</td><td>独立二进制进程，代理或sidecar，接收处理转发遥测数据</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p61-62</div><div>04 / 14</div></div>
+</section>
+
+<!-- 05 自动化探针的价值 L25 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p62 自动化探针">
+  <div class="chrome"><div>段落拆解 · 自动化探针</div><div>05 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">自动化探针让你在几小时而非几个月内获得洞见</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">分布式链路追踪最大挑战是获得足够数据来匹配对系统的已有认知</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">OTel自动为gRPC入向出向、HTTP、数据库、缓存等产生链路span</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">至少能让你在混乱的微服务网络中了解谁调用了谁</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p62</div><div>05 / 14</div></div>
+</section>
+
+<!-- 06 框架包装与拦截模式 L24 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p62-63 自动化探针代码示例">
+  <div class="chrome"><div>Excerpt · 包装模式</div><div>06 / 14</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">框架在每次请求前后调用OTel，自动读取上下文传递元数据，为每个请求创建span<cite>p62-63</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">Go语言中配置是显式的，使用包装模式打包HTTP处理器函数；gRPC通过拦截器接口注册OTel探针</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">Java和.NET等语言可用OTel Agent在运行时自动推测框架并注册</p>
+    </div>
+  </div>
+  <div class="foot"><div>p62-63</div><div>06 / 14</div></div>
+</section>
+
+<!-- 07 自定义探针宣言 L3-a -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p63 增加自定义探针">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">自定义探针</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">把代码的各部分可视化</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p63</div><div>07 / 14</div></div>
+</section>
+
+<!-- 08 span的开始与结束 L25 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p63-64 链路span的开始和结束">
+  <div class="chrome"><div>段落拆解 · Span机制</div><div>08 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">一句代码即可捕获特定代码段的完整上下文</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">Tracer将当前活跃span信息存储在context.Context的一个key中</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">创建子span、开启计时器、计算时长，在defer中完成并传输给后端</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">自定义探针提供商业逻辑上下文，有效降低未来调试问题的难度</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p63-64</div><div>08 / 14</div></div>
+</section>
+
+<!-- 09 给事件增加宽字段 L27 -->
+<section class="slide light" data-theme="light" data-screen-label="View + Examples" data-source="p64 给事件增加宽的字段">
+  <div class="chrome"><div>例证 · 宽字段</div><div>09 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">给遥测数据增加任意维度的自定义字段</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">键值对属性</div>
+          <p class="body-zh">设置http.code整数值和app.user字符串，在span结束时一并写入</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">Schema管理</div>
+          <p class="body-zh">通过代码常量管理schema，第18章将讨论通过遥测pipeline规范化</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">临时缓存</div>
+          <p class="body-zh">每个请求执行时传输临时缓存，OTel在span结束前保留所有字段</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p64</div><div>09 / 14</div></div>
+</section>
+
+<!-- 10 指标告诫 L24 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Excerpt" data-source="p64-65 记录process-wide指标">
+  <div class="chrome"><div>Excerpt · 指标告诫</div><div>10 / 14</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;margin-top:clamp(1rem,2vh,1.6rem)">强烈建议不要使用大多数程序级别的指标，这些指标死板又不灵活，会将用户局限住<cite>p64-65</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">购物车数值最好与处理购物车的span关联，而非由指标系统聚合</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">只在需要精确非采样计数或周期性process-wide数值时才使用指标，第9章将详细解释</p>
+    </div>
+  </div>
+  <div class="foot"><div>p64-65</div><div>10 / 14</div></div>
+</section>
+
+<!-- 11 发送数据 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p65-66 发送探针数据到后端系统" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 数据发送</div><div>11 / 14</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Export Strategy</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">OTLP无处不在，最明智的默认做法是配置gRPC exporter而非厂商自定义代码</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">OTel默认发送到本地sidecar端口，但可在启动代码中明确指定</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p65-66</div><div>11 / 14</div></div>
+</section>
+
+<!-- 12 两种发送方式 L27 -->
+<section class="slide light" data-theme="light" data-screen-label="View + Examples" data-source="p65-66 发送数据到后端">
+  <div class="chrome"><div>例证 · 数据导出</div><div>12 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">发送数据到后端系统的两种路径</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">Collector代理</div>
+          <p class="body-zh">通过OTel Collector作为代理或sidecar接收、处理并转发到一个或多个目标端</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">直接导出</div>
+          <p class="body-zh">在程序启动时实例化一个或多个exporter，将span和指标转换成后端所需格式</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">多路发送</div>
+          <p class="body-zh">OTel允许同时发送到多个telemetry sink，可用于并行评估不同工具</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p65-66</div><div>12 / 14</div></div>
+</section>
+
+<!-- 13 核心总结 1/2 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p60-66 第7章结论">
+  <div class="chrome"><div>核心总结</div><div>13 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">OTel是厂商中立的开源探针标准，一次埋点可发送到任意后端，消除厂商锁定。它捕获链路、指标、日志，继承自OpenTracing和OpenCensus</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">七大核心组件分工明确：API定义接口，SDK实现传输，Tracer管理span，Meter报告指标，Context传播上下文，Exporter格式化输出，Collector代理转发</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">自动化探针通过包装、拦截或中间件模式，为gRPC、HTTP、数据库、缓存等常见框架自动产生链路span，几小时就能在混乱的微服务网络中看清谁调用了谁</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p60-66</div><div>13 / 14</div></div>
+</section>
+
+<!-- 14 核心总结 2/2 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p60-66 第7章结论">
+  <div class="chrome"><div>核心总结</div><div>14 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">自定义探针创建子span并在defer中完成计时和传输，可添加任意维度的业务字段（客户ID、分片ID、错误等），让商业逻辑上下文成为调试的核心线索</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">发送数据推荐OTLP gRPC exporter而非厂商自定义代码；多个exporter可同时发送到多个后端，支持并行评估不同可观测性工具</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">指标有固有限制，优先在span上记录属性；只在需要精确非采样计数或周期性process-wide数值时才使用指标。第9章将详细解释指标的局限性</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p60-66</div><div>14 / 14</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

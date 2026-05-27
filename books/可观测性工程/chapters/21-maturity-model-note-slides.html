@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>可观测性成熟度模型 · 第21章</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: teal-green reflects maturity progression & capability assessment,
+     distinct from the standard calm blue of observability tooling */
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #3a7d6e;
+  --accent-rgb: 58,125,110;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+.data-table.left td,
+.data-table.left th {
+  text-align: left;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="第21章·可观测性成熟度模型" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第21章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">可观测性成熟度模型</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">制定一个计划，衡量目标投资领域的进展和优先级，传播可观测性文化</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Charity Majors · Liz Fong-Jones · George Miranda</div>
+    <div>p189,195</div>
+  </div>
+</section>
+
+<!-- 02 L3-a 社论式 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p189 21.1·关于成熟度模型的说明">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">成熟度模型的核心教训</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">没有一刀切的适用于所有组织的模型</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p189 · 21.1</div><div>02 / 16</div></div>
+</section>
+
+<!-- 03 段落拆解 L25 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p189 21.1·成熟度模型的局限与正确用法">
+  <div class="chrome"><div>段落拆解 · 成熟度模型</div><div>03 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">成熟度模型是批判性起点，不是评分终点</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">CMM 诞生于 90 年代 CMU 软件工程研究所，最初用于评估供应商交付软件开发项目的能力</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">成熟度模型有助于组织进行能力对比或设置期望实践作为目标，但其作者偏见融入了最终状态的假设中</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">你必须创建假设来测试关于自己组织内任何成熟度模型的猜想，并根据特定限制评估可行路径</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p189 · 21.1</div><div>03 / 16</div></div>
+</section>
+
+<!-- 04 大数字 L12 -->
+<section class="slide light" data-theme="light" data-screen-label="Data" data-source="p190 21.2·调查数据" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>数据 · 可观测性采用调查</div><div>04 / 16</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="stat-num anim-item">3×</div>
+    <h2 class="h2-zh anim-item" style="max-width:14em;margin-top:clamp(1rem,2vh,2rem)">软件质量信心达到三倍</h2>
+    <p class="body-zh anim-item" style="max-width:22em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.6">未采用可观测性的团队将一半以上的时间花在与发布新功能无关的工作上</p>
+  </div>
+  <div class="foot" style="width:100%"><div>p190 · 21.2</div><div>04 / 16</div></div>
+</section>
+
+<!-- 05 L3-c 上下宣告 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p190 21.3·OMM目标" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · OMM 核心目标</div><div>05 / 16</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">可观测性成熟度模型</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">可持续系统和工程师的生活质量</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">可观测的系统更容易拥有和维护，从而减少琐事、降低倦怠概率、提高团队稳定性</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p190 · 21.3</div><div>05 / 16</div></div>
+</section>
+
+<!-- 06 表格 L16 五项能力概览 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p191,195 21.4·能力参考">
+  <div class="chrome"><div>表格 · 能力概览</div><div>06 / 16</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">OMM 五项关键能力参考</h2>
+      <table class="data-table keyed left anim-item">
+        <thead>
+          <tr><th>能力</th><th>做得好</th><th>做得不好</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>弹性应对系统故障</td><td>正常运行时间达标、值班有效、压力可控</td><td>额外成本高、事件频繁持久、告警疲劳</td></tr>
+          <tr><td>交付高质量代码</td><td>代码稳定、专注客户方案、调试直观</td><td>客户支持成本高、大量时间修 bug、不愿部署</td></tr>
+          <tr><td>管理复杂性和技术债务</td><td>大部分时间推进核心业务、少量被动工作</td><td>触及边界时重建、害怕变更代码</td></tr>
+          <tr><td>以可预测的节奏发布</td><td>频繁发布、代码快速投产、快速回滚</td><td>发布不频繁、一次大量变更、回避特定时段部署</td></tr>
+          <tr><td>理解用户行为</td><td>探针易添加、KPI 可视化、产品市场契合</td><td>缺乏数据决策、开发无影响感、晚期才收反馈</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p191,195 · 21.4</div><div>06 / 16</div></div>
+</section>
+
+<!-- 07 L27 观点加例证 弹性 -->
+<section class="slide light" data-theme="light" data-screen-label="Evidence" data-source="p191,192 21.4.1·弹性应对系统故障">
+  <div class="chrome"><div>能力详解 · 弹性</div><div>07 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">弹性：团队及其支持系统的适应能力</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">技术指标</div><p class="body-zh">检测问题所需的时间，初步缓解所需的时间，充分了解并解决风险所需的时间。DORA 2018 将精英绩效者 MTTR 定义为小于一小时</p></div>
+        <div class="anim-item"><div class="kicker">社会指标</div><p class="body-zh">值班人员是否可以保持长期稳定？是否存在系统性计划来教育负责生产的每个人，还是每次响应都是全员参与的紧急情况？</p></div>
+        <div class="anim-item"><div class="kicker">可观测性关联</div><p class="body-zh">告警具有相关性、针对性和可操作性。上下文丰富的事件支持高效故障排查。高基数数据钻取和快速聚合加速问题定位</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p191,192 · 21.4.1</div><div>07 / 16</div></div>
+</section>
+
+<!-- 08 L24 摘录侧注 代码质量 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p192,193 21.4.2·交付高质量代码">
+  <div class="chrome"><div>Excerpt · 代码质量</div><div>08 / 16</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">代码质量必须通过验证其可运维性和可扩展性来衡量<cite>p192 · 21.4.2</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">传统验证技术在无菌实验室环境中有用，但无法验证代码在生产系统中的实际运行行为</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">高质量的可观测性允许使用相同的工具在一台或一万台机器上调试代码。工程师可以在部署期间观察运行中的代码，快速收到告警，在问题对用户可见之前修复</p>
+    </div>
+  </div>
+  <div class="foot"><div>p192,193 · 21.4.2</div><div>08 / 16</div></div>
+</section>
+
+<!-- 09 L27 观点加例证 技术债务 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Evidence" data-source="p193 21.4.3·管理复杂性和技术债务">
+  <div class="chrome"><div>能力详解 · 技术债务</div><div>09 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">技术债务不一定是坏事</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">判断</div><p class="body-zh">工程组织经常面临短期收益和长期结果之间的选择。如果存在解决技术债务或减轻负面影响的具体计划，选择短期收益是正确的决定</p></div>
+        <div class="anim-item"><div class="kicker">风险</div><p class="body-zh">不受管理的技术债务导致维护越来越昂贵，未来修订变得相互依赖，长期成本更高。最坏的情况是闹鬼的墓地效应：人们害怕对代码进行变更</p></div>
+        <div class="anim-item"><div class="kicker">可观测性关联</div><p class="body-zh">可观测性使团队能够了解端到端性能，在探索系统未知部分时根据线索找到正确问题，识别正确部分进行优化而非随机猜测</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p193 · 21.4.3</div><div>09 / 16</div></div>
+</section>
+
+<!-- 10 L24 摘录侧注 发布节奏 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p193,194 21.4.4·以可预测的节奏发布">
+  <div class="chrome"><div>Excerpt · 发布节奏</div><div>10 / 16</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">可观测性是让你对发布充满信心的方式<cite>p194 · 21.4.4</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">CI/CD 工具和流程只是稳健开发周期所需的基本构建块，每个企业都需要可预测的、稳定的、频繁的发布节奏来保持竞争力</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">可观测性显示测试中的性能下降或构建过程中的错误。探针让你得知构建是否良好、添加的功能是否符合预期</p>
+    </div>
+  </div>
+  <div class="foot"><div>p193,194 · 21.4.4</div><div>10 / 16</div></div>
+</section>
+
+<!-- 11 L27 观点加例证 用户行为 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Evidence" data-source="p194,195 21.4.5·理解用户行为">
+  <div class="chrome"><div>能力详解 · 用户行为</div><div>11 / 16</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">理解用户行为：关乎产品与市场的契合度</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">产品信号</div><p class="body-zh">探针很容易添加和增长。开发人员可以轻松访问客户成果和系统利用率的 KPI 并可视化。功能标志可以在完全上线前与一小部分用户快速迭代</p></div>
+        <div class="anim-item"><div class="kicker">反模式</div><p class="body-zh">产品经理没有足够数据来支撑决策。开发人员认为工作没有影响。产品功能范围扩大，由委员会设计，直到产品生命周期后期才收到客户反馈</p></div>
+        <div class="anim-item"><div class="kicker">可观测性关联</div><p class="body-zh">可观测性鼓励团队提出开放式问题并迭代。借助事件驱动的数据分析，产品经理可以调查和迭代功能方向，真正了解变更如何满足业务目标</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p194,195 · 21.4.5</div><div>11 / 16</div></div>
+</section>
+
+<!-- 12 双张力 L30 组织使用 -->
+<section class="slide light" data-theme="light" data-screen-label="Tension" data-source="p195 21.5·在你的组织中使用OMM">
+  <div class="chrome"><div>组织应用 · 双重现实</div><div>12 / 16</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">能力推进不是线性的</h2>
+      <p class="body-zh" style="max-width:15em">可观测性与每一种能力都交织在一起，一种能力的改进有时会带动其他能力的结果。流程展开的方式因每个组织的需求而异</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">需要明确的所有权和赞助</h2>
+      <p class="body-zh" style="max-width:15em">除非在资金和时间方面拥有明确的所有权、责任和赞助，否则很难取得进展。没有高管赞助，团队只能在孤岛内做小增量改进</p>
+    </div>
+  </div>
+  <div class="foot"><div>p195 · 21.5</div><div>12 / 16</div></div>
+</section>
+
+<!-- 13 嘉宾观点 L11 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="p191 21.4·持续改进" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">Guest View</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">可观测性实践必须成为开发团队的第二天性</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">就像现在任何实践 CI/CD 的现代组织中的工程师不会想到在没有测试的情况下提交代码一样</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p191 · 21.4</div><div>13 / 16</div></div>
+</section>
+
+<!-- 14 核心总结 L32 1/2 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p189,195 核心总结">
+  <div class="chrome"><div>核心总结</div><div>14 / 16</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">成熟度模型没有一刀切的方案，但可以作为批判性起点，帮助你识别可量化目标并创建适合自己组织的定制实现路径</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">OMM 的目标是可持续系统和工程师的生活质量。可观测的系统减少琐事，让工程师将更多时间花在为客户创造价值的功能上</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">软件质量信心达到三倍。未采用团队将一半以上时间花在与发布新功能无关的工作上</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">OMM 将可观测性视为社会技术问题：工具质量取决于添加探针的难易程度、数据的粒度以及它是否可以回答人类提出的任意问题</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p189,195</div><div>14 / 16</div></div>
+</section>
+
+<!-- 15 核心总结 L32 2/2 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p189,195 核心总结">
+  <div class="chrome"><div>核心总结</div><div>15 / 16</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">建立可观测性能力是一项永远无法完成的追求。当组织性肌肉记忆使这些能力成为第二天性并得到系统支持时，就表明达到了更高一级的成熟度</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">五项关键能力：弹性应对系统故障、交付高质量代码、管理复杂性和技术债务、以可预测的节奏发布、理解用户行为。每一项都直接影响业务成果</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">07</div>
+        <p class="body-zh">在组织中使用 OMM 需要明确的所有权和高管赞助。Wardley mapping 可以帮助了解能力之间的优先级和相互依赖关系</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">08</div>
+        <p class="body-zh">优先考虑最直接影响业务瓶颈的能力。流程展开方式因每个组织的需求而异，从哪里开始取决于你当前的专业领域</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p189,195</div><div>15 / 16</div></div>
+</section>
+
+<!-- 16 结尾回扣 L21 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Closing" data-source="p195 21.6·结论" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性成熟度模型</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em">衡量期望的结果，创建自己的定制化实现路径</h2>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">成熟度模型是一个起点。有了它，组织就有了开始向自己提问的结构和工具，以及解释自己现在所处的位置和应该前进的目标的上下文</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p195 · 21.6</div><div>16 / 16</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-21-maturity';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

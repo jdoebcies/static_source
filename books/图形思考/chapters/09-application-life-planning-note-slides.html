@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>多角度思维练习与人生规划</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: 职业规划方法论章节，需要沉稳、可信赖的底色。
+     深铁灰做舞台，暖米白做证据页，橙棕做章节锚点（呼应原书橙色点缀），暖灰做次级信息。*/
+  --ink:        #1e2229;
+  --ink-rgb:    30,34,41;
+  --paper:      #faf7f2;
+  --paper-rgb:  250,247,242;
+  --accent:     #c75b2e;
+  --accent-rgb: 199,91,46;
+  --muted:      #8a8078;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0; width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.note-stack { width: var(--w-default); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(2rem, 4vh, 3.6rem); }
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+
+.center-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; text-align: center; }
+.section-title { max-width: 11em; margin: 0 auto; text-align: center; }
+.soft-note { max-width: 22em; color: rgba(var(--ink-rgb), .52); }
+.slide.dark .soft-note { color: rgba(var(--paper-rgb), .6); }
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.grid-6       { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none; padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem); left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1); z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh); font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600; color: var(--accent); opacity: .85;
+  line-height: .95; letter-spacing: 0;
+}
+
+/* ===== 图形可视化 ===== */
+.diagram-box {
+  border: 1.5px solid rgba(var(--ink-rgb), .18);
+  padding: clamp(1rem, 2vw, 1.8rem);
+  background: rgba(var(--ink-rgb), .03);
+}
+.slide.dark .diagram-box {
+  border-color: rgba(var(--paper-rgb), .15);
+  background: rgba(var(--paper-rgb), .04);
+}
+
+/* Pyramid rows */
+.pyramid { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.pyramid-row {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--sans-zh); font-weight: 500;
+  font-size: clamp(1rem, 1.3vw, 1.4rem);
+  color: rgba(var(--ink-rgb), .82);
+  border: 1.5px solid rgba(var(--ink-rgb), .18);
+  border-top: none; min-height: clamp(3rem, 7vh, 4.2rem);
+  text-align: center;
+}
+.slide.dark .pyramid-row {
+  color: rgba(var(--paper-rgb), .82);
+  border-color: rgba(var(--paper-rgb), .18);
+}
+
+/* Bipolar exchange */
+.bipolar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: clamp(1rem, 2vw, 2rem); }
+.bipolar-box {
+  display: flex; align-items: center; justify-content: center;
+  min-height: clamp(5rem, 12vh, 7rem);
+  border: 1.5px solid rgba(var(--ink-rgb), .18);
+  font-family: var(--serif-zh); font-weight: 700;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+}
+.slide.dark .bipolar-box { border-color: rgba(var(--paper-rgb), .18); }
+.bipolar-arrows { display: flex; flex-direction: column; gap: clamp(1.5rem, 4vh, 3rem); align-items: center; }
+
+/* Overlap circles wrapper */
+.overlap-wrap { position: relative; width: clamp(24rem, 50vw, 34rem); height: clamp(18rem, 36vh, 28rem); margin: 0 auto; }
+
+/* 2x2 Matrix */
+.matrix-2x2 { display: grid; grid-template-columns: auto 1fr 1fr; grid-template-rows: 1fr 1fr auto; gap: 0; }
+.matrix-cell {
+  display: flex; align-items: center; justify-content: center;
+  min-height: clamp(5rem, 12vh, 7rem);
+  border: 1px solid rgba(var(--ink-rgb), .14);
+  font-family: var(--sans-zh); font-size: clamp(1rem, 1.2vw, 1.3rem);
+}
+.slide.dark .matrix-cell { border-color: rgba(var(--paper-rgb), .14); }
+.matrix-label-y {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-family: var(--serif-zh); font-weight: 600;
+  font-size: clamp(1rem, 1.3vw, 1.4rem);
+  color: rgba(var(--ink-rgb), .55); padding: clamp(.5rem, 1vw, 1rem);
+}
+.slide.dark .matrix-label-y { color: rgba(var(--paper-rgb), .55); }
+.matrix-label-x {
+  text-align: center; font-family: var(--serif-zh); font-weight: 600;
+  font-size: clamp(1rem, 1.3vw, 1.4rem);
+  color: rgba(var(--ink-rgb), .55); padding: clamp(.5rem, 1vw, 1rem);
+}
+.slide.dark .matrix-label-x { color: rgba(var(--paper-rgb), .55); }
+
+/* 表格 */
+.table-wrap {
+  width: var(--w-wide); margin: 0 auto;
+  display: flex; flex-direction: column; gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%; border-collapse: separate; border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh); font-size: clamp(1.08rem, 1.22vw, 1.42rem); line-height: 1.45;
+}
+.data-table th, .data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center; vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono); font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td { background: rgba(var(--ink-rgb), .045); }
+.slide.dark .data-table td { background: rgba(var(--paper-rgb), .075); }
+.data-table.keyed td:first-child, .data-table.keyed th:first-child { text-align: left; font-weight: 600; }
+.data-table tr > *:first-child { border-radius: 6px 0 0 6px; }
+.data-table tr > *:last-child  { border-radius: 0 6px 6px 0; }
+.data-table.left td, .data-table.left th { text-align: left; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 (L1, bare) -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p158-159 应用：多角度思维练习与人生规划" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">图形思考 · 应用篇</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">多角度思维练习与人生规划</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">用五种图形，从多角度思考职业规划这一重大人生课题</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>01 / 24</div>
+  </div>
+</section>
+
+<!-- 02 L3-a 社论式观点 (bare) -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p160 图形思考 做好人生规划">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Opening</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">做重大决定时，不能只从单方面思考</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p160 图形思考 做好人生规划</div><div>02 / 24</div></div>
+</section>
+
+<!-- 03 L29 文章脉络 (timeline-row thick, --w-wide) -->
+<section class="slide light" data-theme="light" data-screen-label="Structure" data-source="p161-171 五种图形的推进顺序">
+  <div class="chrome"><div>本章脉络</div><div>03 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">五种图形，五步推进职业规划</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(.8rem,1.5vw,1.5rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 1</div><p class="body-zh" style="margin-top:1vh">金字塔图：我想做什么</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 2</div><p class="body-zh" style="margin-top:1vh">深挖图：要不要转行</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 3</div><p class="body-zh" style="margin-top:1vh">重叠图：我的优势</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 4</div><p class="body-zh" style="margin-top:1vh">双极图：公司能给我什么</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 5</div><p class="body-zh" style="margin-top:1vh">矩阵图：理想公司在哪</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p161 五种图形概览</div><div>03 / 24</div></div>
+</section>
+
+<!-- 04 L3-c 上下宣告 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p162 做好人生规划1 我想做什么" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>Step 1 · 金字塔图</div><div>04 / 24</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">职业规划的第一步</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">弄清楚自己现阶段想做什么，找到沉眠于内心深处的本心</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">人生有各种各样的准则，每一种都值得被尊重。他人无权判断我们的选择正确与否。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p162 做好人生规划1</div><div>04 / 24</div></div>
+</section>
+
+<!-- 05 金字塔图介绍 + 实战示例 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p162 金字塔图·思考实例">
+  <div class="chrome"><div>金字塔图 · 思考实例</div><div>05 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">精英管理者的职业规划路线</h2>
+      <div class="pyramid anim-item" style="width:100%;max-width:40rem">
+        <div class="pyramid-row" style="width:42%;border-top:1.5px solid rgba(var(--ink-rgb),.18)">想成为国际职场精英</div>
+        <div class="pyramid-row" style="width:62%">提高综合素质：管理＋语言＋策划</div>
+        <div class="pyramid-row" style="width:82%">想学习国际商务技术</div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:28em">从底层具体目标出发，逐层向上收敛，最终指向人生方向</p>
+    </div>
+  </div>
+  <div class="foot"><div>p162 金字塔图实例</div><div>05 / 24</div></div>
+</section>
+
+<!-- 06 L25 段落拆解: 如何使用金字塔图 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p162-163 金字塔图使用方法">
+  <div class="chrome"><div>段落拆解 · 金字塔图</div><div>06 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">答案并非一成不变，但弄清现阶段的想法很重要</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">有的人想做让世界变得更好的事，有的人更重视与家人共处的时间</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">先问自己想过怎样的人生，再将答案逐层收敛为一个方向</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">因为某个契机，想做的事可能改变，但本心会一直指引方向</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p162-163</div><div>06 / 24</div></div>
+</section>
+
+<!-- 07 实践你的金字塔 -->
+<section class="slide light" data-theme="light" data-screen-label="Practice" data-source="p163 实践·职业规划金字塔">
+  <div class="chrome"><div>实践 · 金字塔图</div><div>07 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">画出你自己的金字塔</h2>
+      <div class="pyramid anim-item" style="width:100%;max-width:40rem">
+        <div class="pyramid-row" style="width:42%;border-top:1.5px solid rgba(var(--ink-rgb),.18);color:rgba(var(--ink-rgb),.35)">?</div>
+        <div class="pyramid-row" style="width:62%;color:rgba(var(--ink-rgb),.35)">?</div>
+        <div class="pyramid-row" style="width:82%;color:rgba(var(--ink-rgb),.35)">?</div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:24em">想一想，自己应该怎样做职业规划</p>
+    </div>
+  </div>
+  <div class="foot"><div>p163 实践</div><div>07 / 24</div></div>
+</section>
+
+<!-- 08 L3-d 偏置式 转折 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Transition" data-source="p164 做好人生规划2 要不要转行" style="align-items:flex-end">
+  <div class="slide-body bottom">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.2rem,3vh,2rem)">Step 2 · 深挖图</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7vw,6.4rem);max-width:10em;letter-spacing:0">要不要转行？</h2>
+      <p class="body-zh anim-item" style="max-width:20em;margin-top:clamp(1rem,2.5vh,1.8rem);opacity:.58">如果没有弄明白原因就着急转行，未免有些草率</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p164</div><div>08 / 24</div></div>
+</section>
+
+<!-- 09 深挖图结构说明 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p164 深挖图·思考实例">
+  <div class="chrome"><div>深挖图 · 思维结构</div><div>09 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">用深挖图逐层分析转行的理由</h2>
+      <div class="anim-item" style="width:100%;max-width:46rem;text-align:center">
+        <svg viewBox="0 0 600 360" style="width:100%;max-height:38vh">
+          <rect x="200" y="10" width="200" height="50" rx="4" fill="none" stroke="var(--ink)" stroke-width="2" opacity=".7"/>
+          <text x="300" y="41" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="15" fill="var(--ink)">有没有必要转行？</text>
+          <line x1="300" y1="60" x2="300" y2="85" stroke="var(--ink)" stroke-width="1.5" opacity=".4"/>
+          <line x1="150" y1="85" x2="450" y2="85" stroke="var(--ink)" stroke-width="1.5" opacity=".4"/>
+          <line x1="150" y1="85" x2="150" y2="110" stroke="var(--ink)" stroke-width="1.5" opacity=".4"/>
+          <line x1="450" y1="85" x2="450" y2="110" stroke="var(--ink)" stroke-width="1.5" opacity=".4"/>
+          <text x="300" y="82" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="13" fill="var(--accent)">为什么？</text>
+          <rect x="30" y="110" width="240" height="48" rx="4" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".7"/>
+          <text x="150" y="132" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12.5" fill="var(--ink)">在当前环境中不能做</text>
+          <text x="150" y="150" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12.5" fill="var(--ink)">自己想做的事</text>
+          <rect x="330" y="110" width="240" height="48" rx="4" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".7"/>
+          <text x="450" y="132" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12.5" fill="var(--ink)">还有其他</text>
+          <text x="450" y="150" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12.5" fill="var(--ink)">更好的环境</text>
+          <line x1="150" y1="158" x2="150" y2="185" stroke="var(--ink)" stroke-width="1" opacity=".3"/>
+          <line x1="450" y1="158" x2="450" y2="185" stroke="var(--ink)" stroke-width="1" opacity=".3"/>
+          <rect x="30" y="185" width="240" height="48" rx="4" fill="none" stroke="var(--ink)" stroke-width="1" opacity=".5" stroke-dasharray="6,3"/>
+          <text x="150" y="215" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--muted)">原因一 ···</text>
+          <rect x="330" y="185" width="240" height="48" rx="4" fill="none" stroke="var(--ink)" stroke-width="1" opacity=".5" stroke-dasharray="6,3"/>
+          <text x="450" y="215" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--muted)">原因二 ···</text>
+        </svg>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:28em">逐层往下追问原因，直到触及真正的根</p>
+    </div>
+  </div>
+  <div class="foot"><div>p164-165 深挖图思考实例</div><div>09 / 24</div></div>
+</section>
+
+<!-- 10 深挖图剖析实例 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p165-166 深挖图·深层解析">
+  <div class="chrome"><div>深挖图 · 逐层剖析</div><div>10 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default">
+      <h2 class="h1-zh anim-item" style="max-width:13em;margin-bottom:clamp(1.6rem,3.5vh,2.6rem)">剖析完原因后，逐个确认要因</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">01</div>
+          <p class="body-zh" style="margin-top:1vh">国外业务虽然由精英团队负责，但会不会扩招？也许有一个名额</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">02</div>
+          <p class="body-zh" style="margin-top:1vh">公司方针是加强国内业务，但国外业务比例大约是多少？</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">03</div>
+          <p class="body-zh" style="margin-top:1vh">有没有向上司申请调动？有没有向公司说明自己真正的意愿？</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p166 深挖图·要因分析</div><div>10 / 24</div></div>
+</section>
+
+<!-- 11 L27 观点加例证: 转行前的其他办法 -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="p166-167 转行前的尝试办法">
+  <div class="chrome"><div>观点加例证 · 转行前</div><div>11 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">转行之前，先确认有没有可以尝试的其他办法</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">内部调动</div>
+          <p class="body-zh">也许不必转行，通过公司内部调动或参加新项目就能解决问题</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">争取机会</div>
+          <p class="body-zh">国外业务精英团队是否会扩招？可以主动申请</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">表达意愿</div>
+          <p class="body-zh">向上司说明自己真正的意愿，也许能找到折中方案</p>
+        </div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:24em;margin:0 auto">隔岸风景好，邻家芳草绿。在做出重要决定前，先冷静思考各种可能性。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p166-167</div><div>11 / 24</div></div>
+</section>
+
+<!-- 12 实践·深挖自己的转行理由 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Practice" data-source="p167 实践·转行思考">
+  <div class="chrome"><div>实践 · 深挖图</div><div>12 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">画出你自己的深挖图</h2>
+      <div class="anim-item" style="width:100%;max-width:40rem;text-align:center">
+        <svg viewBox="0 0 460 260" style="width:100%;max-height:32vh">
+          <rect x="160" y="10" width="140" height="42" rx="4" fill="none" stroke="var(--paper)" stroke-width="1.5" opacity=".5"/>
+          <text x="230" y="37" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="14" fill="var(--paper)" opacity=".6">我有没有必要转行？</text>
+          <line x1="230" y1="52" x2="230" y2="72" stroke="var(--paper)" stroke-width="1" opacity=".3"/>
+          <line x1="90" y1="72" x2="370" y2="72" stroke="var(--paper)" stroke-width="1" opacity=".3"/>
+          <line x1="90" y1="72" x2="90" y2="92" stroke="var(--paper)" stroke-width="1" opacity=".3"/>
+          <line x1="370" y1="72" x2="370" y2="92" stroke="var(--paper)" stroke-width="1" opacity=".3"/>
+          <text x="230" y="69" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--accent)" opacity=".7">为什么？</text>
+          <rect x="20" y="92" width="180" height="44" rx="4" fill="none" stroke="var(--paper)" stroke-width="1" stroke-dasharray="6,3" opacity=".4"/>
+          <text x="110" y="120" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--paper)" opacity=".5">原因一 . . .</text>
+          <rect x="260" y="92" width="180" height="44" rx="4" fill="none" stroke="var(--paper)" stroke-width="1" stroke-dasharray="6,3" opacity=".4"/>
+          <text x="350" y="120" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--paper)" opacity=".5">原因二 . . .</text>
+          <line x1="110" y1="136" x2="110" y2="158" stroke="var(--paper)" stroke-width="1" opacity=".25"/>
+          <line x1="350" y1="136" x2="350" y2="158" stroke="var(--paper)" stroke-width="1" opacity=".25"/>
+          <rect x="20" y="158" width="180" height="36" rx="4" fill="none" stroke="var(--paper)" stroke-width="1" stroke-dasharray="6,3" opacity=".3"/>
+          <text x="110" y="180" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="11" fill="var(--paper)" opacity=".35">更深原因 . . .</text>
+          <rect x="260" y="158" width="180" height="36" rx="4" fill="none" stroke="var(--paper)" stroke-width="1" stroke-dasharray="6,3" opacity=".3"/>
+          <text x="350" y="180" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="11" fill="var(--paper)" opacity=".35">更深原因 . . .</text>
+        </svg>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:24em">分析了要因之后，如果仍然觉得现在公司无法满足期望，再选择转行</p>
+    </div>
+  </div>
+  <div class="foot"><div>p167 实践</div><div>12 / 24</div></div>
+</section>
+
+<!-- 13 L3-c 上下宣告 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p168 做好人生规划3 我的优势是什么" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>Step 3 · 重叠图</div><div>13 / 24</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">职业规划第三步</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">三个技能相乘，就会变成十分稀有的技能</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">单个技能可能算不上优势，但将三个技能重合，就能找到自己的特点。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p168 做好人生规划3</div><div>13 / 24</div></div>
+</section>
+
+<!-- 14 重叠图实战示例 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p168 重叠图·思考实例">
+  <div class="chrome"><div>重叠图 · 思考实例</div><div>14 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">找出你的三个擅长技能，让它们重叠</h2>
+      <div class="anim-item" style="width:100%;max-width:38rem;text-align:center">
+        <svg viewBox="0 0 460 320" style="width:100%;max-height:34vh">
+          <circle cx="170" cy="170" r="90" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".35"/>
+          <text x="170" y="155" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="14" fill="var(--ink)" opacity=".7">管理能力</text>
+          <circle cx="290" cy="170" r="90" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".35"/>
+          <text x="290" y="155" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="14" fill="var(--ink)" opacity=".7">语言能力</text>
+          <circle cx="230" cy="250" r="90" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".35"/>
+          <text x="230" y="270" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="14" fill="var(--ink)" opacity=".7">策划能力</text>
+          <text x="230" y="195" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="15" font-weight="700" fill="var(--accent)">跨界组合</text>
+        </svg>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:28em">就单个技能而言可能算不上优势，但如果将三个技能相乘，就变成了独特的竞争力</p>
+    </div>
+  </div>
+  <div class="foot"><div>p168 重叠图实例</div><div>14 / 24</div></div>
+</section>
+
+<!-- 15 实践·分析自己的技能 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Practice" data-source="p169 实践·技能盘点">
+  <div class="chrome"><div>实践 · 重叠图</div><div>15 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">画出你自己的技能重叠图</h2>
+      <div class="anim-item" style="width:100%;max-width:38rem;text-align:center">
+        <svg viewBox="0 0 460 320" style="width:100%;max-height:34vh">
+          <circle cx="170" cy="170" r="90" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-dasharray="8,5" opacity=".3"/>
+          <text x="170" y="155" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="14" fill="var(--paper)" opacity=".4">技能一</text>
+          <text x="170" y="175" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="16" fill="var(--paper)" opacity=".3">?</text>
+          <circle cx="290" cy="170" r="90" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-dasharray="8,5" opacity=".3"/>
+          <text x="290" y="155" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="14" fill="var(--paper)" opacity=".4">技能二</text>
+          <text x="290" y="175" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="16" fill="var(--paper)" opacity=".3">?</text>
+          <circle cx="230" cy="250" r="90" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-dasharray="8,5" opacity=".3"/>
+          <text x="230" y="270" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="14" fill="var(--paper)" opacity=".4">技能三</text>
+          <text x="230" y="240" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="16" fill="var(--paper)" opacity=".3">?</text>
+          <text x="230" y="195" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="14" font-weight="600" fill="var(--accent)" opacity=".55">你的独特组合</text>
+        </svg>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:24em">列出自己较为擅长的三个技能，分析它们的组合特点</p>
+    </div>
+  </div>
+  <div class="foot"><div>p169 实践</div><div>15 / 24</div></div>
+</section>
+
+<!-- 16 L3-a 社论式 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p170 做好人生规划4 公司能给我带来什么">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Step 4 · 双极图</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:14em;letter-spacing:0">知道自己能提供什么，也要知道公司能回报什么</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p170 做好人生规划4</div><div>16 / 24</div></div>
+</section>
+
+<!-- 17 双极交换图 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p170 双极图·思考实例">
+  <div class="chrome"><div>双极图 · 思考实例</div><div>17 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">能力与报酬的交换关系</h2>
+      <div class="anim-item" style="width:100%;max-width:42rem;text-align:center">
+        <svg viewBox="0 0 520 220" style="width:100%;max-height:30vh">
+          <rect x="20" y="30" width="130" height="70" rx="4" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".7"/>
+          <text x="85" y="69" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="18" font-weight="700" fill="var(--ink)">自己</text>
+          <rect x="370" y="30" width="130" height="70" rx="4" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".7"/>
+          <text x="435" y="69" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="18" font-weight="700" fill="var(--ink)">公司</text>
+          <line x1="150" y1="52" x2="370" y2="52" stroke="var(--ink)" stroke-width="1.3" opacity=".35" marker-end="url(#arrowInk)"/>
+          <text x="260" y="44" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--ink)" opacity=".55">
+            提供：综合运用管理能力、语言能力、策划能力
+          </text>
+          <line x1="370" y1="86" x2="150" y2="86" stroke="var(--ink)" stroke-width="1.3" opacity=".35" marker-end="url(#arrowInkL)"/>
+          <text x="260" y="104" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--ink)" opacity=".55">
+            回报：新部门的领导职位
+          </text>
+          <defs>
+            <marker id="arrowInk" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="var(--ink)" opacity=".35"/></marker>
+            <marker id="arrowInkL" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="var(--ink)" opacity=".35"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:30em">公司可以提供的回报包括职位、薪资、机会、人手、福利待遇等</p>
+    </div>
+  </div>
+  <div class="foot"><div>p170 双极图实例</div><div>17 / 24</div></div>
+</section>
+
+<!-- 18 实践·你的报酬期望 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Practice" data-source="p170 实践·报酬分析">
+  <div class="chrome"><div>实践 · 双极图</div><div>18 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3.5vh,2.8rem)">
+      <h2 class="h1-zh anim-item section-title">你希望从公司获得怎样的报酬？</h2>
+      <div class="anim-item" style="width:100%;max-width:42rem;text-align:center">
+        <svg viewBox="0 0 520 200" style="width:100%;max-height:28vh">
+          <rect x="20" y="30" width="120" height="60" rx="4" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-dasharray="6,3" opacity=".4"/>
+          <text x="80" y="65" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="16" font-weight="700" fill="var(--paper)" opacity=".5">自己</text>
+          <rect x="380" y="30" width="120" height="60" rx="4" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-dasharray="6,3" opacity=".4"/>
+          <text x="440" y="65" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="16" font-weight="700" fill="var(--paper)" opacity=".5">公司</text>
+          <line x1="140" y1="48" x2="380" y2="48" stroke="var(--paper)" stroke-width="1" opacity=".25" stroke-dasharray="6,3"/>
+          <text x="260" y="40" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--paper)" opacity=".35">我能提供 . . .</text>
+          <line x1="380" y1="78" x2="140" y2="78" stroke="var(--paper)" stroke-width="1" opacity=".25" stroke-dasharray="6,3"/>
+          <text x="260" y="96" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="12" fill="var(--paper)" opacity=".35">我希望获得 . . .</text>
+        </svg>
+      </div>
+      <div class="anim-item" style="display:flex;gap:clamp(1.6rem,3vw,3rem);flex-wrap:wrap;justify-content:center">
+        <span class="body-zh" style="opacity:.5">职位</span>
+        <span class="body-zh" style="opacity:.5">薪资</span>
+        <span class="body-zh" style="opacity:.5">机会</span>
+        <span class="body-zh" style="opacity:.5">人手</span>
+        <span class="body-zh" style="opacity:.5">福利待遇</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p170 实践</div><div>18 / 24</div></div>
+</section>
+
+<!-- 19 L3-c 上下宣告 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p171 做好人生规划5 理想的公司在哪里" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>Step 5 · 矩阵图</div><div>19 / 24</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">职业规划第五步</div>
+      <h2 class="h1-zh anim-item" style="max-width:15em">以理念认同感和能力需要程度为两轴，比较多个公司</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">挑选公司的方法有很多。这里提供一个矩阵思路。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p171 做好人生规划5</div><div>19 / 24</div></div>
+</section>
+
+<!-- 20 矩阵图 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p171 矩阵图·思考实例">
+  <div class="chrome"><div>矩阵图 · 公司选择</div><div>20 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3rem)">用矩阵图定位理想公司</h2>
+      <div class="anim-item" style="width:100%;max-width:58rem;margin:0 auto;">
+        <svg viewBox="0 0 520 420" style="width:100%;max-height:40vh">
+          <!-- axes -->
+          <line x1="60" y1="360" x2="480" y2="360" stroke="var(--ink)" stroke-width="1.2" opacity=".5"/>
+          <line x1="60" y1="360" x2="60" y2="20" stroke="var(--ink)" stroke-width="1.2" opacity=".5"/>
+          <text x="270" y="395" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="13" fill="var(--ink)" opacity=".55">对公司理念的认同感</text>
+          <text x="48" y="196" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="13" fill="var(--ink)" opacity=".55" transform="rotate(-90,48,196)">公司对自己能力的需要程度</text>
+          <!-- labels -->
+          <text x="60" y="385" text-anchor="start" font-family="'Noto Sans SC',sans-serif" font-size="11" fill="var(--ink)" opacity=".4">低</text>
+          <text x="475" y="385" text-anchor="end" font-family="'Noto Sans SC',sans-serif" font-size="11" fill="var(--ink)" opacity=".4">高</text>
+          <text x="45" y="365" text-anchor="end" font-family="'Noto Sans SC',sans-serif" font-size="11" fill="var(--ink)" opacity=".4">低</text>
+          <text x="45" y="28" text-anchor="end" font-family="'Noto Sans SC',sans-serif" font-size="11" fill="var(--ink)" opacity=".4">高</text>
+          <!-- quadrant lines -->
+          <line x1="272" y1="30" x2="272" y2="360" stroke="var(--muted)" stroke-width=".8" opacity=".15"/>
+          <line x1="60" y1="195" x2="480" y2="195" stroke="var(--muted)" stroke-width=".8" opacity=".15"/>
+          <!-- B公司: top-left -->
+          <circle cx="140" cy="100" r="40" fill="none" stroke="var(--muted)" stroke-width="1.2" opacity=".4"/>
+          <text x="140" y="105" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="15" fill="var(--muted)">B公司</text>
+          <!-- C公司: bottom-right -->
+          <circle cx="390" cy="290" r="40" fill="none" stroke="var(--muted)" stroke-width="1.2" opacity=".4"/>
+          <text x="390" y="295" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="15" fill="var(--muted)">C公司</text>
+          <!-- A公司: top-right (ideal) -->
+          <circle cx="390" cy="100" r="42" fill="none" stroke="var(--accent)" stroke-width="2" opacity=".85"/>
+          <text x="390" y="105" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="16" font-weight="700" fill="var(--accent)">A公司</text>
+        </svg>
+      </div>
+      <div class="grid-3" style="margin-top:clamp(1rem,2vh,1.6rem)">
+        <div class="anim-item" style="text-align:center"><div class="meta" style="color:var(--accent);opacity:1">A公司</div><p class="body-zh" style="margin-top:.5vh">理念认同高＋能力需要高</p><p class="body-zh soft-note">理想选择</p></div>
+        <div class="anim-item" style="text-align:center"><div class="meta">B公司</div><p class="body-zh" style="margin-top:.5vh;opacity:.6">理念认同低＋能力需要高</p><p class="body-zh soft-note">被需要但理念不合</p></div>
+        <div class="anim-item" style="text-align:center"><div class="meta">C公司</div><p class="body-zh" style="margin-top:.5vh;opacity:.6">理念认同高＋能力需要低</p><p class="body-zh soft-note">认同文化但不够被需要</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p171 矩阵图实例</div><div>20 / 24</div></div>
+</section>
+
+<!-- 21 L27 灵活组合图形 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Takeaway" data-source="p172 五种图形组合">
+  <div class="chrome"><div>综合运用</div><div>21 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">灵活组合图形，立体地思考事物</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">单一图形</div>
+          <p class="body-zh">可以使用某种图形简单清晰地分析一个问题</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">多种组合</div>
+          <p class="body-zh">也可以将多种图形组合起来，从多个角度立体思考</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">反复练习</div>
+          <p class="body-zh">在工作中经常使用图形思考，会形成自己的思维习惯</p>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="text-align:center;max-width:22em;margin:0 auto;opacity:.55">请灵活运用这七种图形，用它们分析各种问题</p>
+    </div>
+  </div>
+  <div class="foot"><div>p172 图形总结</div><div>21 / 24</div></div>
+</section>
+
+<!-- 22 L16 七种图形速查表 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p173-176 复习·七种图形的特点及使用方法">
+  <div class="chrome"><div>速查表 · 七大图形</div><div>22 / 24</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">七种图形的特点及使用方法</h2>
+      <table class="data-table keyed left anim-item">
+        <thead>
+          <tr><th>图形</th><th>核心用途</th><th>典型场景</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>金字塔图</td><td>逐层收敛，找到核心目标</td><td>职业规划、目标设定</td></tr>
+          <tr><td>深挖图</td><td>逐层追问，找到根本原因</td><td>问题分析、决策判断</td></tr>
+          <tr><td>重叠图</td><td>多技能交集，找到独特优势</td><td>自我分析、能力盘点</td></tr>
+          <tr><td>双极图</td><td>双边交换，分析给予与回报</td><td>价值交换、条件对比</td></tr>
+          <tr><td>矩阵图</td><td>双轴定位，比较多个选项</td><td>公司选择、方案评估</td></tr>
+          <tr><td>流程图</td><td>步骤串联，梳理工作路径</td><td>业务流程、项目推进</td></tr>
+          <tr><td>关系图</td><td>人物关系，理清利益网络</td><td>组织分析、人际协调</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p173-176 七种图形</div><div>22 / 24</div></div>
+</section>
+
+<!-- 23 L27 专栏: 用图形做自我介绍 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Column" data-source="p177 专栏6 用图形做自我介绍的三大好处">
+  <div class="chrome"><div>专栏 6</div><div>23 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">用图形做自我介绍的三大好处</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">了解自己</div>
+          <p class="body-zh">很多人自我介绍时不得要领，原因是不够了解自己。通过图解加深对自己的理解，内容就有了主线。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">找到帮手</div>
+          <p class="body-zh">即使对自己很了解，紧张时也可能忘记叙述内容。有一张图片就可以对照着介绍自己。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">让人记住</div>
+          <p class="body-zh">用图形做自我介绍会给人留下深刻印象。在面试现场画图介绍，效果更好。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p177 专栏6</div><div>23 / 24</div></div>
+</section>
+
+<!-- 24 L21 结尾回扣 (bare) -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Closing" data-source="p172 到此，我们已经用五种图形分析了职业规划" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">核心总结</div>
+      <h2 class="display-zh anim-item" style="max-width:12em;font-size:clamp(2.8rem,6.5vw,5.8rem)">图形是思考的语言，不是绘画的技艺</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.52">只要有纸和笔，随时随地都可以画图。坚持练习，用图形把思想变得更清晰。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>图形思考 · 应用篇</div><div>24 / 24</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-graphic09';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

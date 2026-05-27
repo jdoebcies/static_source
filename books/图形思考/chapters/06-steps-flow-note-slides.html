@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>基础训练五：分析流程，流程图 · 图形思考</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* palette thesis: 商业方法教材，理性清晰。深蓝灰主舞台，暖白证据页，沉静蓝强调步骤编号，冷灰处理次要信息。像一张干净白板上的结构化笔记。 */
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+/* ===== 流程图 CSS 组件 ===== */
+.flow-h {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(.5rem, 1vw, .8rem);
+  flex-wrap: wrap;
+}
+.flow-step {
+  background: rgba(var(--accent-rgb), .08);
+  border: 1px solid rgba(var(--accent-rgb), .22);
+  border-radius: 4px;
+  padding: clamp(.8rem, 1.6vh, 1.4rem) clamp(.8rem, 1.6vw, 1.6rem);
+  text-align: center;
+  font-family: var(--sans-zh);
+  font-size: clamp(1.1rem, 1.35vw, 1.5rem);
+  line-height: 1.45;
+  min-width: clamp(7rem, 13vw, 14rem);
+  max-width: clamp(10rem, 16vw, 18rem);
+}
+.flow-step .step-num {
+  font-family: var(--mono);
+  font-size: clamp(.7rem, .78vw, .85rem);
+  letter-spacing: .1em;
+  color: var(--accent);
+  opacity: .7;
+  margin-bottom: .5vh;
+}
+.flow-arrow {
+  font-family: var(--mono);
+  font-size: clamp(1.2rem, 1.6vw, 1.8rem);
+  color: var(--accent);
+  opacity: .45;
+  flex-shrink: 0;
+}
+.flow-v {
+  display: flex; flex-direction: column; align-items: center; gap: clamp(.4rem, .8vh, .6rem);
+}
+.flow-v .flow-arrow { transform: rotate(90deg); }
+
+/* 交换图 */
+.exchange-diagram {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: clamp(.8rem, 1.5vw, 1.5rem);
+  text-align: center;
+}
+.exchange-node {
+  border: 1px solid rgba(var(--accent-rgb), .28);
+  border-radius: 4px;
+  padding: clamp(.6rem, 1.2vh, 1rem) clamp(.8rem, 1.4vw, 1.4rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1rem, 1.2vw, 1.35rem);
+  line-height: 1.45;
+}
+.exchange-node.primary {
+  background: rgba(var(--accent-rgb), .07);
+  font-weight: 600;
+}
+.exchange-arrows {
+  display: flex; flex-direction: column; align-items: center; gap: clamp(.3rem, .6vh, .5rem);
+  font-family: var(--mono);
+  font-size: clamp(.7rem, .75vw, .85rem);
+  color: var(--accent);
+  opacity: .5;
+}
+
+/* 错开箭头 */
+.stagger-flow {
+  display: flex; flex-direction: column;
+  gap: clamp(.6rem, 1.2vh, 1rem);
+}
+.stagger-row {
+  display: flex; align-items: center;
+  gap: clamp(.5rem, 1vw, .8rem);
+}
+.stagger-row.offset { padding-left: clamp(4rem, 8vw, 9rem); }
+.stagger-row .flow-step { min-width: clamp(6rem, 10vw, 12rem); max-width: clamp(8rem, 13vw, 15rem); }
+
+/* 细节分解 */
+.detail-diagram {
+  display: flex; flex-direction: column; gap: clamp(.5rem, 1vh, .8rem);
+}
+.detail-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(.4rem, .7vw, .6rem); flex-wrap: wrap;
+}
+.detail-step {
+  border: 1px solid rgba(var(--accent-rgb), .18);
+  border-radius: 3px;
+  padding: clamp(.5rem, 1vh, .8rem) clamp(.6rem, 1.2vw, 1rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(.95rem, 1.1vw, 1.2rem);
+  line-height: 1.4;
+  text-align: center;
+  background: rgba(var(--accent-rgb), .04);
+}
+
+/* 总结三列卡片 */
+.summary-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(1rem, 2vw, 2rem);
+}
+.summary-card {
+  border: 1px solid rgba(var(--paper-rgb), .12);
+  border-radius: 4px;
+  padding: clamp(1.2rem, 2.5vh, 2rem) clamp(1rem, 1.8vw, 1.8rem);
+}
+.summary-card .card-icon {
+  font-family: var(--mono);
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  color: var(--accent);
+  opacity: .65;
+  margin-bottom: clamp(.6rem, 1.2vh, 1rem);
+}
+
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark -->
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p108-109 基础训练五">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">图形思考 · 基础训练五</div>
+      <h1 class="display-zh anim-item" style="max-width:10em">分析流程，流程图</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">简化思维的秘诀之五：掌握步骤，将想法可行化</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>p108-123</div>
+  </div>
+</section>
+
+<!-- 02 L3-c 上下宣告 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p110 步骤是什么" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 步骤</div><div>02 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Step · Concept</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">步骤就是将想法可行化的过程</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">不管想法多出色，不能实施就等于纸上谈兵。步骤是连接想法与现实的桥梁。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p110</div><div>02 / 18</div></div>
+</section>
+
+<!-- 03 L25 段落拆解 light: 流程图概念 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p110-111 流程图">
+  <div class="chrome"><div>段落拆解 · 流程图入门</div><div>03 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">以步骤为单位，将实现目标的过程形象化</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">以系统开发流程为例，大致可分为四个步骤，每步可独立审视</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">了解步骤后可与相关人员分享流程，交流彼此的意见和想法</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">可以预测哪个步骤可能出问题，提前想好对策，而非事后补救</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p110-111</div><div>03 / 18</div></div>
+</section>
+
+<!-- 04 L4/L9 三列 light: 课程9入口 -->
+<section class="slide light" data-theme="light" data-screen-label="Three Columns" data-source="p112 课程9 撰写提案书的流程">
+  <div class="chrome"><div>课程9 · 提案书流程</div><div>04 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">撰写提案书，从意见收集到方案提交</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">入门</div><p class="body-zh">向客户各部门负责人进行意见询问，了解现阶段存在的问题</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">展开</div><p class="body-zh">召开集体会议，集思广益，整理出合理与不合理的各类解决方案</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">收敛</div><p class="body-zh">最终确定三个方案，大致整理出每种方案的费用和日程</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p112</div><div>04 / 18</div></div>
+</section>
+
+<!-- 05 L29 文章脉络 light w-wide: 五个步骤 -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p112-113 步骤1 确定步骤个数">
+  <div class="chrome"><div>文章脉络 · 五个步骤</div><div>05 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:14em;margin:0 auto clamp(2rem,5vh,4rem)">从短文中找出五个步骤，逐个分解</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(.6rem,1.2vw,1.4rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 1</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">向各部门负责人进行意见询问</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 2</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">了解客户现阶段存在的问题</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 3</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">集体会议整理出解决方案</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 4</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">最终确定三个可行方案</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 5</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">整理费用和日程，准备提交</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p112-113</div><div>05 / 18</div></div>
+</section>
+
+<!-- 06 L25 段落拆解 light: 步骤2画模板 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p113 步骤2 画出流程图模板">
+  <div class="chrome"><div>段落拆解 · 步骤2</div><div>06 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">先画模板，不追究细节，直接把原文填入</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">做法</div><p class="body-zh" style="margin-top:1vh">找出几个步骤就画几个箭头模块，将原文直接填入对应的模块中</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">原因</div><p class="body-zh" style="margin-top:1vh">有些步骤描述不全或含义不明，但此时先不要追究细节</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">效果</div><p class="body-zh" style="margin-top:1vh">先把结构搭出来，看到整体框架后再逐步完善每个步骤的表述</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p113</div><div>06 / 18</div></div>
+</section>
+
+<!-- 07 L24 摘录侧注 light callout-mark: 步骤3完善 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p113-114 步骤3 完善步骤内容">
+  <div class="chrome"><div>Excerpt · 步骤3</div><div>07 / 18</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">在完善时，要保证含义通顺、语言尽量精炼。<cite>p114 步骤3</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">步骤的提炼是流程图的灵魂。描述过长则失去图解优势，描述不清则无法传达。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">原书中强调：先用原文填框架，再精炼语言，两步分开，不要在第一步就追求完美。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p113-114</div><div>07 / 18</div></div>
+</section>
+
+<!-- 08 L27 观点+例证 light: 步骤较多时 -->
+<section class="slide light" data-theme="light" data-screen-label="Viewpoint" data-source="p114 步骤较多时应该怎样画图">
+  <div class="chrome"><div>技巧 · 多步骤画法</div><div>08 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">步骤较多时，使用矩形模块和箭头排列，步骤内容竖着书写</h2>
+      <div class="anim-item" style="display:flex;justify-content:center;gap:clamp(.5rem,1vw,.8rem);flex-wrap:wrap;align-items:center">
+        <div class="flow-step"><div class="step-num">Step 1</div>需求分析</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-num">Step 2</div>方案设计</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-num">Step 3</div>开发测试</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-num">Step 4</div>部署上线</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-num">Step 5</div>运维反馈</div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:28em;opacity:.6;text-align:center;margin:0 auto">这种方法可以简洁直观地表现如何通过流程完成目标，竖写让每个步骤的描述空间更充裕。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p114</div><div>08 / 18</div></div>
+</section>
+
+<!-- 09 L3-a 社论式 bare light: 制造型零售业 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p115-116 课程10 优衣库的生产流程">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">课程10 · 优衣库</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">制造型零售业不只是制造加零售</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p115-116</div><div>09 / 18</div></div>
+</section>
+
+<!-- 10 L29 文章脉络 light w-wide timeline-row: 优衣库5步骤 -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p115-116 优衣库业务流程五个步骤">
+  <div class="chrome"><div>文章脉络 · 优衣库流程</div><div>10 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:16em;margin:0 auto clamp(2rem,5vh,4rem)">优衣库亲自参与从策划到售后的整套业务流程</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(.6rem,1.2vw,1.4rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 1</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">产品策划</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 2</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">与原料商合作研发新原料</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 3</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">与制造商合作生产</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 4</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">实体店和网店销售</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Step 5</div><p class="body-zh" style="margin-top:1vh;font-size:clamp(1.1rem,1.2vw,1.4rem)">售后服务</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p115-116</div><div>10 / 18</div></div>
+</section>
+
+<!-- 11 L24 摘录侧注 light callout-mark: 交换图概念 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p116-117 交换图">
+  <div class="chrome"><div>Excerpt · 交换图</div><div>11 / 18</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">步骤2和步骤3中，除了优衣库之外还有其他公司出场，需要用交换图表示其关系。<cite>p117</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">主要流程中涉及外部相关者时，不要直接塞进流程图，而用交换图呈现合作关系，保持流程主干清晰。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">优衣库与原料生产商、制造商的关系是双向协作，交换图比单向箭头更能表达这种相互性。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p116-117</div><div>11 / 18</div></div>
+</section>
+
+<!-- 12 L27 观点+例证 light: 组合图解 -->
+<section class="slide light" data-theme="light" data-screen-label="Viewpoint" data-source="p117-118 流程图与交换图组合">
+  <div class="chrome"><div>技巧 · 组合图解</div><div>12 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">将流程图和交换图组合，凸显优衣库的核心优势</h2>
+      <div class="anim-item" style="display:flex;flex-direction:column;align-items:center;gap:clamp(.6rem,1.2vh,1rem)">
+        <div class="flow-h" style="margin-bottom:clamp(.4rem,.8vh,.6rem)">
+          <div class="flow-step">产品策划</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border:2px solid rgba(var(--accent-rgb),.5);background:rgba(var(--accent-rgb),.12)">研发新原料</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border:2px solid rgba(var(--accent-rgb),.5);background:rgba(var(--accent-rgb),.12)">生产</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">销售</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">售后服务</div>
+        </div>
+        <div class="exchange-diagram" style="font-size:clamp(.85rem,.95vw,1.05rem);max-width:32em;">
+          <div class="exchange-node primary">原料生产商</div>
+          <div class="exchange-arrows">⇄</div>
+          <div class="exchange-node primary">优衣库</div>
+          <div class="exchange-arrows" style="text-align:right">⇄</div>
+          <div class="exchange-node primary" style="grid-column:3">制造商</div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:30em;opacity:.6;text-align:center;margin:0 auto">优衣库的优势就在于能与原料生产商和制造商直接展开合作，从原料阶段就兼顾客户需求。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p117-118</div><div>12 / 18</div></div>
+</section>
+
+<!-- 13 L3-a 社论式 bare light: 关键技巧 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p119 关键技巧">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">画好流程图的技巧</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7.5vw,7rem);max-width:11em;letter-spacing:0">保证主要流程沿着同一方向进行</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p119</div><div>13 / 18</div></div>
+</section>
+
+<!-- 14 L9 三列 dark: 总结 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Three Columns" data-source="p120 总结 熟练使用流程图">
+  <div class="chrome"><div>总结 · 流程图</div><div>14 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-wide" style="display:flex;flex-direction:column;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:10em;margin:0 auto">熟练使用流程图</h2>
+      <div class="summary-cards anim-item">
+        <div class="summary-card">
+          <div class="card-icon">01</div>
+          <h3 class="h2-zh" style="margin-bottom:clamp(.6rem,1vh,1rem)">理解顺序</h3>
+          <div class="body-zh" style="opacity:.65;font-size:clamp(1.1rem,1.2vw,1.4rem)">先确定步骤个数，再画模板，最后完善内容。不要在第一步就追求完美细节。</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-icon">02</div>
+          <h3 class="h2-zh" style="margin-bottom:clamp(.6rem,1vh,1rem)">理解要点</h3>
+          <div class="body-zh" style="opacity:.65;font-size:clamp(1.1rem,1.2vw,1.4rem)">一开始不用细究步骤内容，步骤描述控制在三行以内，附加信息和主要流程要分开。</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-icon">03</div>
+          <h3 class="h2-zh" style="margin-bottom:clamp(.6rem,1vh,1rem)">必胜小技巧</h3>
+          <div class="body-zh" style="opacity:.65;font-size:clamp(1.1rem,1.2vw,1.4rem)">保证主要流程沿着同一方向进行。方向一致才能让人一目了然地看出推进关系。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p120</div><div>14 / 18</div></div>
+</section>
+
+<!-- 15 L5 标题+正文 light: 试一试 -->
+<section class="slide light" data-theme="light" data-screen-label="Exercises" data-source="p121 试一试">
+  <div class="chrome"><div>练习 · 试一试</div><div>15 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-note" style="display:flex;flex-direction:column;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:11em">画出身边事物的流程图</h2>
+      <div class="anim-item" style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(.8rem,1.5vh,1.2rem) clamp(1rem,2vw,2rem)">
+        <div style="display:flex;align-items:center;gap:clamp(.6rem,1vw,1rem)">
+          <span style="font-family:var(--mono);font-size:clamp(1.2rem,1.6vw,2rem);color:var(--accent);opacity:.6">01</span>
+          <span class="body-zh">常规工作的流程是？</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:clamp(.6rem,1vw,1rem)">
+          <span style="font-family:var(--mono);font-size:clamp(1.2rem,1.6vw,2rem);color:var(--accent);opacity:.6">02</span>
+          <span class="body-zh">怎样顺利签订合同？</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:clamp(.6rem,1vw,1rem)">
+          <span style="font-family:var(--mono);font-size:clamp(1.2rem,1.6vw,2rem);color:var(--accent);opacity:.6">03</span>
+          <span class="body-zh">怎样推出一款畅销商品？</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:clamp(.6rem,1vw,1rem)">
+          <span style="font-family:var(--mono);font-size:clamp(1.2rem,1.6vw,2rem);color:var(--accent);opacity:.6">04</span>
+          <span class="body-zh">如何筹备一场年会？</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:clamp(.6rem,1vw,1rem);grid-column:span 2;justify-content:center">
+          <span style="font-family:var(--mono);font-size:clamp(1.2rem,1.6vw,2rem);color:var(--accent);opacity:.6">05</span>
+          <span class="body-zh">出国旅游的计划怎么做？</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p121</div><div>15 / 18</div></div>
+</section>
+
+<!-- 16 L27 观点+例证 light: 衍生版本1 错开箭头 -->
+<section class="slide light" data-theme="light" data-screen-label="Viewpoint" data-source="p122 图解衍生版本 错开箭头">
+  <div class="chrome"><div>衍生版本 · 错开箭头</div><div>16 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">错开箭头：清晰表示各负责部门的任务和前后重叠部分</h2>
+      <div class="stagger-flow anim-item" style="align-items:center">
+        <div class="stagger-row">
+          <div class="flow-step">A部门: 需求分析</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">A部门: 方案设计</div>
+        </div>
+        <div class="stagger-row offset">
+          <div class="flow-step">B部门: 技术评审</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">B部门: 开发实现</div>
+        </div>
+        <div class="stagger-row" style="padding-left:clamp(8rem,16vw,18rem)">
+          <div class="flow-step">C部门: 测试验收</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">C部门: 部署运维</div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:28em;opacity:.6;text-align:center;margin:0 auto">竖着错开箭头，可以更清晰地看出不同部门的交接点和流程重叠部分。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p122</div><div>16 / 18</div></div>
+</section>
+
+<!-- 17 L27 观点+例证 light: 衍生版本2 整理细节 -->
+<section class="slide light" data-theme="light" data-screen-label="Viewpoint" data-source="p122-123 图解衍生版本 整理细节">
+  <div class="chrome"><div>衍生版本 · 整理细节</div><div>17 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">整理细节：分解成矩形模块和箭头的组合，呈现分支内容</h2>
+      <div class="detail-diagram anim-item" style="align-items:center">
+        <div class="detail-row">
+          <div class="detail-step">需求分析</div>
+          <div class="flow-arrow">→</div>
+          <div class="detail-step" style="background:rgba(var(--accent-rgb),.1)">方案设计</div>
+          <div class="flow-arrow">→</div>
+          <div class="detail-step">项目执行</div>
+          <div class="flow-arrow">→</div>
+          <div class="detail-step">成果交付</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:clamp(.4rem,.7vw,.6rem)">
+          <span style="opacity:.3">│</span>
+          <div style="display:flex;gap:clamp(.3rem,.5vw,.5rem)">
+            <div class="detail-step" style="font-size:clamp(.8rem,.9vw,1rem)">方案A</div>
+            <div class="detail-step" style="font-size:clamp(.8rem,.9vw,1rem)">方案B</div>
+            <div class="detail-step" style="font-size:clamp(.8rem,.9vw,1rem)">方案C</div>
+          </div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:28em;opacity:.6;text-align:center;margin:0 auto">这种方法保证流程沿同一方向，同时呈现分支。根据需求灵活选择大致流程或细节流程的画法。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p122-123</div><div>17 / 18</div></div>
+</section>
+
+<!-- 18 L32 核心总结 dark summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p120 总结">
+  <div class="chrome"><div>核心总结</div><div>18 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">步骤是将想法可行化的过程。想法很好但无法实施，多数是因为缺少步骤分解。流程图以步骤为单位，将实现目标的过程形象化。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">画流程图的三步法：先确定步骤个数，再画出模板填入原文，最后完善内容使其精炼通顺。不要第一步就追求完美。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">核心技巧：保证主要流程沿着同一方向进行。附加信息用交换图等单独呈现，不要直接塞进主流程，保持主干清晰。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">衍生画法：错开箭头适合多部门协作场景，整理细节版适合呈现分支和子步骤。根据大致流程还是细节流程的需求灵活选择。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">优衣库案例证明：制造型零售业不只是制造加零售，而是一条从策划到售后一气呵成的完整链条，与原料商和制造商的直接合作是其核心优势。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p120</div><div>18 / 18</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'gt-06-slides-progress';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

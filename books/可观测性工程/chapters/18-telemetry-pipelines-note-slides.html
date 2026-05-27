@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>使用流水线进行遥测管理 , 可观测性工程 第18章</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: 科技基础设施管理主题，深蓝灰 + 暖白 + 沉静蓝，传达流水线工程的可靠性与架构感 */
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem); line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3      { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.grid-4      { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.8rem, 1.8vw, 1.8rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child { border-radius: 6px 0 0 6px; }
+.data-table tr > *:last-child  { border-radius: 0 6px 6px 0; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 -->
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="第18章·p162" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第18章</div>
+      <h1 class="display-zh anim-item" style="max-width:10em">使用流水线进行遥测管理</h1>
+      <p class="lead-zh anim-item" style="max-width:28em;opacity:.62">Suman Karumuri & Ryan Katkov, Slack · 从简单直连到多对多路由，流水线是遥测数据的抽象层</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Slack 高级软件工程师 & 工程总监</div>
+    <div>p162,173</div>
+  </div>
+</section>
+
+<!-- 02 文章脉络 L29 -->
+<section class="slide light" data-theme="light" data-screen-label="Structure" data-source="第18章·p162,173">
+  <div class="chrome"><div>文章脉络</div><div>02 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">本章从问题出发，经过解剖和挑战，落到 Slack 的真实用例与决策建议</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">起点</div><p class="body-zh" style="margin-top:1vh">为何需要遥测流水线</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">展开</div><p class="body-zh" style="margin-top:1vh">八大属性 + 解剖组件</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">深入</div><p class="body-zh" style="margin-top:1vh">Slack 真实用例</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">落点</div><p class="body-zh" style="margin-top:1vh">开源替代与自建购买权衡</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p162,173</div><div>02 / 22</div></div>
+</section>
+
+<!-- 03 为何需要流水线 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="第18章·p162" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>why pipelines</div><div>03 / 22</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">核心判断</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">简单系统直送后端即可，复杂系统需要流水线抽象出多对多的路由关系</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">当需要工作负载隔离、安全合规、不同保留策略或数据质量控制时，遥测流水线成为基础设施的必需品，而非可选项</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Suman & Ryan, p162</div><div>03 / 22</div></div>
+</section>
+
+<!-- 04 八大属性总览 L9 -->
+<section class="slide light" data-theme="light" data-screen-label="Properties" data-source="18.1·p162,165">
+  <div class="chrome"><div>流水线属性</div><div>04 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">遥测流水线的八大属性</h2>
+      <div class="grid-4">
+        <div class="anim-item"><div class="kicker">路由</div><p class="body-zh">将不同数据流定向到对应后端，无需改动应用代码</p></div>
+        <div class="anim-item"><div class="kicker">安全合规</div><p class="body-zh">GDPR / FedRAMP，PII 检测与编校，自助删除不合规数据</p></div>
+        <div class="anim-item"><div class="kicker">工作负载隔离</div><p class="body-zh">将高吞吐与低吞吐应用分入不同集群，防止噪声干扰</p></div>
+        <div class="anim-item"><div class="kicker">数据缓冲</div><p class="body-zh">本地磁盘 + 消息队列缓冲，防止后端中断导致数据空洞</p></div>
+      </div>
+      <div class="grid-4">
+        <div class="anim-item"><div class="kicker">容量管理</div><p class="body-zh">速率限制、采样、排队,,平滑峰值，优先近期数据</p></div>
+        <div class="anim-item"><div class="kicker">过滤增强</div><p class="body-zh">删除高基数字段、过滤 PII、丰富区域和容器元数据</p></div>
+        <div class="anim-item"><div class="kicker">数据转换</div><p class="body-zh">统一为通用事件格式，灵活对接不同后端 API</p></div>
+        <div class="anim-item"><div class="kicker">数据质量</div><p class="body-zh">修正异常时间戳，过滤低值 span，确保架构一致性</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p162,165</div><div>04 / 22</div></div>
+</section>
+
+<!-- 05 路由 + 安全合规 L27 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Examples" data-source="18.1.1,18.1.2·p162,163">
+  <div class="chrome"><div>路由 · 安全合规</div><div>05 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">路由决定数据去哪里，合规决定谁能看到什么</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">路由</div><p class="body-zh">链路追踪流向追踪后端，日志流向日志后端。同一链路追踪数据流还可拆分到 Elasticsearch 做实时分析</p></div>
+        <div class="anim-item"><div class="kicker">合规执行</div><p class="body-zh">模式匹配 + 编校 + PII 检测告警服务，限制数据存储地点、访问人员和保留周期</p></div>
+        <div class="anim-item"><div class="kicker">Slack 做法</div><p class="body-zh">提供自助工具让团队删除不合规数据，结合自动化检测与告警形成完整闭环</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p162,163</div><div>05 / 22</div></div>
+</section>
+
+<!-- 06 工作负载隔离 + 缓冲 L30 -->
+<section class="slide light" data-theme="light" data-screen-label="Tensions" data-source="18.1.3,18.1.4·p163,164">
+  <div class="chrome"><div>隔离 · 缓冲</div><div>06 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">工作负载隔离</h2>
+      <p class="body-zh" style="max-width:15em">大容量日志的频繁查询会拖慢同一集群上其他用户的体验。分区分治让每种数据有独立的可靠性和保留策略</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">数据缓冲</h2>
+      <p class="body-zh" style="max-width:15em">可观测后端不可靠时，服务仍可用但可见性丧失。缓冲区是防止数据空洞的保险,,Slack 用 Kafka 保留三天事件</p>
+    </div>
+  </div>
+  <div class="foot"><div>p163,164</div><div>06 / 22</div></div>
+</section>
+
+<!-- 07 容量管理 L24 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="18.1.5·p164">
+  <div class="chrome"><div>Excerpt · 容量管理</div><div>07 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        你可以优先考虑最近的数据而不是历史数据，以最大限度地提高对开发人员的价值
+        <cite>p164 · 容量管理</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">速率限制平滑峰值，采样逐步削减冗余，排队让最新日志先被消费</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">关键服务宕机时，最新日志指示当前状态，历史日志远离事件则相关性递减。系统空闲时再回填历史数据</p>
+    </div>
+  </div>
+  <div class="foot"><div>p164</div><div>07 / 22</div></div>
+</section>
+
+<!-- 08 数据过滤与增强 L25 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="18.1.6·p164,165">
+  <div class="chrome"><div>过滤与增强</div><div>08 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">流水线既能剪掉不该进后端的数据，也能给数据补上它缺少的上下文</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">工程师可能意外添加高基数字段如用户 ID 或 IP，导致 Prometheus 基数爆炸。指标系统并非为高基数设计</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">过滤侧：删除高基数时间序列、过滤 PII 和安全令牌、清理 URL、丢弃低值 span</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">增强侧：添加区域信息、Kubernetes 容器信息、IP 到主机名解析、GeoIP 地理位置,,数据在进程外变得更丰富</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p164,165</div><div>08 / 22</div></div>
+</section>
+
+<!-- 09 数据转换 + 数据质量 L27 -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="18.1.7,18.1.8·p165">
+  <div class="chrome"><div>转换 · 质量</div><div>09 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">统一事件格式是转换的核心，Candy Crush 时间戳是质量的警钟</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">转换</div><p class="body-zh">非结构化日志、各种格式的结构化日志、指标、链路追踪统一为通用事件格式。灵活选择技术、减少重复、方便进一步丰富</p></div>
+        <div class="anim-item"><div class="kicker">Slack SpanEvent</div><p class="body-zh">Zipkin 和 Jaeger 等链路追踪格式统一转换为 SpanEvent，可直接写入数据仓库并通过 Presto 做 SQL 长尾分析</p></div>
+        <div class="anim-item"><div class="kicker">质量</div><p class="body-zh">删除包含未来或远古时间戳的数据。Candy Crush 玩家改系统时间刷奖励，造成未来时间戳污染数据质量</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p165</div><div>09 / 22</div></div>
+</section>
+
+<!-- 10 流水线解剖 L16 表格 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="18.2·p166,167">
+  <div class="chrome"><div>流水线解剖</div><div>10 / 22</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">四大组件在遥测数据上的角色分布</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>组件</th><th>日志</th><th>指标</th><th>链路追踪</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>接收器</td><td>路由</td><td>容量规划</td><td>数据转换</td></tr>
+          <tr><td>处理器</td><td>数据过滤与转换</td><td>数据增强</td><td>数据过滤</td></tr>
+          <tr><td>导出器</td><td>路由</td><td>容量规划</td><td>数据转换</td></tr>
+          <tr><td>缓冲区</td><td colspan="3">临时保存数据，直到下游消费。常用 Kafka / Kinesis，Slack 使用 Kafka 保留三天事件</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>表18-1 · p166,167</div><div>10 / 22</div></div>
+</section>
+
+<!-- 11 流水线组件深入 L25 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="18.2·p166,167">
+  <div class="chrome"><div>组件深入</div><div>11 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">简单流水线：接收器 → 缓冲区 → 导出器；复杂流水线再加处理器形成链</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">接收器</div><p class="body-zh" style="margin-top:1vh">从应用直接收集或从缓冲区读取。可暴露 HTTP API 让应用推送，也可写入缓冲区保证中断期数据完整</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">缓冲 + 处理</div><p class="body-zh" style="margin-top:1vh">缓冲区是短暂存储，通常为发布订阅系统，临时保存数据待后端消费。处理器从缓冲区取出数据转换后再持久化回去</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">导出器</div><p class="body-zh" style="margin-top:1vh">充当遥测数据的最终接收器，从缓冲区取出数据写入具体后端。开源生态中也被称为 sink</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p166,167</div><div>11 / 22</div></div>
+</section>
+
+<!-- 12 管理挑战 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="18.3·p167,168" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>challenges</div><div>12 / 22</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">核心判断</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">小规模流水线设置简单，大规模时可靠运行涉及的是控制理论，而非软件工程</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">数百条流的性能、正确性、可用性、可靠性、隔离、数据时效性,,每一项单独看都不难，叠加在一起就是运维挑战</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p167,168</div><div>12 / 22</div></div>
+</section>
+
+<!-- 13 性能 + 正确性 L30 -->
+<section class="slide light" data-theme="light" data-screen-label="Tensions" data-source="18.3.1,18.3.2·p167,168">
+  <div class="chrome"><div>性能 · 正确性</div><div>13 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">性能</h2>
+      <p class="body-zh" style="max-width:15em">应用可能随时改变数据格式和数据量。流水线某一部分变慢会引发级联效应，破坏整个流水线的稳定</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">正确性</h2>
+      <p class="body-zh" style="max-width:15em">多个组件串联后，端到端正确性难以确定：数据是否被正确转换、该删的数据是否唯一被删、格式未知时如何调试</p>
+    </div>
+  </div>
+  <div class="foot"><div>p167,168</div><div>13 / 22</div></div>
+</section>
+
+<!-- 14 可用性 + 可靠性 + 隔离 + 时效性 合并 L30 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Tensions" data-source="18.3.3,18.3.6·p168,169">
+  <div class="chrome"><div>可用性 · 可靠性 · 时效性</div><div>14 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">可用性与可靠性</h2>
+      <p class="body-zh" style="max-width:15em">后端或组件不可靠时，需要弹性设计。容量规划确定瓶颈后必须加资源或优化性能，回填历史数据是最复杂耗时的部分</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">隔离与时效性</h2>
+      <p class="body-zh" style="max-width:15em">高低吞吐不能混在同一集群。Slack 以每分钟 100 条合成日志注入流水线，每 10 秒查询验证数据是否实时到达</p>
+    </div>
+  </div>
+  <div class="foot"><div>p168,169</div><div>14 / 22</div></div>
+</section>
+
+<!-- 15 Slack 指标聚合 L27 -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="18.4.1·p169">
+  <div class="chrome"><div>Slack · 指标聚合</div><div>15 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">PHP/Hack 每请求一个进程，Slack 用守护进程聚合层接入了 Prometheus</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">问题</div><p class="body-zh">PHP/Hack 只有主机上下文，没有进程上下文，Prometheus 无法直接抓取每个请求的指标端点</p></div>
+        <div class="anim-item"><div class="kicker">方案</div><p class="body-zh">自定义 Prometheus 库将每个请求的指标发送到 Go 编写的本地守护进程，在时间窗口内聚合后再由 Prometheus 服务器抓取</p></div>
+        <div class="anim-item"><div class="kicker">扩展</div><p class="body-zh">Go/Java 应用直接暴露指标端点由 Prometheus 抓取，无需守护进程聚合层</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p169</div><div>15 / 22</div></div>
+</section>
+
+<!-- 16 Slack Murron 流水线 L24 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Excerpt" data-source="18.4.2·p169,170">
+  <div class="chrome"><div>Slack · Murron</div><div>16 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;margin-top:clamp(1rem,2vh,1.6rem)">
+        Murron 核心理念：每个流由接收器、处理器、缓冲区定义，导出器负责路由
+        <cite>p169 · Murron 架构</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">Murron 用 Go 编写，由接收器、处理器、导出器三种组件组成。所有消息包装在自定义封装消息中</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">封装消息包含流名称用于路由，以及主机名、Kubernetes 容器信息、进程名称等元数据，供后续流水线节点增强数据</p>
+    </div>
+  </div>
+  <div class="foot"><div>p169,170</div><div>16 / 22</div></div>
+</section>
+
+<!-- 17 SpanEvent 与三个导出器 L9 -->
+<section class="slide light" data-theme="light" data-screen-label="Exporters" data-source="18.4.2·p170,171">
+  <div class="chrome"><div>SpanEvent · 导出器</div><div>17 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">SpanEvent 抽象链路追踪，三个导出器覆盖实时、短期和长期分析</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">SpanEvent</div><p class="body-zh">ID、时间戳、持续时间、父 ID、链路追踪 ID、名称、类型、标签、span 类型。因果图是有向无环图，让非传统探针也能生成追踪数据</p></div>
+        <div class="anim-item"><div class="kicker">三个导出器</div><p class="body-zh">Elasticsearch 导出器（7 天事件 + Grafana 仪表盘）、数据仓库导出器（Secor → S3 → Presto，2 年数据）、Honeycomb 导出器（60 天 + 过滤低值 span）</p></div>
+        <div class="anim-item"><div class="kicker">Wallace</div><p class="body-zh">独立于核心基础设施运行的接收器和处理器，即使 Slack 全面中断也能捕获客户端和服务错误</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p170,171</div><div>17 / 22</div></div>
+</section>
+
+<!-- 18 数据时效性 + 合成监控 L24 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="18.3.6·p168,169">
+  <div class="chrome"><div>Excerpt · 时效性</div><div>18 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        每分钟 100 条合成日志注入流水线，每 10 秒查询验证数据是否实时到达
+        <cite>p168,169 · Slack 合成监控</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">流水线应该实时或接近实时运行，端到端延迟在秒级，最坏几十秒</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">SLO：过去 5 分钟内给定 1 分钟里接收所有合成消息的次数。合成数据必须有唯一值或可被过滤，且从多区域发出以保证覆盖</p>
+    </div>
+  </div>
+  <div class="foot"><div>p168,169</div><div>18 / 22</div></div>
+</section>
+
+<!-- 19 开源替代方案全景 L26 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Landscape" data-source="18.5·p172">
+  <div class="chrome"><div>开源替代</div><div>19 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <div style="text-align:center">
+        <div class="kicker anim-item">Open Source Evolution</div>
+        <h2 class="display-zh anim-item" style="font-size:clamp(2.6rem,5.5vw,5rem)">遥测流水线演进</h2>
+      </div>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">早期</div><p class="body-zh">Facebook Scribe：用流将日志路由到不同后端，引入本地磁盘持久化和多实例链接形成流水线的思想</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">中期</div><p class="body-zh">Logstash / Fluentd / rsyslog 日志传输；Prometheus Pushgateway / M3 Aggregator 指标聚合；Refinery 链路追踪过滤</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">现代</div><p class="body-zh">用更高效语言重写：Fluent Bit（C）、Cribl（Go）、Vector（Rust）。每秒处理数 TB 数据时，基础设施效率成为关键</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p172</div><div>19 / 22</div></div>
+</section>
+
+<!-- 20 自建与购买 L24 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="18.6·p172,173">
+  <div class="chrome"><div>Excerpt · 决策</div><div>20 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        工具生态已足够成熟，用工程资源开发内部软件构建流水线基础在经济上不合理
+        <cite>p172 · 自建与购买</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">开源软件免费但维护操作有成本。供应商承诺简化运维并提供强用户体验</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">平衡随组织增长变化。为当前需求构建，不为未开始的新需求过度实现。模块化 + 生产者/缓冲区/处理器/导出器模型是核心</p>
+    </div>
+  </div>
+  <div class="foot"><div>p172,173</div><div>20 / 22</div></div>
+</section>
+
+<!-- 21 核心总结 1/2 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="18.1,18.7·p162,173">
+  <div class="chrome"><div>核心总结</div><div>21 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">遥测流水线的核心价值：将遥测生产者和消费者之间的多对多关系抽象为统一管道，让应用无需改动代码即可切换后端、执行合规策略、隔离工作负载、控制容量</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">四大组件模型：接收器从源头采集数据，缓冲区短暂保存，处理器转换和过滤，导出器写入后端。简单流水线是接收器→缓冲区→导出器，复杂流水线加入处理器形成多级链</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">小规模流水线自动运行即可，大规模时核心挑战是控制理论：性能、正确性、可用性、可靠性、隔离和数据时效性六维叠加。Slack 用合成日志注入来持续监控端到端时效性</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p162,173</div><div>21 / 22</div></div>
+</section>
+
+<!-- 22 核心总结 2/2 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="18.4,18.7·p169,173">
+  <div class="chrome"><div>核心总结</div><div>22 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">Slack 的 Murron 管理 120 多条数据流、每秒数百万条消息、20 个集群 200 多个 Kafka 主题。核心理念是流：每个流由接收器、处理器、缓冲区定义，导出器负责路由到对应后端</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">SpanEvent 将复杂的链路追踪 DAG 简化为扁平事件：ID、时间戳、持续时间、父 ID、名称、标签。统一格式让 CI/CD 等非传统场景也能生成追踪数据，且可直接写入数据仓库做 SQL 分析</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">决策建议：今天应该从开源服务起步组合使用，不从头写新系统。为当前需求构建而非过度实现。工具生态已成熟,,Fluent Bit、Vector、Cribl 用更高效语言重写了早期工具,,自建基础流水线在经济上已不合理</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p169,173</div><div>22 / 22</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

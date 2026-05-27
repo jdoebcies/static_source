@@ -1,0 +1,24 @@
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/00-preface-seven-figures/00-preface-seven-figures-note-slides.html =====
+Deck check passed: 19 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/01-warmup/01-warmup-note-slides.html =====
+Deck check passed: 13 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/02-relation-exchange/02-relation-exchange-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/03-structure-tree/03-structure-tree-note-slides.html =====
+Deck check passed: 24 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/04-factor-digging/04-factor-digging-note-slides.html =====
+Deck check passed: 22 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/05-position-compare/05-position-compare-note-slides.html =====
+Deck check passed: 20 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/06-steps-flow/06-steps-flow-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/07-concept-overlap/07-concept-overlap-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/08-policy-pyramid/08-policy-pyramid-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/09-application-life-planning/09-application-life-planning-note-slides.html =====
+Deck check passed: 24 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/10-habit-notes/10-habit-notes-note-slides.html =====
+Deck check passed: 16 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/11-expression-closing/11-expression-closing-note-slides.html =====
+Deck check passed: 22 slide(s), 0 warning(s).

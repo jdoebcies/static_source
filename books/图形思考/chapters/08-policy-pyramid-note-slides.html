@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>基础训练七：掌控方向，金字塔图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ===== palette thesis =====
+     这是一本结构化思维训练教材。暖深蓝（ink）赋予权威感和稳定性，暖白纸底（paper）
+     让长时间阅读保持舒适，澄明的教学蓝（accent）如同板书上的重点标记，
+     适合方法类内容的清晰传达。
+  */
+  --ink:        #1d2a35;
+  --ink-rgb:    29,42,53;
+  --paper:      #faf7f3;
+  --paper-rgb:  250,247,243;
+  --accent:     #4a86b8;
+  --accent-rgb: 74,134,184;
+  --muted:      #788494;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .85s cubic-bezier(.77,0,.175,1); z-index: 10; will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.note-stack { width: var(--w-default); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(2rem, 4vh, 3.6rem); }
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; text-align: center; }
+.section-title { max-width: 11em; margin: 0 auto; text-align: center; }
+.soft-note { max-width: 22em; color: rgba(var(--ink-rgb), .52); }
+.slide.dark .soft-note { color: rgba(var(--paper-rgb), .6); }
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3     { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before { content:""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+
+.callout-mark { border-left: none; padding-left: 0; padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content:""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .7; }
+
+.timeline-row { position: relative; }
+.timeline-row::before { content:""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 6%; right: 6%; height: 1px; background: rgba(var(--ink-rgb), .1); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3.2rem, 7vw, 6.4rem); font-weight: 600; color: var(--accent); opacity: .85; line-height: .95; letter-spacing: 0; }
+
+.table-wrap { width: var(--w-wide); margin: 0 auto; display: flex; flex-direction: column; gap: clamp(1.4rem, 3.5vh, 2.8rem); }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0 clamp(.45rem, 1vh, .8rem); font-family: var(--sans-zh); font-size: clamp(1.08rem, 1.22vw, 1.42rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem); text-align: center; vertical-align: middle; }
+.data-table th { font-family: var(--mono); font-size: clamp(.78rem, .82vw, .95rem); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(var(--accent-rgb), .08); }
+.data-table td { background: rgba(var(--ink-rgb), .045); }
+.slide.dark .data-table td { background: rgba(var(--paper-rgb), .075); }
+.data-table.keyed td:first-child, .data-table.keyed th:first-child { text-align: left; font-weight: 600; }
+.data-table tr > *:first-child { border-radius: 6px 0 0 6px; }
+.data-table tr > *:last-child { border-radius: 0 6px 6px 0; }
+
+/* ===== 金字塔图组件 ===== */
+.pyramid-stack { display: flex; flex-direction: column; align-items: center; margin: clamp(1rem, 2vh, 2rem) auto 0; width: fit-content; }
+.pyramid-stack.compact { gap: 0; }
+.pyramid-block { display: flex; align-items: center; justify-content: center; text-align: center; padding: clamp(.6rem, 1vh, .9rem) clamp(1.2rem, 2vw, 2rem); font-family: var(--sans-zh); font-size: clamp(.95rem, 1.05vw, 1.2rem); line-height: 1.45; }
+.slide.light .pyramid-block { border: 1.5px solid rgba(var(--ink-rgb), .22); background: rgba(var(--ink-rgb), .035); }
+.slide.dark .pyramid-block { border: 1.5px solid rgba(var(--paper-rgb), .25); background: rgba(var(--paper-rgb), .07); }
+.pyramid-block.top { min-width: clamp(10rem, 16vw, 18rem); border-radius: 4px 4px 0 0; }
+.pyramid-block.mid { min-width: clamp(15rem, 22vw, 26rem); border-top: none; }
+.pyramid-block.bot { min-width: clamp(20rem, 28vw, 34rem); border-top: none; border-radius: 0 0 4px 4px; }
+.pyramid-arrow-down { text-align: center; font-size: clamp(1.5rem, 2.2vw, 2.4rem); color: var(--accent); opacity: .7; line-height: 1; padding: clamp(.2rem, .5vh, .5rem) 0; }
+.pyramid-label { font-family: var(--mono); font-size: clamp(.7rem, .75vw, .85rem); letter-spacing: .08em; opacity: .45; text-align: center; margin-bottom: clamp(.3rem, .6vh, .6rem); }
+
+/* ===== 前后对比组件 ===== */
+.compare-arrows { display: flex; align-items: center; gap: clamp(1rem, 2vw, 2rem); justify-content: center; }
+.compare-box { display: flex; align-items: center; justify-content: center; text-align: center; padding: clamp(1rem, 2vh, 1.5rem) clamp(1.5rem, 3vw, 2.5rem); font-family: var(--serif-zh); font-size: clamp(1.5rem, 2.4vw, 2.6rem); font-weight: 600; min-width: clamp(8rem, 14vw, 16rem); border-radius: 4px; }
+.slide.light .compare-box { border: 1.5px solid rgba(var(--ink-rgb), .25); }
+.slide.dark .compare-box { border: 1.5px solid rgba(var(--paper-rgb), .25); }
+.compare-box.new { border-color: var(--accent); color: var(--accent); }
+.compare-connector { font-size: clamp(2rem, 3.5vw, 3.5rem); color: var(--accent); opacity: .65; flex-shrink: 0; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="p140-141 基础训练七 掌控方向" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">基础训练七</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">掌控方向，金字塔图</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">简化思维的秘诀7：把握方针</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>01 / 18</div>
+  </div>
+</section>
+
+<!-- 02 方针是什么 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p142 方针是什么" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 方针</div><div>02 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">方针</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">定下目标之后，必须考虑如何实现目标</h2>
+      <p class="body-zh anim-item soft-note" style="max-width:24em">这种实现目标的过程，就是方针。最适合总结方针的图形是金字塔图。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p142 简化思维的秘诀7</div><div>02 / 18</div></div>
+</section>
+
+<!-- 03 登山比喻 L24 摘录侧注 callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p142-143 金字塔图的比喻">
+  <div class="chrome"><div>Excerpt · 比喻</div><div>03 / 18</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        金字塔图相当于登山时的地图，上面画着地形和登山路线。
+        <cite>p143 基础训练七</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">确定了方针，就不会再彷徨，可以集中利用时间、金钱等资源来实现目标。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">以经营公司为例：有的集中一切资源扩大规模，有的不重规模、旨在成为更受顾客和员工青睐的企业。方针不同，战略战术也各不同。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p142-143</div><div>03 / 18</div></div>
+</section>
+
+<!-- 04 三步法 L29 文章脉络 timeline-row thick -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p144-146 三步画金字塔图">
+  <div class="chrome"><div>脉络 · 方法</div><div>04 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">画金字塔图的三步方法</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">步骤1</div><p class="body-zh" style="margin-top:1vh">分清阶段<br>寻找关键词</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">步骤2</div><p class="body-zh" style="margin-top:1vh">画出金字塔模型<br>写出各层概要</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">步骤3</div><p class="body-zh" style="margin-top:1vh">完善概要内容<br>加入具体说明</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">窍门</div><p class="body-zh" style="margin-top:1vh">不要一开始追求完美<br>先画再改</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p144-147</div><div>04 / 18</div></div>
+</section>
+
+<!-- 05 课程13习题 L25 段落拆解 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p144 课程13 增加回头客">
+  <div class="chrome"><div>段落拆解 · 课程13</div><div>05 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:15em">料理店如何增加回头客</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">A料理店制定了提高顾客数量的方针：增加网络广告投放、发布优惠券、推出积分卡。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">关键不是具体措施，而是分析顾客从第一次光顾到成为回头客，中间经历几个阶段。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">提示：先在脑海中模拟爬山的情景，思考时可以忽略具体方法的细节问题。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p144 课程13</div><div>05 / 18</div></div>
+</section>
+
+<!-- 06 步骤1分清阶段 L27 观点加例证 -->
+<section class="slide light" data-theme="light" data-screen-label="Exhibit" data-source="p144 步骤1 分清阶段">
+  <div class="chrome"><div>步骤1 · 分清阶段</div><div>06 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">寻找关键词，分清三个阶段</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">阶段一</div><p class="body-zh">提高知名度：增加网络广告投放数量，在网上发布优惠券以吸引顾客</p></div>
+        <div class="anim-item"><div class="kicker">阶段二</div><p class="body-zh">顾客来店：凭优惠券领取一份最受欢迎的甜点</p></div>
+        <div class="anim-item"><div class="kicker">阶段三</div><p class="body-zh">发展为回头客：推出积分卡，多次光顾凭积分享受优惠</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p144 步骤1</div><div>06 / 18</div></div>
+</section>
+
+<!-- 07 步骤2-3 画模型 L5 + 金字塔图 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p145-147 步骤2-3 画模型完善内容">
+  <div class="chrome"><div>步骤2-3 · 金字塔模型</div><div>07 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:clamp(1.6rem,3vh,2.8rem)">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:14em">三步搭建一个可执行的方针</h2>
+      <div class="pyramid-stack compact anim-item">
+        <div class="pyramid-label">要点：越上层的概念越重要</div>
+        <div class="pyramid-block top">发展为回头客<br><span style="font-size:.85em;opacity:.55">积分卡、多次消费优惠</span></div>
+        <div class="pyramid-block mid">顾客来店<br><span style="font-size:.85em;opacity:.55">凭优惠券领取人气甜点</span></div>
+        <div class="pyramid-block bot">提高知名度<br><span style="font-size:.85em;opacity:.55">网络广告、发布优惠券</span></div>
+      </div>
+      <p class="body-zh soft-note anim-item" style="text-align:center;max-width:22em">自上而下，每个阶段都补充了具体措施，方针变得可执行</p>
+    </div>
+  </div>
+  <div class="foot"><div>p145-146 步骤2-3</div><div>07 / 18</div></div>
+</section>
+
+<!-- 08 不要追求完美 L3-a bare -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p147 不要一开始就追求完美">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">窍门</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">先把能想到的画出来</h2>
+      <p class="body-zh anim-item" style="margin-top:clamp(1.4rem,3vh,2.4rem);max-width:16em;opacity:.6">把这张图当作最初版本，之后再逐渐完善。金字塔图让你将上下层关系结合起来思考，更容易制定一体化程度较高的方针。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p147</div><div>08 / 18</div></div>
+</section>
+
+<!-- 09 课程14亚马逊 L25 段落拆解 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p148 课程14 预测亚马逊">
+  <div class="chrome"><div>段落拆解 · 课程14</div><div>09 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:15em">预测亚马逊的下一步举措</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">亚马逊以品类齐全、追求低价、方便顾客为宗旨，凡是网络电商起步的事业，都将开办实体经营。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">品类齐全、追求低价、方便顾客是具体方法，不是阶段。处理阶段性问题，必须从更宏观的角度思考。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">愿景是为全世界人民提供种类最齐全的商品，持续满足客户的一切需求。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p148 课程14</div><div>09 / 18</div></div>
+</section>
+
+<!-- 10 分清概念 L24 摘录侧注 callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p148-149 步骤1 分清概念">
+  <div class="chrome"><div>Excerpt · 分清概念</div><div>10 / 18</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        亚马逊的方针主要体现在宗旨、事业、愿景三个方面。
+        <cite>p149 步骤2</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">如果按原文顺序填写，愿景会被写在最下层。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">但愿景是企业存在的目的和未来图景，是企业经营中最重要的概念。需要调整填写的顺序。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p148-149</div><div>10 / 18</div></div>
+</section>
+
+<!-- 11 正确顺序 L3-c + 金字塔图 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p149-150 步骤2 正确顺序" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 层次</div><div>11 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">要点</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">把最重要的概念写在上层</h2>
+      <div class="pyramid-stack compact anim-item">
+        <div class="pyramid-label">注意金字塔顶端的内容是否合适</div>
+        <div class="pyramid-block top">愿景：为全世界提供种类最齐全的商品</div>
+        <div class="pyramid-arrow-down">↓</div>
+        <div class="pyramid-block mid">宗旨：品类齐全、追求低价、方便顾客</div>
+        <div class="pyramid-arrow-down">↓</div>
+        <div class="pyramid-block bot">事业：同时开拓电商市场和实体市场</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p149-150 步骤2-3</div><div>11 / 18</div></div>
+</section>
+
+<!-- 12 连贯性检查 L16 表格 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p151-153 连贯性检查">
+  <div class="chrome"><div>表格 · 连贯性</div><div>12 / 18</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">愿景 → 宗旨 → 事业的连贯性</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>层级</th><th>关键内容</th><th>与上层的关系</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>愿景</td><td>种类齐全、一切需求</td><td>企业存在的目的和未来图景</td></tr>
+          <tr><td>宗旨</td><td>品类齐全、追求低价、方便顾客</td><td>品类齐全直接呼应愿景；追求低价和方便顾客包含在一切需求中</td></tr>
+          <tr><td>事业</td><td>同时开拓电商和实体市场</td><td>愿景和宗旨中并没有专注电商的字眼，转战实体是一种必然</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p151-153</div><div>12 / 18</div></div>
+</section>
+
+<!-- 13 双向检查 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p153 双向检查连贯性" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 验证方法</div><div>13 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">必胜技巧</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">由上至下、由下至上保持双向连贯性</h2>
+      <p class="body-zh anim-item soft-note" style="max-width:24em">先由上至下检查流程的连贯性，再由下至上反向观察是否有不妥之处。通过正反两个方向的分析来提高图形的准确性。连贯性一旦确认，就能据此做出预测。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p153-154</div><div>13 / 18</div></div>
+</section>
+
+<!-- 14 总结三个要点 L9 三列 -->
+<section class="slide light" data-theme="light" data-screen-label="Summary" data-source="p154 总结 熟练使用金字塔图">
+  <div class="chrome"><div>总结 · 三个要点</div><div>14 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">熟练使用金字塔图</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">理解顺序</div><p class="body-zh" style="margin-top:1vh">把重要的概念写在上层。金字塔顶端的内容决定了整个方针的方向。</p></div>
+        <div class="anim-item"><div class="kicker">理解要点</div><p class="body-zh" style="margin-top:1vh">先画出大致框架，细节内容之后再进行调整。不要一开始就追求完美。</p></div>
+        <div class="anim-item"><div class="kicker">必胜技巧</div><p class="body-zh" style="margin-top:1vh">由上至下、由下至上保持双向连贯性，用正反方向分析提高准确性。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p154 总结</div><div>14 / 18</div></div>
+</section>
+
+<!-- 15 专栏5 前后对比图 L30 双张力 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Tension" data-source="p156-157 专栏5 前后对比图">
+  <div class="chrome"><div>专栏5 · 前后对比</div><div>15 / 18</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">现在的定位</h2>
+      <p class="body-zh" style="max-width:15em">用图形对比现在和将来，关键信息一目了然。当前模式、现有业务、已知市场。</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">将来的定位</h2>
+      <p class="body-zh" style="max-width:15em">在现在与将来之间加上箭头，引入前后对比概念。新模式、新业务、待开拓市场。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p156-157 专栏5</div><div>15 / 18</div></div>
+</section>
+
+<!-- 16 核心总结1 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p142-154 核心总结">
+  <div class="chrome"><div>核心总结</div><div>16 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">方针是实现目标的过程。确定了方针，就不再彷徨，可以集中资源（时间、金钱）高效推进。不同的方针决定不同的战略战术。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">画金字塔图分三步：分清阶段并寻找关键词、画出金字塔模型并写出各层概要、完善概要内容加入具体说明。不要一开始追求完美，先画再改。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">分阶段时，从宏观概念入手，不要被具体方法（如优惠券、积分卡）误导。案例：料理店先是提高知名度，然后顾客来店，最后发展为回头客。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p142-147</div><div>16 / 18</div></div>
+</section>
+
+<!-- 17 核心总结2 L32 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p148-157 核心总结">
+  <div class="chrome"><div>核心总结</div><div>17 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">金字塔图最重要的规则：把最重要的概念写在上层。亚马逊案例中，愿景是企业存在的目的，应放在顶端，而非原文末尾的最下层。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">由上至下、由下至上双向检查连贯性。确认愿景→宗旨→事业的连贯性后，可以做出预测：亚马逊今后还会继续强化实体经营。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">前后对比图可与比较图结合：在现在的定位和将来的定位之间加上箭头，不局限于一种图形，多种图形结合可以进一步加深对事物的理解。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p148-157</div><div>17 / 18</div></div>
+</section>
+
+<!-- 18 练一练 L31 bare -->
+<section class="slide light bare" data-theme="light" data-screen-label="Open Questions" data-source="p155 试一试 练习画金字塔图">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote">
+      <div class="kicker anim-item">Try It</div>
+      <h2 class="h1-zh anim-item" style="max-width:10em;margin:clamp(1rem,3vh,2rem) auto 0">练习画金字塔图，分析生活中的重要方针</h2>
+      <div style="margin-top:clamp(2rem,4vh,3rem);display:grid;gap:clamp(.8rem,1.5vh,1.2rem);text-align:left">
+        <p class="body-zh anim-item">01 自己所在的公司有什么方针？</p>
+        <p class="body-zh anim-item">02 可以采取什么样的方针提高利润率？</p>
+        <p class="body-zh anim-item">03 竞争公司有什么方针？</p>
+        <p class="body-zh anim-item">04 自己支持的体育运动队伍有什么方针？</p>
+        <p class="body-zh anim-item">05 应该怎样制定人生方针？</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p155</div><div>18 / 18</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-gt-08-pyramid';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

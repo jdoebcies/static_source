@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第8章 通过事件分析实现可观测性</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: 系统工程调试方法论，深蓝灰舞台体现实工程严谨，暖白解释页保持长时间阅读舒适，沉静蓝标记关键概念和数字，冷灰处理次级信息 */
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+/* Loop diagram */
+.loop-diagram {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  position: relative;
+}
+.loop-node {
+  background: rgba(var(--ink-rgb), .04);
+  border-radius: 6px;
+  padding: clamp(1rem, 2vw, 1.6rem);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(.4rem, 1vh, .8rem);
+}
+.loop-node .step-num {
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  color: var(--accent);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .85;
+}
+.loop-node h3 {
+  font-family: var(--serif-zh);
+  font-weight: 600;
+  font-size: clamp(1.2rem, 1.5vw, 1.7rem);
+  line-height: 1.3;
+}
+.loop-node p {
+  font-family: var(--sans-zh);
+  font-size: clamp(1rem, 1.15vw, 1.35rem);
+  line-height: 1.45;
+  opacity: .72;
+}
+.loop-return {
+  position: absolute;
+  bottom: clamp(.8rem, 2vh, 1.4rem);
+  right: clamp(1rem, 2vw, 2rem);
+  font-family: var(--mono);
+  font-size: clamp(.7rem, .75vw, .85rem);
+  letter-spacing: .1em;
+  opacity: .45;
+  display: flex;
+  align-items: center;
+  gap: .4em;
+}
+
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="第8章 pp.67-74" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">第8章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">通过事件分析实现可观测性</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">从第一性原理调试、核心分析循环与 AIOps 的边界</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>《可观测性工程》</div>
+    <div>pp.67 至 74</div>
+  </div>
+</section>
+
+<!-- 02 强主张：从已有条件调试的局限 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p67 8.1 从已有条件调试">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Debugging · Known Conditions</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(2.8rem,7vw,6.8rem);max-width:11em;letter-spacing:0">传统调试依赖已知条件，现代系统很少以完全相同的方式失败两次</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p67 8.1</div><div>02 / 12</div></div>
+</section>
+
+<!-- 03 段落拆解：运行手册的徒劳 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p67 关于运行手册">
+  <div class="chrome"><div>段落拆解 · 运行手册</div><div>03 / 12</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">创建运行手册所花费的时间在很大程度上被浪费了</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">经理推动高级工程师编写操作手册，试图穷举每一个可能的根本原因</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">分布式系统中，几乎从未发生过的长串问题导致级联故障，五个看似不可能的条件恰好组合在一起</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">错误的文档比没有文档更危险。在快速变化的系统中，仪表显示往往是最好的文档</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p67</div><div>03 / 12</div></div>
+</section>
+
+<!-- 04 强主张：核心分析循环 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p69 8.2.1 使用核心分析循环" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 核心方法</div><div>04 / 12</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Core Analysis Loop</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">从第一性原理调试，就是使用遥测数据形成假设，用数据验证它们有效或无效，系统性地得出复杂问题的答案</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">不需要对系统有任何先验知识，简单而有条不紊，可重复，可验证</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p69</div><div>04 / 12</div></div>
+</section>
+
+<!-- 05 流程：核心分析循环四步 -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p69 图8-1 核心分析循环">
+  <div class="chrome"><div>流程 · 核心分析循环</div><div>05 / 12</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">核心分析循环：四步法</h2>
+      <div class="loop-diagram anim-item" style="position:relative">
+        <div class="loop-node">
+          <div class="step-num">Step 1</div>
+          <h3>起点</h3>
+          <p>客户投诉或告警告诉你什么？从促使你调查的整体观点开始</p>
+        </div>
+        <div class="loop-node">
+          <div class="step-num">Step 2</div>
+          <h3>验证</h3>
+          <p>确认系统某处是否发生了显著的性能变化。数据可视化可以帮助你识别图表中的曲线波动</p>
+        </div>
+        <div class="loop-node">
+          <div class="step-num">Step 3</div>
+          <h3>搜索</h3>
+          <p>检查示例行中的异常值，跨不同维度分割行以寻找规律，过滤特定维度暴露潜在的异常值</p>
+        </div>
+        <div class="loop-node">
+          <div class="step-num">Step 4</div>
+          <h3>决策</h3>
+          <p>对可能发生的事情有足够了解了吗？如果是，完成。如果否，过滤视图隔离当前性能区域，返回步骤3</p>
+        </div>
+        <div class="loop-return">← 返回 Step 3 继续迭代</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p69 图8-1</div><div>05 / 12</div></div>
+</section>
+
+<!-- 06 观点加例证：自动化暴力破解 -->
+<section class="slide light" data-theme="light" data-screen-label="Method" data-source="p70 8.2.2 自动化核心分析循环的暴力破解部分">
+  <div class="chrome"><div>方法 · 自动化暴力破解</div><div>06 / 12</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">让机器做它最擅长的事：翻阅海量数据识别模式</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">检索</div><p class="body-zh" style="margin-top:1vh">提炼你关心的异常性能区域，同时检索区域外作为系统基线</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">区分</div><p class="body-zh" style="margin-top:1vh">计算所有维度的值在异常区和基线区的分布，逐维度做差异对比</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">排序</div><p class="body-zh" style="margin-top:1vh">按差异百分比对结果排序，几秒内浮出水面最可能解释异常的维度</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p70</div><div>06 / 12</div></div>
+</section>
+
+<!-- 07 大数字：Honeycomb BubbleUp 案例 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Data" data-source="pp.71-72 Honeycomb BubbleUp 案例" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>数据 · BubbleUp 案例</div><div>07 / 12</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="stat-num anim-item">98%</div>
+    <h2 class="h2-zh anim-item" style="max-width:14em;margin-top:clamp(1rem,2vh,2rem)">特定可用区承受主要降级</h2>
+    <p class="body-zh anim-item" style="max-width:22em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.6">而基线事件中仅占 17%。BubbleUp 自动对 63 个维度按差异百分比排名，几秒内定位问题可用区</p>
+  </div>
+  <div class="foot" style="width:100%"><div>pp.71 至 72</div><div>07 / 12</div></div>
+</section>
+
+<!-- 08 强主张：AIOps 的误导性承诺 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="pp.72-73 8.3 AIOps 的误导性承诺" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · AIOps</div><div>08 / 12</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">AIOps Misleading Promise</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">AI 可以检测到峰值，但只有人类才能为峰值附加意义：是好还是坏，有意还是无意</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">在频繁变更的生产环境中，AIOps 绘制的检测框要么太小误报，要么太大漏报。AI 无法可靠地分配价值判断</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>pp.72 至 73</div><div>08 / 12</div></div>
+</section>
+
+<!-- 09 原文摘录加侧注：人机协作 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p73 人类与机器智能融合">
+  <div class="chrome"><div>Excerpt · 人机协作</div><div>09 / 12</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">让计算机翻阅数据以识别模式，让人类为模式添加认知性上下文。<cite>p73 第8章</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">在可观测性和自动化核心分析循环中，人类和机器智能融合在一起，实现两全其美</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">计算机的处理速度加人类的上下文意识，是从噪声中筛选信号的最佳方案</p>
+    </div>
+  </div>
+  <div class="foot"><div>p73</div><div>09 / 12</div></div>
+</section>
+
+<!-- 10 结论强判断 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p73-74 8.4 结论">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Conclusion</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(2.8rem,7vw,6.8rem);max-width:11em;letter-spacing:0">自动化核心分析循环，就是把最好的机器能力和最好的人类判断结合在一起</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>pp.73 至 74</div><div>10 / 12</div></div>
+</section>
+
+<!-- 11 核心总结 (1/2) -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="第8章 核心总结 1/2">
+  <div class="chrome"><div>核心总结 1/2</div><div>11 / 12</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">传统调试从已有条件出发，依赖操作手册和经验直觉。但现代分布式系统很少以完全相同的方式失败两次，运行手册迅速过时，错误文档比没有文档更危险</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">可观测性让你从第一性原理调试：即使在完全不熟悉系统时，也能系统性地循线索找到答案。它使调试行为大众化，对系统知之甚少的人也应该能够介入并调试问题</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">核心分析循环是四步法：从客户或告警的起点出发，验证是否发生显著变化，搜索推动变化的维度，决策是否足够了解并循环迭代。它是有条不紊、可重复、可验证的过程</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>第8章</div><div>11 / 12</div></div>
+</section>
+
+<!-- 12 核心总结 (2/2) -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="第8章 核心总结 2/2">
+  <div class="chrome"><div>核心总结 2/2</div><div>12 / 12</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">自动化暴力破解：检索异常区与基线区所有维度的值，逐维度做差异对比并按百分比排序。Honeycomb BubbleUp 在真实案例中 98% vs 17% 浮出 us-east-1a，几秒定位问题可用区</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">AIOps 不是银弹：在频繁变更的生产环境中，AI 绘制的检测框要么太小误报要么太大漏报。人工智能只有在存在清晰可辨的模式且可以通过训练适应不断变化的基线时才能提供帮助，而这在运维领域尚未被验证</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">最佳方案是融合：计算机翻阅海量数据找模式，人类为模式注入上下文和价值判断。任何计算机都可以检测到峰值，但只有人类才能判断峰值是好还是坏、有意还是无意</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>第8章</div><div>12 / 12</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-08-event-analysis';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

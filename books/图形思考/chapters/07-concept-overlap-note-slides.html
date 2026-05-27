@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>基础训练六：组合，重叠图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note { color: rgba(var(--paper-rgb), .6); }
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+/* ===== Circle overlap diagrams ===== */
+.venn-3 {
+  position: relative;
+  width: min(100%, 460px);
+  height: min(60vh, 380px);
+  margin: 0 auto;
+}
+.venn-3 .vc {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2.5px solid var(--accent);
+  background: rgba(var(--accent-rgb), 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  font-size: clamp(.85rem, .95vw, 1.05rem);
+  line-height: 1.35;
+}
+.venn-3 .vc.top  { top: 0; left: 50%; transform: translateX(-50%); }
+.venn-3 .vc.bl   { bottom: 0; left: 22px; }
+.venn-3 .vc.br   { bottom: 0; right: 22px; }
+.venn-3 .center-tag {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--serif-zh);
+  font-weight: 700;
+  font-size: clamp(1rem, 1.2vw, 1.35rem);
+  color: var(--accent);
+  text-align: center;
+  z-index: 10;
+  background: rgba(var(--paper-rgb), 0.82);
+  padding: .35rem .7rem;
+  border-radius: 4px;
+  line-height: 1.3;
+}
+
+/* Horizontal overlap */
+.venn-h {
+  position: relative;
+  width: min(100%, 480px);
+  height: 200px;
+  margin: 0 auto;
+}
+.venn-h .vc {
+  position: absolute;
+  width: 175px;
+  height: 175px;
+  border-radius: 50%;
+  border: 2.5px solid var(--accent);
+  background: rgba(var(--accent-rgb), 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  font-size: clamp(.85rem, .95vw, 1.05rem);
+  line-height: 1.35;
+  top: 50%;
+}
+.venn-h .vc.l   { left: 0; transform: translateY(-50%); }
+.venn-h .vc.m   { left: 50%; transform: translate(-50%, -50%); }
+.venn-h .vc.r   { right: 0; transform: translateY(-50%); }
+.venn-h .center-tag {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--serif-zh);
+  font-weight: 700;
+  font-size: clamp(.9rem, 1.1vw, 1.2rem);
+  color: var(--accent);
+  text-align: center;
+  z-index: 10;
+  background: rgba(var(--paper-rgb), 0.82);
+  padding: .3rem .6rem;
+  border-radius: 4px;
+}
+
+/* Connected (non-overlapping) circles for addition diagram */
+.conn-3 {
+  position: relative;
+  width: min(100%, 420px);
+  height: 330px;
+  margin: 0 auto;
+}
+.conn-3 .vc {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  background: rgba(var(--ink-rgb), 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: .8rem;
+  font-size: clamp(.78rem, .85vw, .95rem);
+  line-height: 1.3;
+}
+.conn-3 .vc.top  { top: 0; left: 50%; transform: translateX(-50%); }
+.conn-3 .vc.bl   { bottom: 0; left: 18px; }
+.conn-3 .vc.br   { bottom: 0; right: 18px; }
+
+.compare-diag {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: center;
+}
+.formula-tag {
+  font-family: var(--mono);
+  font-size: clamp(.9rem, 1vw, 1.1rem);
+  letter-spacing: .1em;
+  color: var(--accent);
+  opacity: .7;
+  text-align: center;
+  margin-bottom: clamp(1rem, 2vh, 1.8rem);
+}
+
+/* Exercise checklist */
+.exercise-list {
+  width: min(100%, 48rem);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(.8rem, 1.6vh, 1.4rem);
+}
+.exercise-item {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(.8rem, 1.5vw, 1.4rem);
+  padding: clamp(.6rem, 1.2vh, 1rem) 0;
+  border-bottom: 1px solid rgba(var(--ink-rgb), .1);
+}
+.exercise-item .num {
+  font-family: var(--mono);
+  font-size: clamp(.85rem, .95vw, 1rem);
+  color: var(--accent);
+  min-width: 2em;
+}
+.exercise-item .desc {
+  font-family: var(--sans-zh);
+  font-size: clamp(1.35rem, 1.5vw, 1.7rem);
+  line-height: 1.4;
+}
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 -->
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p124-125 基础训练六" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">图形思考 · 基础训练六</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">组合，重叠图</h1>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">用圆形重叠表达概念的交集，让复杂商品和服务变得可理解</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考 · 基础训练篇</div>
+    <div>p124-139</div>
+  </div>
+</section>
+
+<!-- 02 什么是概念 (L3-c) -->
+<section class="slide dark" data-theme="dark" data-screen-label="Concept" data-source="p126 简化思维的秘诀6">
+  <div class="chrome" style="width:100%"><div>秘诀 · 掌握概念</div><div>02 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">简化思维的秘诀6</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">掌握概念，就是看清多重特点的交叉点</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">商品或服务的卖点不止一个，而是由多个特点组合而成。重叠图可以帮助我们将这些特点组合起来思考。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p126 什么是概念</div><div>02 / 18</div></div>
+</section>
+
+<!-- 03 iPhone 重叠图示例 -->
+<section class="slide light" data-theme="light" data-screen-label="iPhone Example" data-source="p127 iPhone概念图">
+  <div class="chrome"><div>示例 · iPhone</div><div>03 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:14em;margin:0 auto clamp(2.5rem,5vh,3.5rem)">乔布斯对 iPhone 的定义：一个三合一产品</h2>
+      <div class="venn-3 anim-item" style="height:min(62vh,390px)">
+        <div class="vc top">大屏幕<br>iPod</div>
+        <div class="vc bl">手机</div>
+        <div class="vc br">网络通信<br>设备</div>
+        <div class="center-tag">iPhone<br>的概念</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p127 乔布斯首次公开介绍iPhone</div><div>03 / 18</div></div>
+</section>
+
+<!-- 04 重叠部分体现优势和特点 (L3-a bare) -->
+<section class="slide light bare" data-theme="light" data-screen-label="Core Insight" data-source="p127 重叠部分体现优势和特点">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">核心认知</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">重叠部分<br>就是概念</h2>
+      <p class="body-zh anim-item" style="max-width:18em;margin-top:clamp(1.6rem,3vh,2.4rem);opacity:.65">概念意味着个性，它是多种特点的重合。理解概念时，必须弄清楚概念由哪几个特点组合而成。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p127</div><div>04 / 18</div></div>
+</section>
+
+<!-- 05 课程11 标题 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Course 11" data-source="p128 课程11">
+  <div class="chrome" style="width:100%"><div>课程11 · 问题练习</div><div>05 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">课程 11</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">为什么人们离不开 Facebook</h2>
+      <p class="body-zh anim-item" style="max-width:20em;opacity:.62">三个特点组合在一起，让用户难以变心</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p128 问题练习</div><div>05 / 18</div></div>
+</section>
+
+<!-- 06 步骤1：找出组合成分 (L25 段落拆解) -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p128 步骤1 找出组合成分">
+  <div class="chrome"><div>步骤1 · 拆解</div><div>06 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">从短文里找出三个关键功能</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">成分一</div><p class="body-zh" style="margin-top:1vh">实名注册制，便于搜索熟人，可以当作联系人名册</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">成分二</div><p class="body-zh" style="margin-top:1vh">可以建立小组，进行会话交流，十分方便</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">成分三</div><p class="body-zh" style="margin-top:1vh">能发布自己的近况，兼作生活日志</p></div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="margin-top:.5rem">要点：留意重复内容，找出关键词。转用其他工具这些功能都无法继续使用，是重要提示。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p128 答案与解说</div><div>06 / 18</div></div>
+</section>
+
+<!-- 07 步骤2：画出圆形模块 -->
+<section class="slide light" data-theme="light" data-screen-label="Draw Circles" data-source="p129 步骤2">
+  <div class="chrome"><div>步骤2 · 填入圆形</div><div>07 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:12em;margin:0 auto clamp(2rem,5vh,3.5rem)">把三个关键词填入圆形模块</h2>
+      <div class="venn-h anim-item">
+        <div class="vc l">联系人<br>名册</div>
+        <div class="vc m">小组<br>会话</div>
+        <div class="vc r">生活<br>日志</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p129 步骤2</div><div>07 / 18</div></div>
+</section>
+
+<!-- 08 步骤3：重叠完成图解 -->
+<section class="slide light" data-theme="light" data-screen-label="Overlap Complete" data-source="p129-130 步骤3">
+  <div class="chrome"><div>步骤3 · 重叠</div><div>08 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:13em;margin:0 auto clamp(2rem,5vh,3.5rem)">将三个圆形重叠，完成图解</h2>
+      <div class="venn-h anim-item">
+        <div class="vc l">联系人<br>名册</div>
+        <div class="vc m">小组<br>会话</div>
+        <div class="vc r">生活<br>日志</div>
+        <div class="center-tag">难以舍弃<br>Facebook</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p129-130 完成图解</div><div>08 / 18</div></div>
+</section>
+
+<!-- 09 Facebook 分析结论 (L27 观点加例证) -->
+<section class="slide light" data-theme="light" data-screen-label="Analysis" data-source="p130 Facebook分析结论">
+  <div class="chrome"><div>结论 · Facebook</div><div>09 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-note" style="display:flex;flex-direction:column;gap:clamp(1.6rem,3vh,2.6rem)">
+      <h2 class="h1-zh anim-item" style="max-width:12em">三种功能关联性越强，用户就越难舍弃</h2>
+      <div class="anim-item" style="display:flex;flex-direction:column;gap:clamp(.8rem,1.5vh,1.2rem)">
+        <p class="body-zh" style="display:flex;align-items:baseline;gap:.8rem"><span style="font-family:var(--mono);font-size:clamp(.8rem,.9vw,1rem);color:var(--accent);min-width:2.8em">功能一</span>实名注册制，可当作联系人名册</p>
+        <p class="body-zh" style="display:flex;align-items:baseline;gap:.8rem"><span style="font-family:var(--mono);font-size:clamp(.8rem,.9vw,1rem);color:var(--accent);min-width:2.8em">功能二</span>便利的交流工具，方便联系</p>
+        <p class="body-zh" style="display:flex;align-items:baseline;gap:.8rem"><span style="font-family:var(--mono);font-size:clamp(.8rem,.9vw,1rem);color:var(--accent);min-width:2.8em">功能三</span>可兼作生活日志</p>
+      </div>
+      <p class="body-zh anim-item soft-note">三种特点组合形成了强大关系网，个人用户很难单方面舍弃 Facebook。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p130 分析结论</div><div>09 / 18</div></div>
+</section>
+
+<!-- 10 填空法 (L24 摘录侧注) -->
+<section class="slide light" data-theme="light" data-screen-label="Fill-in-blank" data-source="p130-131 做填空题拓展思路">
+  <div class="chrome"><div>技巧 · 填空法</div><div>10 / 18</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">方法</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">先画好三个圆形模块，然后想一想应该填入什么内容。<cite>p130-131 做填空题</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">为什么有效</div>
+      <p class="lead-zh" style="max-width:16em">创立新概念难，但把问题变成填空题，就像玩解谜游戏一样思考。</p>
+      <p class="body-zh" style="max-width:16em;margin-top:clamp(1rem,2vh,1.6rem)">可以让所有相关人员完成填空，从答案中选出最合适的组合。重叠图的优点就在于拓展思路。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p130-131</div><div>10 / 18</div></div>
+</section>
+
+<!-- 11 课程12 标题 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Course 12" data-source="p132 课程12">
+  <div class="chrome" style="width:100%"><div>课程12 · 商务模拟</div><div>11 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">课程 12</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">哈根达斯的销售策略</h2>
+      <p class="body-zh anim-item" style="max-width:20em;opacity:.62">便利店和超市的冰激凌柜台中总有哈根达斯的身影，它的卖点中蕴含着品牌概念。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p132 商务模拟练习</div><div>11 / 18</div></div>
+</section>
+
+<!-- 12 步骤1：找出哈根达斯特点 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct Hagen" data-source="p132-133 哈根达斯步骤1">
+  <div class="chrome"><div>步骤1 · 拆解</div><div>12 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">从品牌特征中选出三个要点</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">特点一</div><p class="body-zh" style="margin-top:1vh">经常推出限定商品，和星巴克相似</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">特点二</div><p class="body-zh" style="margin-top:1vh">包装更加精美，附带小勺子质量也较好</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">特点三</div><p class="body-zh" style="margin-top:1vh">价格较高，形成独特感，可当作对自己的奖励</p></div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="margin-top:.5rem">要点：挑选主要特点，不拘泥于细节。注意在商店浏览时先留意哪些特征。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p132-133 答案与解说</div><div>12 / 18</div></div>
+</section>
+
+<!-- 13 步骤2+3：哈根达斯重叠图解 -->
+<section class="slide light" data-theme="light" data-screen-label="Hagen Overlap" data-source="p133-134 哈根达斯重叠图">
+  <div class="chrome"><div>步骤2+3 · 重叠</div><div>13 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:14em;margin:0 auto clamp(2rem,5vh,3.5rem)">三个特点组合，形成不易模仿的品牌概念</h2>
+      <div class="venn-3 anim-item" style="height:min(62vh,390px)">
+        <div class="vc top">经常推出<br>限定商品</div>
+        <div class="vc bl">包装有<br>高级感</div>
+        <div class="vc br">保持<br>高价</div>
+        <div class="center-tag">哈根达斯<br>品牌概念</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p133-134 重叠图解</div><div>13 / 18</div></div>
+</section>
+
+<!-- 14 深入关键词 -->
+<section class="slide light" data-theme="light" data-screen-label="Deepen Keywords" data-source="p135 进一步完善关键词">
+  <div class="chrome"><div>深入 · 关键词</div><div>14 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-note" style="display:flex;flex-direction:column;gap:clamp(1.6rem,3vh,2.6rem)">
+      <h2 class="h1-zh anim-item" style="max-width:13em">继续向更深层次思考：话题性和独特感</h2>
+      <div class="anim-item" style="display:flex;flex-direction:column;gap:clamp(1rem,2vh,1.5rem)">
+        <p class="body-zh" style="display:flex;align-items:baseline;gap:.8rem"><span style="font-family:var(--mono);font-size:clamp(.8rem,.9vw,1rem);color:var(--accent);min-width:3.2em">限定商品</span>会产生话题性和独特感</p>
+        <p class="body-zh" style="display:flex;align-items:baseline;gap:.8rem"><span style="font-family:var(--mono);font-size:clamp(.8rem,.9vw,1rem);color:var(--accent);min-width:3.2em">高级感</span>带来独特感</p>
+        <p class="body-zh" style="display:flex;align-items:baseline;gap:.8rem"><span style="font-family:var(--mono);font-size:clamp(.8rem,.9vw,1rem);color:var(--accent);min-width:3.2em">高价</span>也酝酿独特感</p>
+      </div>
+      <p class="body-zh anim-item soft-note">哈根达斯已在市场独占鳌头，却并未陷入模式化，一直致力于维持品牌的新鲜感。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p135 进一步完善关键词</div><div>14 / 18</div></div>
+</section>
+
+<!-- 15 总结：熟练使用重叠图 -->
+<section class="slide light" data-theme="light" data-screen-label="Key Points" data-source="p136 总结">
+  <div class="chrome"><div>总结 · 要点</div><div>15 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">熟练使用重叠图</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">理解顺序</div><p class="body-zh" style="margin-top:1vh">先找出组合成分，再画圆形模块，最后重叠完成图解</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">理解要点</div><p class="body-zh" style="margin-top:1vh">准确找出相关乘数；利用简单结构拓展思路；圆形内容控制在两行以内</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">必胜技巧</div><p class="body-zh" style="margin-top:1vh">圆形画2到3个，表达概念时最合适，太多会使图变得复杂</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p136 总结</div><div>15 / 18</div></div>
+</section>
+
+<!-- 16 试一试 -->
+<section class="slide light" data-theme="light" data-screen-label="Exercises" data-source="p137 试一试">
+  <div class="chrome"><div>练习 · 试一试</div><div>16 / 18</div></div>
+  <div class="slide-body">
+    <div style="width:min(100%,48rem);margin:0 auto">
+      <h2 class="h1-zh anim-item" style="max-width:11em;margin-bottom:clamp(1.6rem,3vh,2.6rem)">利用日常素材练习画重叠图</h2>
+      <div class="exercise-list">
+        <div class="exercise-item anim-item"><span class="num">01</span><span class="desc">自己正在经营的商品</span></div>
+        <div class="exercise-item anim-item"><span class="num">02</span><span class="desc">自己所在的部门、团队</span></div>
+        <div class="exercise-item anim-item"><span class="num">03</span><span class="desc">今日穿搭</span></div>
+        <div class="exercise-item anim-item"><span class="num">04</span><span class="desc">爱吃的点心</span></div>
+        <div class="exercise-item anim-item"><span class="num">05</span><span class="desc">自己居住的街道</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p137 试一试</div><div>16 / 18</div></div>
+</section>
+
+<!-- 17 乘法与加法的区别 (比较图) -->
+<section class="slide light" data-theme="light" data-screen-label="Multiply vs Add" data-source="p138-139 图解衍生版本">
+  <div class="chrome"><div>衍生 · 乘法与加法</div><div>17 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:14em;margin:0 auto clamp(2.5rem,5vh,3.5rem)">重叠图是乘法，不是加法</h2>
+      <div class="compare-diag anim-item">
+        <div style="text-align:center">
+          <div class="formula-tag">A × B × C = 概念</div>
+          <div class="venn-3" style="height:min(52vh,340px);width:min(100%,380px)">
+            <div class="vc top" style="width:150px;height:150px">大屏幕<br>iPod</div>
+            <div class="vc bl" style="width:150px;height:150px">手机</div>
+            <div class="vc br" style="width:150px;height:150px">网络通信<br>设备</div>
+            <div class="center-tag">iPhone<br>的概念</div>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div class="formula-tag">A + B + C = 并集</div>
+          <div class="conn-3" style="height:min(52vh,340px);width:min(100%,340px)">
+            <div class="vc top" style="width:130px;height:130px">大屏幕<br>iPod</div>
+            <div class="vc bl" style="width:130px;height:130px">手机</div>
+            <div class="vc br" style="width:130px;height:130px">网络通信<br>设备</div>
+          </div>
+        </div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="text-align:center;max-width:28em;margin:clamp(1.2rem,2.5vh,2rem) auto 0">左图：重叠强调多种要素重合后得到的概念（乘法）。右图：给人以三种特点独立兼备的感觉（加法）。画图前先判断想强调的是哪一种。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p138-139 图解衍生版本</div><div>17 / 18</div></div>
+</section>
+
+<!-- 18 核心总结 (L32) -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p124-139 基础训练六全章">
+  <div class="chrome"><div>核心总结</div><div>18 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.5rem,3.5vh,2.8rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">重叠图的核心用途：把多个特点组合起来思考，圆形重叠的部分就是商品或服务的概念（即个性）。理解概念时，必须先弄清楚它由哪几个特点组合而成。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">标准三步流程：找出组合成分（挑关键词），画出圆形模块（填入内容），重叠圆形模块（完成图解）。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">圆形数量控制在2到3个，内容描述在圆形内不超过两行。太多圆形会让图变得复杂，失去重叠图简洁的优势。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">填空法：反过来使用重叠图。先画好三个空圆形，再思考填入什么内容。这比直接创立新概念容易，像玩解谜游戏，可用于团队共创。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">重叠图是乘法而非加法。重叠图强调多种要素重合后得到的某一种概念（A×B×C），而并列图强调各要素独立兼备（A+B+C）。画图前先判断想强调哪一种关系。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p124-139 基础训练六</div><div>18 / 18</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-07-overlap';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

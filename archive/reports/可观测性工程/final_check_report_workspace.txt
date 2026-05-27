@@ -1,0 +1,46 @@
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/00-frontmatter-preface/00-frontmatter-preface-note-slides.html =====
+Deck check passed: 19 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/01-what-is-observability/01-what-is-observability-note-slides.html =====
+Deck check passed: 21 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/02-debugging-observability-vs-monitoring/02-debugging-observability-vs-monitoring-note-slides.html =====
+Deck check passed: 13 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/03-lessons-from-scaling-parse/03-lessons-from-scaling-parse-note-slides.html =====
+Deck check passed: 16 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/04-devops-sre-cloud-native/04-devops-sre-cloud-native-note-slides.html =====
+Deck check passed: 12 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/05-structured-events/05-structured-events-note-slides.html =====
+Deck check passed: 14 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/06-traces-from-events/06-traces-from-events-note-slides.html =====
+Deck check passed: 14 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/07-opentelemetry-instrumentation/07-opentelemetry-instrumentation-note-slides.html =====
+Deck check passed: 14 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/08-event-analysis/08-event-analysis-note-slides.html =====
+Deck check passed: 12 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/09-observability-and-monitoring/09-observability-and-monitoring-note-slides.html =====
+Deck check passed: 13 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/10-team-observability-practices/10-team-observability-practices-note-slides.html =====
+Deck check passed: 12 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/11-observability-driven-development/11-observability-driven-development-note-slides.html =====
+Deck check passed: 14 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/12-slo-for-reliability/12-slo-for-reliability-note-slides.html =====
+Deck check passed: 14 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/13-debugging-slo-alerts/13-debugging-slo-alerts-note-slides.html =====
+Deck check passed: 20 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/14-software-supply-chain/14-software-supply-chain-note-slides.html =====
+Deck check passed: 19 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/15-build-buy-roi/15-build-buy-roi-note-slides.html =====
+Deck check passed: 14 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/16-efficient-data-storage/16-efficient-data-storage-note-slides.html =====
+Deck check passed: 22 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/17-accurate-cheap-sampling/17-accurate-cheap-sampling-note-slides.html =====
+Deck check passed: 21 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/18-telemetry-pipelines/18-telemetry-pipelines-note-slides.html =====
+Deck check passed: 22 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/19-business-case/19-business-case-note-slides.html =====
+Deck check passed: 17 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/20-stakeholders-and-coalitions/20-stakeholders-and-coalitions-note-slides.html =====
+Deck check passed: 16 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/21-maturity-model/21-maturity-model-note-slides.html =====
+Deck check passed: 16 slide(s), 0 warning(s).
+\n===== /root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/22-future-trends/22-future-trends-note-slides.html =====
+Deck check passed: 13 slide(s), 0 warning(s).

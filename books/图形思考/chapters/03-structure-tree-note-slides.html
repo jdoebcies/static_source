@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>基础训练二：全面掌握具体内容，树状图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.note-stack { width: var(--w-default); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(2rem, 4vh, 3.6rem); }
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; text-align: center; }
+.section-title { max-width: 11em; margin: 0 auto; text-align: center; }
+
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh      { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh      { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem); line-height: 1.28; }
+.lead-zh    { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh    { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker     { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta       { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3     { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.grid-4     { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+/* Tree diagram utilities */
+.tree-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(.5rem, 1vh, .8rem);
+}
+.tree-root-node {
+  border: 1.5px solid var(--accent);
+  padding: clamp(.5rem, 1.2vh, .85rem) clamp(1rem, 2vw, 1.8rem);
+  border-radius: 4px;
+  font-family: var(--serif-zh);
+  font-weight: 600;
+  font-size: clamp(1.2rem, 1.5vw, 1.6rem);
+  background: rgba(var(--accent-rgb), .07);
+  text-align: center;
+}
+.tree-branches {
+  display: flex;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+}
+.tree-branches::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 1.5px;
+  background: var(--accent);
+  opacity: .4;
+}
+.tree-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(.3rem, .6vh, .5rem);
+}
+.tree-branch::before {
+  content: "";
+  width: 1.5px;
+  height: clamp(.6rem, 1.2vh, 1rem);
+  background: var(--accent);
+  opacity: .4;
+}
+.tree-branch-node {
+  border: 1px solid var(--accent);
+  padding: clamp(.35rem, .8vh, .6rem) clamp(.7rem, 1.2vw, 1.2rem);
+  border-radius: 3px;
+  font-family: var(--serif-zh);
+  font-size: clamp(1rem, 1.2vw, 1.35rem);
+  background: rgba(var(--accent-rgb), .04);
+  text-align: center;
+  opacity: .85;
+}
+.tree-sub-branches {
+  display: flex;
+  gap: clamp(.5rem, 1vw, 1rem);
+  justify-content: center;
+}
+.tree-sub-node {
+  border: 1px solid rgba(var(--accent-rgb), .45);
+  padding: clamp(.25rem, .5vh, .45rem) clamp(.5rem, 1vw, .9rem);
+  border-radius: 3px;
+  font-size: clamp(.9rem, 1.05vw, 1.15rem);
+  opacity: .72;
+  text-align: center;
+}
+
+/* Simple horizontal tree */
+.h-tree {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(.3rem, .6vw, .5rem);
+}
+.h-tree-node {
+  border: 1px solid var(--accent);
+  padding: clamp(.35rem, .7vh, .55rem) clamp(.7rem, 1.2vw, 1.1rem);
+  border-radius: 3px;
+  font-family: var(--serif-zh);
+  font-size: clamp(1rem, 1.2vw, 1.3rem);
+  text-align: center;
+}
+.h-tree-line {
+  width: clamp(.8rem, 1.5vw, 1.5rem);
+  height: 1px;
+  background: var(--accent);
+  opacity: .4;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p53-55 基础训练二" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">基础训练二</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">全面掌握具体内容，树状图</h1>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">简化思维的秘诀：掌握结构，用树状图让信息形象化</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>01 / 24</div>
+  </div>
+</section>
+
+<!-- 02 L3-c 什么是结构 -->
+<section class="slide light" data-theme="light" data-screen-label="Concept" data-source="p55 简化思维的秘诀2" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>概念 · 结构</div><div>02 / 24</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Core Idea</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">结构是支撑整个身体的骨架</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">整理信息就像整理房间，知道什么放在哪里，就能发现遗漏、矛盾、问题和改善空间</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>图形思考 · p55</div><div>02 / 24</div></div>
+</section>
+
+<!-- 03 L7 树状图的两个经典场景 -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="p55-56 树状图示例">
+  <div class="chrome"><div>示例 · 树状图</div><div>03 / 24</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">组织架构</div>
+      <p class="lead-zh" style="max-width:14em;margin-top:clamp(1rem,2vh,2rem)">营业部 → 课长 → 各区域负责人，清晰表达汇报关系</p>
+      <div style="margin-top:clamp(1.2rem,2.5vh,2rem)">
+        <div class="tree-root">
+          <div class="tree-root-node">营业部长</div>
+          <div class="tree-branches">
+            <div class="tree-branch"><div class="tree-branch-node">课长 A</div></div>
+            <div class="tree-branch"><div class="tree-branch-node">课长 B</div></div>
+            <div class="tree-branch"><div class="tree-branch-node">课长 C</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">业务分析</div>
+      <p class="lead-zh" style="max-width:14em;margin-top:clamp(1rem,2vh,2rem)">销售额 = 单价 × 数量，拆开才能看清提升路径</p>
+      <div style="margin-top:clamp(1.2rem,2.5vh,2rem)">
+        <div class="tree-root">
+          <div class="tree-root-node">提高销售额</div>
+          <div class="tree-branches">
+            <div class="tree-branch"><div class="tree-branch-node">提高单价</div><div class="tree-sub-node" style="margin-top:4px">捆绑销售</div></div>
+            <div class="tree-branch"><div class="tree-branch-node">提高数量</div><div class="tree-sub-node" style="margin-top:4px">打折促销</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p55-56</div><div>03 / 24</div></div>
+</section>
+
+<!-- 04 L25 销售额公式拆解 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p56 销售额分解">
+  <div class="chrome"><div>段落拆解 · 销售额</div><div>04 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">结构形象化之后，容易想到制衡关系</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">销售额 = 商品单价 × 销售数量，这是拆解业务的基本骨架</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">提高单价（如捆绑销售）可能拉低数量；提高数量（如打折）可能拉低单价</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">树状图把隐性制衡变成可视化问题，这正是结构的价值所在</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p56</div><div>04 / 24</div></div>
+</section>
+
+<!-- 05 L3-c 课程3 散乱文件 -->
+<section class="slide light" data-theme="light" data-screen-label="Lesson 3" data-source="p57 课程3" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程3 · 文件整理</div><div>05 / 24</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Exercise</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">将电脑文件归类</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">11 个文件散布桌面：提案书、报价书、订单、模板、参考资料……忙碌过后无从下手</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>图形思考 · p57</div><div>05 / 24</div></div>
+</section>
+
+<!-- 06 L5 步骤1 分模块 -->
+<section class="slide light" data-theme="light" data-screen-label="Step1" data-source="p57 步骤1 分模块">
+  <div class="chrome"><div>步骤1 · 分模块</div><div>06 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">先把每个条目用矩形框起来</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(.6rem,1vw,1rem);max-width:52rem;margin:0 auto">
+        <div class="tree-sub-node anim-item">A公司项目提案书</div>
+        <div class="tree-sub-node anim-item">B公司项目提案书</div>
+        <div class="tree-sub-node anim-item">提案书参考资料①</div>
+        <div class="tree-sub-node anim-item">提案书参考资料②</div>
+        <div class="tree-sub-node anim-item">公司介绍</div>
+        <div class="tree-sub-node anim-item">竞争对手分析资料</div>
+        <div class="tree-sub-node anim-item">A公司报价书</div>
+        <div class="tree-sub-node anim-item">报价书模板</div>
+        <div class="tree-sub-node anim-item">A公司订单</div>
+        <div class="tree-sub-node anim-item">订单模板</div>
+        <div class="tree-sub-node anim-item">经费报销模板</div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:24em;margin:0 auto;opacity:.58;text-align:center">两个好处：易于把握整体，画图时方便移动替换</p>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p57</div><div>06 / 24</div></div>
+</section>
+
+<!-- 07 L25 步骤2 分组策略 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Step2a" data-source="p58 步骤2 分组">
+  <div class="chrome"><div>步骤2 · 第一轮分组</div><div>07 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">从简单分类入手：找出内容相关的条目</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">11 个文件分成三大类：方案、模板、其他。先做粗粒度划分</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">方案组有问题：A 公司和 B 公司文件混在一起，不够清晰</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">分组不是一步到位的，发现不清晰就要继续细分</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p58</div><div>07 / 24</div></div>
+</section>
+
+<!-- 08 L24 步骤2 细化 -->
+<section class="slide light" data-theme="light" data-screen-label="Step2b" data-source="p58-59 进一步整理">
+  <div class="chrome"><div>Excerpt · 再细分</div><div>08 / 24</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        在方案中，把不属于A公司和B公司的文件放在参考组中
+        <cite>p58-59 步骤2</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">方案组内进一步拆分为 A 公司、B 公司和参考三类</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">公司介绍和竞争对手分析资料归入其他组。多余条目数量不多时，放入其他组即可，不必纠结</p>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p58-59</div><div>08 / 24</div></div>
+</section>
+
+<!-- 09 L25 步骤3 树状图 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Step3" data-source="p59-60 步骤3 树状图">
+  <div class="chrome"><div>步骤3 · 整理成树状图</div><div>09 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">完成分组后，根据分组画出树状图</h2>
+      <div style="margin-top:clamp(.8rem,1.5vh,1.5rem)">
+        <div class="tree-root">
+          <div class="tree-root-node anim-item">桌面文件（11个）</div>
+          <div class="tree-branches" style="gap:clamp(1rem,3vw,3rem)">
+            <div class="tree-branch anim-item">
+              <div class="tree-branch-node">方案</div>
+              <div class="tree-sub-branches" style="margin-top:4px">
+                <div class="tree-sub-node">A公司</div>
+                <div class="tree-sub-node">B公司</div>
+                <div class="tree-sub-node">参考</div>
+              </div>
+            </div>
+            <div class="tree-branch anim-item">
+              <div class="tree-branch-node">模板</div>
+              <div class="tree-sub-branches" style="margin-top:4px">
+                <div class="tree-sub-node">报价书</div>
+                <div class="tree-sub-node">订单</div>
+                <div class="tree-sub-node">报销</div>
+              </div>
+            </div>
+            <div class="tree-branch anim-item">
+              <div class="tree-branch-node">其他</div>
+              <div class="tree-sub-branches" style="margin-top:4px">
+                <div class="tree-sub-node">公司介绍</div>
+                <div class="tree-sub-node">竞品分析</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:24em;margin:0 auto;opacity:.55;text-align:center">在起始处标明所有内容的总条目</p>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p59-60</div><div>09 / 24</div></div>
+</section>
+
+<!-- 10 L27 整理后的桌面 -->
+<section class="slide light" data-theme="light" data-screen-label="Result" data-source="p60 整理结果">
+  <div class="chrome"><div>结果 · 整洁桌面</div><div>10 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">分成文件夹之后，桌面十分整洁</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">好处一</div>
+          <p class="body-zh">需要任何文件时，知道在哪个文件夹里找，不再盲目翻找</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">好处二</div>
+          <p class="body-zh">别人也能根据树状结构帮你找到文件，降低沟通成本</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">好处三</div>
+          <p class="body-zh">一眼看出有没有遗漏的分类，结构本身就是检查清单</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p60</div><div>10 / 24</div></div>
+</section>
+
+<!-- 11 L3-c 课程4 热门商品 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Lesson 4" data-source="p61 课程4" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程4 · 商品分类</div><div>11 / 24</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Business Simulation</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">各种热门商品的分类</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">日经TRENDY 2016年热门商品TOP10，一眼望去杂乱，请分组整理成树状图</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>图形思考 · p61</div><div>11 / 24</div></div>
+</section>
+
+<!-- 12 L5 步骤1 模块化 -->
+<section class="slide light" data-theme="light" data-screen-label="Step1b" data-source="p61-62 步骤1">
+  <div class="chrome"><div>步骤1 · 分模块</div><div>12 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">将 10 个热门商品转换成模块</h2>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(.5rem,.8vw,.8rem);max-width:56rem;margin:0 auto">
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">口袋妖怪</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">你的名字</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">IQOS</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">Instagram</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">Mercari</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">乳酸菌巧克力</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">新型Serena</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">除臭剂</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">气垫粉底霜</div>
+        <div class="tree-sub-node anim-item" style="font-size:clamp(.9rem,1vw,1.1rem)">蔬菜冰沙</div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:20em;margin:0 auto;opacity:.58;text-align:center">一眼望去杂乱，但共同点就藏在其中</p>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p61-62</div><div>12 / 24</div></div>
+</section>
+
+<!-- 13 L27 手机应用组 -->
+<section class="slide light" data-theme="light" data-screen-label="Group 1" data-source="p62 手机应用组">
+  <div class="chrome"><div>分组 · 手机应用</div><div>13 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">口袋妖怪、Instagram、Mercari 的共同点</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">口袋妖怪</div>
+          <p class="body-zh">任天堂手机游戏，全球现象级 AR 应用</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">Instagram</div>
+          <p class="body-zh">移动端图片社交软件，以分享照片为核心</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">Mercari</div>
+          <p class="body-zh">日本 C2C 二手交易平台，手机端核心场景</p>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:18em;margin:0 auto;opacity:.6;text-align:center">表面上互不相关，但都可以归类为手机应用</p>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p62</div><div>13 / 24</div></div>
+</section>
+
+<!-- 14 L27 食品嗜好品组 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Group 2" data-source="p63 食品嗜好品组">
+  <div class="chrome"><div>分组 · 食品嗜好品</div><div>14 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">IQOS、乳酸菌巧克力、蔬菜冰沙的共同点</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">IQOS</div>
+          <p class="body-zh">日本品牌电子烟，新型烟草嗜好品</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">乳酸菌巧克力</div>
+          <p class="body-zh">SweetsDays，功能性健康零食</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">蔬菜冰沙</div>
+          <p class="body-zh">健康饮品，便利型蔬菜摄入方式</p>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:20em;margin:0 auto;opacity:.55;text-align:center">从功能和形态上看，都属于食品和嗜好品范畴</p>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p63</div><div>14 / 24</div></div>
+</section>
+
+<!-- 15 L5 剩余四项 -->
+<section class="slide light" data-theme="light" data-screen-label="Group 3" data-source="p64 剩余四项">
+  <div class="chrome"><div>分组 · 剩余类目</div><div>15 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">剩余四项，各自定义一个类目名称</h2>
+      <div class="grid-3">
+        <div class="anim-item" style="text-align:center">
+          <div class="tree-branch-node" style="display:inline-block;font-size:clamp(1.1rem,1.3vw,1.4rem)">你的名字</div>
+          <p class="body-zh" style="margin-top:1vh;opacity:.6">电影</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="tree-branch-node" style="display:inline-block;font-size:clamp(1.1rem,1.3vw,1.4rem)">新型Serena</div>
+          <p class="body-zh" style="margin-top:1vh;opacity:.6">汽车</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div style="display:flex;gap:clamp(.8rem,2vw,1.5rem);justify-content:center">
+            <div style="text-align:center"><div class="tree-branch-node" style="display:inline-block;font-size:clamp(1.1rem,1.3vw,1.4rem)">除臭剂</div><p class="body-zh" style="margin-top:1vh;opacity:.6">日用品</p></div>
+            <div style="text-align:center"><div class="tree-branch-node" style="display:inline-block;font-size:clamp(1.1rem,1.3vw,1.4rem)">气垫粉底霜</div><p class="body-zh" style="margin-top:1vh;opacity:.6">化妆品</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p64</div><div>15 / 24</div></div>
+</section>
+
+<!-- 16 L29 步骤3 完整分类脉络 -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p65 步骤3 整体分类">
+  <div class="chrome"><div>脉络 · 完整分类</div><div>16 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">从10个条目到清晰的三层树状结构</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">模块化</div>
+          <p class="body-zh" style="margin-top:1vh">10 个条目逐个转为矩形模块，看清整体</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">第一层分组</div>
+          <p class="body-zh" style="margin-top:1vh">手机应用、食品嗜好品、电影、汽车、日用品、化妆品</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">第二层合并</div>
+          <p class="body-zh" style="margin-top:1vh">娱乐（手机应用+电影）、生活品（食品+日用品+化妆品）</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">收归</div>
+          <p class="body-zh" style="margin-top:1vh">汽车放入其他类，形成完整树状图</p>
+        </div>
+      </div>
+      <div style="margin-top:clamp(2rem,4vh,3rem)">
+        <div class="tree-root">
+          <div class="tree-root-node anim-item">热门商品 TOP10</div>
+          <div class="tree-branches" style="gap:clamp(.8rem,2vw,2rem)">
+            <div class="tree-branch anim-item">
+              <div class="tree-branch-node">娱乐</div>
+              <div class="tree-sub-branches" style="margin-top:4px">
+                <div class="tree-sub-node">手机应用</div>
+                <div class="tree-sub-node">电影</div>
+              </div>
+            </div>
+            <div class="tree-branch anim-item">
+              <div class="tree-branch-node">生活品</div>
+              <div class="tree-sub-branches" style="margin-top:4px">
+                <div class="tree-sub-node">食品嗜好品</div>
+                <div class="tree-sub-node">日用品</div>
+                <div class="tree-sub-node">化妆品</div>
+              </div>
+            </div>
+            <div class="tree-branch anim-item">
+              <div class="tree-branch-node">其他</div>
+              <div class="tree-sub-branches" style="margin-top:4px">
+                <div class="tree-sub-node">汽车</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p65</div><div>16 / 24</div></div>
+</section>
+
+<!-- 17 L3-c 四个窍门 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Tips Intro" data-source="p66 寻找共同点" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>方法 · 窍门</div><div>17 / 24</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Method</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">寻找共同点的四个切入点</h2>
+      <p class="body-zh anim-item" style="max-width:20em;opacity:.62">不知如何分组时，从这四个角度逐一尝试</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>图形思考 · p66</div><div>17 / 24</div></div>
+</section>
+
+<!-- 18 L9 窍门1-2 -->
+<section class="slide light" data-theme="light" data-screen-label="Tips 1-2" data-source="p66-67 切入点①②">
+  <div class="chrome"><div>窍门 · ①②</div><div>18 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <div style="text-align:center">
+        <div class="kicker anim-item">Approach 1 & 2</div>
+        <h2 class="h1-zh anim-item" style="max-width:12em;margin:0 auto">相同词语 / 同一柜台</h2>
+      </div>
+      <div class="grid-2-6-6" style="gap:clamp(2rem,5vw,4rem);align-items:start">
+        <div class="anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">切入点 ①</div>
+          <h3 class="h2-zh" style="margin-top:1vh;font-size:clamp(1.4rem,2.5vw,2rem)">相同词语</h3>
+          <p class="body-zh" style="margin-top:1.5vh;max-width:14em;margin-left:auto;margin-right:auto">多个条目中出现相同关键词，例如提案书、模板，按重复词语分类</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">切入点 ②</div>
+          <h3 class="h2-zh" style="margin-top:1vh;font-size:clamp(1.4rem,2.5vw,2rem)">同一柜台</h3>
+          <p class="body-zh" style="margin-top:1.5vh;max-width:14em;margin-left:auto;margin-right:auto">想象它们是否能摆在同一个柜台，形象化地帮助分类</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p66-67</div><div>18 / 24</div></div>
+</section>
+
+<!-- 19 L9 窍门3-4 -->
+<section class="slide light" data-theme="light" data-screen-label="Tips 3-4" data-source="p67 切入点③④">
+  <div class="chrome"><div>窍门 · ③④</div><div>19 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <div style="text-align:center">
+        <div class="kicker anim-item">Approach 3 & 4</div>
+        <h2 class="h1-zh anim-item" style="max-width:12em;margin:0 auto">类似功能 / 同类外观</h2>
+      </div>
+      <div class="grid-2-6-6" style="gap:clamp(2rem,5vw,4rem);align-items:start">
+        <div class="anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">切入点 ③</div>
+          <h3 class="h2-zh" style="margin-top:1vh;font-size:clamp(1.4rem,2.5vw,2rem)">类似功能</h3>
+          <p class="body-zh" style="margin-top:1.5vh;max-width:14em;margin-left:auto;margin-right:auto">汽车和电车都具备交通工具功能，电视和游戏都有娱乐功能</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">切入点 ④</div>
+          <h3 class="h2-zh" style="margin-top:1vh;font-size:clamp(1.4rem,2.5vw,2rem)">同类外观</h3>
+          <p class="body-zh" style="margin-top:1.5vh;max-width:14em;margin-left:auto;margin-right:auto">挖掘机和大象都属于较大的一类，消防车和苹果都有红色的共同点</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p67</div><div>19 / 24</div></div>
+</section>
+
+<!-- 20 L25 总结 理解顺序 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary Order" data-source="p68 理解顺序">
+  <div class="chrome"><div>总结 · 理解顺序</div><div>20 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">画树状图的三步走</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 1</div>
+          <p class="body-zh" style="margin-top:1vh">分模块：先把每个条目用矩形框起来，不做深入思考</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 2</div>
+          <p class="body-zh" style="margin-top:1vh">分组：用四个切入点找共同点，从简单分类开始，逐步细化</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 3</div>
+          <p class="body-zh" style="margin-top:1vh">树状图：按分组画出层级结构，起始处标明总条目</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p68</div><div>20 / 24</div></div>
+</section>
+
+<!-- 21 L9 总结 三个要点 -->
+<section class="slide light" data-theme="light" data-screen-label="Key Points" data-source="p68 理解要点">
+  <div class="chrome"><div>要点 · 树状图</div><div>21 / 24</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <div style="text-align:center">
+        <div class="kicker anim-item">Mastery Checklist</div>
+        <h2 class="h1-zh anim-item" style="max-width:11em;margin:0 auto">熟练使用树状图</h2>
+      </div>
+      <div class="grid-3">
+        <div class="anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">01</div>
+          <p class="body-zh" style="margin-top:1.5vh">将难以分类的条目归为其他类，不必强求完美分类</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">02</div>
+          <p class="body-zh" style="margin-top:1.5vh">单个条目也可以独立归为一类，不强制凑数</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">03</div>
+          <p class="body-zh" style="margin-top:1.5vh">起始处标明所有内容的总条目，确保每个条目都有归属</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p68</div><div>21 / 24</div></div>
+</section>
+
+<!-- 22 L24 专栏 画图提问 -->
+<section class="slide light" data-theme="light" data-screen-label="Column 2" data-source="p70 专栏2 学会画图提问">
+  <div class="chrome"><div>Excerpt · 专栏2</div><div>22 / 24</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        把指令画成图形，问号就是不确定之处，让上司填空回答
+        <cite>p70 专栏2</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">模糊指令可以画成带问号的流程图，用图形提问比口头追问更高效</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">上司只需要完成填空题，回答问题的人也很轻松。不必担心留有问号的图不够完美</p>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · p70</div><div>22 / 24</div></div>
+</section>
+
+<!-- 23 L32 核心总结 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p55-70 核心总结">
+  <div class="chrome"><div>核心总结</div><div>23 / 24</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.5rem,3.5vh,2.8rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <div class="body-zh">树状图的核心价值：把隐性关系和制衡变成可视化结构。像整理房间一样整理信息，结构清晰了，遗漏、矛盾、改善空间自然浮现</div>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <div class="body-zh">三步法适用于任何分类任务：分模块（框起来）→ 分组（找共同点）→ 画树状图（标总条目）。每次练习都按这个顺序推进</div>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <div class="body-zh">寻找共同点有四个切入点：相同词语、同一柜台、类似功能、同类外观。找不到时轮换使用，不要停留在一种思路上</div>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <div class="body-zh">图形不只用于整理已经知道的事情，也可以用于提问。画一张带问号的图交给对方补充，比口头来回确认更精准高效</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>图形思考 · 基础训练二</div><div>23 / 24</div></div>
+</section>
+
+<!-- 24 L21 结尾 bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="End" data-source="p68-71 总结与练习" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.8rem,3.5vh,3rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">Try It</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">去画一张树状图吧</h2>
+      <div style="display:flex;flex-direction:column;gap:clamp(.8rem,1.2vh,1rem);text-align:center;opacity:.55">
+        <p class="body-zh anim-item">工作任务 / 收件箱邮件 / 桌上的东西 / 冰箱里的东西 / 喜欢的电影</p>
+      </div>
+      <p class="lead-zh anim-item" style="max-width:18em;opacity:.42;margin-top:clamp(1rem,2vh,1.5rem)">基础训练二：树状图</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>24 / 24</div>
+  </div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-03-structure';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

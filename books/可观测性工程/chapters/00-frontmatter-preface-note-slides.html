@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>可观测性工程 · 前言与推荐序</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* palette thesis: 科技工程类书籍，深蓝灰舞台、暖白证据页、沉静蓝编号。
+   克制冷静的工程笔记风格，与可观测性作为方法论工具的定位一致。 */
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.slide-body {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95; letter-spacing: 0;
+}
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark -->
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="前言与推荐序 · 可观测性工程" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">技术书籍 · 前言与推荐序</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">可观测性工程</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">Observability Engineering · Charity Majors / Liz Fong&#8203;Jones / George Miranda</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>O'Reilly Media, 2022 英文版</div>
+    <div>机械工业出版社, 2023 中文版</div>
+  </div>
+</section>
+
+<!-- 02 本书语境 L5 light -->
+<section class="slide light" data-theme="light" data-screen-label="Context" data-source="p14-16 前言 · 目标读者">
+  <div class="chrome"><div>语境 · 本书定位</div><div>02 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">一本写给工程团队的实践指南，融合 Honeycomb 创始人与一线工程师的经验</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">作者</div><p class="body-zh">Charity Majors, Liz Fong&#8203;Jones, George Miranda，均为 Honeycomb 创始团队成员，可观测性实践先驱</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">成书</div><p class="body-zh">历时约 3 年写作，期间可观测性领域迅速变化，实践不断进步，多次修订</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">主张</div><p class="body-zh">可观测性是软件系统的特征，需要团队采用新的实践才能在生产中有效利用</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p14-15 前言</div><div>02 / 19</div></div>
+</section>
+
+<!-- 03 L3-c 分水岭判断 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p2 Lorin Hochstein 赞誉" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 本书赞誉</div><div>03 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Lorin Hochstein · O'Reilly 作者</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">本书将成为工程师查询系统状态的分水岭</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">不以先假设再测试的方式，而是以更有原则的方法回答为什么系统速度慢这类运维问题</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p2 本书赞誉</div><div>03 / 19</div></div>
+</section>
+
+<!-- 04 L11 姚震的比喻 bare dark guest-mark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="p4 姚震 · 上海市大数据股份副总裁">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">Guest View · 姚震</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">实现类似于从 X 光到 CT 的诊疗技术飞跃</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">上海市大数据股份副总裁 · 论可观测性对数字化系统管理能力的提升</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p4 本书赞誉</div><div>04 / 19</div></div>
+</section>
+
+<!-- 05 L24 推荐序一 何宝宏 excerpt light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p7 推荐序一 · 何宝宏">
+  <div class="chrome"><div>推荐序一 · 何宝宏</div><div>05 / 19</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">可观测性从监控模块逐渐演进成为贯穿软件全生命周期的技术平台<cite>何宝宏 · 中国信通院云大所所长</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">2022 年可观测性成为云原生和 DevOps 之后新的技术潮流</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">中国信通院云大所作为国内数字化技术传播和标准制定的核心单位，正在积极组织可观测性技术研讨，推动产业界实践落地</p>
+    </div>
+  </div>
+  <div class="foot"><div>p7 推荐序一</div><div>05 / 19</div></div>
+</section>
+
+<!-- 06 L3-a 推荐序二 蒋烁淼 核心判断 bare light -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p8-9 推荐序二 · 蒋烁淼">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">蒋烁淼 · 观测云创始人 &amp; CEO</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">可观测性工程不只是一个更好的监控工具，更是一种现代化的互联网软件基础设施</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p8 推荐序二</div><div>06 / 19</div></div>
+</section>
+
+<!-- 07 L25 推荐序二 段落拆解 light -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p8 推荐序二 · 蒋烁淼">
+  <div class="chrome"><div>段落拆解 · 推荐序二</div><div>07 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">传统监控是被动的，基于阈值或事件驱动；可观测性是主动探索</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">传统监控</div><p class="body-zh" style="margin-top:1vh">设计思路被动，基于阈值或事件驱动的逻辑，使用者主要是运维工程师，只关注 IT 系统本身稳定性</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">可观测性</div><p class="body-zh" style="margin-top:1vh">让所有相关工程师从全局角度理解系统运行状态，服务研发、测试和运维团队，在同一个上下文中阅读系统</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">关键差异</div><p class="body-zh" style="margin-top:1vh">可观测性面向的不只是已显现的故障，更能主动探索发现隐蔽 Bug、架构瓶颈、执行逻辑漏洞和用户体验缺陷</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p8 推荐序二</div><div>07 / 19</div></div>
+</section>
+
+<!-- 08 L3-c 推荐序二 数据仓库 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p8-9 推荐序二 · 蒋烁淼" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 推荐序二</div><div>08 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">数据基础设施</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">实现可观测性工程，需要有一个记录软件运行状态的实时数据仓库</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">这个数仓的数据规模比传统监控大得多，不仅包含指标、链路和日志，还包括用户行为事件、网络数据、安全数据、业务数据</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p8-9 推荐序二</div><div>08 / 19</div></div>
+</section>
+
+<!-- 09 L11 推荐序二 数字化本质 bare dark guest-mark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="p9 推荐序二 · 蒋烁淼">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">Guest View · 蒋烁淼</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">构建可观测性工程本质上就是整个互联网软件本身的数字化</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">观测云创始人 &amp; CEO · 使用可观测性平台的组织才会成为基于数据驱动的现代化组织</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p9 推荐序二</div><div>09 / 19</div></div>
+</section>
+
+<!-- 10 L3-a 推荐序三 黄东旭 望远镜 bare light -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p10 推荐序三 · 黄东旭">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">黄东旭 · PingCAP 联合创始人 &amp; CTO</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">将不可见的世界变成可见，是我们理解客观世界运行规律的重要方式</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p10 推荐序三</div><div>10 / 19</div></div>
+</section>
+
+<!-- 11 L25 推荐序三 黎明期与难题 light -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p10 推荐序三 · 黄东旭">
+  <div class="chrome"><div>段落拆解 · 推荐序三</div><div>11 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">这个方向仍然处于黎明期，有很多难题还有待解决</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta">难题一</div><p class="body-zh" style="margin-top:1vh">如何尽可能消除观测对业务带来的影响</p></div>
+        <div class="anim-item"><div class="meta">难题二</div><p class="body-zh" style="margin-top:1vh">如何以更低的成本存储可观测性数据</p></div>
+        <div class="anim-item"><div class="meta">难题三</div><p class="body-zh" style="margin-top:1vh">如何以更加符合人类直觉的方式快速向管理员展示系统全貌</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p10 推荐序三</div><div>11 / 19</div></div>
+</section>
+
+<!-- 12 L24 译者序 excerpt light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p11 译者序 · 观测云团队">
+  <div class="chrome"><div>译者序 · 观测云团队</div><div>12 / 19</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">一致认为 2022 年是中国可观测性发展的元年<cite>观测云翻译团队 · 2023 年 4 月</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">本土经验加上漂洋过海传来的碎片理论，使可观测性领域进入了生机勃勃的快速发展期</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">随着国内千行百业数字化转型不断深入，各种数字化系统变得更加庞大和复杂，迭代不断加速，对实现系统可观测性提出了原生需求</p>
+    </div>
+  </div>
+  <div class="foot"><div>p11 译者序</div><div>12 / 19</div></div>
+</section>
+
+<!-- 13 L3-c 序 Cindy Sridharan 社会技术理念 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p12 序 · Cindy Sridharan" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 序</div><div>13 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Cindy Sridharan · 基础设施工程师</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">可观测性更像是一种社会技术理念，成功地应用它要依靠整个组织的文化</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">把可观测性视为监控是非常愚蠢的。可观测性并不是一个纯粹的技术概念，无法通过购买工具或实施开放性标准来实现</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p12 序</div><div>13 / 19</div></div>
+</section>
+
+<!-- 14 L25 序 状态空间 light -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p12 序 · Cindy Sridharan">
+  <div class="chrome"><div>段落拆解 · 序</div><div>14 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">区分监控和可观测性的主要依据是基于系统行为的状态空间</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">状态空间</div><p class="body-zh" style="margin-top:1vh">系统在不同阶段所要关注的最重要的行为：设计、开发、测试、部署、用户使用和故障调试阶段</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">可观测性</div><p class="body-zh" style="margin-top:1vh">允许状态空间被精心绘制并深度探索，帮助我们理解系统行为中不可预测的、长尾的分布情况</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">监控</div><p class="body-zh" style="margin-top:1vh">往往只是展示了系统整体运行状态的大致走势，无法深入探索状态空间的细节</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p12 序</div><div>14 / 19</div></div>
+</section>
+
+<!-- 15 L24 序 三位一体 excerpt light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p12-13 序 · Cindy Sridharan">
+  <div class="chrome"><div>Excerpt · 序</div><div>15 / 19</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">将可观测性设想为结构化事件、假设的迭代验证以及核心分析循环的三位一体<cite>Cindy Sridharan · p12-13 序</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">根据第一性原理对可观测性的构建块进行整体重构</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">仅通过遥测信号或简单使用获取这些信号的工具，不能最大限度地观测系统行为。本书弥合可观测性的哲学原则与实践之间的鸿沟</p>
+    </div>
+  </div>
+  <div class="foot"><div>p12-13 序</div><div>15 / 19</div></div>
+</section>
+
+<!-- 16 L9 前言 目标读者 dark 三列 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Audience" data-source="p14 前言 · 目标读者">
+  <div class="chrome"><div>前言 · 目标读者</div><div>16 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">所有帮助团队交付和运营生产软件的人，都能从本书受益</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">软件工程师</div><p class="body-zh">负责开发生产应用程序的工程师，以及任何支持在生产中运行软件的人</p></div>
+        <div class="anim-item"><div class="kicker">团队经理</div><p class="body-zh">软件交付和运营团队经理，特别是关注团队动力、文化和规模的章节</p></div>
+        <div class="anim-item"><div class="kicker">产品经理与支持</div><p class="body-zh">产品经理、支持工程师、利益相关者，以及对可观测性感到好奇和存疑的人</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p14 前言</div><div>16 / 19</div></div>
+</section>
+
+<!-- 17 L25 前言 你将学到什么 light -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p15 前言 · 你将学到什么">
+  <div class="chrome"><div>段落拆解 · 前言</div><div>17 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">结构化事件是可观测系统的构建块，通过遥测技术生成并拼接成链路</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">基础概念</div><p class="body-zh" style="margin-top:1vh">什么是可观测性、如何识别可观测系统、可观测性与监控的区别、为何行业趋势在推动可观测性需求</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">技术原理</div><p class="body-zh" style="margin-top:1vh">结构化事件、链路、OpenTelemetry、基于数据的调查过程 vs 基于直觉的调查过程</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">社会与文化</div><p class="body-zh" style="margin-top:1vh">团队动力、SLO 与有效告警、规模化挑战、构建 vs 购买、组织文化建设、商业案例</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p15 前言</div><div>17 / 19</div></div>
+</section>
+
+<!-- 18 核心总结 1/2 L32 dark summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p1-17 前言与推荐序 · 核心总结">
+  <div class="chrome"><div>核心总结</div><div>18 / 19</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">可观测性不是监控的升级版。它是一种社会技术理念，成功应用依靠组织文化，而不仅仅是购买工具。Cindy Sridharan 在序中明确：把可观测性视为监控是非常愚蠢的。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">蒋烁淼指出，可观测性工程是现代化的互联网软件基础设施，本质上是互联网软件本身的数字化。使用可观测性平台的组织才会成为基于数据驱动的现代化组织。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">区分监控和可观测性的核心是状态空间：可观测性允许深入探索系统行为中不可预测的长尾分布，而监控只展示大致走势。这决定了数据收集、存储和探索方式的不同。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p1-17</div><div>18 / 19</div></div>
+</section>
+
+<!-- 19 核心总结 2/2 L32 dark summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p1-17 前言与推荐序 · 核心总结">
+  <div class="chrome"><div>核心总结</div><div>19 / 19</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">本书从第一性原理重构可观测性的构建块：结构化事件、假设的迭代验证、核心分析循环的三位一体，而非简单沿用指标、日志、链路的传统三大支柱框架。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">黄东旭用望远镜类比：科学史是一部可观测性技术的进化史。软件可观测性仍处于黎明期，三大难题待解：消除观测影响、低成本存储、直觉化展示。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">2022 年是中国可观测性发展元年。译者序指出，国内千行百业数字化转型深入，系统日趋庞大复杂，迭代加速，对可观测性提出了原生需求，本书的出现正当其时。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p1-17</div><div>19 / 19</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-obseng-00';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

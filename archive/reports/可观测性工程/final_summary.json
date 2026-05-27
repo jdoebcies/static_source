@@ -1,0 +1,232 @@
+[
+  {
+    "index": 0,
+    "title": "可观测性工程 · 前言与推荐序",
+    "slides": 19,
+    "file": "00-frontmatter-preface-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/00-frontmatter-preface/00-frontmatter-preface-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/00-frontmatter-preface-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 19 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 1,
+    "title": "第1章 什么是可观测性 · Note Slides",
+    "slides": 21,
+    "file": "01-what-is-observability-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/01-what-is-observability/01-what-is-observability-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/01-what-is-observability-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 21 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 2,
+    "title": "可观测性工程 · 第2章 · 可观测性和监控之间的调试实践有何不同",
+    "slides": 13,
+    "file": "02-debugging-observability-vs-monitoring-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/02-debugging-observability-vs-monitoring/02-debugging-observability-vs-monitoring-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/02-debugging-observability-vs-monitoring-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 13 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 3,
+    "title": "不通过可观测性扩展系统的经验教训",
+    "slides": 16,
+    "file": "03-lessons-from-scaling-parse-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/03-lessons-from-scaling-parse/03-lessons-from-scaling-parse-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/03-lessons-from-scaling-parse-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 16 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 4,
+    "title": "可观测性工程 · 第4章 · 可观测性与DevOps、SRE和云原生的关联",
+    "slides": 12,
+    "file": "04-devops-sre-cloud-native-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/04-devops-sre-cloud-native/04-devops-sre-cloud-native-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/04-devops-sre-cloud-native-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 12 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 5,
+    "title": "第5章 结构化事件，可观测性的构建块",
+    "slides": 14,
+    "file": "05-structured-events-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/05-structured-events/05-structured-events-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/05-structured-events-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 14 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 6,
+    "title": "将事件拼接成链路 · 可观测性工程 第6章",
+    "slides": 14,
+    "file": "06-traces-from-events-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/06-traces-from-events/06-traces-from-events-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/06-traces-from-events-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 14 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 7,
+    "title": "遵照OpenTelemetry的探针 · 可观测性工程 第7章",
+    "slides": 14,
+    "file": "07-opentelemetry-instrumentation-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/07-opentelemetry-instrumentation/07-opentelemetry-instrumentation-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/07-opentelemetry-instrumentation-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 14 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 8,
+    "title": "第8章 通过事件分析实现可观测性",
+    "slides": 12,
+    "file": "08-event-analysis-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/08-event-analysis/08-event-analysis-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/08-event-analysis-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 12 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 9,
+    "title": "可观测性和监控的融合",
+    "slides": 13,
+    "file": "09-observability-and-monitoring-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/09-observability-and-monitoring/09-observability-and-monitoring-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/09-observability-and-monitoring-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 13 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 10,
+    "title": "第10章 在团队中应用可观测性实践",
+    "slides": 12,
+    "file": "10-team-observability-practices-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/10-team-observability-practices/10-team-observability-practices-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/10-team-observability-practices-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 12 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 11,
+    "title": "可观测性驱动开发 · 第11章",
+    "slides": 14,
+    "file": "11-observability-driven-development-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/11-observability-driven-development/11-observability-driven-development-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/11-observability-driven-development-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 14 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 12,
+    "title": "使用SLO来提高可靠性 · 可观测性工程 第12章",
+    "slides": 14,
+    "file": "12-slo-for-reliability-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/12-slo-for-reliability/12-slo-for-reliability-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/12-slo-for-reliability-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 14 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 13,
+    "title": "第13章 处理和调试基于SLO的告警",
+    "slides": 20,
+    "file": "13-debugging-slo-alerts-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/13-debugging-slo-alerts/13-debugging-slo-alerts-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/13-debugging-slo-alerts-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 20 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 14,
+    "title": "第14章 可观测性与软件供应链",
+    "slides": 19,
+    "file": "14-software-supply-chain-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/14-software-supply-chain/14-software-supply-chain-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/14-software-supply-chain-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 19 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 15,
+    "title": "自建与购买 · 可观测性工程的真实成本与投资回报率",
+    "slides": 14,
+    "file": "15-build-buy-roi-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/15-build-buy-roi/15-build-buy-roi-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/15-build-buy-roi-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 14 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 16,
+    "title": "高效的数据存储 · 可观测性工程 第16章",
+    "slides": 22,
+    "file": "16-efficient-data-storage-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/16-efficient-data-storage/16-efficient-data-storage-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/16-efficient-data-storage-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 22 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 17,
+    "title": "可观测性工程 · 第17章 · 如何使采样精准且便宜",
+    "slides": 21,
+    "file": "17-accurate-cheap-sampling-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/17-accurate-cheap-sampling/17-accurate-cheap-sampling-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/17-accurate-cheap-sampling-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 21 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 18,
+    "title": "使用流水线进行遥测管理 , 可观测性工程 第18章",
+    "slides": 22,
+    "file": "18-telemetry-pipelines-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/18-telemetry-pipelines/18-telemetry-pipelines-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/18-telemetry-pipelines-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 22 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 19,
+    "title": "可观测性的商业案例 · 第19章",
+    "slides": 17,
+    "file": "19-business-case-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/19-business-case/19-business-case-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/19-business-case-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 17 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 20,
+    "title": "第20章 可观测性利益相关方和联盟",
+    "slides": 16,
+    "file": "20-stakeholders-and-coalitions-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/20-stakeholders-and-coalitions/20-stakeholders-and-coalitions-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/20-stakeholders-and-coalitions-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 16 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 21,
+    "title": "可观测性成熟度模型 · 第21章",
+    "slides": 16,
+    "file": "21-maturity-model-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/21-maturity-model/21-maturity-model-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/21-maturity-model-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 16 slide(s), 0 warning(s)."
+  },
+  {
+    "index": 22,
+    "title": "可观测性工程 · 第22章 未来发展趋势",
+    "slides": 13,
+    "file": "22-future-trends-note-slides.html",
+    "source": "/root/.openclaw/workspace/artifacts/observability-engineering-pdf/chapters/22-future-trends/22-future-trends-note-slides.html",
+    "path": "/mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/可观测性/可观测性工程/chapters/22-future-trends-note-slides.html",
+    "check_ok": true,
+    "check_output": "Deck check passed: 13 slide(s), 0 warning(s)."
+  }
+]

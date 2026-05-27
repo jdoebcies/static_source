@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>基础训练一：厘清关系，交换图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* ===== palette thesis =====
+   图形思考是一本商业方法教材，主题是图解与交换关系。
+   ink: 沉静深蓝灰，像一本严肃笔记的底色
+   paper: 暖白，保持阅读舒适
+   accent: 青蓝 #3a7ca5，暗示清晰和连接，呼应交换图的箭头与关系
+   muted: 冷灰，次级信息安静退后
+   ================================= */
+:root {
+  --ink:        #1e293b;
+  --ink-rgb:    30,41,59;
+  --paper:      #fbfaf6;
+  --paper-rgb:  251,250,246;
+  --accent:     #3a7ca5;
+  --accent-rgb: 58,124,165;
+  --muted:      #64748b;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.slide-img {
+  overflow: hidden; position: relative;
+  background: rgba(128,128,128,.08); border-radius: 6px;
+}
+.slide-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+/* ===== 交换图组件 CSS ===== */
+.exchange-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  margin: 0 auto;
+}
+.ex-node {
+  background: rgba(var(--ink-rgb), .04);
+  border: 1.5px solid rgba(var(--ink-rgb), .18);
+  border-radius: 8px;
+  padding: clamp(.9rem, 2vh, 1.5rem) clamp(1.2rem, 2.5vw, 2.2rem);
+  text-align: center;
+  min-width: clamp(7rem, 13vw, 11rem);
+  flex-shrink: 0;
+}
+.ex-node .node-title {
+  font-family: var(--serif-zh);
+  font-weight: 700;
+  font-size: clamp(1.2rem, 1.9vw, 1.7rem);
+  line-height: 1.25;
+  color: var(--ink);
+}
+.ex-node .node-sub {
+  font-family: var(--sans-zh);
+  font-size: clamp(.7rem, .82vw, .9rem);
+  opacity: .5;
+  margin-top: .3rem;
+}
+.ex-arrow-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(.3rem, .6vh, .5rem);
+  min-width: clamp(3.5rem, 7vw, 6.5rem);
+  padding: 0 clamp(.4rem, 1vw, 1rem);
+  flex-shrink: 0;
+}
+.ex-arrow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.ex-arrow-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--accent);
+}
+.ex-arrow.fwd .ex-arrow-line { margin-right: 6px; }
+.ex-arrow.rev .ex-arrow-line { margin-left: 6px; }
+.ex-arrow-head {
+  width: 0; height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.ex-arrow.fwd .ex-arrow-head {
+  border-left: 7px solid var(--accent);
+}
+.ex-arrow.rev .ex-arrow-head {
+  border-right: 7px solid var(--accent);
+}
+.ex-arrow-label {
+  font-family: var(--sans-zh);
+  font-size: clamp(.72rem, .82vw, .9rem);
+  color: var(--accent);
+  opacity: .85;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+}
+.ex-separator {
+  height: 1px;
+  width: 60%;
+  background: rgba(var(--ink-rgb), .1);
+  margin: 0 auto;
+}
+
+.diagram-title {
+  text-align: center;
+  margin-bottom: clamp(1.2rem, 3vh, 2.4rem);
+  color: var(--ink);
+}
+.diagram-legend {
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.5rem, 3vw, 3rem);
+  margin-top: clamp(1.2rem, 3vh, 2.4rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(.8rem, .9vw, .95rem);
+  opacity: .55;
+}
+
+/* ===== 谷歌三角交换图 ===== */
+.ex-diagram-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.2rem, 2.5vh, 2rem);
+}
+.ex-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.ex-center-node {
+  background: rgba(var(--accent-rgb), .08);
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: clamp(1rem, 2.2vh, 1.6rem) clamp(1.4rem, 3vw, 2.4rem);
+  text-align: center;
+  min-width: clamp(8rem, 15vw, 13rem);
+  flex-shrink: 0;
+}
+.ex-center-node .node-title {
+  font-family: var(--serif-zh);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  line-height: 1.2;
+  color: var(--accent);
+}
+.ex-side-node {
+  background: rgba(var(--ink-rgb), .04);
+  border: 1.5px solid rgba(var(--ink-rgb), .16);
+  border-radius: 8px;
+  padding: clamp(.8rem, 1.6vh, 1.2rem) clamp(1rem, 2vw, 1.8rem);
+  text-align: center;
+  min-width: clamp(6rem, 11vw, 10rem);
+  flex-shrink: 0;
+}
+.ex-side-node .node-title {
+  font-family: var(--serif-zh);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p37-38 基础训练一" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">图形思考 · 基础训练一</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">厘清关系<br>交换图</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">简化思维的秘诀：掌握关系，用交换图把人物和交换内容形象化</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>01 / 18</div>
+  </div>
+</section>
+
+<!-- 02 核心概念：交换图 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p38 简化思维的秘诀1" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>概念 · 交换图</div><div>02 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">简化思维的秘诀 1</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">商业活动中一定存在着交换行为</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">卖家和买家交换商品与金钱，员工和公司交换能力与报酬。使用交换图，将人物和交换内容形象化，就能看清关系。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p38 交换图</div><div>02 / 18</div></div>
+</section>
+
+<!-- 03 交换图的三大作用 L27 -->
+<section class="slide light" data-theme="light" data-screen-label="Evidence" data-source="p38-39 交换图的作用">
+  <div class="chrome"><div>作用 · 交换图</div><div>03 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">交换图能做什么</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">作用一</div>
+          <p class="body-zh">将人物和交换内容形象化，让隐含的交易关系变得可见</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">作用二</div>
+          <p class="body-zh">验证交易是否公平，检查有没有更合适的交换内容</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">作用三</div>
+          <p class="body-zh">在出场人物较多时，帮人冷静思考，不被复杂关系淹没</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p38-39</div><div>03 / 18</div></div>
+</section>
+
+<!-- 04 课程1开场 L3-b -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p40 课程1" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程一 · 交换图</div><div>04 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <h2 class="h1-zh anim-item" style="max-width:24em;font-size:clamp(1.8rem,3.2vw,3rem);line-height:1.35">
+      课程1：零售业的运营机制是什么
+    </h2>
+  </div>
+  <div class="foot" style="width:100%"><div>p40 问题练习</div><div>04 / 18</div></div>
+</section>
+
+<!-- 05 步骤1：分模块 L25 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p40 步骤1">
+  <div class="chrome"><div>步骤拆解 · 分模块</div><div>05 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">步骤1：将出场人物分成几个模块</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">题干：A商店从B果蔬商处采购水果，出售给客人</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">找出所有出场人物：A商店、B果蔬商、客人，分别作为独立模块</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">注意排序：按交易发生顺序排列模块，零售业中商店是中介</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p40 分模块</div><div>05 / 18</div></div>
+</section>
+
+<!-- 06 零售交换图 custom -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p41-42 步骤2-3 零售交换图">
+  <div class="chrome"><div>图解 · 零售交换图</div><div>06 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.2rem,2.5vh,2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:13em;text-align:center">零售业的三方交换</h2>
+      <div class="exchange-diagram anim-item">
+        <div class="ex-node">
+          <div class="node-title">B果蔬商</div>
+          <div class="node-sub">供应商</div>
+        </div>
+        <div class="ex-arrow-group">
+          <div class="ex-arrow fwd"><div class="ex-arrow-line"></div><div class="ex-arrow-head"></div></div>
+          <div class="ex-arrow-label">水果</div>
+          <div class="ex-separator"></div>
+          <div class="ex-arrow-label">金钱</div>
+          <div class="ex-arrow rev"><div class="ex-arrow-head"></div><div class="ex-arrow-line"></div></div>
+        </div>
+        <div class="ex-node">
+          <div class="node-title">A商店</div>
+          <div class="node-sub">中介</div>
+        </div>
+        <div class="ex-arrow-group">
+          <div class="ex-arrow fwd"><div class="ex-arrow-line"></div><div class="ex-arrow-head"></div></div>
+          <div class="ex-arrow-label">水果</div>
+          <div class="ex-separator"></div>
+          <div class="ex-arrow-label">金钱</div>
+          <div class="ex-arrow rev"><div class="ex-arrow-head"></div><div class="ex-arrow-line"></div></div>
+        </div>
+        <div class="ex-node">
+          <div class="node-title">客人</div>
+          <div class="node-sub">消费者</div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:30em;text-align:center;opacity:.55;margin-top:clamp(.8rem,1.5vh,1.2rem)">商品和金钱的流向是一切商业的基础</p>
+    </div>
+  </div>
+  <div class="foot"><div>p41-42 步骤2·3</div><div>06 / 18</div></div>
+</section>
+
+<!-- 07 钱货流向 L27 -->
+<section class="slide light" data-theme="light" data-screen-label="Evidence" data-source="p42 注意钱货流向">
+  <div class="chrome"><div>要点 · 钱货流向</div><div>07 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">注意钱货流向</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">核心模式</div>
+          <p class="body-zh">零售商从生产商进货，以高于进价的价格出售给客人，从中盈利</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">双向箭头</div>
+          <p class="body-zh">每次交易都有两个方向：商品和金钱的流动互相对应</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">日常训练</div>
+          <p class="body-zh">试着将平日见到的商业活动用矩形模块和箭头表示出来</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p42-43</div><div>07 / 18</div></div>
+</section>
+
+<!-- 08 课程2开场 L3-b -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p44 课程2 用户向谷歌支付了什么" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程二 · 交换图</div><div>08 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <h2 class="h1-zh anim-item" style="max-width:24em;font-size:clamp(1.8rem,3.2vw,3rem);line-height:1.35">
+      课程2：用户向谷歌支付了什么
+    </h2>
+  </div>
+  <div class="foot" style="width:100%"><div>p44 商务模拟练习</div><div>08 / 18</div></div>
+</section>
+
+<!-- 09 发现隐藏人物 L25 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p44-45 步骤1 发现广告主">
+  <div class="chrome"><div>步骤拆解 · 隐藏人物</div><div>09 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">步骤1：找出隐藏的出场人物</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">题干给出谷歌和用户，但其中还隐藏着投放广告的广告主</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">广告主和用户之间不直接交易，谷歌是交换的中心媒介</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">把缺少的信息补充完整，在此基础上进行思考</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p44-45 步骤1</div><div>09 / 18</div></div>
+</section>
+
+<!-- 10 谷歌交换图 custom -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p45-46 谷歌交换图">
+  <div class="chrome"><div>图解 · 谷歌交换图</div><div>10 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-wide" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1rem,2vh,1.6rem)">
+      <h2 class="h1-zh anim-item" style="max-width:13em;text-align:center">谷歌的三方交换图</h2>
+      <div class="ex-diagram-center anim-item">
+        <div class="ex-row" style="gap:0">
+          <div class="ex-side-node">
+            <div class="node-title">广告主</div>
+          </div>
+          <div class="ex-arrow-group">
+            <div class="ex-arrow fwd"><div class="ex-arrow-line"></div><div class="ex-arrow-head"></div></div>
+            <div class="ex-arrow-label">广告位</div>
+            <div class="ex-separator"></div>
+            <div class="ex-arrow-label">广告费</div>
+            <div class="ex-arrow rev"><div class="ex-arrow-head"></div><div class="ex-arrow-line"></div></div>
+          </div>
+          <div class="ex-center-node">
+            <div class="node-title">谷歌</div>
+            <div class="node-sub" style="color:var(--accent)">交换中心</div>
+          </div>
+          <div class="ex-arrow-group">
+            <div class="ex-arrow fwd"><div class="ex-arrow-line"></div><div class="ex-arrow-head"></div></div>
+            <div class="ex-arrow-label">搜索服务</div>
+            <div class="ex-separator"></div>
+            <div class="ex-arrow-label">浏览数据</div>
+            <div class="ex-arrow rev"><div class="ex-arrow-head"></div><div class="ex-arrow-line"></div></div>
+          </div>
+          <div class="ex-side-node">
+            <div class="node-title">用户</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p45-46 步骤2·3</div><div>10 / 18</div></div>
+</section>
+
+<!-- 11 关键洞察 L28 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Key Insight" data-source="p46 谷歌获得的是用户的浏览数据" style="text-align:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-quote">
+      <div class="callout callout-mark anim-item" style="max-width:14em;margin:0 auto;text-align:left">
+        谷歌获得的是用户的浏览数据
+        <cite>p46 谷歌和用户的关系</cite>
+      </div>
+    </div>
+    <div class="w-default" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(2rem,4vh,3rem);text-align:left">
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">回应</div><p class="body-zh" style="margin-top:1vh">用户搜索免费，那用户付了什么作为等价报酬</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">重点</div><p class="body-zh" style="margin-top:1vh">浏览数据提高广告位质量，广告主因此愿意付费</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">余味</div><p class="body-zh" style="margin-top:1vh">交换等价物不一定是金钱</p></div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p46</div><div>11 / 18</div></div>
+</section>
+
+<!-- 12 谷歌盈利机制 L27 -->
+<section class="slide light" data-theme="light" data-screen-label="Evidence" data-source="p46-47 谷歌的盈利机制">
+  <div class="chrome"><div>机制 · 谷歌盈利</div><div>12 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">谷歌的盈利机制</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">第一步</div>
+          <p class="body-zh">谷歌向用户免费提供搜索服务，获取用户的浏览数据</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">第二步</div>
+          <p class="body-zh">根据浏览数据掌握用户需求和兴趣，推算最合适的广告内容</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">第三步</div>
+          <p class="body-zh">将优质广告位出售给广告主，获取广告费回报</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p46-47</div><div>12 / 18</div></div>
+</section>
+
+<!-- 13 总结三要点 L5 -->
+<section class="slide light" data-theme="light" data-screen-label="Summary" data-source="p48 总结">
+  <div class="chrome"><div>总结 · 理解要点</div><div>13 / 18</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">熟练使用交换图的三个要点</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">要点一</div>
+          <p class="body-zh">弄清谁是交换的中心。谷歌例子中，谷歌是三方交换的枢纽</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">要点二</div>
+          <p class="body-zh">找出隐藏的相关人物。广告主并未出现在题干中，却是关键角色</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">要点三</div>
+          <p class="body-zh">交换等价物不一定是金钱。谷歌案例中用户支付的是浏览数据</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p48 总结</div><div>13 / 18</div></div>
+</section>
+
+<!-- 14 必胜技巧 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p48 必胜小技巧" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>技巧 · 交换图</div><div>14 / 18</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">必胜小技巧</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">把箭头画成双向的</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">每次交换都有来有回，双向箭头提醒你思考两个方向的等价物</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p48</div><div>14 / 18</div></div>
+</section>
+
+<!-- 15 衍生版本 L29 -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p50-51 图解衍生版本">
+  <div class="chrome"><div>衍生 · 省略箭头</div><div>15 / 18</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">有意省略箭头：三种层级</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">完全版</div>
+          <p class="body-zh" style="margin-top:1vh">双向箭头，完整呈现交易双方付出的等价物</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">焦点版</div>
+          <p class="body-zh" style="margin-top:1vh">单向箭头，只强调关注的流向，如数据流向</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">关系版</div>
+          <p class="body-zh" style="margin-top:1vh">仅线段，不需要箭头，只表达合作关系</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">原则</div>
+          <p class="body-zh" style="margin-top:1vh">充分理解交换内容后，可以省略到只剩关系</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p50-51 衍生版本</div><div>15 / 18</div></div>
+</section>
+
+<!-- 16 两种瓶颈 L30 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Tension" data-source="p52 专栏1 画不出图怎么办">
+  <div class="chrome"><div>专栏 · 画不出图</div><div>16 / 18</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">瓶颈一</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">信息不足</h2>
+      <p class="body-zh" style="max-width:15em">无法掌握全貌，无从下手。对策：继续收集缺少的信息</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">瓶颈二</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">信息过多</h2>
+      <p class="body-zh" style="max-width:15em">手头信息太多，不知道如何整理。对策：机械性抄录到便签</p>
+    </div>
+  </div>
+  <div class="foot"><div>p52 专栏1</div><div>16 / 18</div></div>
+</section>
+
+<!-- 17 解法 L28 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Key Insight" data-source="p52 暂停思考动手试试" style="text-align:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-quote">
+      <div class="callout callout-mark anim-item" style="max-width:14em;margin:0 auto;text-align:left">
+        暂停思考，动手试试
+        <cite>p52 专栏1</cite>
+      </div>
+    </div>
+    <div class="w-default" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(2rem,4vh,3rem);text-align:left">
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">为什么</div><p class="body-zh" style="margin-top:1vh">抄录让事情有所进展，心情平静下来，产生把握对象的实感</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">怎么做</div><p class="body-zh" style="margin-top:1vh">把手头信息机械性抄到便签上，手抄比电子设备更有效</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">适用</div><p class="body-zh" style="margin-top:1vh">事情进展不顺利时，先动起来，不让焦躁占据大脑</p></div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p52</div><div>17 / 18</div></div>
+</section>
+
+<!-- 18 练习 L31 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Open Questions" data-source="p49 试一试">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">试一试</div>
+      <h2 class="h1-zh anim-item" style="max-width:10em;margin:clamp(1rem,3vh,2rem) auto 0">练习画交换图</h2>
+      <div style="margin-top:clamp(2rem,4vh,3rem);display:grid;gap:clamp(.8rem,1.5vh,1.2rem);text-align:left">
+        <p class="body-zh anim-item">01 分析你所在公司的商业模式</p>
+        <p class="body-zh anim-item">02 分析正在迅速发展的公司</p>
+        <p class="body-zh anim-item">03 分析你经常使用的服务</p>
+        <p class="body-zh anim-item">04 分析利润率较高的公司</p>
+        <p class="body-zh anim-item">05 分析已破产的公司，找出交换关系的断裂点</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p49</div><div>18 / 18</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-02-exchange';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

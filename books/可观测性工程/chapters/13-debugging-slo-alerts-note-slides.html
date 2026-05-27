@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第13章 处理和调试基于SLO的告警</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+/* Signatures */
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+/* Chrome & Foot */
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+/* Animations */
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+/* SVG chart helpers */
+.burn-chart { width: 100%; max-width: 48rem; height: auto; }
+.burn-chart text { font-family: var(--mono); }
+.burn-chart .label { font-size: clamp(10px, .7vw, 12px); fill: var(--muted); }
+.burn-chart .title { font-size: clamp(12px, .8vw, 14px); fill: var(--ink); font-weight: 600; }
+.slide.dark .burn-chart .title { fill: var(--paper); }
+.slide.dark .burn-chart .label { fill: rgba(250,249,245,.55); }
+
+/* Diagram container */
+.diagram-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 3vw, 3rem); margin-top: clamp(1rem, 2vh, 2rem); }
+.diagram-card { text-align: center; }
+.diagram-card .kicker { margin-bottom: clamp(.6rem, 1vh, 1rem); }
+.diagram-card svg { width: 100%; max-width: 22rem; height: auto; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p101 第13章">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第13章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em;font-size:clamp(2.8rem,6vw,5.6rem)">处理和调试基于SLO的告警</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.55">错误预算消耗告警、滑动窗口、预测计算方法与可观测性数据的结合</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Observability Engineering</div>
+    <div>p101-113</div>
+  </div>
+</section>
+
+<!-- 02 判断 L3-c dark w-note -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p101 13.1节开头">
+  <div class="chrome" style="width:100%"><div>判断 · SLO告警</div><div>02 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">核心主张</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em;text-align:center">SLO驱动告警是一种噪声更小、更可操作的现代监控形式</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62;text-align:center">使用传统监控指标产生的SLO告警不可操作，因为它们不指导如何解决根本问题。可观测性事件数据让告警更精确且更易于调试。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p101 第13章引言</div><div>02 / 20</div></div>
+</section>
+
+<!-- 03 段落拆解 L25 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p101 13.1节 错误预算定义">
+  <div class="chrome"><div>段落拆解 · 错误预算</div><div>03 / 20</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">错误预算 = 企业愿意容忍的最大系统不可用性</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">99.9% SLO 意味着月度不可用时间不超过 43分50秒，年度不超过 8小时45分57秒</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">基于事件的计算逐一检查每个请求是成功还是失败，保持好事件与坏事件的运行统计</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">错误预算剩余 = 总错误预算减去已消耗的失败请求数，这个数字驱动一切告警决策</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p101 13.1节</div><div>03 / 20</div></div>
+</section>
+
+<!-- 04 社论式 L3-a bare light w-statement -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p101 13.1节 告警目的">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">核心原则</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7rem);max-width:11em;letter-spacing:0">要在错误预算耗尽之前发出告警</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p101 13.1节</div><div>04 / 20</div></div>
+</section>
+
+<!-- 05 双张力 L30 dark w-wide 固定窗口 vs 滑动窗口 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Dual Tension" data-source="p102-103 13.2节">
+  <div class="chrome"><div>对比 · 时间窗口</div><div>05 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-wide" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.8rem,4vh,3rem)">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:10em">固定窗口 vs 滑动窗口</h2>
+      <div class="grid-2-6-6" style="width:100%">
+        <div class="anim-item" style="text-align:center">
+          <div class="kicker" style="margin-bottom:clamp(1rem,2vh,2rem)">固定窗口</div>
+          <svg viewBox="0 0 280 120" class="burn-chart" style="max-width:20rem">
+            <rect x="10" y="15" width="85" height="85" rx="3" fill="rgba(255,200,100,.2)" stroke="rgba(255,200,100,.4)"/>
+            <rect x="100" y="15" width="85" height="85" rx="3" fill="rgba(255,200,100,.2)" stroke="rgba(255,200,100,.4)"/>
+            <rect x="190" y="15" width="85" height="85" rx="3" fill="rgba(255,200,100,.2)" stroke="rgba(255,200,100,.4)"/>
+            <text x="52" y="65" text-anchor="middle" class="label">1月</text>
+            <text x="142" y="65" text-anchor="middle" class="label">2月</text>
+            <text x="232" y="65" text-anchor="middle" class="label">3月</text>
+            <text x="145" y="110" text-anchor="middle" class="label" fill="rgba(255,200,150,.6)">每月重置，31号故障不影响2号</text>
+          </svg>
+          <p class="body-zh" style="max-width:16em;margin:clamp(.8rem,2vh,1.5rem) auto 0;opacity:.7">预算定期重置，在月初突然恢复。任何错误消耗的累积效应逐渐衰减到零，但在新窗口的第一天突变式归零。</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="kicker" style="color:var(--accent);opacity:1;margin-bottom:clamp(1rem,2vh,2rem)">滑动窗口</div>
+          <svg viewBox="0 0 280 120" class="burn-chart" style="max-width:20rem">
+            <rect x="10" y="25" width="255" height="70" rx="3" fill="rgba(44,95,184,.15)" stroke="rgba(44,95,184,.35)"/>
+            <line x1="10" y1="25" x2="265" y2="25" stroke="rgba(44,95,184,.35)" stroke-dasharray="none"/>
+            <text x="137" y="65" text-anchor="middle" class="label" fill="rgba(250,249,245,.7)">过去30天（持续滑动）</text>
+            <text x="137" y="110" text-anchor="middle" class="label" fill="rgba(150,200,255,.6)">按月平滑过渡，更连续</text>
+          </svg>
+          <p class="body-zh" style="max-width:16em;margin:clamp(.8rem,2vh,1.5rem) auto 0;opacity:.7">恒定低水平消耗不会耗尽预算。中等级别故障在稳定一段时间后逐渐得到补偿，更符合人类行为期望。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p102-103 13.2节</div><div>05 / 20</div></div>
+</section>
+
+<!-- 06 摘录侧注 L24 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p103 13.2节 滑动窗口理由">
+  <div class="chrome"><div>Excerpt · 滑动窗口</div><div>06 / 20</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        好的SLO应考虑到人类的情感、记忆和近期偏差。情感不会因为自然月过渡而消失。
+        <cite>p103 13.2节</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">SLO衡量的是客户体验和满意度，不是法律约束。用户不会因为新月份开始了就原谅昨天的故障。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">在计算消耗轨迹时，正确的首选是将时间帧设为滑动窗口。固定窗口在重置后没有足够数据来做出有意义决策。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p103 13.2节</div><div>06 / 20</div></div>
+</section>
+
+<!-- 07 观点加例证 L27 light w-default 两种预测模型 -->
+<section class="slide light" data-theme="light" data-screen-label="View+Examples" data-source="p103-104 13.3节 两种预测模型">
+  <div class="chrome"><div>方法 · 预测消耗告警</div><div>07 / 20</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">至少有两种模型可以触发零级以上的消耗告警</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">阈值模型</div>
+          <p class="body-zh">在剩余错误预算低于选定百分比时触发告警，例如降到30%以下。简单但粗糙：越过阈值后团队表现得像预算已全部花光。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">预测消耗模型</div>
+          <p class="body-zh">根据近期数据的基线窗口推断未来的消耗轨迹，预测整个错误预算何时将被耗尽。需要权衡前瞻性窗口和基线窗口的大小。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">关键选择</div>
+          <p class="body-zh">阈值模型以牺牲额外开发时间为代价保留余地。预测模型给出精确的时间预警，让团队在预算真正耗尽前主动采取纠正措施。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p103-104 13.3节</div><div>07 / 20</div></div>
+</section>
+
+<!-- 08 段落拆解 L25 light w-default 前瞻性窗口 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p105 13.3.1节 前瞻性窗口">
+  <div class="chrome"><div>段落拆解 · 前瞻性窗口</div><div>08 / 20</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">基线窗口应该和前瞻性窗口是同一个数量级</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">99.9%目标下月度性能回归到99.88%不需要连夜唤醒某人；但一小时内可靠性降到98%就需要立即呼叫值班工程师。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">用过去30分钟的微观尺度推断未来几天的宏观表现会带来误报风险；反过来，等待一整天数据来预测未来几分钟同样危险。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">流量形状呈现周期性行为：分钟级重复的定时任务、天的高峰低谷、零售业的季节性购物潮，都影响基线窗口的选择。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p105 13.3.1节</div><div>08 / 20</div></div>
+</section>
+
+<!-- 09 表格 L16 light w-wide 线性 vs 比例推断 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p106-107 13.3.1节 推断方法对比">
+  <div class="chrome"><div>对比 · 推断方法</div><div>09 / 20</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">线性推断 vs 比例推断</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>维度</th><th>线性推断</th><th>比例推断</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>逻辑</td><td>直接将过去故障数按时间等比例放大</td><td>用过去故障率乘以未来预期流量</td></tr>
+          <tr><td>示例输入</td><td>6h内25次失败</td><td>6h内50个请求中25个失败 (50%)</td></tr>
+          <tr><td>24h预测</td><td>100次失败，远低于预算438</td><td>1440个请求 × 50% = 720次失败</td></tr>
+          <tr><td>结论</td><td>不触发告警 (误判安全)</td><td>触发告警，约半天内耗尽预算</td></tr>
+          <tr><td>风险</td><td>夜间/周末低流量时严重低估</td><td>依赖流量预测准确度</td></tr>
+        </tbody>
+      </table>
+      <p class="body-zh anim-item" style="text-align:center;max-width:28em;margin:0 auto;opacity:.65">生产中比例推断法更有用：流量水平随时间波动，等比例放大忽略了流量曲线的平滑上升过程。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p106-107 13.3.1节</div><div>09 / 20</div></div>
+</section>
+
+<!-- 10 摘录侧注 L24 light w-default 上下文感知消耗告警 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p107-108 13.3.1节 上下文感知消耗告警">
+  <div class="chrome"><div>Excerpt · 上下文感知</div><div>10 / 20</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        上下文感知消耗告警保留SLO窗口内好事件和坏事件的滚动总数。
+        <cite>p107 13.3.1节</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">权衡</div>
+      <p class="lead-zh" style="max-width:18em">计算成本更高（Honeycomb案例：小型SLO数据集曾每天产生超过5000美元的Lambda费用），但精度和灵敏度更佳。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">上下文感知告警还会影响响应紧迫度的哲学立场：在只剩10%预算时解决重大错误，是否比剩90%时更紧迫？</p>
+    </div>
+  </div>
+  <div class="foot"><div>p107-108 13.3.1节</div><div>10 / 20</div></div>
+</section>
+
+<!-- 11 段落拆解 L25 light w-default 6步计算 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p108-109 13.3.1节 六步计算">
+  <div class="chrome"><div>段落拆解 · 六步计算</div><div>11 / 20</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">上下文感知消耗告警的六步计算流程</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 1-2</div>
+          <p class="body-zh" style="margin-top:1vh">检查并保留过去26天内每个SLO事件条目：事件总数和错误总数（30天滑动窗口减去4天前瞻 = 26天回溯）</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 3-4</div>
+          <p class="body-zh" style="margin-top:1vh">重新检查过去1天的基线窗口以确定故障率，然后假设未来4天行为与基线相似，推断未来性能</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 5-6</div>
+          <p class="body-zh" style="margin-top:1vh">计算调整后的30天滑动窗口：26天回溯 + 4天预测。如果错误预算到此已用完，触发告警。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p108-109 13.3.1节</div><div>11 / 20</div></div>
+</section>
+
+<!-- 12 大数字 L12 light 裸排 4倍法则 -->
+<section class="slide light" data-theme="light" data-screen-label="Data" data-source="p110 13.3.2节 基线窗口4倍法则" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>法则 · 基线窗口</div><div>12 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="stat-num anim-item">4×</div>
+    <h2 class="h2-zh anim-item" style="max-width:14em;margin-top:clamp(1rem,2vh,2rem)">基线窗口最多可线性预测4倍窗口</h2>
+    <p class="body-zh anim-item" style="max-width:25em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.6">过去1小时 → 预测4小时内消耗 / 过去6小时 → 预测24小时消耗 / 过去1天 → 预测4天内消耗。这是实践中的可靠启发式，无需添加季节性补偿。</p>
+  </div>
+  <div class="foot" style="width:100%"><div>p110 13.3.2节</div><div>12 / 20</div></div>
+</section>
+
+<!-- 13 三列要点 L9 dark w-default 多时间尺度 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Three Points" data-source="p110 13.3.2-3节 多告警考量">
+  <div class="chrome"><div>要点 · 多时间尺度</div><div>13 / 20</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:11em">为什么要在同一个SLO上设置多个时间尺度的消耗告警</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">看似不合逻辑的触发顺序</div>
+          <p class="body-zh" style="margin-top:1vh">一个系统故障可能触发2小时耗尽告警，但不会触发1天耗尽告警。因为不同告警的推断来自不同长度的基线窗口。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">小时级 vs 天级</div>
+          <p class="body-zh" style="margin-top:1vh">小时级窗口让团队对消耗率突变快速反应；天级窗口噪声更小，适合冲刺排期等长时间范围内的任务优先级排序。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">只要一个触发就行动</div>
+          <p class="body-zh" style="margin-top:1vh">只要其中一种预测触发告警就应该采取行动。在小时级发现问题可以避免触发天级告警；反之，等待可能在消耗时间尺度上延迟数小时。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p110 13.3.2-3节</div><div>13 / 20</div></div>
+</section>
+
+<!-- 14 时间线 L14 light w-wide 三种消耗模式 -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p111-112 13.3.3节 三种消耗模式">
+  <div class="chrome"><div>模式 · 消耗类型</div><div>14 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,3.5rem)">错误预算消耗的三种典型模式</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2.5vw,2.5rem)">
+        <div class="timeline-node anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1;display:block;margin-bottom:clamp(.8rem,1.5vh,1.2rem)">渐进式消耗</div>
+          <svg viewBox="0 0 160 80" style="width:100%;max-width:14rem;margin-bottom:clamp(.8rem,1.5vh,1.2rem)">
+            <polyline points="5,65 30,64 55,62 80,59 105,55 130,49 155,41" fill="none" stroke="#2c5fb8" stroke-width="2"/>
+            <line x1="5" y1="72" x2="155" y2="72" stroke="#ccc" stroke-width="1"/>
+            <text x="80" y="20" text-anchor="middle" class="label" fill="var(--muted)">剩余 51.4%</text>
+          </svg>
+          <p class="body-zh" style="max-width:14em;margin:0 auto">缓慢而稳定地消耗，是现代生产系统的常态。少量例外超出阈值。</p>
+        </div>
+        <div class="timeline-node anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1;display:block;margin-bottom:clamp(.8rem,1.5vh,1.2rem)">突发式消耗</div>
+          <svg viewBox="0 0 160 80" style="width:100%;max-width:14rem;margin-bottom:clamp(.8rem,1.5vh,1.2rem)">
+            <polyline points="5,62 25,60 45,56 60,52 70,38 75,21 85,28 105,26 125,24 155,22" fill="none" stroke="#c0392b" stroke-width="2"/>
+            <line x1="5" y1="72" x2="155" y2="72" stroke="#ccc" stroke-width="1"/>
+            <text x="80" y="20" text-anchor="middle" class="label" fill="var(--muted)">剩余 31.4%</text>
+          </svg>
+          <p class="body-zh" style="max-width:14em;margin:0 auto">特定时期干扰导致异常突发。需要立即调查消耗的根因。</p>
+        </div>
+        <div class="timeline-node anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1;display:block;margin-bottom:clamp(.8rem,1.5vh,1.2rem)">事件驱动消耗</div>
+          <svg viewBox="0 0 160 80" style="width:100%;max-width:14rem;margin-bottom:clamp(.8rem,1.5vh,1.2rem)">
+            <polyline points="5,56 20,55 35,53 50,15 65,14 85,13 105,12 130,11 155,10" fill="none" stroke="#e67e22" stroke-width="2"/>
+            <line x1="5" y1="72" x2="155" y2="72" stroke="#ccc" stroke-width="1"/>
+            <text x="80" y="20" text-anchor="middle" class="label" fill="var(--muted)">剩余 1.3%</text>
+          </svg>
+          <p class="body-zh" style="max-width:14em;margin:0 auto">一个事件一下消耗掉很大一部分预算。诊断时应评估是突发还是单次事件。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p111-112 13.3.3节</div><div>14 / 20</div></div>
+</section>
+
+<!-- 15 双张力 L30 dark w-wide 时间序列 vs 事件 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Dual Tension" data-source="p112-113 13.4节">
+  <div class="chrome"><div>对比 · 数据类型</div><div>15 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-wide" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.8rem,4vh,3rem)">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:10em">时间序列数据 vs 事件数据</h2>
+      <div class="grid-2-6-6" style="width:100%">
+        <div class="anim-item">
+          <div class="kicker" style="margin-bottom:clamp(1rem,2vh,2rem)">时间序列</div>
+          <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,1.5rem)">以时间段为单元</h2>
+          <p class="body-zh" style="max-width:18em;opacity:.75">将每分钟标记为好或坏。p95延迟超过300ms时，整分钟被判为坏。即使只有6%的请求失败，错误预算减去100%。</p>
+          <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.5rem);opacity:.55">一个月度预算4.32分钟的99.99%系统，一个坏分钟就消耗25%预算。5分钟CloudWatch窗口直接耗尽全部预算。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1;margin-bottom:clamp(1rem,2vh,2rem)">事件数据</div>
+          <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,1.5rem)">以请求为单元</h2>
+          <p class="body-zh" style="max-width:18em;opacity:.75">每个请求独立判断：持续小于300ms为成功，大于300ms为失败。94%的请求成功时，只消耗6%的错误预算。</p>
+          <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.5rem);opacity:.55">在99.99%系统中，部分故障远多于完全故障。事件数据在月度预算耗尽前给出超过7小时的额外响应缓冲。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p112-113 13.4节</div><div>15 / 20</div></div>
+</section>
+
+<!-- 16 大数字 L12 light 裸排 -->
+<section class="slide light" data-theme="light" data-screen-label="Data" data-source="p112-113 13.4节 p95粒度问题" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>数据 · 粒度破坏</div><div>16 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="stat-num anim-item">25%</div>
+    <h2 class="h2-zh anim-item" style="max-width:12em;margin-top:clamp(1rem,2vh,2rem)">一个坏分钟，25%的月度预算</h2>
+    <p class="body-zh anim-item" style="max-width:25em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.6">99.99%系统月度预算仅4.32分钟。当p95延迟超过300ms，即使只有6%的请求实际失败，整分钟被判坏即消耗25%预算。分钟级粒度对严格SLO是不可用的。</p>
+  </div>
+  <div class="foot" style="width:100%"><div>p112-113 13.4节</div><div>16 / 20</div></div>
+</section>
+
+<!-- 17 一句原话多层注解 L28 bare dark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Key Quote" data-source="p113 13.4节 事件数据价值">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-quote" style="text-align:center">
+      <div class="callout callout-mark anim-item" style="max-width:16em;margin:0 auto;text-align:left">
+        追踪实际用户体验的可观测性数据能更准确地表示系统状态。
+        <cite>p113 13.4节</cite>
+      </div>
+    </div>
+    <div class="w-default" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(2rem,4vh,3rem);text-align:left">
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">回应</div><p class="body-zh" style="margin-top:1vh">SLO告警不可操作的问题，根因在于数据粒度太粗。时间序列的分钟级评估丢失了请求级的真实情况。</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">重点</div><p class="body-zh" style="margin-top:1vh">事件数据提供请求级颗粒度评估系统健康。每个单独事件对应一个可标记为好或坏的用户事务，不丢失任何信息。</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">余味</div><p class="body-zh" style="margin-top:1vh">无论SLO目标严格与否，基于事件的细粒度测量都能创建比时间序列通常可用的更多的响应时间缓冲区。</p></div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p113 13.4节</div><div>17 / 20</div></div>
+</section>
+
+<!-- 18 结论 L3-c dark w-note -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p113 13.5节 结论">
+  <div class="chrome" style="width:100%"><div>结论</div><div>18 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Conclusion</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em;text-align:center">SLO是一种现代化监控形式，事件数据为SLO模型增加了额外力量</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62;text-align:center">仅知道SLO有被破坏的危险并不能确定哪些用户受影响。将可观测性数据与SLO结合起来，才能在触发告警后看到故障发生的地点和时间，区分系统性问题与偶发零星故障。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p113 13.5节</div><div>18 / 20</div></div>
+</section>
+
+<!-- 19 核心总结 L32 dark 1/2 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p101-113 全文核心总结 1/2">
+  <div class="chrome"><div>核心总结</div><div>19 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">错误预算 = 企业愿意容忍的最大不可用性。基于事件计算逐一检查每个请求，保持好事件与坏事件的运行统计。剩余错误预算 = 总预算减去已消耗的失败请求数。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">消耗告警的目的是为未来违背SLO提供早期预警。必须预测系统在未来某个时间点将消耗的错误预算量。对99.95%以下的目标效果最好，超过99.95%时预防作用较小但仍可用于报告和警告降级。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">滑动窗口比固定窗口更符合人类行为期望。固定窗口在重置后没有足够数据做有意义的决策。滑动窗口中恒定低消耗不会耗尽预算，中等故障在稳定后逐渐得到补偿。SLO衡量的是客户体验而非法律约束。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p101-113 全文</div><div>19 / 20</div></div>
+</section>
+
+<!-- 20 核心总结 L32 dark 2/2 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p101-113 全文核心总结 2/2">
+  <div class="chrome"><div>核心总结</div><div>20 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">预测消耗告警的基线窗口应和前瞻性窗口同一数量级。4倍是实践中的可靠启发式：过去1小时预测4小时内消耗，过去6小时预测24小时内消耗。比例推断比线性推断在生产中更有用。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">上下文感知消耗告警保留SLO整个滑动窗口的好/坏事件滚动总数，计算成本更高但精度更好。六步流程：检查历史事件→确定基线故障率→推断未来→计算调整后窗口→判断是否触发。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">时间序列数据对严格SLO（99.99%+）存在致命粒度问题：一个坏分钟可消耗月度预算的25%。事件数据提供请求级颗粒度，在部分故障中只消耗实际失败比例。即使在99.99%系统中也能给出超过7小时的响应缓冲。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p101-113 全文</div><div>20 / 20</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-13-slo';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

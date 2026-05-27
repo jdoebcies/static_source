@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>热身运动：熟悉图形 · 图形思考</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Palette Thesis =====
+   原书用黑墨、白纸、粉红高亮讲图形思考，简洁、直接、像手绘教案。
+   笔记幻灯片沿用这一气质：暖白纸底、深墨文字、朱红强调色。
+   朱红（#c44536）承担步骤编号、箭头标注和关键概念，
+   模仿日式教学用红笔划重点的视觉传统。
+*/
+:root {
+  --ink:        #1a1a1a;
+  --ink-rgb:    26,26,26;
+  --paper:      #faf8f3;
+  --paper-rgb:  250,248,243;
+  --accent:     #c44536;
+  --accent-rgb: 196,69,54;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3      { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+/* ===== 图形思考：图表样式 ===== */
+.gt-box {
+  border: 2px solid var(--ink);
+  padding: clamp(.7rem, 1.3vw, 1.2rem) clamp(1rem, 1.8vw, 1.8rem);
+  font-family: var(--sans-zh);
+  font-weight: 500;
+  font-size: clamp(1.1rem, 1.25vw, 1.45rem);
+  text-align: center;
+  background: rgba(var(--ink-rgb), .03);
+  white-space: nowrap;
+}
+.slide.dark .gt-box {
+  border-color: var(--paper);
+  background: rgba(var(--paper-rgb), .06);
+}
+.gt-box.small {
+  font-size: clamp(.9rem, 1vw, 1.15rem);
+  padding: clamp(.45rem, .9vw, .8rem) clamp(.6rem, 1.2vw, 1.3rem);
+}
+.gt-box.root {
+  font-size: clamp(1.15rem, 1.3vw, 1.5rem);
+  font-weight: 600;
+  background: rgba(var(--ink-rgb), .07);
+}
+.slide.dark .gt-box.root { background: rgba(var(--paper-rgb), .1); }
+.gt-vline {
+  width: 1px; min-height: clamp(.7rem, 1.5vh, 1.2rem);
+  background: rgba(var(--ink-rgb), .22); align-self: center;
+}
+.slide.dark .gt-vline { background: rgba(var(--paper-rgb), .22); }
+.gt-hline {
+  flex: 1; height: 1px; min-width: clamp(1rem, 2vw, 2rem);
+  background: rgba(var(--ink-rgb), .22);
+}
+.slide.dark .gt-hline { background: rgba(var(--paper-rgb), .22); }
+.gt-arrow-label {
+  font-family: var(--sans-zh);
+  font-size: clamp(.85rem, .95vw, 1rem);
+  color: var(--accent);
+  text-align: center;
+  white-space: nowrap;
+}
+.gt-ex-column {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(.25rem, .5vh, .5rem);
+}
+.gt-exchange-arrow {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(.5rem, 1vh, .8rem); min-width: clamp(3rem, 5vw, 5rem);
+}
+.gt-arrow-right, .gt-arrow-left {
+  width: clamp(1.8rem, 3.2vw, 2.8rem); height: clamp(.3rem, .6vh, .45rem);
+  background: var(--accent); opacity: .65; position: relative;
+}
+.gt-arrow-right::after {
+  content: ""; position: absolute; right: -4px; top: 50%; transform: translateY(-50%);
+  border-left: 6px solid var(--accent); opacity: .65;
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+}
+.gt-arrow-left::before {
+  content: ""; position: absolute; left: -4px; top: 50%; transform: translateY(-50%);
+  border-right: 6px solid var(--accent); opacity: .65;
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+}
+.gt-step-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  color: var(--accent);
+  opacity: .85;
+  line-height: 1;
+}
+.gt-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: center;
+}
+
+/* ===== 通用 ===== */
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="p29 热身运动" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">图形思考 · 热身运动</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">热身运动：熟悉图形</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">七大图形课程前的两项练习，用桃太郎故事学习矩形和箭头的使用方法</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>p29 p36</div>
+  </div>
+</section>
+
+<!-- 02 课程入口 -->
+<section class="slide light" data-theme="light" data-screen-label="Context" data-source="p30 热身运动">
+  <div class="chrome"><div>课程入口</div><div>02 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">在七大图形课程之前，先用熟悉的故事活动头脑</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">题材</div>
+          <p class="body-zh">桃太郎寓言中的两个场景。寓言故事和日常生活是培养图形思维的绝佳训练题材</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">工具</div>
+          <p class="body-zh">矩形代表出场人物，箭头代表交换关系。只需要这两种基本元素</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">目的</div>
+          <p class="body-zh">养成图形思维习惯。只在制作资料时才画图，无论多久都无法真正形成图形思维</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p30</div><div>02 / 13</div></div>
+</section>
+
+<!-- 03 问题一 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Problem 1" data-source="p30 问题1" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">问题一</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">桃太郎把糯米团子给了小狗，小狗成为桃太郎的伙伴</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">这样的内容要怎么画成图？答案是交换图</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p30 问题1</div><div>03 / 13</div></div>
+</section>
+
+<!-- 04 交换图：步骤拆解 -->
+<section class="slide light" data-theme="light" data-screen-label="Exchange Steps" data-source="p31 p32 步骤1-3">
+  <div class="chrome"><div>交换图 · 步骤</div><div>04 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">三步画出交换图</h2>
+      <div class="grid-3">
+        <div class="anim-item" style="text-align:center">
+          <div class="gt-step-num" style="margin-bottom:clamp(.8rem,1.5vh,1.2rem)">1</div>
+          <p class="body-zh" style="font-weight:600;margin-bottom:.6vh">分模块</p>
+          <p class="body-zh" style="font-size:clamp(1.2rem,1.3vw,1.45rem);opacity:.7">找出题干中的出场人物，将他们分成几个模块</p>
+          <div style="display:flex;justify-content:center;gap:clamp(1rem,2vw,2rem);margin-top:clamp(1rem,2vh,1.6rem)">
+            <div class="gt-box">桃太郎</div>
+            <div class="gt-box">小狗</div>
+          </div>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="gt-step-num" style="margin-bottom:clamp(.8rem,1.5vh,1.2rem)">2</div>
+          <p class="body-zh" style="font-weight:600;margin-bottom:.6vh">画箭头</p>
+          <p class="body-zh" style="font-size:clamp(1.2rem,1.3vw,1.45rem);opacity:.7">两方之间存在交换行为，用双向箭头表示</p>
+          <div style="display:flex;align-items:center;justify-content:center;gap:clamp(.8rem,1.5vw,1.5rem);margin-top:clamp(1rem,2vh,1.6rem)">
+            <div class="gt-box">桃太郎</div>
+            <div class="gt-exchange-arrow">
+              <div class="gt-arrow-right"></div>
+              <div class="gt-arrow-left"></div>
+            </div>
+            <div class="gt-box">小狗</div>
+          </div>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="gt-step-num" style="margin-bottom:clamp(.8rem,1.5vh,1.2rem)">3</div>
+          <p class="body-zh" style="font-weight:600;margin-bottom:.6vh">标内容</p>
+          <p class="body-zh" style="font-size:clamp(1.2rem,1.3vw,1.45rem);opacity:.7">在箭头上写出交换的具体内容，图就完成了</p>
+          <div style="display:flex;align-items:center;justify-content:center;gap:clamp(.8rem,1.5vw,1.5rem);margin-top:clamp(1rem,2vh,1.6rem)">
+            <div class="gt-ex-column">
+              <div class="gt-box">桃太郎</div>
+              <div class="gt-arrow-label">糯米团子 ↓</div>
+            </div>
+            <div class="gt-exchange-arrow">
+              <div class="gt-arrow-right"></div>
+              <div class="gt-arrow-left"></div>
+            </div>
+            <div class="gt-ex-column">
+              <div class="gt-box">小狗</div>
+              <div class="gt-arrow-label">↑ 成为伙伴</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p31 p32</div><div>04 / 13</div></div>
+</section>
+
+<!-- 05 完成交换图 -->
+<section class="slide light" data-theme="light" data-screen-label="Exchange Diagram" data-source="p32 交换图">
+  <div class="chrome"><div>交换图 · 完成</div><div>05 / 13</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-wide" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:10em;margin:0 auto clamp(2.5rem,6vh,4rem)">交换图：桃太郎与小狗</h2>
+      <div class="anim-item" style="display:flex;align-items:center;justify-content:center;gap:clamp(2rem,4vw,4rem)">
+        <div class="gt-ex-column" style="gap:clamp(.5rem,1vh,.8rem)">
+          <div class="gt-box" style="font-size:clamp(1.4rem,1.6vw,1.8rem);padding:clamp(1rem,1.8vw,1.6rem) clamp(1.4rem,2.4vw,2.4rem)">桃太郎</div>
+          <div class="gt-arrow-label" style="font-size:clamp(1rem,1.15vw,1.25rem)">糯米团子</div>
+        </div>
+        <div class="gt-exchange-arrow" style="min-width:clamp(4rem,7vw,6rem);gap:clamp(.8rem,1.5vh,1.2rem)">
+          <div class="gt-arrow-right" style="width:clamp(2.4rem,4.5vw,3.6rem);height:clamp(.4rem,.8vh,.6rem)"></div>
+          <div class="gt-arrow-left" style="width:clamp(2.4rem,4.5vw,3.6rem);height:clamp(.4rem,.8vh,.6rem)"></div>
+        </div>
+        <div class="gt-ex-column" style="gap:clamp(.5rem,1vh,.8rem)">
+          <div class="gt-box" style="font-size:clamp(1.4rem,1.6vw,1.8rem);padding:clamp(1rem,1.8vw,1.6rem) clamp(1.4rem,2.4vw,2.4rem)">小狗</div>
+          <div class="gt-arrow-label" style="font-size:clamp(1rem,1.15vw,1.25rem)">成为伙伴</div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:26em;margin:clamp(2rem,4vh,3rem) auto 0;opacity:.62">矩形加箭头，就表达了一个完整的交换关系</p>
+    </div>
+  </div>
+  <div class="foot"><div>p32</div><div>05 / 13</div></div>
+</section>
+
+<!-- 06 商业应用 -->
+<section class="slide light" data-theme="light" data-screen-label="Business Exchange" data-source="p32 商业场景">
+  <div class="chrome"><div>应用 · 商业场景</div><div>06 / 13</div></div>
+  <div class="slide-body">
+    <div class="w-wide" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:13em;margin:0 auto clamp(2.5rem,6vh,4rem)">交换图在商业场景同样适用</h2>
+      <div class="gt-compare anim-item">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(1rem,2vh,1.6rem)">
+          <div class="kicker" style="opacity:.7">寓言场景</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:clamp(1rem,2vw,2rem)">
+            <div class="gt-ex-column">
+              <div class="gt-box">桃太郎</div>
+              <div class="gt-arrow-label" style="font-size:clamp(.8rem,.9vw,.95rem)">糯米团子</div>
+            </div>
+            <div class="gt-exchange-arrow" style="min-width:clamp(2.5rem,4vw,4rem)">
+              <div class="gt-arrow-right"></div>
+              <div class="gt-arrow-left"></div>
+            </div>
+            <div class="gt-ex-column">
+              <div class="gt-box">小狗</div>
+              <div class="gt-arrow-label" style="font-size:clamp(.8rem,.9vw,.95rem)">成为伙伴</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(1rem,2vh,1.6rem)">
+          <div class="kicker" style="opacity:.7">商业场景</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:clamp(1rem,2vw,2rem)">
+            <div class="gt-ex-column">
+              <div class="gt-box">零件生产商</div>
+              <div class="gt-arrow-label" style="font-size:clamp(.8rem,.9vw,.95rem)">零件</div>
+            </div>
+            <div class="gt-exchange-arrow" style="min-width:clamp(2.5rem,4vw,4rem)">
+              <div class="gt-arrow-right"></div>
+              <div class="gt-arrow-left"></div>
+            </div>
+            <div class="gt-ex-column">
+              <div class="gt-box">成品生产商</div>
+              <div class="gt-arrow-label" style="font-size:clamp(.8rem,.9vw,.95rem)">货款</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:24em;margin:clamp(2rem,4vh,3rem) auto 0;opacity:.62">只改变矩形中的出场人物和箭头上的交换内容，结构完全不变</p>
+    </div>
+  </div>
+  <div class="foot"><div>p32</div><div>06 / 13</div></div>
+</section>
+
+<!-- 07 问题二 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Problem 2" data-source="p33 问题2" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">问题二</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">整理桃太郎后援队伍的结构</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">老爷爷和老奶奶是桃太郎的家人。小狗、猴子、山鸡是桃太郎的伙伴。这次使用树状图</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p33 问题2</div><div>07 / 13</div></div>
+</section>
+
+<!-- 08 树状图：步骤拆解 -->
+<section class="slide light" data-theme="light" data-screen-label="Tree Steps" data-source="p33 p34 步骤1-3">
+  <div class="chrome"><div>树状图 · 步骤</div><div>08 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">三步画出树状图</h2>
+      <div class="grid-3">
+        <div class="anim-item" style="text-align:center">
+          <div class="gt-step-num" style="margin-bottom:clamp(.8rem,1.5vh,1.2rem)">1</div>
+          <p class="body-zh" style="font-weight:600;margin-bottom:.6vh">分模块</p>
+          <p class="body-zh" style="font-size:clamp(1.2rem,1.3vw,1.45rem);opacity:.7">将题干中的出场人物分成几个模块</p>
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(.5rem,.8vw,.8rem);margin-top:clamp(1rem,2vh,1.6rem)">
+            <div class="gt-box small">桃太郎</div>
+            <div class="gt-box small">老爷爷</div>
+            <div class="gt-box small">老奶奶</div>
+            <div class="gt-box small">小狗</div>
+            <div class="gt-box small">猴子</div>
+            <div class="gt-box small">山鸡</div>
+          </div>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="gt-step-num" style="margin-bottom:clamp(.8rem,1.5vh,1.2rem)">2</div>
+          <p class="body-zh" style="font-weight:600;margin-bottom:.6vh">分组</p>
+          <p class="body-zh" style="font-size:clamp(1.2rem,1.3vw,1.45rem);opacity:.7">从题干得知，后援队伍可分为家人和伙伴两个小组</p>
+          <div style="display:flex;justify-content:center;gap:clamp(1.2rem,2vw,2rem);margin-top:clamp(1rem,2vh,1.6rem)">
+            <div style="text-align:center">
+              <div class="gt-box" style="margin-bottom:.5rem">家人</div>
+              <div style="display:flex;gap:.4rem">
+                <div class="gt-box small">老爷爷</div>
+                <div class="gt-box small">老奶奶</div>
+              </div>
+            </div>
+            <div style="text-align:center">
+              <div class="gt-box" style="margin-bottom:.5rem">伙伴</div>
+              <div style="display:flex;gap:.4rem">
+                <div class="gt-box small">小狗</div>
+                <div class="gt-box small">猴子</div>
+                <div class="gt-box small">山鸡</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="gt-step-num" style="margin-bottom:clamp(.8rem,1.5vh,1.2rem)">3</div>
+          <p class="body-zh" style="font-weight:600;margin-bottom:.6vh">画树状图</p>
+          <p class="body-zh" style="font-size:clamp(1.2rem,1.3vw,1.45rem);opacity:.7">在桃太郎下方画两个小组，每个小组下方画出各自成员</p>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0;margin-top:clamp(1rem,2vh,1.6rem)">
+            <div class="gt-box root">桃太郎的队伍</div>
+            <div class="gt-vline"></div>
+            <div style="display:flex;align-items:flex-start">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+                <div style="display:flex;align-items:center;width:100%">
+                  <div class="gt-hline"></div>
+                  <div class="gt-vline"></div>
+                </div>
+                <div class="gt-box small">家人</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+                <div style="display:flex;align-items:center;width:100%">
+                  <div class="gt-vline"></div>
+                  <div class="gt-hline"></div>
+                </div>
+                <div class="gt-box small">伙伴</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p33 p34</div><div>08 / 13</div></div>
+</section>
+
+<!-- 09 完成树状图 -->
+<section class="slide light" data-theme="light" data-screen-label="Tree Diagram" data-source="p34 树状图">
+  <div class="chrome"><div>树状图 · 完成</div><div>09 / 13</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-wide" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:10em;margin:0 auto clamp(2.5rem,6vh,4rem)">树状图：桃太郎的队伍</h2>
+      <div class="anim-item" style="display:flex;flex-direction:column;align-items:center;gap:0">
+        <div class="gt-box root" style="font-size:clamp(1.3rem,1.5vw,1.7rem);padding:clamp(.9rem,1.6vw,1.4rem) clamp(1.2rem,2.2vw,2rem)">桃太郎的队伍</div>
+        <div class="gt-vline" style="min-height:clamp(1rem,2vh,1.4rem)"></div>
+        <div style="display:flex;align-items:flex-start">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+            <div style="display:flex;align-items:center;width:100%">
+              <div class="gt-hline" style="min-width:clamp(2rem,4vw,4rem)"></div>
+              <div class="gt-vline" style="min-height:clamp(1rem,2vh,1.4rem)"></div>
+            </div>
+            <div class="gt-box">家人</div>
+            <div class="gt-vline" style="min-height:clamp(.8rem,1.5vh,1rem)"></div>
+            <div style="display:flex;gap:clamp(.7rem,1.2vw,1.2rem)">
+              <div class="gt-box small">老爷爷</div>
+              <div class="gt-box small">老奶奶</div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+            <div style="display:flex;align-items:center;width:100%">
+              <div class="gt-vline" style="min-height:clamp(1rem,2vh,1.4rem)"></div>
+              <div class="gt-hline" style="min-width:clamp(2rem,4vw,4rem)"></div>
+            </div>
+            <div class="gt-box">伙伴</div>
+            <div class="gt-vline" style="min-height:clamp(.8rem,1.5vh,1rem)"></div>
+            <div style="display:flex;gap:clamp(.7rem,1.2vw,1.2rem)">
+              <div class="gt-box small">小狗</div>
+              <div class="gt-box small">猴子</div>
+              <div class="gt-box small">山鸡</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(2rem,4vh,3rem) auto 0;opacity:.62">矩形加线段，一目了然地呈现了队伍的组织结构</p>
+    </div>
+  </div>
+  <div class="foot"><div>p34</div><div>09 / 13</div></div>
+</section>
+
+<!-- 10 商业应用：组织结构图 -->
+<section class="slide light" data-theme="light" data-screen-label="Business Tree" data-source="p35 组织结构图">
+  <div class="chrome"><div>应用 · 组织结构</div><div>10 / 13</div></div>
+  <div class="slide-body">
+    <div class="w-wide" style="text-align:center">
+      <h2 class="h1-zh anim-item" style="max-width:14em;margin:0 auto clamp(2.5rem,6vh,4rem)">桃太郎的队伍换成公司，就是一张组织结构图</h2>
+      <div class="gt-compare anim-item">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(.8rem,1.5vh,1.2rem)">
+          <div class="kicker" style="opacity:.7">桃太郎的队伍</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+            <div class="gt-box root" style="font-size:clamp(1.1rem,1.2vw,1.3rem)">桃太郎的队伍</div>
+            <div class="gt-vline" style="min-height:.8rem"></div>
+            <div style="display:flex;align-items:flex-start">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+                <div style="display:flex;align-items:center;width:100%"><div class="gt-hline"></div><div class="gt-vline" style="min-height:.7rem"></div></div>
+                <div class="gt-box small">家人</div>
+                <div class="gt-vline" style="min-height:.5rem"></div>
+                <div style="display:flex;gap:.3rem"><div class="gt-box small">老爷爷</div><div class="gt-box small">老奶奶</div></div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+                <div style="display:flex;align-items:center;width:100%"><div class="gt-vline" style="min-height:.7rem"></div><div class="gt-hline"></div></div>
+                <div class="gt-box small">伙伴</div>
+                <div class="gt-vline" style="min-height:.5rem"></div>
+                <div style="display:flex;gap:.3rem"><div class="gt-box small">小狗</div><div class="gt-box small">猴子</div><div class="gt-box small">山鸡</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(.8rem,1.5vh,1.2rem)">
+          <div class="kicker" style="opacity:.7">公司组织</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+            <div class="gt-box root" style="font-size:clamp(1.1rem,1.2vw,1.3rem)">○○公司</div>
+            <div class="gt-vline" style="min-height:.8rem"></div>
+            <div style="display:flex;align-items:flex-start">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+                <div style="display:flex;align-items:center;width:100%"><div class="gt-hline"></div><div class="gt-vline" style="min-height:.7rem"></div></div>
+                <div class="gt-box small">营业部</div>
+                <div class="gt-vline" style="min-height:.5rem"></div>
+                <div style="display:flex;gap:.3rem"><div class="gt-box small">A</div><div class="gt-box small">B</div></div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+                <div style="display:flex;align-items:center;width:100%"><div class="gt-vline" style="min-height:.7rem"></div><div class="gt-hline"></div></div>
+                <div class="gt-box small">开发部</div>
+                <div class="gt-vline" style="min-height:.5rem"></div>
+                <div style="display:flex;gap:.3rem"><div class="gt-box small">C</div><div class="gt-box small">D</div><div class="gt-box small">E</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(2rem,4vh,3rem) auto 0;opacity:.62">使用矩形和线段，就能把组织结构表示出来</p>
+    </div>
+  </div>
+  <div class="foot"><div>p35</div><div>10 / 13</div></div>
+</section>
+
+<!-- 11 核心主张 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Key Insight" data-source="p36 图解题材">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem);color:var(--accent);opacity:1">Key Insight</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">所有事物都是图解的题材</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">图形思考 · p36</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p36</div><div>11 / 13</div></div>
+</section>
+
+<!-- 12 练习清单 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Practice" data-source="p36 进步秘诀">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(2rem,4vh,3rem)">
+      <h2 class="h1-zh anim-item" style="max-width:12em">从起床到入睡，一切皆可图解</h2>
+      <div class="anim-item" style="display:flex;flex-direction:column;gap:clamp(1rem,2vh,1.6rem);opacity:.7">
+        <p class="body-zh">从家到公司的通勤路线</p>
+        <p class="body-zh">那家午餐店为什么总是排队</p>
+        <p class="body-zh">读完的书如何总结摘要</p>
+        <p class="body-zh">会议为何迟迟不结束</p>
+      </div>
+      <p class="body-zh anim-item" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem);font-family:var(--serif-zh);font-weight:600">多做画图练习，不要只在制作资料时才用图形思考</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p36 进步秘诀</div><div>12 / 13</div></div>
+</section>
+
+<!-- 13 核心总结 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p29 p36 核心总结">
+  <div class="chrome"><div>核心总结</div><div>13 / 13</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.5rem,3.5vh,2.5rem)">
+      <h2 class="h2-zh anim-item" style="text-align:center;margin-bottom:clamp(.5rem,1vh,1rem);opacity:.5">热身运动带走四件事</h2>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">交换图用两个矩形加双向箭头表达双方的交换关系。三步完成：分模块，画箭头，标内容。寓言故事和商务交易共用完全相同的图形结构</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">树状图用矩形和线段表达层级分组关系。三步完成：分模块，分组，画树。桃太郎的队伍和公司组织结构图只是换了标签，图形逻辑不变</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">图形思维是一种习惯，不是工具技能。只在制作资料时才画图，无论多久都无法真正形成。从日常小事开始练习：通勤路线、排队原因、会议结构</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">心急吃不了热豆腐。和学英语从 I have a pen 开始一样，图形思考也要从简单场景练起。所有复杂图解都由矩形和箭头这两种基本元素组合而成</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p29 p36</div><div>13 / 13</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-gt-01';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

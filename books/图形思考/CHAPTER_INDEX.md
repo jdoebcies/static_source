@@ -1,0 +1,40 @@
+# 图形思考 note-slides 章节切片
+
+Source PDF: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/source.pdf`
+
+00. **前言与七大图形** p8-24  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/00-preface-seven-figures/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/00-preface-seven-figures`
+01. **热身运动：熟悉图形** p29-36  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/01-warmup/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/01-warmup`
+02. **基础训练一：厘清关系，交换图** p37-52  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/02-relation-exchange/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/02-relation-exchange`
+03. **基础训练二：全面掌握具体内容，树状图** p53-71  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/03-structure-tree/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/03-structure-tree`
+04. **基础训练三：深究原因，深挖图** p72-89  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/04-factor-digging/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/04-factor-digging`
+05. **基础训练四：事物比较，比较图** p90-107  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/05-position-compare/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/05-position-compare`
+06. **基础训练五：分析流程，流程图** p108-123  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/06-steps-flow/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/06-steps-flow`
+07. **基础训练六：组合，重叠图** p124-139  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/07-concept-overlap/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/07-concept-overlap`
+08. **基础训练七：掌控方向，金字塔图** p140-157  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/08-policy-pyramid/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/08-policy-pyramid`
+09. **应用：多角度思维练习与人生规划** p158-177  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/09-application-life-planning/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/09-application-life-planning`
+10. **养成画图习惯：化为随身武器** p178-188  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/10-habit-notes/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/10-habit-notes`
+11. **图形的表现方式、阐述方式与后记** p189-208  
+    - source: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/11-expression-closing/source.md`
+    - output_dir: `/root/.openclaw/workspace/artifacts/graphic-thinking-pdf/chapters/11-expression-closing`

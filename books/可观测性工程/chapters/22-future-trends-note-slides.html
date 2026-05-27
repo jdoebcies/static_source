@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>可观测性工程 · 第22章 未来发展趋势</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #0d9488;
+  --accent-rgb: 13,148,136;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="p197 第22章" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第22章</div>
+      <h1 class="display-zh anim-item" style="max-width:8em">未来发展趋势</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">预测 OTel 生态、前端可观测性、开发者工作流与 CI/CD 的走向，收束全书</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Charity Majors · Liz Fong-Jones · George Miranda</div>
+    <div>O'Reilly, 2022</div>
+  </div>
+</section>
+
+<!-- 02 L3-a 社论式 bare light 强化后的定义 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p197 本章书首定义重述">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Defining Observability</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7.2vw,6.8rem);max-width:10em;letter-spacing:0">能理解任何新颖或怪异的状态，无需提前定义调试需求</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p197 第22章开篇</div><div>02 / 13</div></div>
+</section>
+
+<!-- 03 L25 段落拆解 light 三年写作的三个原因 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p197-198 为什么这本书花了三年多">
+  <div class="chrome"><div>写作历程</div><div>03 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">为什么这本书花了三年多</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Concept</div>
+          <p class="body-zh" style="margin-top:1vh">可观测性概念不易理解。每次谈论都需要先定义，常被与监控、遥测混用。三大支柱说只谈数据类型，忽略了分析实践</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Scope</div>
+          <p class="body-zh" style="margin-top:1vh">原章节列表短得多。随着更多组织大规模采用可观测性，不断加入深入内容和成功模式，邀请参与者直接撰写章节</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Review</div>
+          <p class="body-zh" style="margin-top:1vh">多位审稿人合作，包括来自竞争对手公司的审稿人。修改观点、纳入更广泛的视角、重新审视概念，确保客观包容</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p197,198</div><div>03 / 13</div></div>
+</section>
+
+<!-- 04 L9 三列 light 推荐阅读资源 -->
+<section class="slide light" data-theme="light" data-screen-label="Resources" data-source="p198-199 其他资源">
+  <div class="chrome"><div>延伸阅读</div><div>04 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em;text-align:center;margin:0 auto">四本推荐的延伸阅读</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">SRE</div>
+          <p class="body-zh">Site Reliability Engineering<br>Beyer 等 · O'Reilly<br>Google SRE 手册，详述生产系统管理与可观测性实践</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">SLO</div>
+          <p class="body-zh">Implementing Service Level Objectives<br>Hidalgo · O'Reilly<br>深入 SLO 的数学与统计模型，以及伴随的文化转变</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">OTel</div>
+          <p class="body-zh">Cloud Native Observability with OpenTelemetry<br>Boten · Packt<br>深入 OTel 核心组件、API、Collector 与流水线管理</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p198,199</div><div>04 / 13</div></div>
+</section>
+
+<!-- 05 L3-c 上下宣告 dark OTel 交织预测 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p199 预测：OTel 与可观测性交织" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>预测 · 2022年3月产生</div><div>05 / 13</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Prediction 01</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">三年后 OTel 和可观测性将成功交织，变得密不可分</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">修改少量配置即可在不同后端之间切换的能力将比现在强大得多</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p199</div><div>05 / 13</div></div>
+</section>
+
+<!-- 06 L25 段落拆解 light RUM vs 模拟监控 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p199-200 RUM 与模拟监控对比">
+  <div class="chrome"><div>前端可观测性</div><div>06 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">前端监控的两种范式</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">RUM</div>
+          <p class="body-zh" style="margin-top:1vh">真实用户监控。从浏览器检测和记录真实用户体验。用 JS 片段注入页面，依赖实际用户点击。优势：捕获广泛非预期的真实问题，解决最后一公里</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Synthetic</div>
+          <p class="body-zh" style="margin-top:1vh">模拟监控。依赖自动化测试脚本，在受控环境中测量。需开发和维护测试路径。优势：主动测试已知条件，可复现，可纳入 CI 回归测试</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Gap</div>
+          <p class="body-zh" style="margin-top:1vh">RUM 依赖抽样和聚合，无法下钻查看单个用户细节。Synthetic 只能测试预定义的路径，无法捕获用户实际行为。两者服务于不同用例</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p199,200</div><div>06 / 13</div></div>
+</section>
+
+<!-- 07 L11 嘉宾观点 bare dark guest-mark 前端统一预测 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="p200 预测：前端可观测性统一">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem);color:var(--accent);opacity:1">Prediction 02</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em">你不必在 RUM 和模拟监控之间做出选择，只需对两个用例都使用可观测性</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">在 CI/CD 构建流水线中运行端到端测试，通过遥测标记原始测试请求来监控性能</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p200</div><div>07 / 13</div></div>
+</section>
+
+<!-- 08 L25 段落拆解 light OTel 自动化探针预测 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p200 预测：OTel 自动化探针">
+  <div class="chrome"><div>探针演进</div><div>08 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">三年内 OTel 自动化探针将与供应商专有探针相媲美</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Now</div>
+          <p class="body-zh" style="margin-top:1vh">大多数团队使用 OTel 仍是一种选择，其自动化探针还无法与特定供应商专有产品提供的探针匹敌</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Driver</div>
+          <p class="body-zh" style="margin-top:1vh">开源性质加上充满活力的开发者生态系统，最终将改变这一局面。使用 OTel 将成为任何可观测性计划的事实起点</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Caveat</div>
+          <p class="body-zh" style="margin-top:1vh">自动化探针不是唯一选择。自定义探针对调试业务逻辑代码依然绝对必要，就像没有注释的代码是不可想象的</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p200</div><div>08 / 13</div></div>
+</section>
+
+<!-- 09 L27 观点加例证 light 自定义探针成为必需品 -->
+<section class="slide light" data-theme="light" data-screen-label="Viewpoint" data-source="p200 自定义探针与代码注释类比">
+  <div class="chrome"><div>工程实践</div><div>09 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">就像没有注释的代码是不可想象的，没有自定义探针的代码也是如此</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Principle</div>
+          <p class="body-zh" style="margin-top:1vh">编写新代码时必须同时考虑所需的探针。自定义探针对调试业务逻辑依然绝对必要</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Benefit</div>
+          <p class="body-zh" style="margin-top:1vh">避免供应商锁定。OTel 的开源性质使探针与可替代品一样丰富，可以在供应商之间自由切换</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="opacity:.55">Shift</div>
+          <p class="body-zh" style="margin-top:1vh">工程师将习惯在写代码时同时写下探针。这不再是事后追加，而是工程素养的一部分</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p200</div><div>09 / 13</div></div>
+</section>
+
+<!-- 10 L25 段落拆解 light CI/CD 预测 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p200 预测：构建流水线与持续部署">
+  <div class="chrome"><div>交付演进</div><div>10 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">构建流水线将加快，反馈循环更短，持续部署将普及</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">CD Realized</div>
+          <p class="body-zh" style="margin-top:1vh">更多团队将在 CI/CD 流水线的最后阶段自动将变更部署到生产环境，真正实践 CI/CD 的 D 部分</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Feature Flags</div>
+          <p class="body-zh" style="margin-top:1vh">功能发布与功能部署分离，使大多数组织实现持续部署。功能标志将得到更多采用</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Progressive</div>
+          <p class="body-zh" style="margin-top:1vh">渐进式交付等部署模式将更加普遍，降低每次变更的风险，让发布变得安全而频繁</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p200</div><div>10 / 13</div></div>
+</section>
+
+<!-- 11 L11 嘉宾观点 bare dark guest-mark 开发者工作流革命 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="p200-201 预测：开发者工作流">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem);color:var(--accent);opacity:1">Prediction 03</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">学习如何使用可观测性，有助于他们成为更好的软件工程师</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">行动更快、浪费更少的时间、犯更少的错误、更迅速地捕捉错误</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p200,201</div><div>11 / 13</div></div>
+</section>
+
+<!-- 12 L28 一句原话 bare dark callout-mark 多巴胺巫师 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Quote" data-source="p201 结尾原话：多巴胺巫师">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">Closing</div>
+      <div class="callout callout-mark anim-item" style="max-width:12em;color:var(--paper)">
+        每次用可观测性解决生产中的未知问题，多巴胺就像可怕的巫师
+        <cite>Charity · Liz · George, p201</cite>
+      </div>
+      <p class="body-zh anim-item" style="max-width:18em;opacity:.62;text-align:center">这种兴奋感能否持续？可观测性能否降低门槛，让每个工程团队都能获得转型体验？</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p201</div><div>12 / 13</div></div>
+</section>
+
+<!-- 13 L32 核心总结 dark summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p197-201 全书核心预测总结">
+  <div class="chrome"><div>核心总结</div><div>13 / 13</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.6rem,4vh,3rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">可观测性的强化定义：能理解任何状态、任意切片高基数高维度遥测数据、使用核心分析循环比较调试，无需提前定义需求</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">OTel 与可观测性将在三年内密不可分。链路追踪数据是 OTel 最成熟的格式，指标、日志和性能剖析正在追赶</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">前端可观测性将统一 RUM 和模拟监控。在 CI/CD 流水线中运行端到端测试，通过遥测标记测试请求监控性能</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">自动化探针将赶上供应商方案，但自定义探针仍绝对必要。写代码时考虑探针将成为每个工程师的习惯</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">CI/CD 的 D 部分将真正落地：功能标志、渐进式交付、持续部署将更普遍。构建流水线加快，反馈循环缩短</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">缩小输入（写代码）和输出（运行代码）的间隔是行业关键方向。可观测性是改善开发者生产环境工作流的途径</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p197,201</div><div>13 / 13</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-obseng-ch22';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

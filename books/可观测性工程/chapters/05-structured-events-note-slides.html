@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第5章 结构化事件，可观测性的构建块</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: 可观测性工程，ink 深蓝灰如终端仪表盘底色，
+     accent 信号青绿呼应 Grafana 面板上流动的健康遥测信号色 */
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #0d9488;
+  --accent-rgb: 13,148,136;
+  --muted:      #6b7180;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-8-4 { display: grid; grid-template-columns: 8fr 4fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.grid-6       { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark w-statement -->
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p46 第5章" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第5章</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">结构化事件</h1>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">可观测性的构建块：任意宽的结构化事件如何让系统状态变得可探查</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Observability Engineering</div>
+    <div>p46-51</div>
+  </div>
+</section>
+
+<!-- 02 L3-a 社论式观点 bare light w-statement -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p46 可观测性的构建块">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem);color:var(--accent);opacity:1">核心主张</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7rem);max-width:11em;letter-spacing:0">可观测性的基本构建块是任意宽的结构化事件</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p46 第5章</div><div>02 / 14</div></div>
+</section>
+
+<!-- 03 L25 段落拆解 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p46 可观测性技术前提">
+  <div class="chrome"><div>段落拆解 · 技术前提</div><div>03 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">可观测性要求在任意时间对遥测数据提出新问题，不必先预测可能的问题</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">传统指标体系需要客户先定义指标，才能收集新遥测数据来回答问题</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">指标仅在特定时间内聚合测量值，没有保留事件上下文，无法对新数据集提出新问题</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">可观测系统赋能用户探究从每个单独的请求到高级聚合性能的全部维度</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p46</div><div>03 / 14</div></div>
+</section>
+
+<!-- 04 L25 段落拆解 dark w-default -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p46 通过结构化事件进行调试">
+  <div class="chrome"><div>段落拆解 · 调试方法</div><div>04 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">调试分布式服务问题，需要将结构化事件相互对比以发现异常</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">事件是请求触达服务时初始化的 Map 数据，记录生命周期内所有关键信息</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">Map 中记录的键值对有组织有类型，容易搜索，构成结构化事件</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">需要根据多维度和维度组合进行过滤分组，以发现异常值的共同之处</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p46 5.1 节</div><div>04 / 14</div></div>
+</section>
+
+<!-- 05 L3-c 宣告 dark w-note -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p47 指标作为构建块的局限性" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 指标的局限</div><div>05 / 14</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">根本限制</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">指标是预聚合度量，颗粒度太大，展示的系统状态不足以实现可观测性</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">预定义时间段内的聚合数值反映了系统属性的狭隘视角，无法重建请求和区别请求</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p47 5.2 节</div><div>05 / 14</div></div>
+</section>
+
+<!-- 06 L25 段落拆解 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p47 事件与指标对比">
+  <div class="chrome"><div>段落拆解 · 事件 vs 指标</div><div>06 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">每个事件记录自己的属性，聚合后不仅能再现指标，还能做多维细分</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">同一五秒内可能发生 1000 个离散事件，每个记录自己的页面加载时间</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">聚合后仍可显示与指标相同的平均值，同时保留每个事件的独立上下文</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">还可按用户 ID 或主机名等字段细分查询，这些仅靠指标无法做到</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p47</div><div>06 / 14</div></div>
+</section>
+
+<!-- 07 L24 摘录侧注 light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p48 非结构化日志">
+  <div class="chrome"><div>Excerpt · 日志的局限</div><div>07 / 14</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        生产环境中日志数据量很大，太多噪声数据使调试变得烦琐费时。
+        <cite>p48 5.3.1 非结构化日志</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">非结构化日志设计初衷是方便人阅读，但现代系统日志的产生已远超人能理解的量级</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">解决方案是创建便于机器解析的结构化日志数据，将事件作为系统的运行单元</p>
+    </div>
+  </div>
+  <div class="foot"><div>p48</div><div>07 / 14</div></div>
+</section>
+
+<!-- 08 L25 段落拆解 dark w-default -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p49 结构化事件范围">
+  <div class="chrome"><div>段落拆解 · 工作单元</div><div>08 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">结构化事件的范围应包括执行该工作单元所需的一切信息</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">传统日志中一个工作单元可能包含 5 个单独的日志行，分散成许多消息</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">应记录执行工作所需的输入、收集的属性、服务条件和执行结果的详细信息</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">事件信息可格式化为 JSON 对象，使机器能解析并实现可观测性目标</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p49 5.3.2 节</div><div>08 / 14</div></div>
+</section>
+
+<!-- 09 L3-a 社论式观点 bare light w-statement -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p50 事件必须任意宽">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem);color:var(--accent);opacity:1">根本要求</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7rem);max-width:11em;letter-spacing:0">事件必须任意宽，字段不能仅限于已知或预测的字段</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p50 5.4 节</div><div>09 / 14</div></div>
+</section>
+
+<!-- 10 L25 段落拆解 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p50 高基数高维度">
+  <div class="chrome"><div>段落拆解 · 高基数查询</div><div>10 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">可观测性工具必须支持高基数查询，才能在分布式系统的稻草堆中找到针</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">成熟探针生成的事件每个包含 300 到 400 个维度</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">调试需要串联查询高基数维度，以发现以前未知的故障模式</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">对事件字段的人为约束与可观测性目标呈正交关系</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p50</div><div>10 / 14</div></div>
+</section>
+
+<!-- 11 L24 摘录侧注 light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p50 根因分析示例">
+  <div class="chrome"><div>Excerpt · 根因分析</div><div>11 / 14</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        加拿大用户，iOS 11.0.4，法语包，固件 1.4.101，照片在 us-west-1 区 shard3
+        <cite>p50 根因分析查询示例</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">这个查询中每个严格限定的数据都是一个高基数维度</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">在传统指标体系中根本无法表达如此精细的过滤条件，而结构化事件天然支持</p>
+    </div>
+  </div>
+  <div class="foot"><div>p50</div><div>11 / 14</div></div>
+</section>
+
+<!-- 12 L3-c 宣告 dark w-note -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p50-51 结论" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 结论</div><div>12 / 14</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">三者定位</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">指标视角狭隘，非结构化日志难以计算，结构化事件是唯一可观测性构建块</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">结构化日志重新设计后同结构化事件相似，即可被机器解析并用于实现可观测性目标</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p50-51 5.5 节</div><div>12 / 14</div></div>
+</section>
+
+<!-- 13 核心总结 dark summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p46-51 核心总结之一">
+  <div class="chrome"><div>核心总结</div><div>13 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">结构化事件是可观测性的基本构建块。它按请求级别收集遥测数据，记录请求生命周期内所有信息到有组织有类型的键值对 Map 中，使数据可搜索、可对比、可多维分析</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">指标是预聚合度量，颗粒度太大。它仅在特定时间段内聚合数值，丢失事件上下文。即使不断增加指标数量形成军备竞赛，也无法扩展到捕获每个请求级别的系统状态</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">非结构化日志设计给人类阅读，但现代系统日志量级已远超人工处理能力。结构化日志仿照结构化事件重新设计后，才能被机器解析并实现可观测性目标</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p46-51</div><div>13 / 14</div></div>
+</section>
+
+<!-- 14 核心总结 dark summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p46-51 核心总结之二">
+  <div class="chrome"><div>核心总结</div><div>14 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">事件必须任意宽。成熟探针生成的事件每个包含 300 到 400 个维度，涵盖请求参数、环境信息、运行时状态、远程调用、执行时长、状态码等</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">高基数高维度查询是可观测性的核心能力。调试现代分布式系统需要在稻草堆中找针，例如跨用户地区、系统版本、语言包、固件、存储分区等维度进行根因分析</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">使用预定义 schema 或对数据类型的严格限制与可观测性目标呈正交关系。后端数据存储必须允许事件任意宽，不能预设字段</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p46-51</div><div>14 / 14</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-05-structured-events';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

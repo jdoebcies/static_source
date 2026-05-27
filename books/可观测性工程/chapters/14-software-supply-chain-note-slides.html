@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第14章 可观测性与软件供应链</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-8-4 { display: grid; grid-template-columns: 8fr 4fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.grid-6       { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.big-stat   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.evidence-list {
+  width: 100%;
+  border-top: 1px solid rgba(var(--paper-rgb), .14);
+}
+.evidence-row {
+  display: grid;
+  grid-template-columns: minmax(7em, .34fr) 1fr minmax(4.5em, .18fr);
+  gap: clamp(1rem, 2.5vw, 2.4rem);
+  align-items: center;
+  padding: clamp(1rem, 2.4vh, 1.8rem) 0;
+  border-bottom: 1px solid rgba(var(--paper-rgb), .14);
+}
+.evidence-row strong {
+  font-family: var(--serif-zh);
+  font-size: clamp(1.7rem, 2.2vw, 2.4rem);
+  line-height: 1.12;
+  font-weight: 700;
+}
+.evidence-row p {
+  font-family: var(--sans-zh);
+  font-size: clamp(1.18rem, 1.45vw, 1.65rem);
+  line-height: 1.45;
+  color: rgba(var(--paper-rgb), .78);
+}
+.evidence-row span {
+  font-family: var(--mono);
+  font-size: clamp(.72rem, .75vw, .86rem);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(var(--paper-rgb), .45);
+  text-align: left;
+}
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 bare dark -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p114 第14章" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">第14章</div>
+      <h1 class="display-zh anim-item" style="max-width:11em">可观测性与软件供应链</h1>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">Slack 如何用可观测性调试 CI/CD 流水线中的复杂问题</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Frank Chen · Slack 高级软件工程师</div>
+    <div>可观测性工程 · p114-124</div>
+  </div>
+</section>
+
+<!-- 02 软件供应链定义 light -->
+<section class="slide light" data-theme="light" data-screen-label="Context" data-source="p114 软件供应链定义">
+  <div class="chrome"><div>语境</div><div>02 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">软件供应链：从开发到 CI/CD 再到生产，进入或影响软件的一切</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Scope</div><p class="body-zh" style="margin-top:1vh">不限于生产环境，CI 流水线的自动测试和自动发布同样需要可观测性来调试问题</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Challenge</div><p class="body-zh" style="margin-top:1vh">构建流水线的系统也在不断变化，复杂性达到一定程度后，可观测性成为不可或缺的调试工具</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Audience</div><p class="body-zh" style="margin-top:1vh">虽然来自大规模组织 Slack，但经验教训适用于任何规模</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p114</div><div>02 / 19</div></div>
+</section>
+
+<!-- 03 Slack CI 架构 light -->
+<section class="slide light" data-theme="light" data-screen-label="Architecture" data-source="p114-115 Slack CI 工作流">
+  <div class="chrome"><div>架构</div><div>03 / 19</div></div>
+  <div class="slide-body">
+    <div class="w-default">
+      <h2 class="h1-zh anim-item" style="max-width:13em;margin:0 auto clamp(2rem,4vh,3rem);text-align:center">Slack CI/CD 工作流：多语言、多服务、多客户端的分布式架构</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(.6rem,1.2vw,1.4rem)">
+        <div class="timeline-node anim-item" style="text-align:center"><div class="meta" style="color:var(--accent);opacity:1">GitHub</div><p class="body-zh" style="margin-top:.8vh">工程师推送代码，触发代码库事件</p></div>
+        <div class="timeline-node anim-item" style="text-align:center"><div class="meta" style="color:var(--accent);opacity:1">Checkpoint</div><p class="body-zh" style="margin-top:.8vh">内部服务，接收 GitHub 事件，编排 CI/CD 工作流</p></div>
+        <div class="timeline-node anim-item" style="text-align:center"><div class="meta" style="color:var(--accent);opacity:1">Jenkins</div><p class="body-zh" style="margin-top:.8vh">构建器与测试执行器，执行构建和测试脚本</p></div>
+        <div class="timeline-node anim-item" style="text-align:center"><div class="meta" style="color:var(--accent);opacity:1">CIBot</div><p class="body-zh" style="margin-top:.8vh">代码仓库，向主分支合并请求，执行测试</p></div>
+        <div class="timeline-node anim-item" style="text-align:center"><div class="meta" style="color:var(--accent);opacity:1">QA Env</div><p class="body-zh" style="margin-top:.8vh">运行完整 Web 应用，处理相关依赖</p></div>
+      </div>
+      <p class="body-zh anim-item" style="text-align:center;max-width:26em;margin:clamp(1.5rem,3vh,2.4rem) auto 0;opacity:.6">2020年，一次提交触发 30 多个依赖的测试组件，横跨三个平台团队和 20 多个小团队</p>
+    </div>
+  </div>
+  <div class="foot"><div>p114-115</div><div>03 / 19</div></div>
+</section>
+
+<!-- 04 L3-a 为什么 Slack 需要可观测性 bare light -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p115-116 为什么Slack需要可观测性">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Slack · 2019</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:12em;letter-spacing:0">开发环境中的测试和部署工作流比某些生产服务还要复杂</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p115-116</div><div>04 / 19</div></div>
+</section>
+
+<!-- 05 增长压力 dark L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p115-116 增长与复杂性" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>压力</div><div>05 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Scale</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">每天测试执行从几千次增长到几十万次，资源在不同代码仓库和团队间不断变化</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">基础设施依赖关系可能被意外更改并引入故障，问题隐藏在许多不可预测的地方</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p115-116</div><div>05 / 19</div></div>
+</section>
+
+<!-- 06 内部工具的独特视角 dark L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p116 内部工具的独特视角" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断</div><div>06 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Internal Tools</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">内部工具同生产服务系统有着不一样的视角：单功能的重要程度显著提高</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">任何依赖系统的故障都可能放缓开发速度、增加团队挫败感，并最终影响向客户交付软件的速度</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p116</div><div>06 / 19</div></div>
+</section>
+
+<!-- 07 共享客户端库与维度 light L25 段落拆解 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p116-117 共享客户端库和维度">
+  <div class="chrome"><div>段落拆解</div><div>07 / 19</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">Slack 通过 TraceContext 单例共享客户端维度，让每个追踪都携带统一的上下文</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">每个 TraceContext 构建一个具有公共维度的初始追踪记录和一个新追踪记录，每个追踪包含多个 span</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">工程师可以使用单个维度或维度组合下钻探索故障原因，每个附加的维度都是调查的方向和线索</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">维度添加得越多，对各种问题的掌控力越强，可以增加更多的上下文信息来完善和丰富维度</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p116-117</div><div>07 / 19</div></div>
+</section>
+
+<!-- 08 维度实战 light 表格 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p117-118 维度示例与应用">
+  <div class="chrome"><div>维度</div><div>08 / 19</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto">Slack CI 中的共享维度示例</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>维度</th><th>来源</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>hostname</td><td>TraceContext 内置</td><td>定位单个出问题的主机</td></tr>
+          <tr><td>jenkins_cluster</td><td>CI runner 附加标签</td><td>对 Jenkins 集群分组下钻</td></tr>
+          <tr><td>commit_head</td><td>CI runner 客户端</td><td>识别损坏构建来自哪个提交</td></tr>
+          <tr><td>commit_base</td><td>CI runner 客户端</td><td>与 commit_head 组合定位变更范围</td></tr>
+          <tr><td>test_suite</td><td>测试执行器</td><td>按测试套件分析失败率和运行时</td></tr>
+          <tr><td>docker_runtime</td><td>Docker 遥测标注</td><td>检测平台设置不一致</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p117-118</div><div>08 / 19</div></div>
+</section>
+
+<!-- 09 快速胜利 timeline light -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p116-117 探针快速胜利">
+  <div class="chrome"><div>时间线</div><div>09 / 19</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">引入链路追踪后的快速胜利</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,4vw,5rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">2019 Q2</div>
+          <h3 class="h2-zh" style="margin-top:1vh;max-width:12em">一个下午发现 Git 检出异常</h3>
+          <p class="body-zh" style="margin-top:1vh;max-width:16em">获得追踪数据的几分钟内发现自动扩容组中的服务器未自动更新，扩容过程中很快失效</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">2019 Q3</div>
+          <h3 class="h2-zh" style="margin-top:1vh;max-width:12em">不到两小时解决 Git LFS 瓶颈</h3>
+          <p class="body-zh" style="margin-top:1vh;max-width:16em">在 CI runner 和测试环境之间实现第一个跨服务的链路追踪，发现一组主机无法从 Git LFS 取回制品库</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p116-117</div><div>09 / 19</div></div>
+</section>
+
+<!-- 10 L3-a 案例研究原则 bare dark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p119 案例研究三个关键原则">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">案例研究 · 减少不稳定测试</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,6.5vw,6rem);max-width:13em;letter-spacing:0">速度慢和不稳定是分布式系统中最难调试的两个问题</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p119-120</div><div>10 / 19</div></div>
+</section>
+
+<!-- 11 三个关键原则 dark evidence list -->
+<section class="slide dark" data-theme="dark" data-screen-label="Principles" data-source="p119 三个关键原则">
+  <div class="chrome" style="width:100%"><div>原则</div><div>11 / 19</div></div>
+  <div class="slide-body">
+    <div class="w-default">
+      <div class="evidence-list">
+        <div class="evidence-row anim-item">
+          <strong>链路追踪探测</strong>
+          <p>使用链路追踪探测测试平台，捕获之前未充分开发的运行时变量</p>
+          <span>01</span>
+        </div>
+        <div class="evidence-row anim-item">
+          <strong>轻量反馈闭环</strong>
+          <p>提供轻量级、可观测性驱动的反馈闭环，探索未知的维度</p>
+          <span>02</span>
+        </div>
+        <div class="evidence-row anim-item">
+          <strong>可回退实验</strong>
+          <p>在不稳定的测试中进行可回退的实验</p>
+          <span>03</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p119</div><div>11 / 19</div></div>
+</section>
+
+<!-- 12 理解上下文 light 双列 evidence+side -->
+<section class="slide light" data-theme="light" data-screen-label="Case" data-source="p119-120 Cypress 案例">
+  <div class="chrome"><div>案例 · Cypress</div><div>12 / 19</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Case Study</div>
+      <div class="callout callout-mark" style="max-width:12em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        测试平台中执行程序的用户和测试套件所有者拥有截然不同的配置
+        <cite>p120 · Cypress 探测发现</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Result</div>
+      <p class="lead-zh" style="max-width:16em">增加 Docker 运行时遥测数据标注后，工程师解决了平台设置不一致问题</p>
+      <p class="body-zh" style="max-width:16em;margin-top:clamp(1rem,2vh,1.6rem)">测试组件失败率从 15% 显著下降到 0.5%</p>
+    </div>
+  </div>
+  <div class="foot"><div>p119-120</div><div>12 / 19</div></div>
+</section>
+
+<!-- 13 大数字 light -->
+<section class="slide light" data-theme="light" data-screen-label="Data" data-source="p120 不稳定性浪费数据" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>数据</div><div>13 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="big-stat anim-item">100,000</div>
+    <h2 class="h2-zh anim-item" style="max-width:14em;margin-top:clamp(1rem,2vh,2rem)">不稳定测试每周浪费的峰值小时数</h2>
+    <p class="body-zh anim-item" style="max-width:22em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.6">端到端测试平均失败率 15%，单次提交测试周转时间 p95 超过 30 分钟</p>
+  </div>
+  <div class="foot" style="width:100%"><div>p120 · 2020年</div><div>13 / 19</div></div>
+</section>
+
+<!-- 14 可操作告警 dark L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p120-121 嵌入可操作的告警" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>告警</div><div>14 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Actionable Alerts</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">每个团队或系统可能有多个 SLO，用于测试过程的各个步骤</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">告警中的链接让用户直接单击进入基于 test_suite 的图表，从 Honeycomb 直接跳转到相关查询</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p120-121</div><div>14 / 19</div></div>
+</section>
+
+<!-- 15 SLO 示例 dark 表格 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Table" data-source="p121 SLO 示例">
+  <div class="chrome" style="width:100%"><div>表格</div><div>15 / 19</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">不同角色关心的 SLO 维度</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>角色</th><th>关心维度</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>测试人员 / 团队</td><td>随机问题概率、可靠性、内存占用</td></tr>
+          <tr><td>基础设施团队</td><td>Docker 执行性能、每次测试的成本</td></tr>
+          <tr><td>开发人员</td><td>如何通过测试、如何通过 CI 打补丁热修复</td></tr>
+          <tr><td>内部工具团队</td><td>CI 处理的测试结果吞吐量</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p121</div><div>15 / 19</div></div>
+</section>
+
+<!-- 16 理解变更了什么 light 时间线 -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p121-123 OOM 事件案例">
+  <div class="chrome"><div>时间线</div><div>16 / 19</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">OOM 事件排查：CAN 进程</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Condition</div>
+          <p class="body-zh" style="margin-top:.8vh">多个测试套件因内存溢出中断，随机测试失败率很高</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Action</div>
+          <p class="body-zh" style="margin-top:.8vh">查看 p50/p95/p99 内存使用率的变化时间点，识别前一天和前几个月的相关 PR</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Needs</div>
+          <p class="body-zh" style="margin-top:.8vh">回滚有问题的提交，使用近乎实时的分布式链路追踪验证系统健康</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p121-123 · 2021年8月</div><div>16 / 19</div></div>
+</section>
+
+<!-- 17 事件响应 dark L11 guest-mark bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="p122-123 事件响应流程">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">Guest View</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">大型代码库和测试套件中的降级通常难以发现，因为变更速度很快且存在很多不确定的变量</h2>
+      <p class="body-zh anim-item" style="max-width:20em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">Frank Chen · Slack 事件响应实践</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p122-123</div><div>17 / 19</div></div>
+</section>
+
+<!-- 18 结论 dark L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p124 结论" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>结论</div><div>18 / 19</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Takeaway</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">无论是调试应用程序速度缓慢还是处理 CI 测试不可靠，可观测性都可以帮助开发人员通过交互的方式发现和解决高复杂性系统中的问题</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">开发人员首先要考虑的应该是调试分布式系统的复杂性，发布到生产环境之前的调试同样具有挑战性</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p124</div><div>18 / 19</div></div>
+</section>
+
+<!-- 19 核心总结 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p114-124 核心总结">
+  <div class="chrome" style="width:100%"><div>核心总结</div><div>19 / 19</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">软件供应链的可观测性是 CI/CD 复杂性的必要应对手段。Slack 的测试执行从每天几千次增长到几十万次，一次提交触发 30 多个依赖的测试组件，可观测性成为不可或缺的调试工具</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">TraceContext 单例共享客户端维度是核心机制。hostname、jenkins_cluster、commit_head 等维度让工程师可以用组合方式下钻探索故障原因，维度添加越多，对问题的掌控力越强</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">链路追踪带来立竿见影的收益。2019 年几分钟内定位 Git 检出异常、两小时内解决 Git LFS 瓶颈、通过 Cypress 探测将测试失败率从 15% 降至 0.5%，节省每周峰值 100000 小时浪费</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">可操作告警嵌入工作流是关键闭环。Honeycomb 仪表盘与 Slack 集成，告警直接链接到 test_suite 查询，不同角色有各自的 SLO 维度，从告警到排查形成完整链路</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">CAN 进程将可观测性融入事件响应。条件发现、行动执行、需求跟踪，结合近乎实时的分布式链路追踪来验证假设和系统健康，这是日常运营中可观测性价值的典型体现</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p114-124</div><div>19 / 19</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-obseng-14';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

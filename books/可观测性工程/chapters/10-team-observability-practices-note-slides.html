@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第10章 在团队中应用可观测性实践</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark w-statement -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="第10章 封面" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第10章</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">在团队中应用可观测性实践</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">从社区到工具，从痛点切入到全力冲刺，一套在团队中落地可观测性的实战策略</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Charity Majors · Liz Fong-Jones · George Miranda</div>
+    <div>01 / 12</div>
+  </div>
+</section>
+
+<!-- 02 文章脉络 L29 light w-wide timeline-row thick -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p82-86 第10章全文">
+  <div class="chrome"><div>脉络 · 第10章</div><div>02 / 12</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">这一章是如何往前推进的</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">起点</div><p class="body-zh" style="margin-top:1vh">加入社区，建立人脉，跟上发展</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">推进</div><p class="body-zh" style="margin-top:1vh">从最大痛点切入，购买代替自建</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">深化</div><p class="body-zh" style="margin-top:1vh">反复完善探针，温和改进积极复用</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">落点</div><p class="body-zh" style="margin-top:1vh">全力冲刺越过终点线，完成闭环</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p82-86</div><div>02 / 12</div></div>
+</section>
+
+<!-- 03 开篇判断 L3-c dark w-note -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p82 开篇段落" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 实施策略</div><div>03 / 12</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">从哪里开始</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">可观测性落地不存在通用的银弹</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">每条路都取决于团队面临的最棘手问题、现有工具的差距、团队水平和规模</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p82</div><div>03 / 12</div></div>
+</section>
+
+<!-- 04 参与社区 L27 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="p82 10.1 参与社区">
+  <div class="chrome"><div>10.1 · 参与社区</div><div>04 / 12</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">加入志同道合的社区，是追上发展的最佳方法</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">节省时间精力</div>
+          <p class="body-zh">与遇到同类问题的人交流，了解其他团队如何处理相同挑战，取其精华去其糟粕</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">了解发展方向</div>
+          <p class="body-zh">可观测性提供商也参与社区，了解用户问题、收集反馈、改进产品</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">关系是双向的</div>
+          <p class="body-zh">寻求帮助前先成为活跃分子，回答力所能及的问题，贡献社区让它更繁荣</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p82 · CNCF TAG / OTel社区 / Pollinators Slack / olly.news</div><div>04 / 12</div></div>
+</section>
+
+<!-- 05 从最大痛点着手 L3-a bare dark w-statement -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p83 10.2 从最大的痛点着手">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">10.2</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">不要从简单问题开始</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p83</div><div>05 / 12</div></div>
+</section>
+
+<!-- 06 段落拆解 L25 dark w-default -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p83 10.2">
+  <div class="chrome"><div>10.2 · 段落拆解</div><div>06 / 12</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">用困难问题快速证明可观测性的价值</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">很多人从小规模不重要的服务开始引入可观测性，结果费力不讨好，无法快速证明价值</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">解决棘手的痛点问题：不稳定的服务、持续阻塞的数据库、莫名其妙的负载</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">分享过程：团队例会上展示、写成文档与同事分享，让价值被看见</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p83</div><div>06 / 12</div></div>
+</section>
+
+<!-- 07 购买代替自建 L3-c light w-note -->
+<section class="slide light" data-theme="light" data-screen-label="Statement" data-source="p83-84 10.3 购买代替自建" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>10.3 · 购买代替自建</div><div>07 / 12</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">ROI 优先</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">选择购买让团队专注解决问题，而非构建工具</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">自建完整方案需要大量精力和时间成本才能证明价值。使用 OpenTelemetry 检测应用可以避免供应商锁定</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p83-84</div><div>07 / 12</div></div>
+</section>
+
+<!-- 08 三大开源工具对比 L16 light w-wide -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p84 开源工具分析">
+  <div class="chrome"><div>10.3 · 工具对比</div><div>08 / 12</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">主流开源工具：各擅胜场，无一能提供完整可观测性</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>工具</th><th>领域</th><th>优势</th><th>核心局限</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Prometheus</td><td>指标监控</td><td>最先进的指标监控系统，活跃的开发社区</td><td>只能用粗略测量发现细粒度问题，本质仍是基于指标的监控</td></tr>
+          <tr><td>ELK</td><td>日志存储查询</td><td>纯文本搜索优化，搜索已知错误时很有用</td><td>复合问题搜索不切实际，难以识别日志中的相关模式</td></tr>
+          <tr><td>Jaeger</td><td>分布式链路追踪</td><td>最先进的开源分布式链路追踪工具之一</td><td>缺乏分析和分割所有链路数据的复杂功能</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p84 · 没有开源工具可在开箱即用的方案中提供完整可观测性功能</div><div>08 / 12</div></div>
+</section>
+
+<!-- 09 反复完善探针 L5 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Method" data-source="p84-85 10.4 反复完善你的探针">
+  <div class="chrome"><div>10.4 · 反复完善探针</div><div>09 / 12</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">最有价值的探针取决于每个应用的个性化需求</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">试点先行</div><p class="body-zh">首次开始时就选取一两个困难的服务，将最佳实践作为成功经验引领团队</p></div>
+        <div class="anim-item"><div class="kicker">值班带动</div><p class="body-zh">值班工程师遇到问题，第一件事就用新工具检测问题区域</p></div>
+        <div class="anim-item"><div class="kicker">持续传播</div><p class="body-zh">试点成员帮助他人学习：指导创建探针、推荐查询语句、分享故障排查模式</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p84-85 · 迭代充实探针比如何做更重要</div><div>09 / 12</div></div>
+</section>
+
+<!-- 10 温和改进积极复用 L27 light w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="p85-86 10.5 温和改进，积极复用">
+  <div class="chrome"><div>10.5 · 温和改进</div><div>10 / 12</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">抓住已有数据流，兼容老方案推进新工具</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">复用 ELK/Logstash</div>
+          <p class="body-zh">添加代码将 Logstash 数据源输出发送到可观测性工具，邀请用户比较体验</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">复用结构化日志</div>
+          <p class="body-zh">添加唯一 ID 记录事件在堆栈中的流转，保留在旧工具同时发送到新工具作为链路事件</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">与 APM 并行</div>
+          <p class="body-zh">与现有 APM 方案同时运行可观测性探针，重建旧监控仪表盘作为易于参考的查询</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p85-86 · 工具栈和数据都是熟悉的，推进更容易让人接受</div><div>10 / 12</div></div>
+</section>
+
+<!-- 11 全力冲刺 L3-c dark w-note -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p86 10.6 全力冲刺" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>10.6 · 全力冲刺</div><div>11 / 12</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">越过终点线</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">制定时间表快速完成剩余内容，让方案成为排查问题的首选</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">设立冲刺里程碑：黑客马拉松、有奖品的游戏，创建通用可观测性代码库避免重复造轮子</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p86</div><div>11 / 12</div></div>
+</section>
+
+<!-- 12 结论 L21 bare dark w-statement -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Closing" data-source="p86 10.7 结论" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">结论</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em">每天使用可观测性，开阔眼界，探索更多思维方式和工作方法</h2>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">积极参与社区，从最大痛点切入，购买代替自建，迭代完善探针，温和改进复用，设立冲刺里程碑闭环</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p86 · 下一章：可观测性如何驱动开发</div><div>12 / 12</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-10';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

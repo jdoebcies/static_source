@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>基础训练四：事物比较，比较图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: 比较图和定位分析是理性商业工具。
+     深蓝灰舞台营造冷静分析氛围，沉静蓝强调数轴和关键概念位置，
+     暖白证据页提供舒缓阅读对比。 */
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+/* ===== 比较图专用 CSS ===== */
+.compare-chart {
+  position: relative;
+  width: min(100%, 36rem);
+  height: clamp(18rem, 42vh, 26rem);
+  margin: 0 auto;
+}
+.cc-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: rgba(var(--ink-rgb), .025);
+}
+.slide.dark .cc-bg { background: rgba(var(--paper-rgb), .04); }
+/* 虚线网格 */
+.cc-grid-v {
+  position: absolute;
+  top: 6%; height: 88%;
+  background: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent calc((100% - 1px) / 4),
+    rgba(var(--ink-rgb), .06) calc((100% - 1px) / 4),
+    rgba(var(--ink-rgb), .06) calc((100% - 1px) / 4 + 1px)
+  );
+  left: 18%; right: 6%;
+}
+.slide.dark .cc-grid-v {
+  background: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent calc((100% - 1px) / 4),
+    rgba(var(--paper-rgb), .06) calc((100% - 1px) / 4),
+    rgba(var(--paper-rgb), .06) calc((100% - 1px) / 4 + 1px)
+  );
+}
+/* 纵轴 */
+.cc-y {
+  position: absolute; left: 18%; top: 6%;
+  width: 1.5px; height: 88%;
+  background: rgba(var(--ink-rgb), .35);
+}
+.slide.dark .cc-y { background: rgba(var(--paper-rgb), .35); }
+/* 横轴 */
+.cc-x {
+  position: absolute; left: 6%; top: 76%;
+  width: 88%; height: 1.5px;
+  background: rgba(var(--ink-rgb), .35);
+}
+.slide.dark .cc-x { background: rgba(var(--paper-rgb), .35); }
+/* 轴标签 */
+.cc-yl  { position: absolute; left: 3%; top: 2%;  font-size: clamp(.7rem,.78vw,.88rem); font-family: var(--mono); opacity: .5; letter-spacing: .06em; text-align: left; width: 14%; }
+.cc-yh  { position: absolute; left: 3%; top: 72%; font-size: clamp(.7rem,.78vw,.88rem); font-family: var(--mono); opacity: .5; letter-spacing: .06em; text-align: left; width: 14%; }
+.cc-xl  { position: absolute; left: 4%; top: 81%; font-size: clamp(.7rem,.78vw,.88rem); font-family: var(--mono); opacity: .5; letter-spacing: .06em; }
+.cc-xr  { position: absolute; right: 4%; top: 81%; font-size: clamp(.7rem,.78vw,.88rem); font-family: var(--mono); opacity: .5; letter-spacing: .06em; text-align: left; }
+/* 轴箭头 */
+.cc-ya { position: absolute; left: 18%; top: 2%; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid rgba(var(--ink-rgb),.35); transform: translateX(-4.5px); }
+.slide.dark .cc-ya { border-bottom-color: rgba(var(--paper-rgb),.35); }
+.cc-xa { position: absolute; right: 2%; top: 76%; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid rgba(var(--ink-rgb),.35); transform: translateY(-3.5px); }
+.slide.dark .cc-xa { border-left-color: rgba(var(--paper-rgb),.35); }
+/* 数据点 */
+.cc-point {
+  position: absolute;
+  width: clamp(.6rem, .8vw, .75rem);
+  height: clamp(.6rem, .8vw, .75rem);
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+}
+.cc-label {
+  position: absolute;
+  font-size: clamp(.68rem, .76vw, .84rem);
+  font-weight: 600;
+  font-family: var(--sans-zh);
+  white-space: nowrap;
+  transform: translate(-50%, -130%);
+}
+.cc-label-below {
+  position: absolute;
+  font-size: clamp(.68rem, .76vw, .84rem);
+  font-weight: 600;
+  font-family: var(--sans-zh);
+  white-space: nowrap;
+  transform: translate(-50%, 50%);
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark -->
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p90-91 基础训练四" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">图形思考 · 基础训练四</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">事物比较<br>比较图</h1>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">简化思维的秘诀4：掌握定位，用数轴锁定差异</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>p90 至 107</div>
+    <div>01 / 20</div>
+  </div>
+</section>
+
+<!-- 02 定位概念 L3-c dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Concept" data-source="p92 定位是什么" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>概念 · 定位</div><div>02 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Positioning</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">定位是比较对象各自所处的状况</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">锁定最重要的几项进行比较，就能明显地看出差异。而不是所有项目综合比较、各有长短、无法判断优劣。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p92 定位是什么</div><div>02 / 20</div></div>
+</section>
+
+<!-- 03 比较图定义 L24 light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p92 比较图">
+  <div class="chrome"><div>Excerpt · 比较图</div><div>03 / 20</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        用横竖交叉的两条数轴对事物进行比较
+        <cite>p92 比较图</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">选取两个核心要素作为数轴，在图中找到各对象的位置，就能看出定位差异</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">书中以设计性为纵轴、功能性为横轴做示例。不同题材、不同目的，数轴选择完全不同</p>
+    </div>
+  </div>
+  <div class="foot"><div>p92 比较图</div><div>03 / 20</div></div>
+</section>
+
+<!-- 04 服装品牌比较图 L27 light + CSS chart -->
+<section class="slide light" data-theme="light" data-screen-label="Example-CSS" data-source="p93 服装品牌比较图" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>示例 · 服装品牌比较</div><div>04 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-wide" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.8rem,3vh,2.6rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">将可量化的定量因素和不可量化的定性因素结合比较</h2>
+      <div class="compare-chart anim-item" style="max-width:40rem">
+        <div class="cc-bg"></div>
+        <div class="cc-y"></div><div class="cc-ya"></div>
+        <div class="cc-x"></div><div class="cc-xa"></div>
+        <div class="cc-yl">设计性<br><span style="font-size:.75em;opacity:.6">高</span></div>
+        <div class="cc-yh">设计性<br><span style="font-size:.75em;opacity:.6">低</span></div>
+        <div class="cc-xl">功能性 低</div>
+        <div class="cc-xr">功能性 高</div>
+        <!-- 品牌点（模拟原书散布） -->
+        <div class="cc-point" style="left:30%;top:40%"></div><div class="cc-label" style="left:30%;top:40%">品牌A</div>
+        <div class="cc-point" style="left:52%;top:28%"></div><div class="cc-label" style="left:52%;top:28%">品牌B</div>
+        <div class="cc-point" style="left:70%;top:55%"></div><div class="cc-label" style="left:70%;top:55%">品牌C</div>
+        <div class="cc-point" style="left:42%;top:62%"></div><div class="cc-label" style="left:42%;top:62%">品牌D</div>
+        <div class="cc-point" style="left:28%;top:65%"></div><div class="cc-label" style="left:28%;top:65%">品牌E</div>
+        <div class="cc-point" style="left:75%;top:35%"></div><div class="cc-label" style="left:75%;top:35%">品牌F</div>
+      </div>
+      <p class="body-zh anim-item" style="max-width:28em;opacity:.55">纵轴为定性因素（设计性），横轴为定量因素（功能性），每个品牌找到自己在两轴交叉空间中的位置</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p93 服装品牌比较图</div><div>04 / 20</div></div>
+</section>
+
+<!-- 05 课程7问题 L5 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Exercise" data-source="p94 课程7 挑选电脑机型">
+  <div class="chrome"><div>课程7 · 问题练习</div><div>05 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-note" style="display:flex;flex-direction:column;gap:clamp(1.6rem,3vh,2.4rem)">
+      <h2 class="h1-zh anim-item" style="max-width:12em">挑选电脑机型</h2>
+      <div style="display:flex;flex-direction:column;gap:clamp(.8rem,1.5vh,1.2rem)">
+        <p class="body-zh anim-item" style="max-width:28em;opacity:.85">想换一台笔记本电脑，外勤工作多，最在意重量和电池续航。想选轻的，但性能也不能将就，价格倒是没太多顾虑。</p>
+        <p class="body-zh anim-item" style="max-width:28em;opacity:.6">四个比较项：重量、续航、性能、价格。四种机型 A/B/C/D，满意程度用 ○◎△× 表示。</p>
+      </div>
+      <p class="lead-zh anim-item" style="color:var(--accent);opacity:.85;max-width:22em">提示：思考最重视的是什么</p>
+    </div>
+  </div>
+  <div class="foot"><div>p94 课程7</div><div>05 / 20</div></div>
+</section>
+
+<!-- 06 步骤1确定纵轴 L7 light -->
+<section class="slide light" data-theme="light" data-screen-label="Step" data-source="p95 步骤1 确定纵轴">
+  <div class="chrome"><div>课程7 · 步骤1</div><div>06 / 20</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">确定纵轴</div>
+      <h2 class="h2-zh" style="max-width:12em;margin:clamp(1rem,2vh,1.6rem) 0">把最重视的要素放在纵轴上</h2>
+      <p class="body-zh" style="max-width:16em;opacity:.7">价格没有太多顾虑，所以在重量、续航、性能三项中选择。重量一词最先出现且出现了两次，它最受重视。</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">关键规则</div>
+      <div style="background:rgba(var(--accent-rgb),.06);border-radius:6px;padding:clamp(1rem,2vh,1.6rem);margin-top:clamp(1rem,2vh,1.6rem)">
+        <p class="body-zh" style="max-width:15em">较受重视的属性放在上方。这里轻是更受重视的属性，所以轻在上，重在下。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p95 步骤1</div><div>06 / 20</div></div>
+</section>
+
+<!-- 07 步骤2确定横轴 L7 light -->
+<section class="slide light" data-theme="light" data-screen-label="Step" data-source="p96 步骤2 确定横轴">
+  <div class="chrome"><div>课程7 · 步骤2</div><div>07 / 20</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">确定横轴</div>
+      <h2 class="h2-zh" style="max-width:12em;margin:clamp(1rem,2vh,1.6rem) 0">从剩余项中选出第二重视的要素</h2>
+      <p class="body-zh" style="max-width:16em;opacity:.7">剩续航和性能。题干说：虽说想选一款重量轻的机型，但性能方面也不能将就。这说明不想在重量和性能方面让步。</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">关键规则</div>
+      <div style="background:rgba(var(--accent-rgb),.06);border-radius:6px;padding:clamp(1rem,2vh,1.6rem);margin-top:clamp(1rem,2vh,1.6rem)">
+        <p class="body-zh" style="max-width:15em">横轴上较受重视的属性放在右边。性能比续航更受重视，所以高在右，低在左。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p96 步骤2</div><div>07 / 20</div></div>
+</section>
+
+<!-- 08 四机型比较图 L17 matrix light + CSS chart -->
+<section class="slide light" data-theme="light" data-screen-label="Result-CSS" data-source="p97-98 步骤3 画出比较对象" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程7 · 步骤3</div><div>08 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">将四种机型画在数轴上</h2>
+      <div class="compare-chart anim-item" style="max-width:38rem">
+        <div class="cc-bg"></div>
+        <div class="cc-grid-v"></div>
+        <div class="cc-y"></div><div class="cc-ya"></div>
+        <div class="cc-x"></div><div class="cc-xa"></div>
+        <div class="cc-yl">重量 轻</div>
+        <div class="cc-yh">重量 重</div>
+        <div class="cc-xl">性能 低</div>
+        <div class="cc-xr">性能 高</div>
+        <!-- A: 轻+高性能 → 右上 -->
+        <div class="cc-point" style="left:74%;top:22%;width:clamp(.85rem,1.1vw,.95rem);height:clamp(.85rem,1.1vw,.95rem)"></div>
+        <div class="cc-label" style="left:74%;top:22%;font-size:clamp(.8rem,.9vw,.95rem);color:var(--accent)">A ✓</div>
+        <!-- B: 轻+低性能 → 左上 -->
+        <div class="cc-point" style="left:26%;top:28%"></div>
+        <div class="cc-label" style="left:26%;top:28%">B</div>
+        <!-- C: 重+高性能 → 右下 -->
+        <div class="cc-point" style="left:72%;top:68%"></div>
+        <div class="cc-label" style="left:72%;top:68%">C</div>
+        <!-- D: 重+低性能 → 左下 -->
+        <div class="cc-point" style="left:30%;top:64%"></div>
+        <div class="cc-label" style="left:30%;top:64%">D</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p97-98 步骤3</div><div>08 / 20</div></div>
+</section>
+
+<!-- 09 结果主张 L3-a bare light -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p98 选出最符合条件的机型">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">结论</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">最想要的是<br>又轻又高性能<br>选A机型</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p98 课程7</div><div>09 / 20</div></div>
+</section>
+
+<!-- 10 纵轴重要性 L30 dark 双张力 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Tension" data-source="p98-99 为什么纵轴如此重要">
+  <div class="chrome"><div>洞察 · 纵轴</div><div>10 / 20</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem);max-width:11em">重视的要素放横轴</h2>
+      <p class="body-zh" style="max-width:14em">A、C、D 都分布在上半部分，较佳的A和B没那么醒目，关键信息无法一目了然</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem);max-width:11em">重视的要素放纵轴</h2>
+      <p class="body-zh" style="max-width:14em">较佳的备选项自动集中在上半部分，更直观地看出差异</p>
+    </div>
+  </div>
+  <div class="foot"><div>p98-99 纵轴重要性</div><div>10 / 20</div></div>
+</section>
+
+<!-- 11 必胜小技巧 L28 bare dark callout-mark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Key-Quote" data-source="p105 必胜小技巧" style="text-align:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-quote">
+      <div class="callout callout-mark anim-item" style="max-width:14em;margin:0 auto;text-align:left">
+        把最重视的要素放在纵轴上
+        <cite>p105 必胜小技巧</cite>
+      </div>
+    </div>
+    <div class="w-default" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(2rem,4vh,3rem);text-align:left">
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">原因</div><p class="body-zh" style="margin-top:1vh">较佳的备选项集中在图形上半部分，直观可见</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">纵轴属性</div><p class="body-zh" style="margin-top:1vh">较受重视的属性放在上方</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">横轴属性</div><p class="body-zh" style="margin-top:1vh">较受重视的属性放在右边</p></div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p98-99, p105</div><div>11 / 20</div></div>
+</section>
+
+<!-- 12 课程8社交软件 L5 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Exercise" data-source="p100 课程8 五大社交软件">
+  <div class="chrome"><div>课程8 · 商务模拟</div><div>12 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-note" style="display:flex;flex-direction:column;gap:clamp(1.6rem,3vh,2.4rem)">
+      <h2 class="h1-zh anim-item" style="max-width:12em">五大社交软件的区别</h2>
+      <p class="body-zh anim-item" style="max-width:28em;opacity:.85">请对 LINE、Facebook、Twitter、Instagram、LinkedIn 的定位进行比较。可比较的项目有使用场景、用户数量、功能、操作难易度等。</p>
+      <p class="lead-zh anim-item" style="color:var(--accent);opacity:.85;max-width:22em">提示：在手中没有定量数据时，可以通过定性项目来比较</p>
+    </div>
+  </div>
+  <div class="foot"><div>p100 课程8</div><div>12 / 20</div></div>
+</section>
+
+<!-- 13 社交软件步骤 L14 light timeline-row -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p100-102 课程8 答案解说">
+  <div class="chrome"><div>课程8 · 解题步骤</div><div>13 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">比较定性项目：三步画出社交软件定位</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">步骤1</div>
+          <p class="body-zh" style="margin-top:1vh">纵轴选使用场景。商业场景和私人场景之间定位差异显著</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">步骤2</div>
+          <p class="body-zh" style="margin-top:1vh">横轴选应用范围。比较各软件的应用范围是有限还是广泛</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">步骤3</div>
+          <p class="body-zh" style="margin-top:1vh">画出五个软件的位置。按使用场景和应用范围分别判断</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p100-102 课程8</div><div>13 / 20</div></div>
+</section>
+
+<!-- 14 社交软件定位矩阵 L17 light + CSS -->
+<section class="slide light" data-theme="light" data-screen-label="Matrix-CSS" data-source="p102 画出比较对象" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程8 · 定位矩阵</div><div>14 / 20</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,2.5vh,2.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">五大社交软件定位</h2>
+      <div class="compare-chart anim-item" style="max-width:44rem">
+        <div class="cc-bg"></div>
+        <!-- 象限标签 -->
+        <div style="position:absolute;left:20%;top:16%;font-size:clamp(.7rem,.78vw,.88rem);opacity:.3;font-family:var(--mono)">私人 · 有限</div>
+        <div style="position:absolute;right:8%;top:16%;font-size:clamp(.7rem,.78vw,.88rem);opacity:.3;font-family:var(--mono)">私人 · 广泛</div>
+        <div style="position:absolute;left:20%;bottom:10%;font-size:clamp(.7rem,.78vw,.88rem);opacity:.3;font-family:var(--mono)">商务 · 有限</div>
+        <div style="position:absolute;right:8%;bottom:10%;font-size:clamp(.7rem,.78vw,.88rem);opacity:.3;font-family:var(--mono)">商务 · 广泛</div>
+        <div class="cc-y"></div><div class="cc-ya"></div>
+        <div class="cc-x"></div><div class="cc-xa"></div>
+        <div class="cc-yl">使用场景<br><span style="font-size:.75em;opacity:.5">私人</span></div>
+        <div class="cc-yh">使用场景<br><span style="font-size:.75em;opacity:.5">商务</span></div>
+        <div class="cc-xl">应用范围 有限</div>
+        <div class="cc-xr">应用范围 广泛</div>
+        <!-- LinkedIn: 商务-有限 → 左下区靠右 -->
+        <div class="cc-point" style="left:38%;top:58%"></div>
+        <div class="cc-label-below" style="left:38%;top:58%">LinkedIn</div>
+        <!-- Facebook: 商务-广泛 → 右下 -->
+        <div class="cc-point" style="left:74%;top:56%"></div>
+        <div class="cc-label-below" style="left:74%;top:56%">Facebook</div>
+        <!-- Twitter: 私人-有限 → 左上 -->
+        <div class="cc-point" style="left:34%;top:26%"></div>
+        <div class="cc-label" style="left:34%;top:26%">Twitter</div>
+        <!-- Instagram: 私人-有限 → 左上略偏 -->
+        <div class="cc-point" style="left:28%;top:32%"></div>
+        <div class="cc-label" style="left:28%;top:32%">Instagram</div>
+        <!-- LINE: 私人-广泛 → 右上 -->
+        <div class="cc-point" style="left:68%;top:30%"></div>
+        <div class="cc-label" style="left:68%;top:30%">LINE</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p102 社交软件定位</div><div>14 / 20</div></div>
+</section>
+
+<!-- 15 定性比较 L11 bare dark guest-mark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Insight" data-source="p103-104 会议商谈最佳助手">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">Insight</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">大胆比较定性项目，展现主观想法</h2>
+      <p class="body-zh anim-item" style="max-width:24em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">不必因为是定性项目而有太多顾虑。不同人画出来的图完全不同，这种理解的不确定性正是比较图的魅力</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p103-104</div><div>15 / 20</div></div>
+</section>
+
+<!-- 16 会议商谈应用 L24 light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Application" data-source="p104 最适合发起话题讨论">
+  <div class="chrome"><div>应用 · 会议商谈</div><div>16 / 20</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Best Use</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        比较图最适合用来发起话题讨论，经常被应用于商谈或会议中
+        <cite>p104</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">为什么</div>
+      <p class="lead-zh" style="max-width:18em">选取什么要素做比较、以什么为标准画对象的位置，都会在很大程度上影响结果</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">同一题材不同人画出不同图，比较这些图就能看出谁的思考起点和模式是什么</p>
+    </div>
+  </div>
+  <div class="foot"><div>p104</div><div>16 / 20</div></div>
+</section>
+
+<!-- 17 总结理解顺序 L29 light timeline-row thick -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p105 总结 理解顺序">
+  <div class="chrome"><div>总结 · 理解顺序</div><div>17 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">掌握比较图的推进顺序</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">起点</div><p class="body-zh" style="margin-top:1vh">确定纵轴<br>把最受重视的要素放在纵轴</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">展开</div><p class="body-zh" style="margin-top:1vh">确定横轴<br>从剩余项中选出第二重视的要素</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">落位</div><p class="body-zh" style="margin-top:1vh">画出对象<br>在数轴上标出各对象的位置</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">解读</div><p class="body-zh" style="margin-top:1vh">分析差异<br>看上方的备选项，做选择</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p105 总结</div><div>17 / 20</div></div>
+</section>
+
+<!-- 18 总结要点 L9 light -->
+<section class="slide light" data-theme="light" data-screen-label="Key-Points" data-source="p105 理解要点+必胜小技巧">
+  <div class="chrome"><div>总结 · 理解要点</div><div>18 / 20</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:11em">熟练使用比较图</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">纵轴规则</div>
+          <p class="body-zh" style="margin-top:1vh">画纵轴时把较受重视的要素放在上面</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">横轴规则</div>
+          <p class="body-zh" style="margin-top:1vh">画横轴时把较受重视的要素放在右边</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">定性勇气</div>
+          <p class="body-zh" style="margin-top:1vh">大胆比较定性项目，展现主观想法，引发讨论</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p105 总结</div><div>18 / 20</div></div>
+</section>
+
+<!-- 19 核心总结 L32 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p92-105 核心总结">
+  <div class="chrome"><div>核心总结</div><div>19 / 20</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">定位是比较对象各自所处的状况。锁定最重要的几项进行比较，就能明显看出差异。不要做所有项目的综合性比较，那会各有长短，无法判断优劣。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">比较图的核心是用横竖交叉的两条数轴对事物进行比较。选取两个核心要素作为数轴，就可以在图上找到每个对象的定位。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">纵轴放最重视的要素，横轴放第二重视的要素。纵轴上方放较受重视的属性，横轴右边放较受重视的属性。这样较佳的备选项会自动集中在上半部分。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p92-99</div><div>19 / 20</div></div>
+</section>
+
+<!-- 20 核心总结+试一试 L31 bare light -->
+<section class="slide light bare" data-theme="light" data-screen-label="Practice" data-source="p106-107 试一试+专栏4">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote">
+      <div class="kicker anim-item">Practice & Insight</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em;margin:clamp(1rem,3vh,2rem) auto 0">练一练：用比较图分析身边的商业关系</h2>
+      <div style="margin-top:clamp(2rem,4vh,3rem);display:grid;gap:clamp(.8rem,1.5vh,1.2rem);text-align:left">
+        <p class="body-zh anim-item">01 如果有多种选择，如何通过比较选出合适的客户</p>
+        <p class="body-zh anim-item">02 自己的公司和竞争对手公司有什么差异</p>
+        <p class="body-zh anim-item">03 成功的项目和失败的项目有什么差异</p>
+        <p class="body-zh anim-item">04 公司长期畅销产品的顾客阶层是什么，新商品如何定位</p>
+      </div>
+      <div style="margin-top:clamp(2rem,4vh,3rem);padding-top:clamp(1.4rem,3vh,2rem);border-top:1px solid rgba(var(--ink-rgb),.1)">
+        <p class="body-zh anim-item" style="max-width:28em;text-align:left;opacity:.7">专栏：让团队成员就同一题材各自画比较图，比较图与图之间的差异，就能看出每个人的思考起点和思维模式。在了解彼此思维差异的基础上讨论，可以加深理解。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p106-107 试一试 / 专栏4</div><div>20 / 20</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-gt05';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

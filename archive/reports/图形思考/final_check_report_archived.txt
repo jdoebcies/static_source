@@ -1,0 +1,24 @@
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/00-preface-seven-figures-note-slides.html =====
+Deck check passed: 19 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/01-warmup-note-slides.html =====
+Deck check passed: 13 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/02-relation-exchange-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/03-structure-tree-note-slides.html =====
+Deck check passed: 24 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/04-factor-digging-note-slides.html =====
+Deck check passed: 22 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/05-position-compare-note-slides.html =====
+Deck check passed: 20 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/06-steps-flow-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/07-concept-overlap-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/08-policy-pyramid-note-slides.html =====
+Deck check passed: 18 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/09-application-life-planning-note-slides.html =====
+Deck check passed: 24 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/10-habit-notes-note-slides.html =====
+Deck check passed: 16 slide(s), 0 warning(s).
+\n===== /mnt/smb/raid5/学习成长以后或过程中的的输出物/note-slides/思维方法/图形思考/chapters/11-expression-closing-note-slides.html =====
+Deck check passed: 22 slide(s), 0 warning(s).

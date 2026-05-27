@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>静态学习资料导航</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f2ea;
+      --panel: #fffaf1;
+      --ink: #17202a;
+      --muted: #68727f;
+      --line: rgba(23, 32, 42, .12);
+      --accent: #b94d38;
+      --accent-soft: rgba(185, 77, 56, .1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+
+    header {
+      margin-bottom: 36px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 28px;
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 42px;
+      line-height: 1.15;
+      font-weight: 760;
+    }
+
+    .intro {
+      max-width: 720px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    section {
+      margin-top: 34px;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 22px;
+      line-height: 1.35;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .item {
+      display: flex;
+      min-height: 160px;
+      flex-direction: column;
+      gap: 14px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .item:hover,
+    .item:focus-visible {
+      border-color: rgba(185, 77, 56, .45);
+      outline: none;
+      box-shadow: 0 16px 34px rgba(23, 32, 42, .08);
+      transform: translateY(-2px);
+    }
+
+    .item strong {
+      font-size: 21px;
+      line-height: 1.35;
+    }
+
+    .item span {
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .tag {
+      align-self: flex-start;
+      margin-top: auto;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    footer {
+      margin-top: 44px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 34px 18px 48px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .intro {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="kicker">Static Study Library</p>
+      <h1>静态学习资料导航</h1>
+      <p class="intro">这里收集 AI 辅助拆解后的 HTML 学习材料。一本书放在 books 下，单篇专题放在 topics 下，所有页面都按 GitHub Pages 的纯静态发布方式组织。</p>
+    </header>
+
+    <section aria-labelledby="books-title">
+      <h2 id="books-title">书籍与章节资料</h2>
+      <div class="grid">
+        <a class="item" href="books/可观测性工程/">
+          <strong>可观测性工程</strong>
+          <span>按章节拆分的 note-slides，包含章节索引、清单和 HTML 幻灯片。</span>
+          <em class="tag">book</em>
+        </a>
+        <a class="item" href="books/图形思考/">
+          <strong>图形思考</strong>
+          <span>围绕图形化思维方法整理的章节化 HTML 学习材料。</span>
+          <em class="tag">book</em>
+        </a>
+      </div>
+    </section>
+
+    <section aria-labelledby="topics-title">
+      <h2 id="topics-title">专题资料</h2>
+      <div class="grid">
+        <a class="item" href="topics/Meta-Meta-Prompting/">
+          <strong>Meta-Meta-Prompting</strong>
+          <span>独立专题型 HTML note-slides。</span>
+          <em class="tag">topic</em>
+        </a>
+      </div>
+    </section>
+
+    <footer>建议通过 GitHub Pages 的 main 分支根目录发布。</footer>
+  </main>
+</body>
+</html>
+

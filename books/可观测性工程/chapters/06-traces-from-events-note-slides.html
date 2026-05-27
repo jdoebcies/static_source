@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>将事件拼接成链路 · 可观测性工程 第6章</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #d4731a;
+  --accent-rgb: 212,115,26;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+/* --- Signatures --- */
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; background: var(--paper); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+/* --- Trace diagram styles --- */
+.trace-diagram {
+  display: flex; flex-direction: column; gap: clamp(.8rem, 1.6vh, 1.4rem);
+  padding: clamp(1rem, 2vh, 2rem) 0;
+}
+.trace-span {
+  display: flex; align-items: center; gap: clamp(1rem, 1.5vw, 1.5rem);
+  position: relative;
+}
+.trace-bar {
+  height: clamp(1.6rem, 2.4vh, 2.2rem);
+  border-radius: 4px;
+  display: flex; align-items: center; padding: 0 clamp(.8rem, 1vw, 1.2rem);
+  font-family: var(--mono); font-size: clamp(.7rem, .75vw, .85rem);
+  color: var(--paper); letter-spacing: .06em;
+  min-width: clamp(6rem, 8vw, 10rem);
+}
+.trace-bar.root  { background: var(--accent); opacity: .9; width: 100%; }
+.trace-bar.child1 { background: rgba(var(--accent-rgb), .65); width: 72%; margin-left: clamp(1.5rem, 3vw, 3rem); }
+.trace-bar.child2 { background: rgba(var(--accent-rgb), .45); width: 48%; margin-left: clamp(3rem, 6vw, 6rem); }
+.trace-label {
+  font-family: var(--mono); font-size: clamp(.68rem, .7vw, .8rem);
+  letter-spacing: .1em; opacity: .5; white-space: nowrap;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面（L1，bare，dark）-->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="第6章 将事件拼接成链路" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">DISTRIBUTED TRACING</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">将事件拼接成链路</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">分布式链路追踪的核心组件、探针原理与自定义字段</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>可观测性工程 · 第6章</div>
+    <div>pp. 52 59</div>
+  </div>
+</section>
+
+<!-- 02 什么是分布式链路追踪（L3-c，dark，上下宣告）-->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p52 6.1 分布式链路追踪及其重要性" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>定义 · 分布式链路追踪</div><div>02 / 14</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">6.1 分布式链路追踪及其重要性</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">追踪单一请求跨多个服务的全过程</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">请求可能跨进程、机器甚至网络边界。微服务架构让分布式调试从可选变成必需。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p52</div><div>02 / 14</div></div>
+</section>
+
+<!-- 03 链路追踪简史（L14，light，timeline-row，w-wide）-->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p52 6.1 分布式链路追踪历史">
+  <div class="chrome"><div>时间线 · 链路追踪演进</div><div>03 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">分布式链路追踪十年演进</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">2010</div>
+          <p class="body-zh" style="margin-top:1vh">Google 发表 Dapper 论文，首次系统描述分布式链路追踪</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">2012</div>
+          <p class="body-zh" style="margin-top:1vh">Twitter 开源 Zipkin，首个广泛使用的开源链路追踪项目</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">2017</div>
+          <p class="body-zh" style="margin-top:1vh">Uber 开源 Jaeger，成为云原生链路追踪的事实标准</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">至今</div>
+          <p class="body-zh" style="margin-top:1vh">Honeycomb、Lightstep 等商业方案持续推动可观测性演进</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p52</div><div>03 / 14</div></div>
+</section>
+
+<!-- 04 链路的本质（L3-a，bare，light，社论式）-->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p52 6.1 可观测系统中的链路仅是一连串相关联的事件">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1;margin-bottom:clamp(1.6rem,4vh,3rem)">核心洞察</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">链路仅是一连串相关联的事件</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p52 · 6.1</div><div>04 / 14</div></div>
+</section>
+
+<!-- 05 Span 父子关系与瀑布图（L25，light，段落拆解 + 自绘 trace 图）-->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p53 6.2 链路追踪的组件">
+  <div class="chrome"><div>组件 · Span 与父子关系</div><div>05 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,3.5vh,3rem)">
+      <h2 class="h1-zh anim-item" style="max-width:13em">每个组成部分都是一个链路 span</h2>
+      <div class="grid-3 anim-item">
+        <div>
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">瀑布图是链路最直观的可视化方式，展示每个阶段的开始时间和时长</p>
+        </div>
+        <div>
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">服务A调用B、B调用C：span A是B的父，B是C的父。根span无Parent ID</p>
+        </div>
+        <div>
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">同服务可多次出现于不同span。无论路径多凌乱，五段数据即可构建任何视图</p>
+        </div>
+      </div>
+      <!-- 自绘 trace 层级图 -->
+      <div class="trace-diagram anim-item" style="margin-top:clamp(.5rem,1vh,1rem)">
+        <div class="trace-span"><span class="trace-label">Root Span A</span><span class="trace-bar root">svc-a</span></div>
+        <div class="trace-span"><span class="trace-label">Child Span B</span><span class="trace-bar child1">svc-b</span></div>
+        <div class="trace-span"><span class="trace-label">Child Span C</span><span class="trace-bar child2">svc-c</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p53 · 图6-2 父子关系</div><div>05 / 14</div></div>
+</section>
+
+<!-- 06 五个必要字段（L16，light，table，w-wide）-->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p53-54 6.2 每个组件需要的五段数据">
+  <div class="chrome"><div>结构 · 链路组件字段</div><div>06 / 14</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">每个 span 至少需要五段数据</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>字段</th><th>含义</th><th>来源</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Trace ID</td><td>链路的唯一标识</td><td>根 span 产生</td><td>贯穿请求各阶段，映射回特定请求</td></tr>
+          <tr><td>Span ID</td><td>单个工作单元的唯一标识</td><td>每个 span 自生成</td><td>在需要时引用此 span</td></tr>
+          <tr><td>Parent ID</td><td>嵌套包含关系</td><td>父 span 传递</td><td>根 span 无 Parent ID</td></tr>
+          <tr><td>时间戳</td><td>开始时间</td><td>span 创建时捕获</td><td>每个 span 必须展示</td></tr>
+          <tr><td>执行时长</td><td>工作开始到结束的耗时</td><td>结束时间减开始时间</td><td>单位 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>pp. 53 54 · 6.2</div><div>06 / 14</div></div>
+</section>
+
+<!-- 07 硬编码探针：三步走（L27，light，观点加例证）-->
+<section class="slide light" data-theme="light" data-screen-label="View+Examples" data-source="p54-55 6.3 硬编码探针构建链路追踪">
+  <div class="chrome"><div>实践 · 硬编码探针</div><div>07 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,4vh,3.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">手动实现链路追踪只需三个步骤</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta">Step 1</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:500">生成 Trace ID 与 Span ID</p>
+          <p class="body-zh" style="margin-top:.6vh;opacity:.65">用 UUID 避免重复。将 span 属性和数据存储在字典中，序列化为 JSON 发送到后端。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta">Step 2</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:500">捕获时间戳与执行时长</p>
+          <p class="body-zh" style="margin-top:.6vh;opacity:.65">记录请求开始和结束时间戳，差值即为持续时间，单位 ms。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta">Step 3</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:500">添加描述性字段</p>
+          <p class="body-zh" style="margin-top:.6vh;opacity:.65">服务名 service_name 和工作类型 span 名 name，完成后通过 RPC 发送到链路追踪后端。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>pp. 54 55 · 6.3</div><div>07 / 14</div></div>
+</section>
+
+<!-- 08 Go 示例：三个 span（L9，light，三列）-->
+<section class="slide light" data-theme="light" data-screen-label="ThreeCols" data-source="p55 6.3 Go代码示例的三个span">
+  <div class="chrome"><div>示例 · 最小链路</div><div>08 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:11em">一个 Web 端点最少产生三个 span</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">Root Span</div>
+          <p class="body-zh" style="margin-top:1vh">rootHandler 接收原始 GET 请求，根据参数决定调用哪些下游服务</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">Child Span 1</div>
+          <p class="body-zh" style="margin-top:1vh">callAuthService 调用授权服务，验证用户是否有权限访问特定端点</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">Child Span 2</div>
+          <p class="body-zh" style="margin-top:1vh">callNameService 调用用户查询服务，获取用户姓名后返回结果</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p55 · 6.3 Go 示例</div><div>08 / 14</div></div>
+</section>
+
+<!-- 09 上下文传播：B3 标准（L24，light，callout-mark）-->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p56 6.3 B3标准HTTP请求头传递">
+  <div class="chrome"><div>机制 · 上下文传播</div><div>09 / 14</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">B3 Propagation</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">X-B3-TraceId 承载链路标识；X-B3-ParentSpanId 作为子 span 的父 ID<cite>p56 · B3 标准</cite></div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">信息共享的最常见方式是通过 HTTP 请求头跨服务传递链路上下文</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">除 B3 外还有 W3C Trace Context 标准。接收端只要理解相同的请求头名称，就可以在需要时调用。后端将各服务的 span 拼接成完整瀑布图。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p56 · 6.3</div><div>09 / 14</div></div>
+</section>
+
+<!-- 10 自定义字段的价值（L25，light，段落拆解）-->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p57 6.4 将自定义字段添加到链路span">
+  <div class="chrome"><div>扩展 · 自定义字段</div><div>10 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:14em">仅靠父子关系不够，需要自定义字段理解每个 span</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">What</div>
+          <p class="body-zh" style="margin-top:1vh">以键值对形式添加：执行主机 host、涉及用户 user_id、应用构建 ID build_id</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Why</div>
+          <p class="body-zh" style="margin-top:1vh">分布式系统中每个 span 埋点很深，只知道服务名不足以定位精确问题</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">How Far</div>
+          <p class="body-zh" style="margin-top:1vh">可扩展到实例类型 instance_type、运行时信息等第5章提及的任何宽事件细节</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p57 · 6.4</div><div>10 / 14</div></div>
+</section>
+
+<!-- 11 把日志变成链路（L27，light，观点加例证）-->
+<section class="slide light" data-theme="light" data-screen-label="View+Examples" data-source="p59 6.5 将事件拼接到链路中">
+  <div class="chrome"><div>迁移 · 日志到链路</div><div>11 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,4vh,3.2rem)">
+      <h2 class="h1-zh anim-item" style="max-width:14em">把非结构化日志改造成链路视图</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta">Stage 1</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:500">非结构化多行日志</p>
+          <p class="body-zh" style="margin-top:.6vh;opacity:.65">传统单行日志方案，信息分散，无法看到请求的全貌。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta">Stage 2</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:500">结构化日志 + 链路字段</p>
+          <p class="body-zh" style="margin-top:.6vh;opacity:.65">参照第5章改为结构化日志，添加 Trace ID、Span ID、Parent ID 等必要字段。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta">Stage 3</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:500">瀑布图可视化</p>
+          <p class="body-zh" style="margin-top:.6vh;opacity:.65">从日志数据中直接产生瀑布图，迈出可观测性第一步。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p59 · 6.5</div><div>11 / 14</div></div>
+</section>
+
+<!-- 12 非传统链路场景（L9，light，三列）-->
+<section class="slide light" data-theme="light" data-screen-label="ThreeCols" data-source="p59 6.5 非传统链路追踪场景">
+  <div class="chrome"><div>扩展 · 非传统链路</div><div>12 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">链路追踪不止于服务间调用</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">CPU 密集型操作</div>
+          <p class="body-zh" style="margin-top:1vh">将 JSON 解析等高频率代码块包裹在各自的 span 中，定位性能瓶颈出现的精确时机</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">批处理任务</div>
+          <p class="body-zh" style="margin-top:1vh">为上传到 S3 的每个对象、或 Lambda 流水线的每个阶段创建独立 span</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">单体应用</div>
+          <p class="body-zh" style="margin-top:1vh">非分布式或非服务为主的程序同样可以拆分工作单元为各自 span，获得详细瀑布图</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p59 · 6.5</div><div>12 / 14</div></div>
+</section>
+
+<!-- 13 结论（L3-d，bare，dark，偏置式）-->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p59 6.6 结论" style="text-align:left;align-items:flex-start">
+  <div class="slide-body bottom" style="align-items:flex-start">
+    <div class="w-statement" style="text-align:left">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1;margin-bottom:clamp(1.6rem,4vh,3rem)">6.6 结论</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7vw,6.4rem);max-width:12em;letter-spacing:0;text-align:left">事件是构建块，链路是关联事件链</h2>
+      <p class="body-zh anim-item" style="max-width:24em;margin-top:clamp(1.6rem,3vh,2.4rem);opacity:.62;text-align:left">任何事件集都可拼接到链路中。下一章将介绍开源 OpenTelemetry 项目，以探针框架取代硬编码方式。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p59 · 6.6</div><div>13 / 14</div></div>
+</section>
+
+<!-- 14 核心总结（L32，dark，summary-num）-->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p52-59 第6章核心总结">
+  <div class="chrome"><div>核心总结</div><div>14 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">分布式链路追踪追踪单一请求跨多个服务的全过程。链路的价值在于清晰展示系统依赖关系，让上游延迟的根因不再被淹没在几十个服务中。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">每个 span 至少需要五段数据：Trace ID、Span ID、Parent ID、时间戳、执行时长。通过 B3 或 W3C Trace Context 标准在 HTTP 请求头中跨服务传播上下文。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">仅靠父子关系不够。加入主机、用户、build_id、运行时信息等自定义键值对，让每个 span 携带调试所需的完整上下文。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">链路追踪不限于 RPC。非结构化日志可改造为结构化日志加链路字段；CPU 密集型操作、批任务、Lambda 流水线均可拆分为各自 span，构建瀑布视图。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>pp. 52 59 · 第6章</div><div>14 / 14</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-obseng-06';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

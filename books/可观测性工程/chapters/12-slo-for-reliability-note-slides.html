@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>使用SLO来提高可靠性 · 可观测性工程 第12章</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* palette thesis: engineering monitoring/reliability topic — calm blue-gray for
+     the serious infra tone; warm paper for evidence pages; steady blue accent for
+     chapter anchors and data, no alarmist red */
+  --ink:        #1a2533;
+  --ink-rgb:    26,37,51;
+  --paper:      #faf8f2;
+  --paper-rgb:  250,248,242;
+  --accent:     #2d5fa8;
+  --accent-rgb: 45,95,168;
+  --muted:      #697282;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.slide-img {
+  overflow: hidden; position: relative;
+  background: rgba(128,128,128,.08); border-radius: 6px;
+}
+.slide-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.img-cap { font-family: var(--mono); font-size: clamp(.7rem, .75vw, .85rem); letter-spacing: .12em; text-transform: uppercase; opacity: .6; margin-top: .8vh; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare dark -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p93 第12章" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">可观测性工程 · 第12章</div>
+      <h1 class="display-zh anim-item" style="max-width:9.5em">使用SLO来提高可靠性</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">从告警疲劳到基于用户体验的可靠性实践</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Alex Hidalgo · Honeycomb</div>
+    <div>p93, 100</div>
+  </div>
+</section>
+
+<!-- 02 文章脉络 L29 light --w-wide timeline-row thick -->
+<section class="slide light" data-theme="light" data-screen-label="Article Flow" data-source="p93-100 全章">
+  <div class="chrome"><div>脉络</div><div>02 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,4vh,3.5rem)">本章从传统监控的困境出发，走向基于SLO的可靠性实践</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">起点</div><p class="body-zh" style="margin-top:1vh">传统监控造成告警疲劳，偏差正常化</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">展开</div><p class="body-zh" style="margin-top:1vh">SLO定义、SLI测量、可靠告警标准</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">转折</div><p class="body-zh" style="margin-top:1vh">Honeycomb案例：SLO在传统监控之前发现问题</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">落点</div><p class="body-zh" style="margin-top:1vh">解耦是什么与为什么，可观测性是SLO成功的前提</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>02 / 14</div></div>
+</section>
+
+<!-- 03 强主张 L3-a bare light --w-statement -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p93 12.1 传统监控方法造成危险的告警疲劳">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">12.1 告警疲劳</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">传统监控造成了危险的告警疲劳</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>可观测性工程 · 第12章</div><div>03 / 14</div></div>
+</section>
+
+<!-- 04 段落拆解 L25 dark --w-default -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p93-94 12.1 偏差的正常化">
+  <div class="chrome"><div>拆解 · 告警疲劳</div><div>04 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">从误报到认知负担，告警疲劳层层叠加</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">传统告警测量最容易测量的东西：CPU、内存、磁盘，这些底层指标与用户真实影响相关性很低，误报率极高</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">偏差正常化：团队习惯性关闭告警，将异常视为正常背景噪声；挑战者号灾难调查中创造了这个术语</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">事故产生新告警，新告警产生更多噪声。行业将此功能障碍产品化为AIOps，这是集体的斯德哥尔摩综合征</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>04 / 14</div></div>
+</section>
+
+<!-- 05 摘录侧注 L24 light callout-mark -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p95 好的告警标准">
+  <div class="chrome"><div>Excerpt · 告警标准</div><div>05 / 14</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        必须反映对用户的紧急影响，可操作，新颖，需要调查而非套用旧经验
+        <cite>Google SRE 一书</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">告警标准精简为两部分：可靠的用户体验下降指标，加上系统化的可调试和可响应方法</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">不符合这两个条件的告警不再有作用，应该删除</p>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>05 / 14</div></div>
+</section>
+
+<!-- 06 上下宣告 L3-c dark --w-note -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p95-96 12.3 用户体验是一颗北极星" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 用户体验</div><div>06 / 14</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">12.3 北极星</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">用户体验是一颗北极星</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">静态阈值过于僵硬粗糙，不能在动态环境中可靠表明体验下降。基于时间的p95指标以5分钟为间隔，假阳性和假阴性比率都很高</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>可观测性工程 · 第12章</div><div>06 / 14</div></div>
+</section>
+
+<!-- 07 观点加例证 L27 light --w-default -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="p96-97 12.4 SLO定义与可靠告警">
+  <div class="chrome"><div>方法 · SLO的三个维度</div><div>07 / 14</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">SLO让告警从原因导向转向症状导向</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">传统监控</div>
+          <p class="body-zh">检测已知原因，如CPU高、线程异常。融合了是什么和为什么，试图告诉你调查应该从哪里开始</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">基于SLO</div>
+          <p class="body-zh">检测用户体验症状。服务为什么降级与如何降级没有实际关联，只需知道出了问题</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">可观测性支撑</div>
+          <p class="body-zh">丰富的遥测数据让你从第一性原理调试，可以应对任何新奇突发的故障，不受限于预设的仪表盘</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>07 / 14</div></div>
+</section>
+
+<!-- 08 强主张 L3-a bare light --w-statement -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p97 将是什么与为什么解耦是编写具有最大信号和最小噪声的良好监控的最重要区别之一">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">核心洞察</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:11em;letter-spacing:0">将是什么与为什么解耦</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>可观测性工程 · 第12章</div><div>08 / 14</div></div>
+</section>
+
+<!-- 09 时间线 L14 light --w-wide timeline-row -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p98-99 案例研究 Honeycomb事件">
+  <div class="chrome"><div>时间线 · Honeycomb事件</div><div>09 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">2019年末，SLO在传统监控之前发现了中断</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">01:29</div><p class="body-zh" style="margin-top:1vh">SLO告警首次触发，值班工程师被吵醒，误以为是小插曲</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">09:55</div><p class="body-zh" style="margin-top:1vh">第4次SLO告警触发，确认非巧合，团队宣布事件</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">调查</div><p class="body-zh" style="margin-top:1vh">发现一个进程内存泄漏，所有机器OOM后重启，传统监控始终未检测到</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">10:32</div><p class="body-zh" style="margin-top:1vh">回滚错误部署，事件解决，但已烧掉30天SLO预算的566%</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>09 / 14</div></div>
+</section>
+
+<!-- 10 双张力 L30 dark -->
+<section class="slide dark" data-theme="dark" data-screen-label="Tension" data-source="p99 传统监控从未检测到服务降级 SLO并没有说谎">
+  <div class="chrome"><div>视角 · 两种真相</div><div>10 / 14</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">传统监控视角</h2>
+      <p class="body-zh" style="max-width:15em">50个探针中一个故障后自动恢复，服务仍可用，大部分数据正常通过。传统监控从未检测到任何降级</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">SLO视角</h2>
+      <p class="body-zh" style="max-width:15em">用户看到了真实影响：客户数据被删除，SLO预算消耗566%，达标率从99.995%降到99.97%</p>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>10 / 14</div></div>
+</section>
+
+<!-- 11 一句原话 L28 bare dark callout-mark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Key Quote" data-source="p99 SLO并没有说谎" style="text-align:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-quote">
+      <div class="callout callout-mark anim-item" style="max-width:16em;margin:0 auto;text-align:left">
+        SLO并没有说谎：用户看到了真实的影响
+        <cite>Honeycomb 工程团队 · p99</cite>
+      </div>
+    </div>
+    <div class="w-default" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.8rem,2vw,2rem);margin-top:clamp(2rem,4vh,3rem);text-align:left">
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">回应</div><p class="body-zh" style="margin-top:1vh">回应了传统监控能否发现问题的质疑，在无信号的情况下独立证明</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">重点</div><p class="body-zh" style="margin-top:1vh">这件事改变了团队文化，从此完全依赖SLO作为主要防线</p></div>
+      <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">余味</div><p class="body-zh" style="margin-top:1vh">团队删除了所有传统告警，不再追踪OOM、流量错误百分比等低等级指标</p></div>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>可观测性工程 · 第12章</div><div>11 / 14</div></div>
+</section>
+
+<!-- 12 表格 L16 light --w-wide -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p93-100 传统监控与SLO对比">
+  <div class="chrome"><div>对比 · 传统监控 vs SLO</div><div>12 / 14</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">传统监控与基于SLO的方法对比</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>维度</th><th>传统监控</th><th>基于SLO</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>检测目标</td><td>已知故障原因</td><td>用户体验症状</td></tr>
+          <tr><td>告警逻辑</td><td>静态阈值</td><td>错误预算消耗</td></tr>
+          <tr><td>假阳性率</td><td>高，误报普遍</td><td>低，基于事件的SLI更精确</td></tr>
+          <tr><td>可操作性</td><td>需判断关联性</td><td>直接指示需要调查</td></tr>
+          <tr><td>适用故障</td><td>已知的未知</td><td>包括未知的未知</td></tr>
+          <tr><td>调试依赖</td><td>预设仪表盘和探针</td><td>可观测性，第一性原理</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>12 / 14</div></div>
+</section>
+
+<!-- 13 嘉宾观点 L11 bare dark --w-quote guest-mark -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="p100 12.5 结论">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem)">第12章结论</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">基于SLO的告警使告警破坏性更小、可操作性更强、更及时</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">可观测性工程 · 第12章 · p100</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>可观测性工程 · 第12章</div><div>13 / 14</div></div>
+</section>
+
+<!-- 14 核心总结 L32 dark --w-default summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p93-100 全章核心要点">
+  <div class="chrome"><div>核心总结</div><div>14 / 14</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">告警疲劳源于传统监控的高误报率和低信噪比；偏差正常化让团队对告警逐步麻木，行业已将这种功能障碍产品化为AIOps</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">分布式系统让传统阈值不可持续：成百上千个检查仍可能遗漏未知的未知，复合指标故障上报前用户早已受到影响</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">SLO基于用户最终体验量化服务可用性，基于事件的SLI提供比基于时间的SLI更可靠和细化的健康测量，假阳性和假阴性比率大幅降低</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">将是什么与为什么解耦是编写高信号低噪声监控的核心：SLO告诉你有问题，可观测性让你从第一性原理找到任何问题的根源</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>可观测性工程 · 第12章</div><div>14 / 14</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-obseng-12';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

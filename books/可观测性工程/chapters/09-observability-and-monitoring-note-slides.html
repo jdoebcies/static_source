@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>可观测性和监控的融合</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare -->
+<section class="slide dark hero active bare" data-theme="dark" data-screen-label="Cover" data-source="p75 第9章" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">Chapter 9</div>
+      <h1 class="display-zh anim-item" style="max-width:8em">可观测性和监控的融合</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.62">二者各司其职，彼此配合：监控评估系统健康状况，可观测性评估软件健康状况</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>可观测性工程</div>
+    <div>p75, 80</div>
+  </div>
+</section>
+
+<!-- 02 核心区分 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p75, 76 9.1, 9.2" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>核心区分</div><div>02 / 13</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">9.1, 9.2</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">监控针对已知故障模式，可观测性旨在发现未知的未知</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">二者目的不同、最佳实践不同、实现不同，但可以共存互补</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p75, 76</div><div>02 / 13</div></div>
+</section>
+
+<!-- 03 监控适合的地方 L25 段落拆解 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p75, 76 9.1 监控适合的地方">
+  <div class="chrome"><div>段落拆解 · 9.1 监控适合的地方</div><div>03 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">监控系统是被动的，通过对已知故障状态做出反应来提醒人们</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">What</div><p class="body-zh" style="margin-top:1vh">监控系统自动报告已知故障情况是否正在发生或即将发生。它们针对已知的未知做了优化。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Where</div><p class="body-zh" style="margin-top:1vh">最适合了解系统状态：基础设施、运行时、计数器：这些变化频率更低且更可预测。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Not For</div><p class="body-zh" style="margin-top:1vh">指标从来不是表明你编写的代码在个人用户手中的行为方式的好方法。聚合度量过于粗略。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p75, 76</div><div>03 / 13</div></div>
+</section>
+
+<!-- 04 可观测性适合的地方 L3-a bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p76 9.2 可观测性适合的地方">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">9.2 可观测性适合的地方</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:10em;letter-spacing:0">可观测性更加主动</h2>
+      <p class="lead-zh anim-item" style="margin-top:clamp(1.4rem,3vh,2.6rem);max-width:16em;opacity:.62">工程师部署代码时始终观察代码本身，每天花时间在生产中探索自己的代码，观察用户使用它，四处寻找异常值和好奇的线索</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p76</div><div>04 / 13</div></div>
+</section>
+
+<!-- 05 Table 9-1 L16 -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="p77 表9-1 系统和软件之间不同的因素">
+  <div class="chrome"><div>表格 · 系统与软件的区分</div><div>05 / 13</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:14em;margin:0 auto">表9-1：系统和软件之间不同的因素</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>因素</th><th>系统</th><th>软件</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>变化率</td><td>软件包更新（每月一次）</td><td>Repo 提交（每日）</td></tr>
+          <tr><td>可预测性</td><td>高（稳定）</td><td>低（许多更新）</td></tr>
+          <tr><td>对业务的价值</td><td>低（非核心）</td><td>高（创收）</td></tr>
+          <tr><td>用于发布的模型</td><td>ITIL</td><td>许多 APM 套件</td></tr>
+          <tr><td>核心关注点</td><td>系统级服务是否健康</td><td>每个请求都被及时可靠地得到处理</td></tr>
+          <tr><td>评估角度</td><td>系统</td><td>真实用户</td></tr>
+          <tr><td>评估标准</td><td>内核或硬件设备</td><td>变量和 API 端点</td></tr>
+          <tr><td>职能责任</td><td>基础设施运营</td><td>软件开发</td></tr>
+          <tr><td>管理方法</td><td>监控</td><td>可观测性</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p77 表9-1</div><div>05 / 13</div></div>
+</section>
+
+<!-- 06 软件 vs 系统 L3-c -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p76, 77 9.3 系统与软件注意事项" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 系统与软件</div><div>06 / 13</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">9.3</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em">软件是你业务的核心差异化因素，系统是支持软件运行所需的一切</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">系统层变化频率低、服务基础设施团队；软件层变化频繁、服务最终客户</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p76, 77</div><div>06 / 13</div></div>
+</section>
+
+<!-- 07 评估组织需求 L25 段落拆解 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p77, 78 9.4 评估你的组织需求">
+  <div class="chrome"><div>段落拆解 · 9.4 评估组织需求</div><div>07 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">评估你自己的组织需求，意味着了解哪些问题对你的业务最为关键</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">软件核心</div><p class="body-zh" style="margin-top:1vh">如果你的公司将编写和发布软件作为核心业务战略，你需要可观测性解决方案来回答有关用户性能的复杂问题。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">基础设施核心</div><p class="body-zh" style="margin-top:1vh">如果你的公司向客户提供基础设施（如 IaaS 提供商），你需要大量监控：低级 DNS 计数器、磁盘统计等。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">特别强调</div><p class="body-zh" style="margin-top:1vh">如果你的业务战略依赖于为特定知名客户子集提供出色的服务，对可观测性的需求会受到特别强调。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p77, 78</div><div>07 / 13</div></div>
+</section>
+
+<!-- 08 运营责任阶梯 L14 timeline -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="p78 9.4 运营责任阶梯">
+  <div class="chrome"><div>时间线 · 运营责任与监控需求</div><div>08 / 13</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">随着运营责任外包，基础设施监控需求递减</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">裸机自管</div>
+          <p class="body-zh" style="margin-top:1vh">需要监控以太网端口计数器、硬盘性能统计、系统固件版本。大量低级监控。</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">IaaS 外包</div>
+          <p class="body-zh" style="margin-top:1vh">硬件级别操作外包给 IaaS 提供商。不再需要该级别的指标和聚合。监控需求减少。</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">PaaS/无服务器</div>
+          <p class="body-zh" style="margin-top:1vh">Heroku、AWS Lambda 等。可能只有很少（如果有的话）的传统监控解决方案。专注软件可观测性。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p78</div><div>08 / 13</div></div>
+</section>
+
+<!-- 09 例外 L3-a bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Statement" data-source="p78, 79 9.4.1 例外：不可忽视的基础设施监控">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">9.4.1 例外</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7.5vw,6.8rem);max-width:11em;letter-spacing:0">高阶基础设施指标是监控与可观测性之间的桥梁</h2>
+      <p class="lead-zh anim-item" style="margin-top:clamp(1.4rem,3vh,2.6rem);max-width:18em;opacity:.62">CPU 使用率、内存消耗、磁盘活动直接表明软件与底层基础设施的交互方式。如果这些指标可用，应作为可观测性方法的一部分来捕获。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p78, 79</div><div>09 / 13</div></div>
+</section>
+
+<!-- 10 真实案例 L9 三列 -->
+<section class="slide light" data-theme="light" data-screen-label="Evidence" data-source="p79, 80 9.4.2 真实案例">
+  <div class="chrome"><div>案例 · 9.4.2 真实案例</div><div>10 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">三种共存的真实模式</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">客户一</div>
+          <p class="body-zh">拥有丰富工具生态（Prometheus + Jaeger + APM）。切换到可观测性后整合了需求：软件工程师主要使用可观测性，中央运营团队仍用 Prometheus 监控基础设施。工程师仅在资源使用有疑问时参考 Prometheus，且不常见。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">客户二</div>
+          <p class="body-zh">相对较新的公司，主要利用无服务器功能和 SaaS 平台。几乎不运行自己的基础设施。从没有任何真正的监控开始，完全依靠应用程序工具和可观测性来理解和调试生产中的软件。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">客户三</div>
+          <p class="body-zh">成熟金融服务公司，数字化转型中。大量异构遗留基础设施和新建应用程序共存。旧应用保留基于指标的监控，新应用直接构建为可观测性原生。软件工程团队也开始在事件中捕获基础设施指标。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p79, 80</div><div>10 / 13</div></div>
+</section>
+
+<!-- 11 案例深入 L27 观点加例证 -->
+<section class="slide light" data-theme="light" data-screen-label="Insight" data-source="p79, 80 9.4.2 真实案例">
+  <div class="chrome"><div>洞察 · 案例启示</div><div>11 / 13</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">有意义的模式正在出现</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">整合而非叠加</div>
+          <p class="body-zh" style="margin-top:1vh">切换到基于可观测性的方法后，团队能够整合需求并减少共存系统的占用。监控和可观测性各归其位。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">从零构建</div>
+          <p class="body-zh" style="margin-top:1vh">没有遗留负担的组织可以从可观测性开始，不需要先搭建监控再切换。SaaS 和 PaaS 的使用让这条路更可行。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker" style="color:var(--accent);opacity:1">渐进迁移</div>
+          <p class="body-zh" style="margin-top:1vh">企业不会从淘汰稳定有效的监控方法中获得太多价值。新应用程序直接实现可观测性，旧系统保留现有监控，逐步过渡。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p79, 80</div><div>11 / 13</div></div>
+</section>
+
+<!-- 12 结论 L3-a bare -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p80 9.5 结论">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">9.5 结论</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(2.8rem,7vw,6.4rem);max-width:11em;letter-spacing:0">监控评估系统健康状况，可观测性评估软件健康状况</h2>
+      <p class="lead-zh anim-item" style="margin-top:clamp(1.4rem,3vh,2.6rem);max-width:18em;opacity:.62">每种解决方案到底需要多少，取决于底层基础设施的管理有多少外包给了云提供商</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p80</div><div>12 / 13</div></div>
+</section>
+
+<!-- 13 核心总结 L32 summary-num -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p75, 80 第9章">
+  <div class="chrome"><div>核心总结</div><div>13 / 13</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">监控适合系统级别：基础设施、运行时、操作约束。它针对已知故障模式做了优化，是被动的告警机制。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">可观测性适合应用程序级别：理解代码在客户手中的行为。它针对未知的未知做了优化，是主动的探索实践。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">软件是业务的核心差异化因素（变化频繁、服务客户），系统是支持软件运行所需的一切（变化缓慢、服务基础设施团队）。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">随着运营责任外包给云提供商（裸机→IaaS→PaaS），对基础设施监控的需求递减，可观测性的比重上升。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">高阶基础设施指标（CPU、内存、磁盘）是例外：它们直接影响软件性能，应作为可观测性方法的一部分来捕获。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p75, 80</div><div>13 / 13</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-obseng-09';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Meta-Meta-Prompting：让 AI Agent 真正工作的秘密</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1a2332;
+  --ink-rgb:    26,35,50;
+  --paper:      #faf9f5;
+  --paper-rgb:  250,249,245;
+  --accent:     #2c5fb8;
+  --accent-rgb: 44,95,184;
+  --muted:      #6b7180;
+
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3     { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+.stat-note  { font-family: var(--sans-zh); font-size: clamp(1.2rem, 1.35vw, 1.5rem); opacity: .6; margin-top: .8vh; }
+
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th,
+.data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: center;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td {
+  background: rgba(var(--ink-rgb), .045);
+}
+.slide.dark .data-table td {
+  background: rgba(var(--paper-rgb), .075);
+}
+.data-table.keyed td:first-child,
+.data-table.keyed th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+.data-table tr > *:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.data-table tr > *:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- ====== 01 封面 L1 ====== -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="Garry Tan / X 长文 2026-05-09" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">AI Architecture / Garry Tan</div>
+      <h1 class="display-zh anim-item" style="max-width:9em">让 AI Agent 真正工作的秘密</h1>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">不是聊天窗口，是操作系统。薄线束、厚技能、10 万页大脑的复利系统。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>Garry Tan / Y Combinator CEO</div>
+    <div>2026-05-09 / ~5000 词</div>
+  </div>
+</section>
+
+<!-- ====== 02 材料语境 L5 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Profile" data-source="引言 · Garry Tan 自述">
+  <div class="chrome"><div>语境 · 作者</div><div>02 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:11em">Garry Tan：YC CEO，凌晨两点也在写代码的 Builder</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker">身份</div><p class="body-zh">Y Combinator 现任 CEO，每年帮助成千上万创业者。工程师出身，坚持亲手构建系统。</p></div>
+        <div class="anim-item"><div class="kicker">开源</div><p class="body-zh">全套个人 AI 系统开源：GBrain（知识库）、GStack（87,000+ 星标）、OpenClaw/Hermes Agent（运行时）</p></div>
+        <div class="anim-item"><div class="kicker">主张</div><p class="body-zh">未来属于构建复利 AI 系统的个体，不属于使用企业集中式工具的用户。厚的技能，厚的代码，薄的线束。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>来源：Garry Tan X/Twitter</div><div>02 / 25</div></div>
+</section>
+
+<!-- ====== 03 文章脉络 L29 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="全文结构 · 九节推进">
+  <div class="chrome"><div>脉络 · 文章推进</div><div>03 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,4rem)">一篇从 Builder 视角展开的系统宣言</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,auto);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">01 引言</div><p class="body-zh">为什么凌晨两点还在敲代码：AI 重新还给他构建的快乐</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">02 书镜</div><p class="body-zh">系统逐章读书，映射到真实生活：佩玛丘卓 × 个人经历</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">03 迭代</div><p class="body-zh">V1 事实错误 → V2 跨模型验证 → V3 深度检索</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">04 Skillify</div><p class="body-zh">元技能：观察工作流，提取模式，生成可复用 skill</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">05 会议</div><p class="body-zh">Demis Hassabis 炉边谈话：系统在两分钟内准备好一切</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">06 大脑</div><p class="body-zh">10 万页结构化知识库，实体传播，每天自我更新</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">07 架构</div><p class="body-zh">Harness 薄 / Skills 厚 / 数据厚 / 代码厚 / 模型可换</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">08 复利</div><p class="body-zh">两个月前的 10 倍，每次交互都在增强系统</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">09 开始</div><p class="body-zh">选 Harness → 启大脑 → 做一件事 → Skillify → 持续迭代</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>推进顺序：引言 → 书镜 → Skillify → 会议 → 大脑 → 架构 → 复利 → 如何开始</div><div>03 / 25</div></div>
+</section>
+
+<!-- ====== 04 核心主张 L3-a 社论式 ====== -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="引言 · 从聊天窗口到操作系统的范式转移">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem);color:var(--accent);opacity:1">Paradigm Shift</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.6rem);max-width:10em;letter-spacing:0">AI 不是聊天窗口，是操作系统</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Garry Tan</div><div>04 / 25</div></div>
+</section>
+
+<!-- ====== 05 书镜机制 L24 摘录侧注 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="那本读懂我的书 · 书镜流程">
+  <div class="chrome"><div>Excerpt · 书镜</div><div>05 / 25</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        系统提取全书 22 章，对每章启动子 Agent：总结作者观点，映射到我的真实生活。
+        <cite>书镜 · 佩玛丘卓《当生命崩塌时》</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">不是泛泛的启发式总结，是精准映射。系统知道他的家庭背景、职业经历、凌晨两点在想什么、治疗师在攻克什么。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">输出 30,000 词。关于无根基的章节关联到了前一周跟某个创始人的对话。</p>
+    </div>
+  </div>
+  <div class="foot"><div>书镜 · 佩玛丘卓《当生命崩塌时》</div><div>05 / 25</div></div>
+</section>
+
+<!-- ====== 06 嘉宾观点 L11 ====== -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guest View" data-source="那本读懂我的书 · 书镜的价值判断">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1rem,2vh,1.6rem);color:var(--accent);opacity:1">Guest View</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em">一个收费 300 美元/小时的治疗师，读完这本书并把它应用到我的人生，40 个小时都做不完</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.62">Garry Tan · 因为他没有我的完整职业图谱、阅读历史、会议笔记和创始人关系全部加载并可交叉引用</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>书镜 · 价值判断</div><div>06 / 25</div></div>
+</section>
+
+<!-- ====== 07 迭代时间线 L14 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Timeline" data-source="书镜是如何通过迭代变好的 · V1→V2→V3">
+  <div class="chrome"><div>时间线 · 书镜迭代</div><div>07 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,4rem)">书镜的三次迭代</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">V1 初版</div>
+          <p class="body-zh" style="margin-top:1vh">效果极差。犯了三处事实错误：说他父母离婚了（他们没离），说他从小在香港长大（出生在加拿大）。严重损害信任。</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">V2 跨模型验证</div>
+          <p class="body-zh" style="margin-top:1vh">增加强制事实核查。Opus 4.7 查精确性，GPT-5.5 查缺失上下文，DeepSeek V4-Pro 查太空泛的内容。</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">V3 深度检索</div>
+          <p class="body-zh" style="margin-top:1vh">逐段大脑搜索。每一条引用真实大脑页面。准确到让人起鸡皮疙瘩：从真实会议笔记提取，而非通用原则合成。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>迭代路径：V1 事实错误 → V2 跨模型验证 → V3 GBrain 深度检索</div><div>07 / 25</div></div>
+</section>
+
+<!-- ====== 08 20+ 本书 L9 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Evidence" data-source="那本读懂我的书 · 已完成的 20+ 本书镜">
+  <div class="chrome"><div>证据 · 20+ 本书镜</div><div>08 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">已经对 20 多本书做了书镜，每一本都比上一本更丰富</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">哲学与智慧</div><p class="body-zh" style="margin-top:1vh">《悉达多》《荒原狼》《当生命崩塌时》《有限与无限的游戏》《你不知道自己是谁的禁忌》</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">科学与工程</div><p class="body-zh" style="margin-top:1vh">《科学与工程的艺术》《造梦机器》《你管别人怎么想》《万物简史》</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">人生与传记</div><p class="body-zh" style="margin-top:1vh">罗素自传、《设计你的人生》《天才儿童的戏剧》《海的礼物》《Amplified》</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>第二本镜子的输出知道第一本的内容，第二十本知道前十九本的全部</div><div>08 / 25</div></div>
+</section>
+
+<!-- ====== 09 Skillify L3-c 上下宣告 ====== -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="以技生技 · Skillify 元技能" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 元技能</div><div>09 / 25</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">Meta-Skill</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">Skillify 是元技能：用技能生成技能的技能</h2>
+      <p class="body-zh anim-item" style="max-width:20em;opacity:.62">当遇到需要重复执行的工作流，系统检查刚才发生了什么，提取可重复模式，写带触发条件和边界情况的 skill 文件，注册到 resolver</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Garry Tan · 递归自我改进在个人层面的最小可行实现</div><div>09 / 25</div></div>
+</section>
+
+<!-- ====== 10 Skillify 流程 L25 段落拆解 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="以技生技 · Skillify 循环">
+  <div class="chrome"><div>段落拆解 · Skillify</div><div>10 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">Skill 是可以组合的，改进一个 skill，所有工作流自动变好</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Fact</div><p class="body-zh" style="margin-top:1vh">书镜流程从第一次手工完成后被 skillify。会议准备流程也是注意到自己在每次通话前都在做同样的步骤后 skillify。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Point</div><p class="body-zh" style="margin-top:1vh">Skill 的组合即复杂度来源。书镜调用 brain-ops 做存储，enrich 做上下文，cross-modal-eval 做质量，pdf-generation 做输出。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div><p class="body-zh" style="margin-top:1vh">再也没有忘了在 prompt 里提这个边界情况这种事：skill 帮你记住了。这是隐性知识的显性化。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Skillify 循环：观察 → 提取 → 封装 → 注册 → 复用</div><div>10 / 25</div></div>
+</section>
+
+<!-- ====== 11 技能组合 L27 观点加例证 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="架构 · Skills 示例">
+  <div class="chrome"><div>观点 + 例证 · 技能组合</div><div>11 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:11em">每个 skill 是一个自包含的 Markdown 文件，专注做好一件事</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Meeting Ingestion</div><p class="body-zh" style="margin-top:1vh">每次会议后拉取转录，创建结构化摘要，遍历提到的每个人和公司，更新他们的大脑页面。实体传播才是真正的价值。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Enrich</div><p class="body-zh" style="margin-top:1vh">给一个人名，从五个来源拉取信息，合并成含职业轨迹、会议历史、关系上下文的完整大脑页面。每个声明都有引用来源。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Media Ingest</div><p class="body-zh" style="margin-top:1vh">处理视频、音频、PDF、截图、GitHub 仓库。转录内容，提取实体，归档到正确的大脑位置。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>超过 100 个 skill，每个编码了操作知识</div><div>11 / 25</div></div>
+</section>
+
+<!-- ====== 12 会议准备 L27 观点加例证 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Examples" data-source="那场已经自己准备好自己的会议 · Demis Hassabis">
+  <div class="chrome"><div>观点 + 例证 · 会议准备</div><div>12 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">系统准备的不是事实，而是角度</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">信息拉取</div><p class="body-zh" style="margin-top:1vh">Demis 完整大脑页面（数月积累）、AGI 时间线观点、Mallaby 传记亮点，两分钟内全部拉出。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">交叉引用</div><p class="body-zh" style="margin-top:1vh">与 Garry 公开 AI 观点的交叉比对，基于世界观重叠和分歧点的对话切入点。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">战略准备</div><p class="body-zh" style="margin-top:1vh">三套多跳推理演示脚本。不是更好的谷歌搜索，是使用累积上下文和战略目标所做的准备。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Demis Hassabis 炉边谈话 · YC</div><div>12 / 25</div></div>
+</section>
+
+<!-- ====== 13 实体传播 L24 摘录侧注 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="10 万页大脑 · 实体传播机制">
+  <div class="chrome"><div>Excerpt · 实体传播</div><div>13 / 25</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        每次会议后，系统遍历提到的每个人和公司，更新他们的大脑页面，标注讨论了什么。
+        <cite>实体传播 · 会议回写机制</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">这就是档案柜和神经系统的区别。档案柜存储东西，神经系统连接它们，标记变化，并把当前相关的内容推到面前。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">具体复利案例：下次再见同一个创始人时，系统已经准备好完整上下文包。</p>
+    </div>
+  </div>
+  <div class="foot"><div>10 万页大脑 · 实体传播</div><div>13 / 25</div></div>
+</section>
+
+<!-- ====== 14 大数字 L12 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Data" data-source="10 万页大脑 · 规模数字" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>数据 · 大脑规模</div><div>14 / 25</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="stat-num anim-item">100,000</div>
+    <h2 class="h2-zh anim-item" style="max-width:14em;margin-top:clamp(1rem,2vh,2rem)">结构化知识，每天自我更新</h2>
+    <p class="body-zh anim-item" style="max-width:22em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.6">Schema 很简单：顶部的编译真理，下方的只追加时间线，以及原始数据的边车文件</p>
+  </div>
+  <div class="foot" style="width:100%"><div>GBrain · 每天都在增长</div><div>14 / 25</div></div>
+</section>
+
+<!-- ====== 15 架构三层 L16 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="架构 · 五层技术栈">
+  <div class="chrome"><div>表格 · 架构全景</div><div>15 / 25</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:11em;margin:0 auto">五层技术栈</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>层级</th><th>组件</th><th>策略</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Harness</td><td>OpenClaw / Hermes Agent</td><td>几千行路由逻辑</td><td>只管路由，不知道书籍、会议、创始人</td></tr>
+          <tr><td>Skills</td><td>100+ Markdown 文件</td><td>每个专注一件事</td><td>组合产生复杂行为，skill 就是 prompt</td></tr>
+          <tr><td>Brain</td><td>GBrain 10 万页</td><td>每页持续更新</td><td>人物、公司、会议、书籍、想法</td></tr>
+          <tr><td>Code</td><td>脚本与 API 集成</td><td>转录、OCR、同步</td><td>喂养系统的管道</td></tr>
+          <tr><td>Models</td><td>Opus / GPT / DeepSeek / Llama</td><td>可互换</td><td>Skill 自己决定调用哪个模型</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>架构：薄的线束 + 厚的技能 + 厚的代码 + 厚的知识</div><div>15 / 25</div></div>
+</section>
+
+<!-- ====== 16 双张力 L30 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Tension" data-source="架构 · Harness 薄 vs Skills 厚">
+  <div class="chrome"><div>双张力 · 薄与厚</div><div>16 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto">同一系统的两个极端</h2>
+      <div class="grid-2-6-6">
+        <div class="anim-item" style="text-align:center">
+          <div class="kicker" style="color:var(--accent);opacity:1">Harness 是薄的</div>
+          <p class="lead-zh" style="margin-top:clamp(1rem,2vh,2rem)">几千行路由逻辑。它接收消息，判断哪个 skill 适用，然后派发。不知道任何关于书籍、会议或创始人的知识。</p>
+          <p class="body-zh" style="margin-top:clamp(1rem,2vh,1.6rem);opacity:.62">只是一个路由器</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="kicker" style="color:var(--accent);opacity:1">Skills 是厚的</div>
+          <p class="lead-zh" style="margin-top:clamp(1rem,2vh,2rem)">超过 100 个，每个是自包含 Markdown 文件。编码了一个新人类助理需要几个月才能学会的操作知识。</p>
+          <p class="body-zh" style="margin-top:clamp(1rem,2vh,1.6rem);opacity:.62">Skill 就是 prompt</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>架构哲学 · 薄线束 / 厚技能 / 厚代码</div><div>16 / 25</div></div>
+</section>
+
+<!-- ====== 17 模型对比 L16 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Table" data-source="架构 · 模型是可互换的">
+  <div class="chrome"><div>表格 · 模型策略</div><div>17 / 25</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:14em;margin:0 auto">模型只是引擎，其他一切才是整车</h2>
+      <table class="data-table keyed anim-item">
+        <thead>
+          <tr><th>模型</th><th>用途</th><th>特点</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Opus 4.7 1M</td><td>精确任务</td><td>高精确性，大上下文窗口</td></tr>
+          <tr><td>GPT-5.5</td><td>召回和穷举提取</td><td>上下文全面</td></tr>
+          <tr><td>DeepSeek V4-Pro</td><td>创意工作和第三方视角</td><td>捕捉太空泛的内容</td></tr>
+          <tr><td>Llama on Groq</td><td>速度优先</td><td>低延迟</td></tr>
+        </tbody>
+      </table>
+      <p class="body-zh anim-item" style="text-align:center;max-width:24em;margin:0 auto;opacity:.62">Skill 自己决定调用哪个模型做什么任务，Harness 不在乎</p>
+    </div>
+  </div>
+  <div class="foot"><div>问哪个模型最好，问错了问题</div><div>17 / 25</div></div>
+</section>
+
+<!-- ====== 18 线索词 L26 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Keyword" data-source="全文 · 关键词复利">
+  <div class="chrome"><div>线索词 · 复利</div><div>18 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <div style="text-align:center">
+        <div class="kicker anim-item" style="color:var(--accent);opacity:1">Keyword Trace</div>
+        <h2 class="display-zh anim-item" style="font-size:clamp(3rem,6vw,5.6rem)">复利</h2>
+      </div>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">知识复利</div><p class="body-zh">每场会议向大脑系统添加内容，每本书丰富下一本书的上下文。信息价值呈超线性增长。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">技能复利</div><p class="body-zh">每个新 skill 让下一个工作流更快。修复一次，所有未来书镜自动受益。改一个 skill，所有工作流自动变好。</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">系统复利</div><p class="body-zh">现在的系统是两个月前的 10 倍，两个月后再会是现在的 10 倍。100 个 cron 7×24 运行，系统每天自我丰富。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>全文贯穿的复利思想</div><div>18 / 25</div></div>
+</section>
+
+<!-- ====== 19 长判断 L3-b ====== -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="凌晨两点的 Builder · 复利系统" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>判断 · 复利</div><div>19 / 25</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-default" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">Compound System</div>
+      <h2 class="h1-zh anim-item" style="max-width:14em;text-align:center">这不是一个写作工具，不是一个搜索引擎，不是一个聊天机器人。这是一个真正运行的第二大脑。</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">拥有 10 万页、100+ skill、每天超过 100 个 cron 调度、积累了过去一年每一段职业关系、会议、书籍和想法的运行系统</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Garry Tan</div><div>19 / 25</div></div>
+</section>
+
+<!-- ====== 20 关键原话 L28 ====== -->
+<section class="slide light bare" data-theme="light" data-screen-label="Quote" data-source="凌晨两点的 Builder · 核心论点" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(2rem,4vh,3.6rem)">
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);text-align:left">
+        未来属于构建复利 AI 系统的个体，而不属于使用企业集中式 AI 工具的用户。
+        <cite>Garry Tan · 核心论点</cite>
+      </div>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">这个区别就是写日记和拥有一个神经系统的区别</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Garry Tan · 核心论点</div><div>20 / 25</div></div>
+</section>
+
+<!-- ====== 21 如何开始 L15 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="如何开始 · 四步构建个人 AI 系统">
+  <div class="chrome"><div>流程 · 如何开始</div><div>21 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">从零搭建你的个人 AI 系统</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 1</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:600">选 Harness</p>
+          <p class="body-zh" style="margin-top:.5vh">OpenClaw 或 Hermes Agent。保持它薄。Harness 只是一个路由器。</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 2</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:600">启大脑</p>
+          <p class="body-zh" style="margin-top:.5vh">用 GBrain 一条命令安装。先建一页，让它自己进化。</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 3</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:600">做一件事</p>
+          <p class="body-zh" style="margin-top:.5vh">写报告、研究一个人、分析投资组合。任何你真正关心的事。</p>
+        </div>
+        <div class="timeline-node anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Step 4</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:600">持续迭代</p>
+          <p class="body-zh" style="margin-top:.5vh">Skillify 提取模式，cross-modal eval 检查输出。六个月后无法复制。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>如何开始 · 不要从规划架构开始，从做一件具体的事开始</div><div>21 / 25</div></div>
+</section>
+
+<!-- ====== 22 双张力 L30 ====== -->
+<section class="slide light" data-theme="light" data-screen-label="Tension" data-source="教练的真心话 · Garry 的视角有特殊性">
+  <div class="chrome"><div>双张力 · Garry vs 普通人</div><div>22 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">两种现实同时成立</h2>
+      <div class="grid-2-6-6">
+        <div class="anim-item" style="text-align:center">
+          <div class="kicker" style="color:var(--accent);opacity:1">Garry 的优势</div>
+          <p class="lead-zh" style="margin-top:clamp(1rem,2vh,2rem)">YC CEO 每天有海量高质量会议和人际交互，这是 10 万页大脑的原材料优势。普通人日常交互密度远低于他，知识库积累速度会慢很多。</p>
+        </div>
+        <div class="anim-item" style="text-align:center">
+          <div class="kicker" style="color:var(--accent);opacity:1">普通人的机会</div>
+          <p class="lead-zh" style="margin-top:clamp(1rem,2vh,2rem)">方向是对的，重点不是模仿他的规模，而是建立自己的积累习惯。技术栈全开源，不需要从零造轮子。关键是开始用。哪怕只做一个最小的书镜。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>教练的真心话 · 潘达标注</div><div>22 / 25</div></div>
+</section>
+
+<!-- ====== 23 核心总结 1 L32 ====== -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="核心总结 · 全文最有获得感的观点 01-04">
+  <div class="chrome"><div>核心总结 1/2</div><div>23 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">AI Agent 不是聊天窗口，是操作系统。薄线束负责路由，厚技能负责执行，10 万页大脑负责记忆和连接。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">书镜的本质不是 AI 帮你读书，是用你的全部个人上下文去碰撞书中观点。30,000 词的精准映射，一个收费治疗师 40 小时都做不完。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">Skillify 是元技能：观察工作流，提取可重复模式，封装为带触发条件和边界情况的 skill 文件。这实现了递归自我改进在个人层面的最小可行版本。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">实体传播是大脑的复利机制：每次会议后自动更新每个被提及人物和公司的知识页。档案柜存储东西，神经系统连接它们并标记变化。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>核心总结 1/2 · 来源：Garry Tan 长文</div><div>23 / 25</div></div>
+</section>
+
+<!-- ====== 24 核心总结 2 L32 ====== -->
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="核心总结 · 全文最有获得感的观点 05-08">
+  <div class="chrome"><div>核心总结 2/2</div><div>24 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">05</div>
+        <p class="body-zh">模型是可互换的引擎，Skill 自己决定调用哪个模型。Opus 做精确性，GPT 做召回，DeepSeek 查通用化，Llama 追求速度。问哪个模型最好，问错了问题。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">06</div>
+        <p class="body-zh">V1 必然有错误，跳过事实核查会严重损害信任。Garry 的书镜 V1 犯了三处关于自己家庭的事实错误。跨模型验证（cross-modal eval）是强制步骤。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">07</div>
+        <p class="body-zh">从一件真正关心的事开始，不要从规划架构开始。Skill 一开始会平庸，使用它、读它产出的内容、修正它。六个月后，你拥有的东西是任何聊天机器人都无法复制的。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">08</div>
+        <p class="body-zh">厚的技能，厚的代码，薄的线束。LLM 本身只是一台引擎，你可以造自己的整车。开源全套：GBrain + GStack + 100+ skills，github.com/garrytan/gbrain。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>核心总结 2/2 · 来源：Garry Tan 长文</div><div>24 / 25</div></div>
+</section>
+
+<!-- ====== 25 结尾回扣 L21 ====== -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Closing" data-source="凌晨两点的 Builder · 结尾余味" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(2rem,4vh,3.6rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">Build</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em;text-align:center">开始造吧</h2>
+      <p class="lead-zh anim-item" style="max-width:22em;opacity:.62">本文描述的每一件事，全部开源免费。github.com/garrytan/gbrain</p>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.45;margin-top:clamp(1rem,2vh,1.6rem)">第一件事会很糟糕。第一百件值得托付日程、收件箱、会议准备和阅读清单。复利曲线是真的。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Garry Tan · Y Combinator CEO</div><div>25 / 25</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  const STORAGE_KEY = 'slides-progress-meta-meta';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

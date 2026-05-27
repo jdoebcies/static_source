@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>基础训练三 深究原因，深挖图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #1b2838;
+  --ink-rgb:    27,40,56;
+  --paper:      #faf8f3;
+  --paper-rgb:  250,248,243;
+  --accent:     #2d7d8a;
+  --accent-rgb: 45,125,138;
+  --muted:      #8b8580;
+  --serif-zh:   "Noto Serif SC", "Source Serif 4", serif;
+  --sans-zh:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:       "IBM Plex Mono", monospace;
+  --w-quote:     min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note:      min(100%, 64rem);
+  --w-default:   min(100%, 76rem);
+  --w-wide:      min(100%, 92rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
+
+#deck {
+  position: fixed; inset: 0;
+  width: 10000vw; height: 100vh;
+  display: flex; flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10; will-change: transform;
+}
+.slide {
+  width: 100vw; height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+}
+.slide.dark  { background: var(--ink);   color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink);  }
+
+.slide.bare .chrome { display: none; }
+.slide.bare .foot { opacity: .35; }
+
+.slide-body.top    { justify-content: flex-start; padding-top: clamp(2rem, 6vh, 4.5rem); }
+.slide-body.bottom { justify-content: flex-end;   padding-bottom: clamp(2rem, 6vh, 4.5rem); }
+
+.display-zh   { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem);   line-height: 1.08; letter-spacing: 0; }
+.h1-zh        { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh        { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.6rem);  line-height: 1.28; }
+.lead-zh      { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem);   line-height: 1.5; }
+.body-zh      { font-family: var(--sans-zh);  font-weight: 400; font-size: clamp(1.5rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.kicker       { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .5; margin-bottom: 1vh; }
+.meta         { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+
+.w-quote     { width: var(--w-quote);     margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note      { width: var(--w-note);      margin-left: auto; margin-right: auto; }
+.w-default   { width: var(--w-default);   margin-left: auto; margin-right: auto; }
+.w-wide      { width: var(--w-wide);      margin-left: auto; margin-right: auto; }
+.center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.section-title {
+  max-width: 11em;
+  margin: 0 auto;
+  text-align: center;
+}
+.soft-note {
+  max-width: 22em;
+  color: rgba(var(--ink-rgb), .52);
+}
+.slide.dark .soft-note {
+  color: rgba(var(--paper-rgb), .6);
+}
+
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); flex: 1; min-height: 0; }
+.grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+
+.callout {
+  font-family: var(--serif-zh); font-weight: 400;
+  font-size: clamp(2rem, 3.5vw, 3.6rem); line-height: 1.45;
+  border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.75rem);
+  max-width: 14em;
+}
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .6; font-family: var(--mono); }
+
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before {
+  content:""; display: block;
+  width: clamp(2.4rem, 4em, 4.8rem); height: 1px;
+  background: currentColor; opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+.callout-mark {
+  border-left: none;
+  padding-left: 0;
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content:""; position: absolute; top: 0; left: 0;
+  width:  clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent); opacity: .7;
+}
+
+.timeline-row { position: relative; }
+.timeline-row::before {
+  content:""; position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%; right: 6%; height: 1px;
+  background: rgba(var(--ink-rgb), .1);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .1); }
+.timeline-row.thick::before { height: 1.5px; opacity: .8; }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta { padding-right: clamp(.5rem, 1vw, 1rem); display: inline-block; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent); opacity: .85;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; }
+.stat-num   { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(5rem, 13vw, 12rem); line-height: 1; color: var(--accent); }
+.stat-label { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .12em; opacity: .5; margin-top: .5vh; }
+
+/* ===== Deep-Dig Diagram CSS ===== */
+.dd-root {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(1.2rem, 2.5vh, 2rem);
+}
+.dd-box {
+  border: 2px solid var(--accent);
+  color: var(--ink);
+  background: rgba(var(--accent-rgb), .06);
+  padding: clamp(.8rem, 1.5vh, 1.2rem) clamp(1.2rem, 2.5vw, 2rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1rem, 1.2vw, 1.35rem);
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  border-radius: 3px;
+  max-width: 18em;
+}
+.slide.dark .dd-box {
+  color: var(--paper);
+  background: rgba(var(--accent-rgb), .15);
+  border-color: rgba(var(--accent-rgb), .5);
+}
+.dd-box.root {
+  font-size: clamp(1.1rem, 1.35vw, 1.55rem);
+  font-weight: 600;
+  border-width: 2.5px;
+}
+.dd-connector {
+  display: flex; align-items: flex-start; justify-content: center;
+  position: relative;
+  min-height: clamp(1.8rem, 3vh, 2.6rem);
+}
+.dd-connector::before {
+  content: ""; position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 1.5px; height: 50%;
+  background: var(--accent);
+}
+.dd-arrow {
+  color: var(--accent);
+  font-family: var(--serif-zh);
+  font-size: clamp(1rem, 1.5vw, 1.3rem);
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  padding: 0 .4rem;
+}
+.slide.dark .dd-arrow { background: var(--ink); }
+.dd-children {
+  display: flex; gap: clamp(1rem, 2.5vw, 2.5rem);
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+.dd-children::before {
+  content: ""; position: absolute;
+  top: 0; left: 0; right: 0; height: 0;
+  border-top: 1.5px solid var(--accent);
+}
+.slide.dark .dd-children::before {
+  border-top-color: rgba(var(--accent-rgb), .5);
+}
+.dd-child {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(.6rem, 1.2vh, 1rem);
+  position: relative;
+  z-index: 1;
+  padding-top: clamp(1rem, 2vh, 1.6rem);
+}
+.dd-child::before {
+  content: ""; position: absolute;
+  top: 0; left: 50%; width: 1.5px; height: clamp(1rem, 2vh, 1.6rem);
+  background: var(--accent);
+}
+.slide.dark .dd-child::before {
+  background: rgba(var(--accent-rgb), .5);
+}
+.dd-child .dd-box {
+  font-size: clamp(.9rem, 1.1vw, 1.2rem);
+}
+.dd-sub-branch {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(.4rem, .8vh, .6rem);
+}
+.dd-sub-children {
+  display: flex; gap: clamp(.6rem, 1.5vw, 1.2rem);
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  padding-top: clamp(.8rem, 1.5vh, 1.2rem);
+}
+.dd-sub-children::before {
+  content: ""; position: absolute;
+  top: 0; left: 0; right: 0; height: 0;
+  border-top: 1px solid rgba(var(--accent-rgb), .45);
+}
+.dd-sub-box {
+  border: 1.5px solid rgba(var(--accent-rgb), .5);
+  color: var(--ink);
+  background: rgba(var(--accent-rgb), .04);
+  padding: clamp(.5rem, 1vh, .8rem) clamp(.8rem, 1.5vw, 1.2rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(.82rem, 1vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+  border-radius: 3px;
+  max-width: 14em;
+  position: relative;
+  z-index: 1;
+}
+.slide.dark .dd-sub-box {
+  color: var(--paper);
+  background: rgba(var(--accent-rgb), .08);
+  border-color: rgba(var(--accent-rgb), .35);
+}
+.dd-single-line { display: flex; align-items: center; justify-content: center; gap: .3rem; }
+.dd-label-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: clamp(.65rem, .72vw, .78rem);
+  letter-spacing: .1em;
+  color: var(--accent);
+  border: 1px solid rgba(var(--accent-rgb), .4);
+  padding: .15em .6em;
+  border-radius: 2px;
+}
+.dd-group-label {
+  font-family: var(--mono);
+  font-size: clamp(.7rem, .78vw, .85rem);
+  letter-spacing: .1em;
+  color: var(--accent);
+  opacity: .8;
+  margin-top: clamp(.6rem, 1.2vh, 1rem);
+  text-align: center;
+}
+
+/* ===== Cycle diagram ===== */
+.cycle-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(.6rem, 1.2vw, 1rem);
+  flex-wrap: wrap;
+}
+.cycle-arrow {
+  font-family: var(--serif-zh);
+  font-size: clamp(1.2rem, 1.8vw, 1.6rem);
+  color: var(--accent);
+}
+
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; flex-shrink:0; }
+.foot   { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; flex-shrink:0; }
+
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1)  { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2)  { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3)  { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
+.slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- 01 封面 L1 bare -->
+<section class="slide dark active bare" data-theme="dark" data-screen-label="Cover" data-source="p73 标题页" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">基礎訓練三</div>
+      <h1 class="display-zh anim-item" style="max-width:6em">深究原因<br>深挖图</h1>
+      <p class="lead-zh anim-item" style="max-width:20em;opacity:.62">掌握要因，通过细分原因进行思考</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%">
+    <div>图形思考</div>
+    <div>p73-89</div>
+  </div>
+</section>
+
+<!-- 02 L3-a 社论式 bare -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p74 要因是什么">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">简化思维的秘诀 3</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,7vw,7rem);max-width:10em;letter-spacing:0">成功和失败的背后不止有一个要因</h2>
+      <p class="body-zh anim-item soft-note" style="margin-top:clamp(1.2rem,2.5vh,2rem);max-width:18em">而是有许多互相作用的原因。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p74 掌握要因</div><div>02 / 22</div></div>
+</section>
+
+<!-- 03 概念：要因与深挖图 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Concept" data-source="p74 要因概念">
+  <div class="chrome"><div>概念 · 要因与深挖图</div><div>03 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,4vh,3rem)">
+      <div class="anim-item" style="display:flex;align-items:center;gap:clamp(1.5rem,3vw,3rem)">
+        <div style="flex:0 0 auto;width:clamp(16rem,28vw,22rem);display:flex;justify-content:center">
+          <div class="dd-root">
+            <div class="dd-box root">为什么？</div>
+            <div class="dd-connector"><span class="dd-arrow">▼</span></div>
+            <div class="dd-children" style="flex-direction:column;align-items:center;border-top:none">
+              <div class="dd-child" style="padding-top:0;">
+                <div class="dd-box">要因</div>
+              </div>
+            </div>
+            <p class="body-zh anim-item soft-note" style="font-size:clamp(.9rem,1vw,1.1rem);max-width:16em;text-align:center;margin-top:clamp(1rem,2vh,1.6rem)">当事件发生的理由不止一个时，使用要因一词</p>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:clamp(1rem,2vh,1.5rem)">
+          <p class="lead-zh anim-item" style="max-width:18em">在寻找要因时，可以使用深挖图。</p>
+          <p class="body-zh anim-item" style="max-width:18em;opacity:.7">如果能够准确分析要因，就能够想出多种应对方法。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p74 要因概念</div><div>03 / 22</div></div>
+</section>
+
+<!-- 04 A商业公司 深挖图 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p74 A商业公司深挖图">
+  <div class="chrome"><div>示例 · A商业公司</div><div>04 / 22</div></div>
+  <div class="slide-body">
+    <div class="dd-root w-default">
+      <div class="dd-box root anim-item">A商业公司快速发展的要因</div>
+      <div class="dd-connector anim-item"><span class="dd-arrow">▼</span></div>
+      <div class="dd-children anim-item">
+        <div class="dd-child">
+          <div class="dd-box">竞争公司<br>实力较弱</div>
+        </div>
+        <div class="dd-child">
+          <div class="dd-box">优秀人才<br>较多</div>
+        </div>
+        <div class="dd-child">
+          <div class="dd-box">拥有丰富的<br>人脉和社交关系</div>
+        </div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="margin-top:clamp(1.6rem,3vh,2.4rem);max-width:28em;text-align:center">每个要因都可以继续深挖，找到自己公司可参考的方向</p>
+    </div>
+  </div>
+  <div class="foot"><div>p74-75 A商业公司示例</div><div>04 / 22</div></div>
+</section>
+
+<!-- 05 L24 摘录侧注 可控因素 -->
+<section class="slide light" data-theme="light" data-screen-label="Excerpt" data-source="p74 可控因素">
+  <div class="chrome"><div>Excerpt · 可控因素</div><div>05 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Excerpt</div>
+      <div class="callout callout-mark" style="max-width:14em;color:var(--ink);margin-top:clamp(1rem,2vh,1.6rem)">
+        优秀人才较多、拥有丰富的人脉和社交关系是可控因素，不是A商业公司的特权。
+        <cite>p74 要因分析</cite>
+      </div>
+    </div>
+    <div class="anim-item" style="padding-left:clamp(1rem,3vw,3rem)">
+      <div class="kicker" style="color:var(--accent);opacity:1">Side Note</div>
+      <p class="lead-zh" style="max-width:18em">区分可控因素与外部条件，是把深挖图转化为实际行动的关键。</p>
+      <p class="body-zh" style="max-width:18em;margin-top:clamp(1rem,2vh,1.6rem)">通过分析优秀人才这一项，可以找到人事录用、人才培养、品牌建设等具体问题。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p74-75 可控与非可控</div><div>05 / 22</div></div>
+</section>
+
+<!-- 06 L3-c 上下宣告 课程5 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p76 课程5" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程 5 · 问题练习</div><div>06 / 22</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Question</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em">一直加班的要因是什么？</h2>
+      <p class="body-zh anim-item" style="max-width:24em;opacity:.62">要想知道怎样才能不加班，就必须弄清楚为什么会加班。打破沙锅问到底。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p76 课程5</div><div>06 / 22</div></div>
+</section>
+
+<!-- 07 加班原因二分法图解 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Diagram" data-source="p76-77 加班原因二分法">
+  <div class="chrome"><div>图解 · 加班二分法</div><div>07 / 22</div></div>
+  <div class="slide-body">
+    <div class="dd-root w-default">
+      <div class="dd-box root anim-item">一直加班</div>
+      <div class="dd-connector anim-item"><span class="dd-arrow">▼</span></div>
+      <div class="dd-children anim-item">
+        <div class="dd-child">
+          <div class="dd-box">想下班却<br>无法下班</div>
+          <div class="dd-sub-children" style="margin-top:clamp(.6rem,1.2vh,1rem)">
+            <div class="dd-sub-box">上司同事<br>都没下班</div>
+            <div class="dd-sub-box">当天工作<br>没做完</div>
+            <div class="dd-sub-box">要留在公司<br>待命</div>
+          </div>
+        </div>
+        <div class="dd-child">
+          <div class="dd-box">可以下班<br>但不想下班</div>
+          <div class="dd-sub-children" style="margin-top:clamp(.6rem,1.2vh,1rem)">
+            <div class="dd-sub-box">想赚<br>加班费</div>
+            <div class="dd-sub-box">不想回家<br>面对琐事</div>
+            <div class="dd-sub-box">喜欢公司<br>的氛围</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p76-77 加班原因</div><div>07 / 22</div></div>
+</section>
+
+<!-- 08 L25 段落拆解 为什么工作做不完 -->
+<section class="slide light" data-theme="light" data-screen-label="Deconstruct" data-source="p77 步骤2">
+  <div class="chrome"><div>段落拆解 · 工作做不完</div><div>08 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">对于工作没做完这一项，还可以继续探究更深层次的原因。</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">方法：重复Q&A，针对每一项继续追问为什么。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">工作做不完有两种可能：所分配工作量过多，或工作量合理但工作效率不高。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">不同的深层原因对应完全不同的解法，不能停留在表面。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p77-78 步骤2</div><div>08 / 22</div></div>
+</section>
+
+<!-- 09 加班深挖图整合 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p79 步骤3整合">
+  <div class="chrome"><div>图解 · 加班深挖图整合</div><div>09 / 22</div></div>
+  <div class="slide-body">
+    <div class="dd-root w-wide" style="gap:clamp(1rem,2vh,1.5rem)">
+      <div class="dd-box root anim-item" style="font-size:clamp(1rem,1.2vw,1.3rem)">一直加班</div>
+      <div class="dd-connector anim-item"><span class="dd-arrow">▼</span></div>
+      <div class="dd-children anim-item" style="gap:clamp(1.5rem,3vw,3rem)">
+        <div class="dd-child">
+          <div class="dd-box" style="font-size:.95rem">想下班无法下班</div>
+          <div class="dd-sub-children" style="gap:clamp(.4rem,.8vw,.8rem)">
+            <div class="dd-sub-box">上司同事<br>没下班</div>
+            <div class="dd-sub-box" style="border-width:2px;border-color:var(--accent)">工作<br>没做完</div>
+            <div class="dd-sub-box">公司<br>待命</div>
+          </div>
+          <div class="dd-sub-children" style="gap:clamp(.3rem,.6vw,.6rem);border-top:none;padding-top:0">
+            <div class="dd-sub-box" style="font-size:clamp(.7rem,.85vw,.9rem)">工作量过多</div>
+            <div class="dd-sub-box" style="font-size:clamp(.7rem,.85vw,.9rem);border-width:2px;border-color:var(--accent)">工作效率低</div>
+          </div>
+        </div>
+        <div class="dd-child">
+          <div class="dd-box" style="font-size:.95rem">可以下班不想下班</div>
+          <div class="dd-sub-children" style="gap:clamp(.4rem,.8vw,.8rem)">
+            <div class="dd-sub-box">想赚<br>加班费</div>
+            <div class="dd-sub-box">不想回家<br>面对琐事</div>
+            <div class="dd-sub-box">喜欢公司<br>氛围</div>
+          </div>
+          <div class="dd-sub-children" style="gap:clamp(.3rem,.6vw,.6rem);border-top:none;padding-top:0">
+            <div class="dd-sub-box" style="font-size:clamp(.7rem,.85vw,.9rem)">工资少</div>
+            <div class="dd-sub-box" style="font-size:clamp(.7rem,.85vw,.9rem)">想赚更多钱</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p78-79 加班深挖图整合</div><div>09 / 22</div></div>
+</section>
+
+<!-- 10 L27 观点加例证 职场问题vs个人问题 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Examples" data-source="p79-80 整合分析">
+  <div class="chrome"><div>分析 · 二分框架</div><div>10 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">一直加班的要因由职场问题和个人问题两个方面构成</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">职场问题</div>
+          <p class="body-zh" style="margin-top:1vh">上司同事都没下班、公司待命、工作量过多，属于职场层面的原因。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">个人问题</div>
+          <p class="body-zh" style="margin-top:1vh">想赚加班费、不想回家、喜欢公司氛围，属于个人层面的原因。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">待深挖</div>
+          <p class="body-zh" style="margin-top:1vh">工作效率低暂时无法确定属于职场还是个人问题，需要继续深挖。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p79-80 整合分析</div><div>10 / 22</div></div>
+</section>
+
+<!-- 11 L3-c 分支规则 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p80 分支规则" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>规则 · 深挖图</div><div>11 / 22</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">必须</div>
+      <h2 class="h1-zh anim-item" style="max-width:10em">一个条目必须分解成多个分支，直到无法继续分解为止</h2>
+      <p class="body-zh anim-item" style="max-width:20em;opacity:.62">无法分解成多个分支时，整理为一个条目以减少不必要的信息。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p80 深挖图规则</div><div>11 / 22</div></div>
+</section>
+
+<!-- 12 分支规则图解 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p80 分支规则图">
+  <div class="chrome"><div>图解 · 分支规则</div><div>12 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2.5rem,5vh,4rem)">
+      <div class="anim-item" style="display:flex;align-items:center;gap:clamp(1.5rem,3vw,3rem);justify-content:center">
+        <div class="dd-label-tag" style="font-size:clamp(.8rem,.9vw,1rem)">✅ 正确</div>
+        <div class="dd-root" style="gap:clamp(.6rem,1vh,.8rem)">
+          <div class="dd-box" style="font-size:.9rem;padding:.5em 1em">A</div>
+          <div class="dd-connector" style="min-height:clamp(1rem,1.8vh,1.4rem)"><span class="dd-arrow" style="font-size:.8rem">▼</span></div>
+          <div class="dd-children" style="gap:clamp(.6rem,1vw,1rem)">
+            <div class="dd-child" style="padding-top:clamp(.6rem,1vh,.8rem)"><div class="dd-box" style="font-size:.8rem;padding:.4em .8em">B</div></div>
+            <div class="dd-child" style="padding-top:clamp(.6rem,1vh,.8rem)"><div class="dd-box" style="font-size:.8rem;padding:.4em .8em">C</div></div>
+            <div class="dd-child" style="padding-top:clamp(.6rem,1vh,.8rem)"><div class="dd-box" style="font-size:.8rem;padding:.4em .8em">D</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="anim-item" style="display:flex;align-items:center;gap:clamp(1.5rem,3vw,3rem);justify-content:center">
+        <div class="dd-label-tag" style="font-size:clamp(.8rem,.9vw,1rem);opacity:.6">❌ 错误</div>
+        <div class="dd-root" style="gap:clamp(.6rem,1vh,.8rem);opacity:.5">
+          <div class="dd-box" style="font-size:.9rem;padding:.5em 1em;border-style:dashed">A</div>
+          <div class="dd-connector" style="min-height:clamp(1rem,1.8vh,1.4rem)"><span class="dd-arrow" style="font-size:.8rem;opacity:.5">▼</span></div>
+          <div style="text-align:center">
+            <div class="dd-box" style="font-size:.8rem;padding:.4em .8em;border-style:dashed;display:inline-block">B（仅一个分支）</div>
+          </div>
+        </div>
+        <p class="body-zh anim-item soft-note" style="max-width:14em;font-size:clamp(.9rem,1vw,1.1rem)">合并为一个条目，减少不必要信息</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p80 分支规则</div><div>12 / 22</div></div>
+</section>
+
+<!-- 13 L3-c 课程6 USJ -->
+<section class="slide dark" data-theme="dark" data-screen-label="Statement" data-source="p82 课程6" style="text-align:center;align-items:center">
+  <div class="chrome" style="width:100%"><div>课程 6 · 商务模拟</div><div>13 / 22</div></div>
+  <div class="slide-body" style="align-items:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Case Study</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em">日本环球影城（USJ）复兴的要因</h2>
+      <p class="body-zh anim-item" style="max-width:22em;opacity:.62">电影主题公园，客源以电影粉丝为主受众有限；位于关西市场规模较小；票价远低于行业标准但涨价有客流风险。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p82 课程6</div><div>13 / 22</div></div>
+</section>
+
+<!-- 14 USJ深挖图 第一步 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p82-83 步骤1">
+  <div class="chrome"><div>图解 · USJ要因</div><div>14 / 22</div></div>
+  <div class="slide-body">
+    <div class="dd-root w-default">
+      <div class="dd-box root anim-item">USJ经营状况不佳</div>
+      <div class="dd-connector anim-item"><span class="dd-arrow">▼</span></div>
+      <div class="dd-children anim-item">
+        <div class="dd-child">
+          <div class="dd-box">客流量<br>较少</div>
+        </div>
+        <div class="dd-child">
+          <div class="dd-box">与业内标准相比<br>票价较低</div>
+        </div>
+      </div>
+      <p class="body-zh anim-item soft-note" style="margin-top:clamp(1.4rem,2.5vh,2rem);text-align:center;max-width:24em">步骤1：先找出经营状况不佳的两大要因</p>
+    </div>
+  </div>
+  <div class="foot"><div>p82-83 步骤1</div><div>14 / 22</div></div>
+</section>
+
+<!-- 15 L25 客流量少两大原因 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Deconstruct" data-source="p83 步骤2">
+  <div class="chrome"><div>段落拆解 · 客流量</div><div>15 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">客流量较少的原因有两层，每一层都需要不同的对策。</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Fact</div>
+          <p class="body-zh" style="margin-top:1vh">USJ的电影主题公园定位使客源局限于电影粉丝，受众面狭窄。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Point</div>
+          <p class="body-zh" style="margin-top:1vh">所在地位于关西，与关东相比市场规模较小，是地理约束。</p>
+        </div>
+        <div class="anim-item">
+          <div class="meta" style="color:var(--accent);opacity:1">Aftertaste</div>
+          <p class="body-zh" style="margin-top:1vh">同样分析票价：东京迪士尼已成为行业价格标准，涨价有客流减少的风险。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p83-84 步骤2</div><div>15 / 22</div></div>
+</section>
+
+<!-- 16 USJ深挖图整合 -->
+<section class="slide light" data-theme="light" data-screen-label="Diagram" data-source="p84 步骤3整合">
+  <div class="chrome"><div>图解 · USJ深挖图</div><div>16 / 22</div></div>
+  <div class="slide-body">
+    <div class="dd-root w-wide" style="gap:clamp(.8rem,1.5vh,1.2rem)">
+      <div class="dd-box root anim-item" style="font-size:clamp(.95rem,1.1vw,1.2rem)">USJ经营状况不佳</div>
+      <div class="dd-connector anim-item" style="min-height:clamp(1rem,1.8vh,1.4rem)"><span class="dd-arrow">▼</span></div>
+      <div class="dd-children anim-item" style="gap:clamp(1.5rem,3vw,3rem)">
+        <div class="dd-child">
+          <div class="dd-box">客流量较少</div>
+          <div class="dd-sub-children" style="gap:clamp(.5rem,1vw,.8rem)">
+            <div class="dd-sub-box">客源只有电影粉丝<br>受众面狭窄</div>
+            <div class="dd-sub-box">所在地位于关西<br>市场规模较小</div>
+          </div>
+        </div>
+        <div class="dd-child">
+          <div class="dd-box">票价较低</div>
+          <div class="dd-sub-children" style="gap:clamp(.5rem,1vw,.8rem)">
+            <div class="dd-sub-box">东京迪士尼是<br>业内价格标准</div>
+            <div class="dd-sub-box">涨价会带来<br>客流减少的风险</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p84 步骤3整合</div><div>16 / 22</div></div>
+</section>
+
+<!-- 17 L27 USJ对策良性循环 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Examples" data-source="p85 对策与良性循环">
+  <div class="chrome"><div>对策 · USJ良性循环</div><div>17 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item section-title">掌握了要因，就能够找到相应的对策</h2>
+      <div class="grid-3">
+        <div class="anim-item">
+          <div class="kicker">实际对策</div>
+          <p class="body-zh" style="margin-top:1vh">USJ已与海贼王等热门动漫展开合作，吸引更广泛客源。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">连锁反应</div>
+          <p class="body-zh" style="margin-top:1vh">提高顾客满意度后，可以顺利提高票价，从而增加收入。</p>
+        </div>
+        <div class="anim-item">
+          <div class="kicker">良性循环</div>
+          <p class="body-zh" style="margin-top:1vh">收入增加后可投资新项目，形成：扩客源→提票价→增收→再投资的良性循环。</p>
+        </div>
+      </div>
+      <!-- Cycle diagram -->
+      <div class="anim-item" style="display:flex;align-items:center;justify-content:center;gap:clamp(.6rem,1.2vw,1rem);flex-wrap:wrap;margin-top:clamp(1rem,2vh,1.4rem)">
+        <div class="dd-box" style="font-size:.85rem;padding:.4em 1em">扩客源</div>
+        <span class="cycle-arrow">→</span>
+        <div class="dd-box" style="font-size:.85rem;padding:.4em 1em">提票价</div>
+        <span class="cycle-arrow">→</span>
+        <div class="dd-box" style="font-size:.85rem;padding:.4em 1em">增收</div>
+        <span class="cycle-arrow">→</span>
+        <div class="dd-box" style="font-size:.85rem;padding:.4em 1em">再投资</div>
+        <span class="cycle-arrow">↻</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p85 对策良性循环</div><div>17 / 22</div></div>
+</section>
+
+<!-- 18 L29 文章脉络 深挖图三步法 -->
+<section class="slide light" data-theme="light" data-screen-label="Flow" data-source="p86 理解顺序">
+  <div class="chrome"><div>脉络 · 深挖图三步法</div><div>18 / 22</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,4vh,3.5rem)">从问题到对策：深挖图的完整推进方式</h2>
+      <div class="timeline-row thick" style="display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">步骤1</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:600">思考原因</p>
+          <p class="body-zh soft-note" style="font-size:clamp(.9rem,1vw,1.05rem);margin-top:.6vh">列出所有可能的要因，不做筛选和判断</p>
+        </div>
+        <div class="timeline-node anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">步骤2</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:600">重复Q&A</p>
+          <p class="body-zh soft-note" style="font-size:clamp(.9rem,1vw,1.05rem);margin-top:.6vh">针对每一项追问为什么，直到不能继续分解</p>
+        </div>
+        <div class="timeline-node anim-item" style="text-align:center">
+          <div class="meta" style="color:var(--accent);opacity:1">步骤3</div>
+          <p class="body-zh" style="margin-top:1vh;font-weight:600">整合成一张图</p>
+          <p class="body-zh soft-note" style="font-size:clamp(.9rem,1vw,1.05rem);margin-top:.6vh">整体考虑，重新寻找更深层次的关联</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p86 理解顺序</div><div>18 / 22</div></div>
+</section>
+
+<!-- 19 L3-a 总结 深挖图理解要点 -->
+<section class="slide light bare" data-theme="light" data-screen-label="Statement" data-source="p86 总结">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">总结 · 熟练使用深挖图</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,6.5vw,6.5rem);max-width:10em;letter-spacing:0">通过细分原因进行思考，一直分解到不能细分为止</h2>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p86 总结</div><div>19 / 22</div></div>
+</section>
+
+<!-- 20 L5 必胜小技巧 + 理解要点 -->
+<section class="slide dark" data-theme="dark" data-screen-label="Key Rules" data-source="p86 必胜小技巧">
+  <div class="chrome"><div>要点 · 深挖图规则</div><div>20 / 22</div></div>
+  <div class="slide-body">
+    <div class="note-stack" style="gap:clamp(2.5rem,5vh,4rem)">
+      <div class="anim-item" style="text-align:center">
+        <div class="kicker" style="color:var(--accent);opacity:1">理解要点</div>
+        <p class="lead-zh" style="max-width:20em;margin:clamp(.8rem,1.5vh,1.2rem) auto 0">通过细分原因进行思考</p>
+        <p class="body-zh soft-note" style="max-width:20em;margin:clamp(.6rem,1vh,.8rem) auto 0">一直分解到不能继续细分为止</p>
+      </div>
+      <div class="anim-item" style="text-align:center">
+        <div class="kicker" style="color:var(--accent);opacity:1">必胜小技巧</div>
+        <p class="lead-zh" style="max-width:16em;margin:clamp(.8rem,1.5vh,1.2rem) auto 0">向下层细分时一定要有多个分支</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p86 总结</div><div>20 / 22</div></div>
+</section>
+
+<!-- 21 L30 双张力 逻辑 vs 感性 -->
+<section class="slide light" data-theme="light" data-screen-label="Tension" data-source="p88-89 专栏3">
+  <div class="chrome"><div>专栏 3 · 图形发散思维</div><div>21 / 22</div></div>
+  <div class="grid-2-6-6" style="flex:1;min-height:0;align-items:center">
+    <div class="anim-item">
+      <div class="kicker">Tension A</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">逻辑思考</h2>
+      <p class="body-zh" style="max-width:15em">使想法变得缜密、凝练，但会失去其原有的趣味。</p>
+    </div>
+    <div class="anim-item">
+      <div class="kicker" style="color:var(--accent);opacity:1">Tension B</div>
+      <h2 class="h2-zh" style="margin-bottom:clamp(1rem,2vh,2rem)">感性发散</h2>
+      <p class="body-zh" style="max-width:15em">通过替换、加法、减法来调整内容，可以达到发散思维的效果。组合要素的最佳工具就是图形。</p>
+    </div>
+  </div>
+  <div class="foot"><div>p88-89 专栏3</div><div>21 / 22</div></div>
+</section>
+
+<!-- 22 L31 未解问题 -->
+<section class="slide dark bare" data-theme="dark" data-screen-label="Open Questions" data-source="p87 试一试">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote">
+      <div class="kicker anim-item">核心总结 · 试一试</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em;margin:clamp(1rem,3vh,2rem) auto 0">你有哪些想一探究竟的事物？</h2>
+      <div style="margin-top:clamp(2rem,4vh,3rem);display:grid;gap:clamp(.8rem,1.5vh,1.2rem);text-align:left">
+        <p class="body-zh anim-item soft-note">01 为什么销售额不理想？</p>
+        <p class="body-zh anim-item soft-note">02 为什么还想去那家店？</p>
+        <p class="body-zh anim-item soft-note">03 为什么上司总是很焦躁？</p>
+        <p class="body-zh anim-item soft-note">04 为什么赢不了比赛？</p>
+        <p class="body-zh anim-item soft-note">05 为什么追不到心仪的她？</p>
+      </div>
+      <p class="body-zh anim-item soft-note" style="margin-top:clamp(2rem,3.5vh,2.5rem);text-align:center;max-width:18em">试着用深挖图来分析吧</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p87 试一试</div><div>22 / 22</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light'
+      ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d,i) => {
+      d.style.background = i === current
+        ? (theme==='light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)')
+        : (theme==='light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Escape') { toggleIndex(); }
+  });
+
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => wheelTimeout = null, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+
+  let indexOpen = false;
+  function toggleIndex() {
+    if (indexOpen) {
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      indexOpen = false;
+    } else {
+      deck.style.transform = 'translateX(0)';
+      indexOpen = true;
+      setTimeout(() => { current = 0; deck.style.transform = 'translateX(0)'; }, 100);
+    }
+  }
+
+  const STORAGE_KEY = 'slides-progress-04';
+  function saveProgress() { try { localStorage.setItem(STORAGE_KEY, current); } catch(e){} }
+  function loadProgress() {
+    try {
+      const p = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(p) && p >= 0 && p < total) { current = p; deck.style.transform = 'translateX(-' + (current*100) + 'vw)'; }
+    } catch(e){}
+  }
+
+  loadProgress();
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>
