@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>可观测性工程 · 第22章 未来发展趋势</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,7 +141,136 @@ h1, h2, h3, p, li, blockquote, cite { text-wrap: pretty; }
 .slide.active .anim-item:nth-child(4)  { transition-delay: .35s; }
 .slide.active .anim-item:nth-child(5)  { transition-delay: .45s; }
 .slide.active .anim-item:nth-child(n+6) { transition-delay: .55s; }
-</style>
+
+/* mobile-reading-fallback: keep the slide deck, but make each slide readable on phones. */
+@media (max-width: 760px) {
+  html,
+  body {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #deck {
+    height: 100dvh;
+  }
+
+  .slide {
+    height: 100dvh;
+    padding: 1rem .9rem 3.4rem !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .slide-body,
+  .slide-body.top,
+  .slide-body.bottom,
+  .center-stage {
+    min-height: auto !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .note-stack,
+  .w-quote,
+  .w-statement,
+  .w-note,
+  .w-default,
+  .w-wide {
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 1rem !important;
+  }
+
+  .display-zh {
+    font-size: clamp(2rem, 11vw, 3.1rem) !important;
+    line-height: 1.16 !important;
+  }
+
+  .h1-zh {
+    font-size: clamp(1.55rem, 7vw, 2.25rem) !important;
+    line-height: 1.24 !important;
+  }
+
+  .h2-zh {
+    font-size: clamp(1.25rem, 5.8vw, 1.8rem) !important;
+    line-height: 1.3 !important;
+  }
+
+  .lead-zh,
+  .callout {
+    font-size: clamp(1.1rem, 4.9vw, 1.45rem) !important;
+    line-height: 1.55 !important;
+  }
+
+  .body-zh,
+  p,
+  li {
+    font-size: clamp(.95rem, 4.2vw, 1.1rem) !important;
+    line-height: 1.62 !important;
+  }
+
+  .kicker,
+  .meta,
+  .chrome,
+  .foot,
+  .img-cap {
+    font-size: .72rem !important;
+    letter-spacing: .06em !important;
+  }
+
+  [class*="grid-"] {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: .85rem !important;
+    min-height: auto !important;
+  }
+
+  .card,
+  .panel,
+  .box,
+  .matrix-card,
+  .compare-card,
+  .step-card,
+  .note-card,
+  .idea-card,
+  .principle-card,
+  .timeline-card {
+    min-height: auto !important;
+    padding: .85rem !important;
+  }
+
+  .slide-img,
+  svg,
+  canvas,
+  table {
+    max-width: 100% !important;
+  }
+
+  .slide-img {
+    min-height: 9rem;
+  }
+
+  .slide-img img {
+    object-fit: contain !important;
+  }
+
+  .chrome,
+  .foot {
+    flex-shrink: 0;
+    gap: .75rem;
+  }
+
+  #nav {
+    max-width: calc(100vw - 1.5rem);
+    overflow-x: auto;
+    gap: 6px !important;
+    padding: 6px 10px !important;
+    bottom: .75rem !important;
+  }
+}</style>
 </head>
 <body>
 
