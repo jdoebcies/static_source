@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第18章 SRE部门中的软件工程实践 note slides</title>
+<style>
+:root {
+  /* palette thesis: this chapter is about turning production pain into durable internal software, so dark graphite carries operational weight, warm paper carries planning notes, and green blue marks engineering leverage. */
+  --ink: #20272b;
+  --ink-rgb: 32,39,43;
+  --paper: #faf7ef;
+  --paper-rgb: 250,247,239;
+  --accent: #2f7d78;
+  --muted: #65717a;
+  --warm: #9a6d3a;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #83c7bf; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.85rem, 1.5vw, 1.3rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .16); }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .grid-4, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p226 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 18</div>
+      <h1 class="display-zh">SRE部门中的<br>软件工程实践</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">从生产环境一手经验，走向内部软件工程项目。</p>
+      <p class="meta" style="margin-top:1.2vh">Dave Helstroom、Trisha Weir、Evan Leonard、Kurt Delimon</p>
+    </div>
+  </div>
+  <div class="foot"><span>p226</span><span>01 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Hidden Engineering" data-source="p226 幕后软件工程实践">
+  <div class="chrome"><span>hidden engineering</span><span>p226</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Google 还有很多幕后软件工程实践</h2>
+      <p class="lead-zh">除了 Gmail、Google 地图、Bigtable 和 Colossus，还有大量内部工具来自 SRE 部门。</p>
+      <p class="body-zh muted">这些工具围绕机器正常运行、低延迟和生产环境开发，形式包括发布系统、监控系统和动态服务器组合上的开发环境。</p>
+    </div>
+  </div>
+  <div class="foot"><span>internal tools</span><span>02 / 31</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Not Scripts" data-source="p226 完整的软件工程项目">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">SRE 开发的工具，是完整的软件工程项目。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它们不是一次性脚本和小补丁。开发者需要面向内部用户做产品规划，也要制定未来方向。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p226</span><span>03 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Why SRE Builds" data-source="p226 p227 SRE 自行开发工具的原因">
+  <div class="chrome"><span>why sre builds</span><span>p226 p227</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 适合做生产工具，有三个直接原因</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">生产知识</h3><p class="body-zh">理解 Google 特有生产环境的深度和广度。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">直接使用</h3><p class="body-zh">自己就是工具用户，知道重点在哪里。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">反馈密集</h3><p class="body-zh">其他 SRE 熟悉问题和方案，可以给出高质量反馈。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>knowledge user feedback</span><span>04 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Scaling Pressure" data-source="p227 团队大小不应该与用户服务规模成比例增长">
+  <div class="chrome"><span>scaling pressure</span><span>p227</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">SRE 团队不能随着用户服务规模同比增长。</div>
+      <p class="body-zh muted" style="margin-top:2vh">服务指数增长时，要让 SRE 组织线性增长，就必须持续自动化，优化工具和流程，消除日常运维效率问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>automation pressure</span><span>05 / 31</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Career Value" data-source="p227 SRE 组织也会获益">
+  <div class="chrome"><span>career value</span><span>p227</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">软件工程项目也反过来服务 SRE 组织</h2>
+      <p class="lead-zh">它给工程师提供职业发展方向和磨炼编程技能的机会。</p>
+      <p class="body-zh muted">长期项目能平衡 on call 轮值，也能吸引和留住同时重视软件工程技能与系统工程技能的人。</p>
+    </div>
+  </div>
+  <div class="foot"><span>growth and retention</span><span>06 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Auxon Context" data-source="p227 p228 Auxon 项目背景">
+  <div class="chrome"><span>auxon context</span><span>p227 p228</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Auxon 从容量规划痛点里长出来</h2>
+      <p class="lead-zh">它是 SRE 内部开发的自动化容量规划工具。</p>
+      <p class="body-zh muted">案例先回到传统容量规划，看它如何收集需求预测、制定采购和分配计划、评审批准，再部署配置资源。</p>
+    </div>
+  </div>
+  <div class="foot"><span>capacity planning</span><span>07 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Traditional Loop" data-source="p228 传统容量规划方法">
+  <div class="chrome"><span>traditional loop</span><span>p228</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">传统容量规划是一个没有尽头的循环</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">预测</h3><p class="small-zh">收集未来项目需求。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">计划</h3><p class="small-zh">制定采购、构建和分配计划。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">评审</h3><p class="small-zh">确认预算、产品期望和技术要求。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">部署</h3><p class="small-zh">资源到位后配置给服务。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">传递</h3><p class="small-zh">每次变化都继续影响未来季度。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>endless planning loop</span><span>08 / 31</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Unreliable Plan" data-source="p229 不可靠性">
+  <div class="chrome"><span>unreliable plan</span><span>p229</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">小变化也会让资源配给计划失效</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">服务侧变化</h3><p class="body-zh">效率下降、需求增加、产品策略变化，都会改变资源需求。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">供给侧变化</h3><p class="body-zh">新集群上线推迟，会影响多个服务的全局冗余和延迟要求。</p></div>
+      </div>
+      <p class="body-zh muted">每个季度又基于前一个季度制定，当前执行变化还必须更新未来规划。</p>
+    </div>
+  </div>
+  <div class="foot"><span>fragile allocation</span><span>09 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Manual Bin Packing" data-source="p229 p230 耗时巨大同时不够精确">
+  <div class="chrome"><span>manual bin packing</span><span>p229 p230</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">手工把需求编排到可用资源上，既复杂又不精确。</div>
+      <p class="body-zh muted" style="margin-top:2vh">电子表格会遇到扩展性、错误检查、数据过期和变更追踪问题。最佳压缩问题也不适合人类手工计算。</p>
+    </div>
+  </div>
+  <div class="foot"><span>spreadsheet limits</span><span>10 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lost Intent" data-source="p230 需求原因湮灭">
+  <div class="chrome"><span>lost intent</span><span>p230</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">传统请求把原因丢在传递过程中</h2>
+      <p class="lead-zh">服务常常只留下刚性的资源请求，例如某集群需要多少 CPU。</p>
+      <p class="body-zh muted">为什么需要这些 CPU，为什么一定要在这个集群，背后的产品意图早已湮灭。</p>
+    </div>
+  </div>
+  <div class="foot"><span>intent disappears</span><span>11 / 31</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Intent Planning" data-source="p230 基于意图的容量规划">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">列出要求，不要拘泥于具体实现细节。</div>
+      <p class="body-zh muted" style="margin-top:2vh">基于意图的流程用编程方式记录依赖和资源参数，再由算法生成资源配给方案。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p230</span><span>12 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Intent Benefit" data-source="p230 p231 最优解和成本">
+  <div class="chrome"><span>intent benefit</span><span>p230 p231</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">计算机接手底层分配，人回到更高层目标</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">可靠</h3><p class="body-zh">记录真实需求和选择自由度，面对变动时更稳。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">省力</h3><p class="body-zh">让服务负责人关注 SLO、依赖和基础架构优化。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">降本</h3><p class="body-zh">用计算优化需求和供给匹配，提高计划精确度。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>computer optimized planning</span><span>13 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Intent Ladder" data-source="p231 p232 意图抽象级别">
+  <div class="chrome"><span>intent ladder</span><span>p231 p232</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">资源请求可以上升为运维意图</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">具体资源</h3><p class="small-zh">服务 Foo 在指定集群需要 50 个 CPU。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">地理选择</h3><p class="small-zh">在某地理区域任意三个集群使用。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">增长冗余</h3><p class="small-zh">满足区域需求增长，并保障 N+2 冗余。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">可靠性目标</h3><p class="small-zh">让 Foo 以 99.999% 可靠度运行。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">经验判断</h3><p class="small-zh">一般服务到第三步收益最大。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>abstraction levels</span><span>14 / 31</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Intent Inputs" data-source="p232 p233 表达产品意图的先导条件">
+  <div class="chrome"><span>intent inputs</span><span>p232 p233</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">完整表达服务意图，需要三类信息</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">依赖关系</h3><p class="body-zh">Foo 依赖 Bar，Bar 还可能依赖 Baz 和 Qux，位置选择要看整条依赖链。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">性能指标</h3><p class="body-zh">高阶资源类型要转换成低阶资源类型，例如请求量需要多少计算和带宽。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">优先级</h3><p class="body-zh">资源不够时，要透明决定哪些请求可以被牺牲。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>dependencies metrics priorities</span><span>15 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Auxon Product" data-source="p233 Auxon简介">
+  <div class="chrome"><span>auxon product</span><span>p233</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Auxon 把人类意图转成机器可求解的限制条件</h2>
+      <p class="lead-zh">它收集服务资源要求和依赖信息，再形成巨大的线性规划表达式。</p>
+      <p class="body-zh muted">这个工具由 SRE 内部小团队和项目经理用两年写成，已经用于规划百万美元级计算资源分配。</p>
+    </div>
+  </div>
+  <div class="foot"><span>intent to constraints</span><span>16 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Auxon Components" data-source="p234 p235 Auxon 主要组件">
+  <div class="chrome"><span>auxon components</span><span>p234 p235</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Auxon 的输入围绕规模、需求、供给和成本</h2>
+      <div class="grid-4">
+        <div class="line-box"><h3 class="h2-zh accent">性能数据</h3><p class="small-zh">描述服务规模化能力。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">需求预测</h3><p class="small-zh">描述每个服务的未来需求。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">资源供给</h3><p class="small-zh">给出基础资源可用性。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">资源价格</h3><p class="small-zh">提供基础资源成本信息。</p></div>
+      </div>
+      <p class="body-zh muted">意图配置把服务和依赖关系粘合起来，配置语言引擎再转成求解器需要的机器格式。</p>
+    </div>
+  </div>
+  <div class="foot"><span>inputs and glue</span><span>17 / 31</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Solver And Plan" data-source="p235 Auxon 求解器和资源分配计划">
+  <div class="chrome"><span>solver and plan</span><span>p235</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">求解器产出的不是建议，而是资源分配计划</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">Auxon 求解器</h3><p class="body-zh">建立混合整型线性规划程序，并在几百到几千台机器上并行求解。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">分配计划</h3><p class="body-zh">描述何处的何种资源分配给哪个服务，也列出无法满足的资源需求。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>solver output</span><span>18 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Builders As Users" data-source="p235 开发团队也是消费者">
+  <div class="chrome"><span>builders as users</span><span>p235</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Auxon 团队既是工具消费者，也是工具开发者。</div>
+      <p class="body-zh muted" style="margin-top:2vh">他们继续参与多个 Google 服务的 on call 和技术设计讨论。工具出问题时，团队会直接受到影响。</p>
+    </div>
+  </div>
+  <div class="foot"><span>first hand experience</span><span>19 / 31</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Approximation" data-source="p236 近似">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">不要过于关注完美和纯粹性。</div>
+      <p class="body-zh muted" style="margin-top:2vh">当问题边界不清晰时，更快发布和迭代更重要。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p236</span><span>20 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Dummy Solver" data-source="p236 傻瓜求解器">
+  <div class="chrome"><span>dummy solver</span><span>p236</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">简化版求解器先让远景变得可体验</h2>
+      <p class="lead-zh">团队一开始没有线性规划经验，也没有完全理解产品核心限制。</p>
+      <p class="body-zh muted">傻瓜求解器用简单启发逻辑处理资源请求，虽不返回最优解，却让团队更切实地理解产品远景。</p>
+    </div>
+  </div>
+  <div class="foot"><span>learn by approximating</span><span>21 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Modular Uncertainty" data-source="p236 p237 模糊性和模块化设计">
+  <div class="chrome"><span>modular uncertainty</span><span>p236 p237</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">需求模糊时，把接口留给未来变化</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">求解器抽象</h3><p class="body-zh">傻瓜求解器和 Auxon 之间抽象分离，后续可替换为更聪明的求解器。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">计划抽象</h3><p class="body-zh">资源分配计划不绑定某一种自动化工具、预测工具或性能监控工具。</p></div>
+      </div>
+      <p class="body-zh muted">通用方案必须始终有真实使用案例，避免脱离真实需求。</p>
+    </div>
+  </div>
+  <div class="foot"><span>flexible interfaces</span><span>22 / 31</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Adoption" data-source="p237 提升了解程度推进采用率">
+  <div class="chrome"><span>adoption</span><span>p237</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">内部工具也需要完整推广方案</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">持续推广</h3><p class="body-zh">公告邮件和简单演示通常不够。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">用户拥护</h3><p class="body-zh">早期用户的支持会推动采用。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">高层赞助</h3><p class="body-zh">资深工程师和管理层看到实用潜力后提供背书。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>adoption work</span><span>23 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Set Expectations" data-source="p238 设立期望值">
+  <div class="chrome"><span>set expectations</span><span>p238</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">先定义最小成功条件，再稳定发布</h2>
+      <p class="lead-zh">承诺过多过快会损害可信度，结果吸引力不足又找不到试用者。</p>
+      <p class="body-zh muted">Auxon 用长期计划和短期修复平衡迭代速度，让用户先消除手工整合短期资源请求的痛苦，再逐步获得长期成本收益。</p>
+    </div>
+  </div>
+  <div class="foot"><span>mvp and roadmap</span><span>24 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Right Users" data-source="p238 识别合适的用户">
+  <div class="chrome"><span>right users</span><span>p238</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">早期版本要找有痛感的人。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Auxon 初期目标是还没有容量规划流程的团队。早期成功案例证明实用性，并把用户变成推广者。</p>
+    </div>
+  </div>
+  <div class="foot"><span>early adopters</span><span>25 / 31</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Support And Agnostic" data-source="p239 客户支持和不可知性">
+  <div class="chrome"><span>support and agnostic</span><span>p239</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">采用门槛来自学习曲线，也来自工具绑定</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">客户支持</h3><p class="body-zh">早期一对一协作，帮助用户理解自动化是在消除重复手工劳动。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">不可知性</h3><p class="body-zh">不强迫用户换用某种特定数据或工具，避免为一两个大用户过度定制。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>lower adoption cost</span><span>26 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Team Makeup" data-source="p239 p240 团队内部组成">
+  <div class="chrome"><span>team makeup</span><span>p239 p240</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">种子团队先混合通用型人才和领域专家</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">通用型人才</h3><p class="body-zh">可以快速开始工作。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">资深领域专家</h3><p class="body-zh">提供更广阔的知识和经验。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">引入时机</h3><p class="body-zh">项目已有一定成功，团队能充分获益时再扩充专家。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>generalists and specialists</span><span>27 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Project Signals" data-source="p240 培养软件工程风气">
+  <div class="chrome"><span>project signals</span><span>p240</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">一次性工具要变成长期项目，需要正面信号</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">适合推进</h3><p class="body-zh">领域专家有兴趣，目标用户技术强，项目能减少琐事、优化设施或简化复杂流程。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">需要警惕</h3><p class="body-zh">同时改变太多组件、全有或全无上线、无法迭代、只服务很小范围或过度抽象。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>project selection</span><span>28 / 31</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Engineering Culture" data-source="p241 招聘与开发时间">
+  <div class="chrome"><span>engineering culture</span><span>p241</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 要补上的，是完整产品团队经验</h2>
+      <p class="lead-zh">SRE 通常编程能力很强，但许多人缺少产品讨论和用户需求思考经历。</p>
+      <p class="body-zh muted">TPM 和 PM 能把面向用户的软件开发经验带进来；专注且不受干扰的项目时间也必须得到保障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>product habits</span><span>29 / 31</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="How To Do It" data-source="p242 p243 做到这一点">
+  <div class="chrome"><span>how to do it</span><span>p242 p243</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">把软件开发引入 SRE，要同时处理技术和组织</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">明确信息</h3><p class="small-zh">讲清战略目标和 SRE 能获得的好处。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">评估能力</h3><p class="small-zh">补上项目经理、用户宣传和敏捷流程经验。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">发布迭代</h3><p class="small-zh">六个月周期内聚焦实用功能并学习研发协作。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">保持标准</h3><p class="small-zh">代码评审、端到端集成测试和生产交接都不能省。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">建立可信度</h3><p class="small-zh">可信度建立很慢，失去很快。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>organization and delivery</span><span>30 / 31</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p244 小结">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">SRE 的生产环境一手经验，让他们能用创新手段处理老问题。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">Auxon 把容量规划从手工资源抢夺，推进到基于意图和算法求解的资源分配。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">内部软件项目要成功，需要产品规划、推广、用户支持、合适用户和可信交付。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">SRE 花在软件开发上的精力，会对公司、SRE 组织和个人产生回报。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>31 / 31</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-18-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-18-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

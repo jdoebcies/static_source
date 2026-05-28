@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第11章 on-call轮值 note slides</title>
+<style>
+:root {
+  --ink: #17202b;
+  --ink-rgb: 23,32,43;
+  --paper: #fbfaf6;
+  --paper-rgb: 251,250,246;
+  --accent: #2d6f7c;
+  --muted: #65707f;
+  --warm: #b46b45;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7bb8c1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; padding: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p155 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 11</div>
+      <h1 class="display-zh">on-call<br>轮值</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">可靠性职责如何变成可持续制度</p>
+    </div>
+  </div>
+  <div class="foot"><span>p155</span><span>01 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="On-call Goal" data-source="p155 目标 后果 方法论">
+  <div class="chrome"><span>on-call goal</span><span>p155</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">on-call轮值的目标是保障可靠性和可用性，执行不好会同时伤害服务和团队。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章描述 Google SRE 在轮值制度中形成的方法论，让服务更可靠，也让压力更均衡。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reliability and pressure</span><span>02 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="SRE Boundary" data-source="p155 p156 SRE Ops 工程化 50%">
+  <div class="chrome"><span>sre boundary</span><span>p155 p156</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE用工程化手段处理运维问题</h2>
+      <p class="lead-zh">Search、Ads、Gmail 等重要服务由 SRE 团队负责性能和可靠性保障，团队强调用软件工程解决规模化运维问题。</p>
+      <p class="body-zh muted">Google 招聘 SRE 时看重系统工程和软件开发经验，并给纯运维事务设定 50% 时间上限。</p>
+    </div>
+  </div>
+  <div class="foot"><span>engineering emphasis</span><span>03 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="On-call Day" data-source="p156 生产系统监管者">
+  <div class="chrome"><span>day in rotation</span><span>p156</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">on-call工程师是生产系统监管者</h2>
+      <p class="lead-zh">职责包括处理即将发生或正在发生的业务事故，也包括评审对生产系统的变更请求。</p>
+      <p class="body-zh muted">值班承诺是分钟级响应，具体范围由 SRE 团队和产品业务团队共同商议。</p>
+    </div>
+  </div>
+  <div class="foot"><span>incident and change review</span><span>04 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Response Time" data-source="p156 5分钟 30分钟 报警渠道">
+  <div class="chrome"><span>response time</span><span>p156</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">响应时间由业务敏感度决定</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>服务类型</th><th>响应窗口</th><th>报警传递</th></tr></thead>
+          <tbody>
+            <tr><td>直接面向最终用户，或时间非常紧迫</td><td>一般定为 5 分钟</td><td>手机接收报警，邮件、短信、自动电话呼叫和 APP 可同时送达</td></tr>
+            <tr><td>非敏感业务</td><td>通常是 30 分钟</td><td>同样依赖灵活的报警传递机制</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>business sensitivity</span><span>05 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Availability Budget" data-source="p156 99.99% 13分钟">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">季度 99.99% 可用度只给 13 分钟不可用时间。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这个例子解释了为什么面向最终用户的系统需要分钟级事故响应。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p156</span><span>06 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Ack And Escalate" data-source="p156 确认 定位 升级">
+  <div class="chrome"><span>ack and escalate</span><span>p156</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">报警后的动作链很短</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">1</h3><p class="small-zh">接收报警信息。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">2</h3><p class="small-zh">确认报警。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">3</h3><p class="small-zh">及时定位问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">4</h3><p class="small-zh">尝试解决问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">5</h3><p class="small-zh">必要时联系其他团队并升级支援。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>alert handling path</span><span>07 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Primary Priority" data-source="p156 p157 生产报警 第一紧急要务">
+  <div class="chrome"><span>priority rule</span><span>p156 p157</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">生产报警信息是第一紧急要务，优先级几乎超过一切其他活动。</div>
+      <p class="body-zh muted" style="margin-top:2vh">低优先级警报和新软件发布可以在工作时间评审或执行，研发项目也要让位于生产报警处理。</p>
+    </div>
+  </div>
+  <div class="foot"><span>production first</span><span>08 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Primary Secondary" data-source="p156 p157 主on-call 副on-call">
+  <div class="chrome"><span>primary secondary</span><span>p156 p157</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">主副值班的分工可以按团队调整</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>模式</th><th>主on-call人</th><th>副on-call人</th></tr></thead>
+          <tbody>
+            <tr><td>响应保障</td><td>处理一线响应</td><td>在主on-call人未响应时介入</td></tr>
+            <tr><td>任务分流</td><td>只负责生产系统紧急情况</td><td>处理非紧急生产环境变更需求</td></tr>
+            <tr><td>团队互助</td><td>相关团队承担主要服务值班</td><td>彼此作为副on-call，共同分担压力</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>rotation roles</span><span>09 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Balance Axes" data-source="p157 数量 质量 工作压力">
+  <div class="chrome"><span>balance axes</span><span>p157</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">轮值压力用数量和质量两条轴控制</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">数量</h3><p class="body-zh">某个工程师在 on-call 事务上花费的具体时间。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">质量</h3><p class="body-zh">每次 on-call 轮值发生的事故数量。</p></div>
+      </div>
+      <p class="body-zh muted">SRE 管理者负责让这两条轴都保持在可持续水平。</p>
+    </div>
+  </div>
+  <div class="foot"><span>quantity and quality</span><span>10 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Time Budget" data-source="p157 50% 25% 25%">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE时间预算给工程工作留出硬边界</h2>
+      <div class="grid-3">
+        <div class="soft-box"><div class="summary-num">50%</div><p class="body-zh">至少花在软件工程上。</p></div>
+        <div class="soft-box"><div class="summary-num">25%</div><p class="body-zh">最多用于 on-call。</p></div>
+        <div class="soft-box"><div class="summary-num">25%</div><p class="body-zh">用于其他运维工作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>time budget</span><span>11 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Minimum Staffing" data-source="p157 7×24 8名 6名">
+  <div class="chrome"><span>minimum staffing</span><span>p157</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">25%上限可以反推出最低团队规模</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>轮值条件</th><th>最低人数</th><th>材料里的理由</th></tr></thead>
+          <tbody>
+            <tr><td>7×24，主副两名工程师，每次一周</td><td>至少 8 名 SRE</td><td>每名工程师每月轮值一次，符合 25% 时间上限</td></tr>
+            <tr><td>团队分散在两地</td><td>至少 6 名 SRE</td><td>同时保障时间上限，并让两地都有足够工程师开展研发</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>staffing math</span><span>12 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Multi Site" data-source="p157 p158 多地团队 优势 成本">
+  <div class="chrome"><span>multi site</span><span>p157 p158</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">多地团队可以降低夜间值班，但会增加协作成本</h2>
+      <p class="lead-zh">如果服务需要更多人，Google 更倾向把当地团队转成多地团队，让轮值制度利用日出而作、日落而息。</p>
+      <p class="body-zh muted">多地团队还通过限制轮值人数保持生产熟悉度，但是否转换要考虑成本、系统重要性和业务压力。</p>
+    </div>
+  </div>
+  <div class="foot"><span>follow the sun</span><span>13 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Incident Load" data-source="p158 incident 6小时 12小时两个">
+  <div class="chrome"><span>incident load</span><span>p158</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">质量平衡看每次轮值产生多少紧急事件</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>指标</th><th>材料里的定义</th><th>管理含义</th></tr></thead>
+          <tbody>
+            <tr><td>一个紧急事件</td><td>一系列根本原因一致或相关的事件和报警，应在同一份事后报告中讨论</td><td>把报警归并到可复盘的事故单位</td></tr>
+            <tr><td>至少 6 小时</td><td>处理、根因分析和事后总结一个生产环境事件所需平均时间</td><td>每 12 小时轮值周期最多产生两个紧急事件</td></tr>
+            <tr><td>每日中值接近 0</td><td>如果某组件几乎每次轮值都报警，迟早会与另一个组件叠加</td><td>持续超标时管理团队必须采取修正措施</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>quality threshold</span><span>14 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Compensation" data-source="p158 补贴 年假 现金 上限">
+  <div class="chrome"><span>compensation</span><span>p158</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">补贴制度也要限制过量 on-call。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Google 提供年假或现金补贴，并按工资比例设上限，用来鼓励按需参与，同时避免研发时间不足和疲劳过度。</p>
+    </div>
+  </div>
+  <div class="foot"><span>incentive with limit</span><span>15 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Safety Mode" data-source="p159 安全感 两种处理方法">
+  <div class="chrome"><span>safety mode</span><span>p159</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">安全感决定工程师能否进入理性处理模式</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">直觉模式</h3><p class="body-zh">自动化、快速行动，适合低复杂度场景。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">认知模式</h3><p class="body-zh">理性、专注、有意识地处理复杂系统问题。</p></div>
+      </div>
+      <p class="body-zh muted">材料认为复杂系统事故更适合第二种处理方式，因此必须降低 on-call 带来的压力感。</p>
+    </div>
+  </div>
+  <div class="foot"><span>thinking under pressure</span><span>16 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Stress Risk" data-source="p159 压力 荷尔蒙 过度联想">
+  <div class="chrome"><span>stress risk</span><span>p159</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">压力会把事故处理推向未经考虑的反应</h2>
+      <p class="lead-zh">业务重要性和操作影响会造成巨大精神压力，皮质醇和 CRH 等压力荷尔蒙会影响认知功能。</p>
+      <p class="body-zh muted">材料举例：本周第 4 个相同报警很容易被套用前三次经验，误判为虚假报警，从而漏掉真实事故。</p>
+    </div>
+  </div>
+  <div class="foot"><span>over association</span><span>17 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Incident Method" data-source="p159 p160 数据 步骤 假设">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">理想的应急处理方法是在数据支撑下按步骤解决问题，同时持续审视和验证假设。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料把凭直觉解释原因和习惯性快速反应都视为可能浪费时间或扩大灾难的动作。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p159 p160</span><span>18 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Help Resources" data-source="p160 外部帮助 升级路线 流程 文化">
+  <div class="chrome"><span>help resources</span><span>p160</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">明确可求助资源会降低值班压力</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">路线</h3><p class="body-zh">清晰的问题升级路线。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">步骤</h3><p class="body-zh">清晰定义的应急事件处理步骤。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">文化</h3><p class="body-zh">无指责，对事不对人的文化氛围。</p></div>
+      </div>
+      <p class="body-zh muted">严重且原因不明确的紧急情况，及时寻求开发团队帮助常常是解决问题的关键。</p>
+    </div>
+  </div>
+  <div class="foot"><span>escalation and culture</span><span>19 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Incident Process" data-source="p160 正式应急流程 Web工具">
+  <div class="chrome"><span>incident process</span><span>p160</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">复杂事故需要正式应急流程接管协作</h2>
+      <p class="lead-zh">当问题需要多个团队参与，或调查一段时间仍无法预测恢复时间时，工程师应考虑启用正式流程。</p>
+      <p class="body-zh muted">Google SRE 的流程配套 Web 工具，自动化职责交接和对外状态更新历史，让工程师专注解决问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>coordination tooling</span><span>20 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Postmortem" data-source="p160 事后报告 时间线 对事不对人">
+  <div class="chrome"><span>postmortem</span><span>p160</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">大型应急事件结束后，事后报告要记录完整时间线，并保持对事不对人。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这些报告为系统性分析事故原因提供数据，自动化工具和检查也要减少人为错误可能性。</p>
+    </div>
+  </div>
+  <div class="foot"><span>learning from incidents</span><span>21 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Too Much Load" data-source="p161 运维压力过大 数据量化">
+  <div class="chrome"><span>too much load</span><span>p161</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">压力过载要进入季度计划，并用数据量化</h2>
+      <p class="lead-zh">当运维压力超过限制，SRE 团队和管理层要把应对措施加入季度工作计划，让压力恢复到可持续水平。</p>
+      <p class="body-zh muted">理想状态下，目标也可量化，例如每天工单数量小于 5，每次轮值报警事件小于 2。临时抽调有经验的 SRE 常常能帮助团队恢复常态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>quarterly correction</span><span>22 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Alert Hygiene" data-source="p161 SLO 可操作 1:1">
+  <div class="chrome"><span>alert hygiene</span><span>p161</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">报警策略要对齐 SLO，并接近事故报警 1:1</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>问题</th><th>材料里的判断</th><th>修正方向</th></tr></thead>
+          <tbody>
+            <tr><td>错误监控配置</td><td>常常是运维压力过大的原因</td><td>报警策略必须跟服务 SLO 目标一致</td></tr>
+            <tr><td>不可操作报警</td><td>每小时触发的低优先级报警会严重影响生产力</td><td>每条报警都要有明确动作</td></tr>
+            <tr><td>重复报警</td><td>同一异常可能触发多条报警</td><td>分组汇总报警，把事件和报警比例调到接近 1:1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>actionable alerts</span><span>23 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Shared Ownership" data-source="p161 p162 研发团队 稳定性目标">
+  <div class="chrome"><span>shared ownership</span><span>p161 p162</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">压力来源超出 SRE 控制时，要和研发团队设共同目标</h2>
+      <p class="lead-zh">程序稳定性下降或更容易报警时，SRE 需要和研发团队共同解决压力问题。</p>
+      <p class="body-zh muted">极端情况下，服务可转回开发团队值班，或把部分报警临时转交研发组，直到系统达到 SRE 设定的稳定性目标。</p>
+    </div>
+  </div>
+  <div class="foot"><span>sre and product team</span><span>24 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Too Little Load" data-source="p162 运维压力不够 每季度 DiRT">
+  <div class="chrome"><span>too little load</span><span>p162</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">运维压力不够也是风险</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">风险</h3><p class="body-zh">系统太稳定或轮值周期太长，会导致生产环境操作自信心过强或不足。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">控制</h3><p class="body-zh">控制团队大小，让每位工程师每季度至少参与 on-call 一次，最好两次。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">训练</h3><p class="body-zh">命运之轮帮助提高技能和共享知识。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">演练</h3><p class="body-zh">Google 每年举办持续数天的全公司灾难恢复演习 DiRT。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>practice and familiarity</span><span>25 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p155 p162 小结 指导思想">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">on-call制度要同时保障服务可靠性和团队可持续性。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">SRE 用 50% 工程时间、25% on-call 上限和事故数量指标管理压力。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">安全感、升级路线、正式流程和事后报告共同降低事故处理中的认知风险。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">压力过大要降噪和重分配责任，压力过低要靠轮值频率与演练保持生产熟悉度。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>26 / 26</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-11-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-11-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第34章 结语 note slides</title>
+<style>
+:root {
+  /* palette thesis: this closing chapter moves from operational pride to aviation reliability, so the deck uses cockpit graphite, warm paper, and signal green for distilled operating principles. */
+  --ink: #1f2524;
+  --ink-rgb: 31,37,36;
+  --paper: #f3efe3;
+  --paper-rgb: 243,239,227;
+  --accent: #3d8a6e;
+  --muted: #65706d;
+  --warm: #766957;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #70c9a8; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p488 章节标题 作者 编辑">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 34</div>
+      <h1 class="display-zh">结语</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Benjamin Lutch</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Betsy Beyer</p>
+    </div>
+  </div>
+  <div class="foot"><span>p488</span><span>01 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reading With Pride" data-source="p488 我是带着极大的自豪感读完本书">
+  <div class="chrome"><span>opening stance</span><span>p488</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">作者从自豪感开始，因为他的职业生涯一直围绕高可靠、高可用系统展开。</div>
+      <p class="body-zh muted" style="margin-top:2vh">他在 1990 年左右加入 Excite，负责软件运维团队，并把它看作 SRE 的祖先。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reliability career</span><span>02 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="SRE Scale" data-source="p488 从近100个工程师发展到今天的近1000人">
+  <div class="chrome"><span>ten year scale</span><span>p488</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 从近 100 人发展到近 1000 人，横跨十几个分公司</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">2006 年</h3><p class="body-zh">作者刚加入 Google 时，SRE 约有近 100 个工程师。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">今天</h3><p class="body-zh">SRE 已接近 1000 人，并分布在十几个分公司。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">职责范围</h3><p class="body-zh">负责运维整个地球上最前沿的计算基础设施。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>growth and scope</span><span>03 / 15</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Guiding Question" data-source="p488 Google SRE 是靠什么维持10年以来大规模部署">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">问题落在这里：Google SRE 靠什么维持十年大规模部署的效率与扩展性。</div>
+      <p class="body-zh muted" style="margin-top:2vh">作者给出的答案，是日常工作中的核心指导思想。</p>
+    </div>
+  </div>
+  <div class="foot"><span>core question</span><span>04 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Two Equal Jobs" data-source="p488 将时间平均分配在两种同等重要的工作上">
+  <div class="chrome"><span>two equal jobs</span><span>p488</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">SRE 的结构设计，要求工程师把时间平均分给两类工作</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">运维系统</h3><p class="body-zh">参与轮值，观察和调整系统弱点，理解系统如何大规模扩展。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">反思系统</h3><p class="body-zh">保留时间思考和决策，让这些系统更容易管理。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operate and reflect</span><span>05 / 15</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Pilot And Designer" data-source="p488 既是飞机驾驶员 也是飞机的设计者和工程师">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">SRE 既是飞机驾驶员，也是飞机的设计者和工程师。</div>
+      <p class="body-zh muted" style="margin-top:2vh">运行海量系统的经验被固化成代码，也被包装成对外提供的产品。</p>
+    </div>
+  </div>
+  <div class="foot"><span>role metaphor</span><span>06 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reusable Systems" data-source="p488 解决方案可以很容易地被其他SRE团队重用">
+  <div class="chrome"><span>reusable practice</span><span>p488</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">SRE 经验会沉淀成可复用系统。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这些解决方案可以被其他 SRE 团队重用，也可以通过 Google Cloud 等服务提供给外部，并继续被优化。</p>
+    </div>
+  </div>
+  <div class="foot"><span>experience as product</span><span>07 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Stable Axioms" data-source="p489 通用的基本规则和公理 十年不变">
+  <div class="chrome"><span>stable axioms</span><span>p489</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">理想的团队和系统，需要足够通用、立即可用、未来仍相关的基本规则</h2>
+      <p class="lead-zh">Ben Treynor Sloss 在第一章制定的 SRE 根本职责，灵活，并且维持十年不变。</p>
+      <p class="body-zh muted">基础设施和团队已经大不一样，但这些职责仍然没变。</p>
+    </div>
+  </div>
+  <div class="foot"><span>durable responsibilities</span><span>08 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Constant Duties Changing Work" data-source="p489 职责与主要关注重点在十年内基本保持不变">
+  <div class="chrome"><span>constant duties</span><span>p489</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">职责保持稳定，日常工作随着服务和团队成熟不断变化</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>稳定部分</th><th>变化部分</th></tr></thead>
+          <tbody>
+            <tr><td>系统需要灵活，能应对紧急情况，监控周全，并做好容量规划。</td><td>系统部署规模可能扩大 1000 倍，系统性能可能提升 1000 倍。</td></tr>
+            <tr><td>SRE 的主要关注重点在十年内基本保持不变。</td><td>任务会随服务发展和团队成熟而变化。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>scale changes work</span><span>09 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monitoring Evolution" data-source="p489 从监控20台服务器到几万台服务器">
+  <div class="chrome"><span>monitoring example</span><span>p489</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">监控任务的形态，从 20 台服务器，演化到几万台服务器</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">早期</h3><p class="small-zh">构建一个监控 20 台服务器的监控台。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">规模扩大</h3><p class="small-zh">服务发展，团队成熟，任务复杂度上升。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">新形态</h3><p class="small-zh">为几万台服务器构建监控能力。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">自动发现</h3><p class="small-zh">系统能够自动服务发现。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">自动生成</h3><p class="small-zh">自动生成监控台与报警。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>from console to automation</span><span>10 / 15</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Aviation Analogy" data-source="p489 用民航行业过去十年中对飞机飞行过程的管理来比喻">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">作者转向民航行业，用飞行过程管理来比喻 SRE 管理复杂计算系统。</div>
+      <p class="body-zh muted" style="margin-top:2vh">两个行业的事故后果差异很大，但核心理念一致。</p>
+    </div>
+  </div>
+  <div class="foot"><span>civil aviation analogy</span><span>11 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Early Flight" data-source="p489 100年前 单引擎 飞行员同时担当机械师">
+  <div class="chrome"><span>one hundred years ago</span><span>p489</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">100 年前的飞行，把飞行、机械和货物工作压在一个人身上</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">飞机</h3><p class="body-zh">可能是单引擎，特别幸运时是双引擎。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">飞行员</h3><p class="body-zh">同时担当机械师，甚至负责货物装载和卸载。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">系统</h3><p class="body-zh">必需、简单、易坏，基本没有冗余度。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>fragile interface</span><span>12 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Modern Flight" data-source="p489 p490 747 数百名旅客 数吨货物 仍然只有两名飞行员">
+  <div class="chrome"><span>modern seven four seven</span><span>p489 p490</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">现代 747 承载更多人和货物，却仍然只有两名飞行员</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>变化</th><th>材料里的描述</th></tr></thead>
+          <tbody>
+            <tr><td>容量</td><td>数百名旅客从多层进入飞机，数吨重货物进入货舱。</td></tr>
+            <tr><td>可靠性</td><td>飞机上布满可靠、冗余度很高的系统，空中飞行比路上开车更安全。</td></tr>
+            <tr><td>航程和准点</td><td>可以飞到 6000 英里以外的大洲，基本在预计时间前后几分钟内到达。</td></tr>
+            <tr><td>驾驶舱</td><td>驾驶舱仍然只有两名飞行员。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>complexity absorbed</span><span>13 / 15</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Interface Design" data-source="p490 人机接口都是精心设计过的 简单易用 易于学习">
+  <div class="chrome"><span>human interface</span><span>p490</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">答案在驾驶舱接口：简单易用，易于学习，又能支撑紧急情况</h2>
+      <p class="lead-zh">飞行员经过大量训练，可以很快、很可靠地应对紧急情况。</p>
+      <p class="body-zh muted">驾驶舱由理解复杂系统的人设计，用可扩展、易理解的方式提供数据。</p>
+    </div>
+  </div>
+  <div class="foot"><span>scalable data presentation</span><span>14 / 15</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="SRE Goal" data-source="p490 最终 SRE 的目标也是如此">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">结语</div>
+      <div class="callout" style="margin-top:2vh">SRE 团队应该越精简越好，操作对象应该更抽象，少陷入具体操作。</div>
+      <p class="body-zh muted" style="margin-top:2vh">他们依赖后备系统和精心设计的 API，同时深入理解系统原理、运维方式、故障模式和应急处理方式。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p490</span><span>15 / 15</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-34-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-34-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>附录F 生产环境会议记录示范 note slides</title>
+<style>
+:root {
+  /* palette thesis: this appendix is a production meeting record sample, so graphite carries operational weight, warm paper keeps the minutes readable, and amber marks action and alert fields. */
+  --ink: #202525;
+  --ink-rgb: 32,37,37;
+  --paper: #f3eee2;
+  --paper-rgb: 243,238,226;
+  --accent: #b86f2f;
+  --accent-soft: #d8a86a;
+  --muted: #697171;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.2vw, 6rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.7vw, 3.6rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.42rem, 2.35vw, 2.2rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.38rem, 1.86vw, 1.92rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.12rem, 1.28vw, 1.48rem); line-height: 1.56; }
+.small-zh { font-size: clamp(.98rem, 1.02vw, 1.16rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: var(--accent-soft); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1rem, 2.4vh, 2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); align-items: stretch; }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(1.8rem, 3vw, 3rem); line-height: 1.42; overflow-wrap: anywhere; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6vw, 5.8rem); line-height: .95; color: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.7rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.timeline-row { display: grid; grid-template-columns: minmax(8rem, .28fr) 1fr; gap: clamp(1rem, 2.4vw, 2.4rem); padding: clamp(.9rem, 1.35vw, 1.2rem) 0; border-top: 1px solid rgba(var(--ink-rgb), .14); }
+.slide.dark .timeline-row { border-top-color: rgba(var(--paper-rgb), .18); }
+.label { font-family: var(--mono); font-size: clamp(.86rem, .95vw, 1.08rem); letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+.big-number { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(4rem, 8.5vw, 8rem); line-height: .98; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .timeline-row { grid-template-columns: 1fr; gap: clamp(.45rem, 1vh, .8rem); }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p511 附录F 生产环境会议记录示范">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Appendix F</div>
+      <h1 class="display-zh">生产环境会议记录示范</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">附录F，把一次生产会议写成可追踪的字段清单</p>
+    </div>
+  </div>
+  <div class="foot"><span>p511</span><span>01 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Meeting Header" data-source="p511 日期：2015-10-23 参与者：agoogler、clarac、docbrown、jennifer和martym 公告">
+  <div class="chrome"><span>meeting header</span><span>p511</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">会议记录先固定日期、参与者和公告</h2>
+      <div class="grid-3">
+        <div class="soft-box"><div class="label">date</div><p class="lead-zh">2015 年 10 月 23 日</p></div>
+        <div class="soft-box"><div class="label">attendees</div><p class="body-zh">agoogler、clarac、docbrown、jennifer 和 martym</p></div>
+        <div class="soft-box"><div class="label">announcement</div><p class="body-zh">大型事故 465，造成错误预算耗尽</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>record identity first</span><span>02 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Previous Actions" data-source="p511 之前的待办事项评审 确保山羊传送器可以用于传送奶牛 bug 1011101">
+  <div class="chrome"><span>previous actions</span><span>p511</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">之前的待办事项评审，记录任务和当前状态</h2>
+      <div class="timeline-row">
+        <div class="label">action</div>
+        <p class="lead-zh">确保山羊传送器可以用于传送奶牛，bug 1011101。</p>
+      </div>
+      <div class="timeline-row">
+        <div class="label">status</div>
+        <p class="body-zh">质子加速中的非线性特质可以预知了，应该可以在几天内解决准确性问题。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>action review</span><span>03 / 13</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Incident Review Impact" data-source="p511 事故回顾 新韵文的发现 事故465 12.1亿个请求在连锁故障与潜伏性Bug的共同作用下丢失">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="big-number">12.1 亿</div>
+      <p class="lead-zh muted" style="margin-top:2vh">事故 465 中，12.1 亿个请求在连锁故障与潜伏性 Bug 的共同作用下丢失。</p>
+    </div>
+  </div>
+  <div class="foot"><span>incident 465 impact</span><span>04 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Incident Causes" data-source="p511 事故回顾 搜索结果为空时，文件描述符泄露 索引中不存在新的韵文和未预料的流量">
+  <div class="chrome"><span>incident causes</span><span>p511</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">事故回顾把故障组合拆开写</h2>
+      <div class="grid-3">
+        <div class="soft-box"><div class="label">latent bug</div><p class="body-zh">搜索结果为空时，文件描述符泄露。</p></div>
+        <div class="soft-box"><div class="label">index gap</div><p class="body-zh">索引中不存在新的韵文。</p></div>
+        <div class="soft-box"><div class="label">traffic</div><p class="body-zh">出现未预料的流量。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>failure contributors</span><span>05 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Incident Followups" data-source="p511-p512 文件描述符的Bug已经修复 bug 5554825 调研使用flux capacitor进行负载均衡 bug 5554823 利用负载抛弃来预防再发生 bug 5554826">
+  <div class="chrome"><span>incident followup</span><span>p511 to p512</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">事故后续同时记录已修复项和预防项</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>类型</th><th>记录内容</th><th>追踪号</th></tr></thead>
+          <tbody>
+            <tr><td>已修复</td><td>文件描述符的 Bug 已经部署到生产环境</td><td>bug 5554825</td></tr>
+            <tr><td>调研</td><td>使用 flux capacitor 进行负载均衡</td><td>bug 5554823</td></tr>
+            <tr><td>预防</td><td>利用负载抛弃来预防再发生</td><td>bug 5554826</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>fix and prevention</span><span>06 / 13</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Error Budget" data-source="p512 错误预算已经耗尽，生产环境的更新将会停止一个月">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">1 个月</div>
+      <div class="callout" style="margin-top:2vh">错误预算已经耗尽，生产环境的更新将会停止一个月。</div>
+      <p class="body-zh muted" style="margin-top:2vh">记录里同时写明例外路径：docbrown 需要以极为罕见、不可预知为理由获得管理层批准，但大家认为不太可能。</p>
+    </div>
+  </div>
+  <div class="foot"><span>release freeze</span><span>07 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Urgent Alert Review" data-source="p512 紧急警报回顾 AnnotataionConsistencyTooEventual 本周报警5次 Bigtable跨区域的复制延迟 Bug 4821600">
+  <div class="chrome"><span>urgent alerts</span><span>p512</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">紧急警报回顾，按警报名、次数、原因和处置写</h2>
+      <div class="timeline-row">
+        <div class="label">alert</div>
+        <p class="lead-zh">AnnotataionConsistencyTooEventual，本周报警 5 次。</p>
+      </div>
+      <div class="timeline-row">
+        <div class="label">cause</div>
+        <p class="body-zh">可能是由于 Bigtable 跨区域的复制延迟导致。</p>
+      </div>
+      <div class="timeline-row">
+        <div class="label">handling</div>
+        <p class="body-zh">调查仍在进行，见 Bug 4821600；最近不会有修复，会提高阈值以减少无效警报。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>alert review</span><span>08 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monitoring Changes" data-source="p512 非紧急警报回顾 没有 监控系统修改和静音 AnnotationConsistencyTooEventual 延迟阈值从60s提升到180s 待办 martym">
+  <div class="chrome"><span>monitoring changes</span><span>p512</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">非紧急警报为空，监控修改仍要落到具体待办</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="label">non urgent</div><p class="lead-zh">没有。</p></div>
+        <div class="soft-box"><div class="label">monitoring action</div><p class="body-zh">AnnotationConsistencyTooEventual，可以接受的延迟阈值从 60s 提升到 180s，见 Bug 4821600，待办 martym。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>threshold change</span><span>09 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Planned Production Changes" data-source="p512 计划中的生产变更 USA-1 集群预计在2015-10-29 到 2015-11-02期间下线维护 没有需要采取的动作">
+  <div class="chrome"><span>planned changes</span><span>p512</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">USA 1 集群预计在 2015 年 10 月 29 日到 2015 年 11 月 2 日期间下线维护。</div>
+      <p class="lead-zh muted" style="margin-top:2vh">记录结论是没有需要采取的动作，流量会自动切换到其他集群。</p>
+    </div>
+  </div>
+  <div class="foot"><span>planned maintenance</span><span>10 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Resources" data-source="p512 资源 借用了一些资源 下周下线多余的容量 目前的利用率是 CPU 60%、RAM 75%、DISK 44%">
+  <div class="chrome"><span>resources</span><span>p512</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">资源段记录容量归还和当前利用率</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>字段</th><th>本周记录</th><th>上周对比</th></tr></thead>
+          <tbody>
+            <tr><td>容量动作</td><td>处理新韵文事故时借用了一些资源，下周下线多余容量以退还容量</td><td>无</td></tr>
+            <tr><td>CPU</td><td>60%</td><td>40%</td></tr>
+            <tr><td>RAM</td><td>75%</td><td>70%</td></tr>
+            <tr><td>DISK</td><td>44%</td><td>40%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>capacity and usage</span><span>11 / 13</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Key Service Metrics" data-source="p513 关键服务指标 OK 99百分比延迟：88ms 100ms SLO目标 BAD 可用性：86.95% 99.99% SLO目标">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">关键服务指标同时保留状态和目标</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="label">ok</div><p class="lead-zh">99 百分比延迟：88ms</p><p class="body-zh muted">100ms SLO 目标，过去 30 天。</p></div>
+        <div class="soft-box"><div class="label">bad</div><p class="lead-zh">可用性：86.95%</p><p class="body-zh muted">99.99% SLO 目标，过去 30 天。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>service indicators</span><span>12 / 13</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reusable Minutes Order" data-source="p513 讨论和项目更新 项目Molière 下两周发布 新的待办事项 martym docbrown">
+  <div class="chrome"><span>closing fields</span><span>p513</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">会议最后收项目更新和新的待办事项</h2>
+      <div class="timeline-row">
+        <div class="label">project</div>
+        <p class="lead-zh">项目 Molière 下两周发布。</p>
+      </div>
+      <div class="timeline-row">
+        <div class="label">new actions</div>
+        <p class="body-zh">待办 martym：提高 AnnotationConsistencyTooEventual 的阈值。</p>
+      </div>
+      <div class="timeline-row">
+        <div class="label">new actions</div>
+        <p class="body-zh">待办 docbrown：将实例数量复原，退还资源。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>project update and actions</span><span>13 / 13</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-appendix-f-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-appendix-f-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

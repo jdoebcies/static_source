@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第12章 有效的故障排查手段 note slides</title>
+<style>
+:root {
+  /* palette thesis: troubleshooting should feel like an incident desk, dark ink for urgency, warm paper for reasoning, and blue for evidence that narrows the search. */
+  --ink: #18222d;
+  --ink-rgb: 24,34,45;
+  --paper: #fbfaf4;
+  --paper-rgb: 251,250,244;
+  --accent: #2b6f92;
+  --muted: #65717d;
+  --warm: #a45f3f;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.1rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.48rem, 2.8vw, 2.42rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.44rem, 1.9vw, 1.96rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.58rem); line-height: 1.58; }
+.small-zh { font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #83bdd1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.15rem, 2.5vh, 2.1rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(1.88rem, 3.1vw, 3.25rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .18); }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.slide.dark .table-wrap { border-top-color: rgba(var(--paper-rgb), .2); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.96rem, 1.04vw, 1.2rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.68rem, 1vw, .95rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.slide.dark .data-table th, .slide.dark .data-table td { border-bottom-color: rgba(var(--paper-rgb), .15); }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.slide.dark .data-table th { color: #83bdd1; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p163 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 12</div>
+      <h1 class="display-zh">有效的<br>故障排查手段</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">作者 Chris Jones</p>
+    </div>
+  </div>
+  <div class="foot"><span>p163</span><span>01 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Troubleshooting Skill" data-source="p163 可学习技能">
+  <div class="chrome"><span>troubleshooting skill</span><span>p163</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">故障排查可以自我学习，也可以传授。</div>
+      <p class="body-zh muted" style="margin-top:2vh">新手低效通常缺两个条件：通用故障排查流程，以及对故障系统的足够了解。</p>
+    </div>
+  </div>
+  <div class="foot"><span>skill and system knowledge</span><span>02 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Theory Loop" data-source="p163 假设排除">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">理论上，故障排查是反复采用假设排除手段的过程。</div>
+      <p class="body-zh muted" style="margin-top:2vh">观察结果、系统运行机制认知、失败模型，共同产生下一轮假设。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p163</span><span>03 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Ideal Flow" data-source="p163 p164 通用流程">
+  <div class="chrome"><span>ideal flow</span><span>p163 p164</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">理想流程从报告开始，到事后报告结束</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">报告</h3><p class="small-zh">收到系统问题报告。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">观察</h3><p class="small-zh">查看监控指标和日志。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">假设</h3><p class="small-zh">结合构建原理、运行机制和失败模型。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">测试</h3><p class="small-zh">对比证据，或者可控调整系统。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">修复</h3><p class="small-zh">纠正根因，防止重现，写事后报告。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>report observe hypothesize test repair</span><span>04 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Common Traps" data-source="p164 p165 常见陷阱">
+  <div class="chrome"><span>common traps</span><span>p164 p165</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">低效排查常卡在定位、检查和诊断</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>陷阱</th><th>材料里的表现</th><th>提醒</th></tr></thead>
+          <tbody>
+            <tr><td>看错现象</td><td>关注了错误的系统现象，或者理解错含义</td><td>会在错误方向浪费时间</td></tr>
+            <tr><td>测试失控</td><td>不能正确修改配置、输入或运行环境</td><td>假设无法安全有效验证</td></tr>
+            <tr><td>归因过早</td><td>太早归结到极小概率因素，或者念念不忘旧问题</td><td>先考虑更简单解释</td></tr>
+            <tr><td>混淆相关</td><td>把巧合或结果当成原因</td><td>相关性不等于因果关系</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>triage inspection diagnosis</span><span>05 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Bug Report" data-source="p165 故障报告">
+  <div class="chrome"><span>bug report</span><span>p165</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">有效报告要写清三件事</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">预期</h3><p class="body-zh">系统应该返回什么结果。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">实际</h3><p class="body-zh">系统现在返回什么结果。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">重现</h3><p class="body-zh">别人如何再次触发问题。</p></div>
+      </div>
+      <p class="body-zh muted">Google 的常见做法是为每个错误报告提交 Bug，保留调查历史和解决方案。</p>
+    </div>
+  </div>
+  <div class="foot"><span>searchable history matters</span><span>06 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Shakespeare Alert" data-source="p165 莎士比亚搜索报警">
+  <div class="chrome"><span>shakespeare alert</span><span>p165</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">莎士比亚搜索的故事从黑盒报警开始</h2>
+      <p class="lead-zh">值班时收到报警，黑盒监控在过去五分钟内搜索指定短语无法得到正确结果。</p>
+      <p class="body-zh muted">报警系统自动创建 Bug，填入探针结果链接和 on call 手册链接，并指派给值班人。</p>
+    </div>
+  </div>
+  <div class="foot"><span>automatic bug starts action</span><span>07 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Triage Priority" data-source="p165 p166 定位">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">大型问题里，第一要务是让系统尽最大可能恢复服务。</div>
+      <p class="body-zh muted" style="margin-top:2vh">可以导流、丢弃流量、关闭功能来缓解问题，同时保存现场日志供后续根因分析。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p165 p166</span><span>08 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Inspection Tools" data-source="p166 检查">
+  <div class="chrome"><span>inspection tools</span><span>p166</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">检查阶段需要能看到每个组件状态</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>工具</th><th>材料里的用途</th><th>排查价值</th></tr></thead>
+          <tbody>
+            <tr><td>监控指标</td><td>查看 time series 图表</td><td>从组件工作情况开始定位</td></tr>
+            <tr><td>日志</td><td>记录每个操作和系统状态</td><td>还原某一时刻组件在做什么</td></tr>
+            <tr><td>跟踪</td><td>Dapper 跟踪分布式请求路径</td><td>理解跨服务器调用过程</td></tr>
+            <tr><td>真实客户端</td><td>直接观察组件收到请求后的返回</td><td>验证用户可见结果</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>metrics logs traces client</span><span>09 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Log Controls" data-source="p166 日志">
+  <div class="chrome"><span>log controls</span><span>p166</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">日志系统最好能按需打开细节</h2>
+      <p class="lead-zh">多级记录、在线调整日志级别、采样记录和过滤条件，可以让排查者快速、有选择地启用更多信息。</p>
+      <p class="body-zh muted">监控页面还可以暴露最近 RPC 采样、错误率、延迟直方图、配置文件信息和规则计算过程。</p>
+    </div>
+  </div>
+  <div class="foot"><span>selective detail on demand</span><span>10 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Search Debugging" data-source="p166 p167 调试莎士比亚搜索">
+  <div class="chrome"><span>search debugging</span><span>p166 p167</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">探针没有给出失败结果，只能手动补证据</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>观察</th><th>材料里的细节</th><th>下一步</th></tr></thead>
+          <tbody>
+            <tr><td>探针</td><td>每分钟探测一次，十分钟内大约一半失败</td><td>记录探针缺少失败返回细节</td></tr>
+            <tr><td>手动请求</td><td>返回 HTTP 502 Bad Gateway，没有结果信息</td><td>确认失败具体形态</td></tr>
+            <tr><td>请求头</td><td>X RequestTrace 写明处理请求的后端服务器</td><td>转向检查后端服务器</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>backend address narrows scope</span><span>11 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Simplify Split" data-source="p167 简化和缩略">
+  <div class="chrome"><span>simplify split</span><span>p167</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">诊断先把系统缩小到能验证的接口和数据。</div>
+      <p class="body-zh muted" style="margin-top:2vh">黑盒测试用已知输入检查输出；多层系统可以从一端逐个检查，也可以用对分法定位问题所在。</p>
+    </div>
+  </div>
+  <div class="foot"><span>black box and bisection</span><span>12 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="What Where Why" data-source="p167 p168 什么 哪里 为什么">
+  <div class="chrome"><span>what where why</span><span>p167 p168</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">异常系统经常还在做事，只是做错了事</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">现象</h3><p class="small-zh">Spanner 集群延迟过高，RPC 请求超时。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">为什么</h3><p class="small-zh">服务器任务实例占满 CPU。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">哪里</h3><p class="small-zh">CPU 用在日志排序和写入磁盘。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">哪里</h3><p class="small-zh">排序代码耗在正则表达式计算。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">解决</h3><p class="small-zh">重写正则，考虑使用 RE2。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>follow resource use</span><span>13 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Last Change" data-source="p168 最后一个修改">
+  <div class="chrome"><span>last change</span><span>p168</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">正常工作的系统会维持工作，直到外力出现</h2>
+      <p class="lead-zh">检查最近的配置文件修改、用户流量改变、新版本部署和节点版本信息，常常能帮助定位根因。</p>
+      <p class="body-zh muted">莎士比亚搜索里，请求已经到达后端服务器，因此可以排除 API 前端和负载均衡服务，更集中地看后端日志、测试请求和监控指标。</p>
+    </div>
+  </div>
+  <div class="foot"><span>compare change with behavior</span><span>14 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Targeted Diagnostics" data-source="p168 有针对性地进行诊断">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">针对具体系统开发的诊断工具，通常比通用工具更有用。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Google SRE 花费很多时间开发这类工具，也会在不同团队和系统之间寻找共同点，减少重复劳动。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p168</span><span>15 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Testing Hypotheses" data-source="p169 测试和修复">
+  <div class="chrome"><span>testing hypotheses</span><span>p169</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">短名单之后，用具体试验确认或推翻假设</h2>
+      <p class="lead-zh">网络连接问题可以通过 ping 测试，数据库拒绝连接可以用应用服务器用户名和密码实际连接数据库来验证。</p>
+      <p class="body-zh muted">查看源代码并模拟执行，也可能暴露错误出现在哪里。</p>
+    </div>
+  </div>
+  <div class="foot"><span>turn guesses into tests</span><span>16 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test Caveats" data-source="p169 测试考量">
+  <div class="chrome"><span>test caveats</span><span>p169</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">测试设计要同时考虑信息量和风险</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>考量</th><th>材料里的提醒</th><th>实际含义</th></tr></thead>
+          <tbody>
+            <tr><td>互斥性</td><td>理想测试能推翻一组假设，同时确认另一组</td><td>减少重复试验</td></tr>
+            <tr><td>顺序</td><td>先测试最可能情况，也要考虑危险性</td><td>别为小概率假设冒大风险</td></tr>
+            <tr><td>误导</td><td>工作机 ping 失败不代表应用服务器也失败</td><td>测试环境要贴近真实路径</td></tr>
+            <tr><td>副作用</td><td>开详细日志可能让延迟更糟</td><td>结果可能被测试动作污染</td></tr>
+            <tr><td>文档</td><td>记录想法、测试和结果</td><td>避免重复，并能恢复线上改动</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>record tests and results</span><span>17 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Negative Results" data-source="p169 p170 神奇的负面结果">
+  <div class="chrome"><span>negative results</span><span>p169 p170</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">预期结果没有出现，也能给最难的设计问题画上句号。</div>
+      <p class="body-zh muted" style="margin-top:2vh">负面结果确切告诉团队生产环境、设计理念和系统性能极限的信息，不应该被忽略或轻视。</p>
+    </div>
+  </div>
+  <div class="foot"><span>failed expectation is still data</span><span>18 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Publish Results" data-source="p169 p170 公布负面结果">
+  <div class="chrome"><span>publish results</span><span>p169 p170</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">负面结果的价值在于复用</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>来源</th><th>材料里的例子</th><th>后续价值</th></tr></thead>
+          <tbody>
+            <tr><td>容量评测</td><td>某 Web 服务器因锁竞争只能处理 800 个并发连接</td><td>下个团队不用从头评测</td></tr>
+            <tr><td>实验数据</td><td>微型性能测试、反模式文档、事后报告</td><td>帮助别人选择新试验</td></tr>
+            <tr><td>工具脚本</td><td>性能测试工具和负载生成器</td><td>成功或失败的试验都能产出工具</td></tr>
+            <tr><td>公开结果</td><td>主动公布已经排除的设计、算法和流程</td><td>提升数据驱动风气，减少重复劳动</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>make discarded paths useful</span><span>19 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cure" data-source="p170 治愈">
+  <div class="chrome"><span>cure</span><span>p170</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">生产环境里，根因经常只能达到可能原因</h2>
+      <p class="lead-zh">复杂系统可能由多个因素共同作用，也可能必须处在特定状态下才出问题。</p>
+      <p class="body-zh muted">重现问题有时不可能，因为代价太高，系统太重要，或者非生产复制环境需要额外成本。</p>
+    </div>
+  </div>
+  <div class="foot"><span>probable cause is common</span><span>20 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Postmortem" data-source="p170 事后总结">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">确定根因后，要写清出错部分、定位过程、修复方式和防止再发的方法。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料把这称为事后总结，并提醒最好是在系统已经活着的时候写。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p170</span><span>21 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="App Engine Case" data-source="p170 p171 案例分析">
+  <div class="chrome"><span>app engine case</span><span>p170 p171</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">App Engine 案例从客户报告的三项增长开始</h2>
+      <p class="lead-zh">内部客户观察到延迟、CPU 使用率和运行进程数量大幅增长，但没有找到最近程序改动或用户流量增长。</p>
+      <p class="body-zh muted">调查显示延迟上升一个数量级，CPU 时间和进程数量几乎成四次方增长。</p>
+    </div>
+  </div>
+  <div class="foot"><span>latency cpu instances</span><span>22 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="False Lead" data-source="p171 p172 排除因素">
+  <div class="chrome"><span>false lead</span><span>p171 p172</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">流量、部署和服务问题先被排除</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>线索</th><th>调查判断</th><th>后续变化</th></tr></thead>
+          <tbody>
+            <tr><td>流量峰值</td><td>20:45 的峰值能解释临时增加，不能解释持续数天</td><td>排除流量增长</td></tr>
+            <tr><td>生产变更</td><td>性能改变发生在星期六，没有 App 改动或生产变更</td><td>排除最近部署</td></tr>
+            <tr><td>服务本身</td><td>其他 App 没有类似情况</td><td>不支持基础架构共性故障</td></tr>
+            <tr><td>merge join</td><td>与延迟上升相关，Dapper 找到索引属性</td><td>后来被静态资源缓慢线索推翻</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>correlation can mislead</span><span>23 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Mitigation" data-source="p172 静态资源缓慢">
+  <div class="chrome"><span>mitigation</span><span>p172</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Dapper 看不到没有 RPC 的二百五十毫秒。</div>
+      <p class="body-zh muted" style="margin-top:2vh">静态资源也很慢，memcache 请求却在毫秒级。问题发生在 App 接收请求到发出第一个 RPC 之前。团队先建议增加资源和选择 CPU 更充足的实例类型，让上线可以继续。</p>
+    </div>
+  </div>
+  <div class="foot"><span>mitigate before perfect answer</span><span>24 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Root Cause" data-source="p172 p173 白名单缓存层">
+  <div class="chrome"><span>root cause</span><span>p172 p173</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">根因藏在权限检查的白名单缓存层</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">模式</h3><p class="small-zh">处理每个请求的时间随配置文件数量增长。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">标记</h3><p class="small-zh">开发者给代码增加执行时间标记。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">方法</h3><p class="small-zh">每个请求都会调用路径权限检查。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">副作用</h3><p class="small-zh">安全扫描半小时内产生几千个白名单物件。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">修复</h3><p class="small-zh">修复 Bug，删除无用物件后性能恢复。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>hidden work before rpc</span><span>25 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p173 小结">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">故障排查依靠系统化方法、系统知识和可观察性，不依靠运气。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">紧急情况下先恢复服务，再追根因，同时保存问题现场。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">负面结果、测试记录和事后总结都是可复用的生产知识。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">增加白盒监控、结构化日志、成熟接口和唯一请求标识，可以降低 MTTR。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>26 / 26</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-12-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-12-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

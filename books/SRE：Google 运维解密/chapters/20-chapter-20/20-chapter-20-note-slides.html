@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第20章 数据中心内部的负载均衡系统 note slides</title>
+<style>
+:root {
+  /* palette thesis: datacenter internal load balancing is about keeping many interchangeable backends healthy and evenly used, so the deck uses deep blue gray for fleet scale, warm paper for algorithm notes, and teal for live capacity signals. */
+  --ink: #17242b;
+  --ink-rgb: 23,36,43;
+  --paper: #f7f4ec;
+  --paper-rgb: 247,244,236;
+  --accent: #3f9389;
+  --muted: #657882;
+  --warm: #8b6d48;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.6vw, 6.6rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4vw, 3.8rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.45rem, 2.65vw, 2.45rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.45rem, 1.95vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.22rem, 1.38vw, 1.58rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.08vw, 1.24rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #78c9bf; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p250 章节标题">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 20</div>
+      <h1 class="display-zh">数据中心内部的<br>负载均衡系统</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">客户端在后端任务池里，为每个请求选择一个具体服务进程。</p>
+      <p class="meta" style="margin-top:1.2vh">Alejandro Forero Cuervo</p>
+    </div>
+  </div>
+  <div class="foot"><span>p250</span><span>01 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Scope" data-source="p250 应用级别策略">
+  <div class="chrome"><span>scope</span><span>p250</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">本章只讨论应用级别策略：请求已经到达数据中心，客户端要选一个后端任务。</div>
+      <p class="body-zh muted" style="margin-top:2vh">底层网络链接、交换机、数据包路由和数据中心级别负载均衡都被排除在本章之外。</p>
+    </div>
+  </div>
+  <div class="foot"><span>application level</span><span>02 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Backend Pool" data-source="p250 后端任务规模">
+  <div class="chrome"><span>backend pool</span><span>p250</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">服务由同质、可互换的后端任务组成</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>规模</th><th>材料里的描述</th><th>负载均衡含义</th></tr></thead>
+          <tbody>
+            <tr><td>最小服务</td><td>通常至少三个进程</td><td>少于三个时，一台物理机器失败会让超过一半容量不可用</td></tr>
+            <tr><td>常见服务</td><td>一般由 100 到 1,000 个进程组成</td><td>客户端选择必须在大量后端中稳定工作</td></tr>
+            <tr><td>最大服务</td><td>可能超过 10,000 个进程</td><td>连接数和选择算法本身都会成为系统问题</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>backend tasks</span><span>03 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Stack Depth" data-source="p250 GFE 和依赖栈">
+  <div class="chrome"><span>gfe and dependency stack</span><span>p250</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">同一组算法会出现在技术栈的多个位置</h2>
+      <p class="lead-zh">GFE 会结合第 19 章的算法，把外部 HTTP 请求转给特定服务进程。</p>
+      <p class="body-zh muted">后端处理请求时，又会用同样的负载均衡算法联系基础设施服务或其他依赖服务。单个 HTTP 请求可能触发很深的依赖链，也可能扩展成多个并发请求。</p>
+    </div>
+  </div>
+  <div class="foot"><span>repeated inside stack</span><span>04 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Ideal State" data-source="p250 理想情况">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">理想状态下，最忙和最不忙的任务永远消耗同样数量的 CPU。</div>
+      <p class="body-zh muted" style="margin-top:2vh">只要最忙的任务没有达到容量限制，数据中心还可以继续接收用户流量。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p250</span><span>05 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Wasted CPU" data-source="p251 CPU 使用和浪费">
+  <div class="chrome"><span>wasted reserved capacity</span><span>p251</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">糟糕的负载均衡会把保留容量变成未使用容量。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料里的例子是服务预留了 1000 个 CPU，却可能无法让实际使用超过 700 个 CPU。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reserved but unused</span><span>06 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Health First" data-source="p251 识别异常任务">
+  <div class="chrome"><span>health first</span><span>p251</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">选择后端之前，先识别并避开不健康任务</h2>
+      <p class="lead-zh">本章把健康管理放在请求选择算法之前。</p>
+      <p class="body-zh muted">如果异常后端还留在候选池里，再聪明的分配策略也会把请求发向错误位置。</p>
+    </div>
+  </div>
+  <div class="foot"><span>unhealthy tasks</span><span>07 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Throttle Limit" data-source="p252 流速控制限制">
+  <div class="chrome"><span>simple throttling</span><span>p252</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">按活跃请求数限流，只能挡住很极端的过载</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">常见阈值</h3><p class="body-zh">对大多数后端任务来说，100 是一个合理限制。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">保护有限</h3><p class="body-zh">后端可能在到达限制之前已经过载。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">误伤案例</h3><p class="body-zh">特殊长连接请求可能让全部后端被标记为不可用。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>active request cap</span><span>08 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lame Duck States" data-source="p252 跛脚鸭状态">
+  <div class="chrome"><span>lame duck state</span><span>p252</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">跛脚鸭状态把不接新请求和还能服务旧请求分开</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>状态</th><th>后端表现</th><th>客户端动作</th></tr></thead>
+          <tbody>
+            <tr><td>健康</td><td>初始化成功，正在处理请求</td><td>可以继续发送请求</td></tr>
+            <tr><td>拒绝连接</td><td>无响应，可能在启动、停止或异常</td><td>避开该任务</td></tr>
+            <tr><td>跛脚鸭状态</td><td>仍监听端口并可服务请求，但要求停止发送新请求</td><td>把新请求转给其他后端</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>semi healthy stop</span><span>09 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Graceful Stop" data-source="p252 p253 停止过程步骤">
+  <div class="chrome"><span>graceful stop</span><span>p252 p253</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">无影响停止后端任务，靠状态广播和请求自然流干</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">SIGTERM</h3><p class="small-zh">任务编排系统发送信号。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">进入状态</h3><p class="small-zh">后端进入跛脚鸭状态，请客户端改发其他后端。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">旧请求继续</h3><p class="small-zh">已经进行中的请求仍然完成。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">活跃归零</h3><p class="small-zh">回复逐步发送回客户端。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">干净退出</h3><p class="small-zh">等待 10s 到 150s 后退出或被杀掉。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>drain active requests</span><span>10 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Subset Reason" data-source="p253 限制连接池大小">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">健康管理之外，还要限制每个客户端需要连接的后端数量。</div>
+      <p class="body-zh muted" style="margin-top:2vh">长连接避免了每个请求建连的成本，但每条连接仍要消耗双方内存和 CPU，并承担定期健康检查成本。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p253</span><span>11 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Subset Size" data-source="p253 子集大小 20 到 100">
+  <div class="chrome"><span>subset size</span><span>p253</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">子集大小通常在 20 到 100 个后端之间</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">客户端很少</h3><p class="body-zh">客户端数量比后端数量少很多时，要让每个客户端连接足够多后端，避免部分后端接不到请求。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">突发请求多</h3><p class="body-zh">某些客户端会把请求扩展成大并发请求，更大的子集能把突发分散给更多后端。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>20 to 100 backends</span><span>12 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Subset Criteria" data-source="p253 子集选择算法要求">
+  <div class="chrome"><span>algorithm criteria</span><span>p253</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">子集选择算法要同时满足均衡、稳定和可伸缩</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">平均分配</h3><p class="body-zh">如果算法让某个后端过载 10%，整个集群都要过度分配 10% 容量。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">处理失败</h3><p class="body-zh">任务失败或重启时持续均衡后端任务。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">减少变动</h3><p class="body-zh">后端替换和客户端重启都会带来新 TCP 连接成本。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>balanced and stable</span><span>13 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Random Subset" data-source="p254 随机选择效果很差">
+  <div class="chrome"><span>random subset</span><span>p254</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">随机排列后顺序选取，看起来稳定，实际连接分布很差</h2>
+      <p class="lead-zh">这种算法能限制需要考虑的后端数量，因此重启和失败时连接变动很小。</p>
+      <p class="body-zh muted">Google 早期实现后发现，在大多数实际应用场景中，负载非常不均衡。</p>
+    </div>
+  </div>
+  <div class="foot"><span>poor distribution</span><span>14 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Random Numbers" data-source="p254 p255 随机子集数字">
+  <div class="chrome"><span>random numbers</span><span>p254 p255</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">随机算法的子集越小，分布越糟</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>场景</th><th>最低负载后端</th><th>最高负载后端</th><th>结论</th></tr></thead>
+          <tbody>
+            <tr><td>300 客户端，300 后端，30% 子集</td><td>平均值的 63%</td><td>平均值的 121%</td><td>30% 已经比理想子集大很多</td></tr>
+            <tr><td>子集降低到 10%</td><td>平均值的 50%</td><td>平均值的 150%</td><td>负载更不平衡</td></tr>
+            <tr><td>想相对平均分配</td><td>需要至少 75% 子集</td><td>连接池过大</td><td>大规模部署不可行</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>63 121 50 150</span><span>15 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Deterministic Rounds" data-source="p255 p256 确定性算法轮次">
+  <div class="chrome"><span>deterministic rounds</span><span>p255 p256</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">确定性算法把客户端分成多轮，每轮把每个后端分配给唯一一个客户端。</div>
+      <p class="body-zh muted" style="margin-top:2vh">12 个后端、子集大小为 3 时，subset_count 为 4。10 个客户端会让每个后端分配给 2 个或 3 个客户端。</p>
+    </div>
+  </div>
+  <div class="foot"><span>rounds and subsets</span><span>16 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Round Shuffle" data-source="p256 不同轮随机重排">
+  <div class="chrome"><span>shuffle per round</span><span>p256</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">每轮使用不同随机重排，避免故障负载层层叠加</h2>
+      <p class="lead-zh">如果列表不重排，客户端可能拿到连续后端，而这些后端可能在滚动更新中同时临时不可用。</p>
+      <p class="body-zh muted">如果不同轮没有变化，一个后端故障后的负载会集中落在同一子集剩余后端上，再发生故障时情况继续加重。</p>
+    </div>
+  </div>
+  <div class="foot"><span>avoid failure pileup</span><span>17 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Deterministic Result" data-source="p256 p257 确定性算法结果">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">300 个客户端，每个只连 300 个后端中的 10 个，也能让每个后端接收同样数量的连接。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这是确定性子集算法相对随机子集的关键收益。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p257</span><span>18 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Strategy Choice" data-source="p257 负载均衡策略">
+  <div class="chrome"><span>per request choice</span><span>p257</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">子集确定之后，客户端还要为每个请求选择具体后端</h2>
+      <p class="lead-zh">复杂度来自分布式决策：每个客户端都要实时判断。</p>
+      <p class="body-zh muted">它只能利用部分后端信息，而且这些信息甚至可能已经过期。</p>
+    </div>
+  </div>
+  <div class="foot"><span>partial stale state</span><span>19 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Round Robin Cost" data-source="p257 简单轮询算法">
+  <div class="chrome"><span>simple round robin</span><span>p257</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">简单轮询长期常用，但 CPU 分布可能差到两倍</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">策略本身</h3><p class="body-zh">每个客户端轮流把请求发给子集中的可连接、非跛脚鸭后端。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">观察结果</h3><p class="body-zh">最高负载任务可能比最低负载任务使用 2 倍 CPU 资源。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>two times cpu spread</span><span>20 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cost Variance" data-source="p258 请求处理成本不同">
+  <div class="chrome"><span>request cost variance</span><span>p258</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">请求成本差异会让轮询失去平均意义</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>材料锚点</th><th>具体数字或例子</th><th>负载均衡后果</th></tr></thead>
+          <tbody>
+            <tr><td>成本跨度</td><td>最高成本请求可能多消耗 1000 倍甚至更多 CPU</td><td>后端是否倒霉接到大请求会主导负载</td></tr>
+            <tr><td>邮件查询</td><td>返回用户昨天收到的所有邮件，成本可能低也可能高</td><td>事先很难知道请求会有多贵</td></tr>
+            <tr><td>Java 后端</td><td>普通请求约 15ms CPU，某些请求可轻易消耗 10s</td><td>大请求期间其他请求延迟上升</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>1000 times and 10s</span><span>21 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Machine Variance" data-source="p258 物理服务器的差异">
+  <div class="chrome"><span>machine variance</span><span>p258</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">同一数据中心里的物理服务器也不完全一样</h2>
+      <p class="lead-zh">同样的请求，对不同 CPU 性能的机器来说负载不同。</p>
+      <p class="body-zh muted">Google 用虚拟 CPU 单位 GCU 建模 CPU 性能，并维护 GCU 与不同 CPU 类型的性能映射表。</p>
+    </div>
+  </div>
+  <div class="foot"><span>gcu mapping</span><span>22 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Unpredictable Factors" data-source="p259 坏邻居和任务重启">
+  <div class="chrome"><span>unpredictable factors</span><span>p259</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">还有一些性能差异无法靠统计提前量化</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">坏邻居</h3><p class="body-zh">同机其他进程会争抢缓存、带宽等共享资源，观察到的性能波动可达 20%。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">任务重启</h3><p class="body-zh">任务重启后数分钟内可能需要更多资源，Java 平台常受动态优化影响。</p></div>
+      </div>
+      <p class="body-zh muted">一些服务器会先保持跛脚鸭状态并预热，直到性能稳定。</p>
+    </div>
+  </div>
+  <div class="foot"><span>bad neighbor and restart</span><span>23 / 26</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Least Loaded" data-source="p259 p260 最闲轮询策略">
+  <div class="chrome"><span>least loaded round robin</span><span>p259 p260</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">最闲轮询会优先选活跃请求数最小的后端，但可能被低延迟错误回复骗进地漏效应。</div>
+      <p class="body-zh muted" style="margin-top:2vh">解决办法是把最近收到的错误信息也计算为活跃请求，让异常后端像过载后端一样被迁走负载。</p>
+    </div>
+  </div>
+  <div class="foot"><span>sinkhole effect</span><span>24 / 26</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Weighted Round Robin" data-source="p260 p261 加权轮询策略">
+  <div class="chrome"><span>weighted round robin</span><span>p260 p261</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">加权轮询把后端观测信息带回客户端决策</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>机制</th><th>后端提供的信息</th><th>客户端如何使用</th></tr></thead>
+          <tbody>
+            <tr><td>能力值</td><td>每个后端任务对应一个能力值</td><td>请求仍轮询分发，但按能力值比例调节</td></tr>
+            <tr><td>回复反馈</td><td>请求速率、每秒错误值、CPU 使用率</td><td>根据成功请求数量和资源利用率成本周期性调节</td></tr>
+            <tr><td>失败反馈</td><td>失败请求也记录在内</td><td>影响未来选择，降低最高和最低负载任务差距</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>backend feedback</span><span>25 / 26</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p250 p253 p260 核心总结">
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="kicker accent" style="opacity:1">核心总结</div>
+      <div class="grid-3">
+        <div class="line-box"><div class="summary-num">1</div><p class="body-zh">先把不健康任务从候选池移开，再谈请求怎么分配。</p></div>
+        <div class="line-box"><div class="summary-num">2</div><p class="body-zh">子集化控制连接成本，但子集选择算法必须保持后端分配均匀且变动小。</p></div>
+        <div class="line-box"><div class="summary-num">3</div><p class="body-zh">最终效果最好的是带后端反馈的加权轮询，因为它把真实资源利用率纳入决策。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>chapter 20</span><span>26 / 26</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-20-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-20-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

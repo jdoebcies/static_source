@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SRE Google运维解密 译者序前言与序言</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #14202a;
+  --ink-rgb: 20,32,42;
+  --paper: #f7f3ea;
+  --paper-rgb: 247,243,234;
+  --accent: #b35c2e;
+  --accent-rgb: 179,92,46;
+  --muted: #66727d;
+  --serif-zh: "Noto Serif SC", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .85s cubic-bezier(.77,0,.175,1); z-index: 10; will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.5rem, 2.8vw, 2.5rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.45rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-family: var(--sans-zh); font-weight: 400; font-size: clamp(1.35rem, 1.55vw, 1.75rem); line-height: 1.55; }
+.small-zh { font-family: var(--sans-zh); font-weight: 400; font-size: clamp(1.05rem, 1.16vw, 1.35rem); line-height: 1.55; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .52; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.note-stack { width: var(--w-default); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(2rem, 4vh, 3.6rem); }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.grid-2-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 3vw, 3rem); min-height: 0; align-items: center; }
+.grid-2-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(1rem, 3vw, 3rem); min-height: 0; align-items: center; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(.8rem, 2vw, 2rem); min-height: 0; }
+.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
+.foot { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(1.9rem, 3.2vw, 3.3rem); line-height: 1.42; max-width: 14em; }
+.callout cite { display: block; font-style: normal; font-weight: 500; font-size: clamp(.8rem, 1vw, 1rem); margin-top: 1.8vh; opacity: .62; font-family: var(--mono); }
+.callout-mark { border-left: none; padding-left: 0; padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .76; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3.2rem, 7vw, 6.4rem); font-weight: 600; color: var(--accent); opacity: .88; line-height: .95; letter-spacing: 0; }
+.stat-num { font-family: var(--serif-zh); font-weight: 800; font-size: clamp(4.8rem, 12vw, 11rem); line-height: 1; color: var(--accent); }
+.timeline-row { position: relative; }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 6%; right: 6%; height: 1px; background: rgba(var(--ink-rgb), .13); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .16); }
+.timeline-node { position: relative; z-index: 1; }
+.slide.light .timeline-node .meta { background: var(--paper); }
+.slide.dark .timeline-node .meta { background: var(--ink); }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0 clamp(.45rem, 1vh, .8rem); font-family: var(--sans-zh); font-size: clamp(1.06rem, 1.18vw, 1.38rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem); text-align: center; vertical-align: middle; }
+.data-table th { font-family: var(--mono); font-size: clamp(.78rem, .82vw, .95rem); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(var(--accent-rgb), .08); }
+.data-table td { background: rgba(var(--ink-rgb), .045); }
+.data-table.keyed td:first-child, .data-table.keyed th:first-child { text-align: left; font-weight: 600; }
+.data-table tr > *:first-child { border-radius: 6px 0 0 6px; }
+.data-table tr > *:last-child { border-radius: 0 6px 6px 0; }
+.table-wrap { width: var(--w-wide); margin: 0 auto; display: flex; flex-direction: column; gap: clamp(1.4rem, 3.5vh, 2.8rem); }
+.pill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.pill { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.5rem); }
+.slide.dark .pill { border-top-color: rgba(var(--paper-rgb), .18); }
+.process { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.8rem, 1.3vw, 1.2rem); align-items: stretch; }
+.step { min-height: clamp(9rem, 18vh, 13rem); border: 1px solid rgba(var(--ink-rgb), .16); border-radius: 6px; padding: clamp(1rem, 1.6vw, 1.4rem); display: flex; flex-direction: column; justify-content: space-between; background: rgba(var(--paper-rgb), .58); }
+.slide.dark .step { border-color: rgba(var(--paper-rgb), .18); background: rgba(var(--paper-rgb), .06); }
+.step strong { font-family: var(--serif-zh); font-size: clamp(1.35rem, 1.7vw, 1.9rem); line-height: 1.22; font-weight: 700; }
+.step p { color: inherit; opacity: .68; }
+.risk-map { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(1.5rem, 3vw, 3.2rem); align-items: center; }
+.risk-box { border-left: 3px solid var(--accent); padding-left: clamp(1rem, 2vw, 1.6rem); }
+.stack-list { display: flex; flex-direction: column; gap: clamp(1.2rem, 2vh, 1.8rem); }
+.stack-row { display: grid; grid-template-columns: 10rem 1fr; gap: clamp(1rem, 2vw, 2rem); align-items: baseline; border-top: 1px solid rgba(var(--ink-rgb), .12); padding-top: clamp(.9rem, 1.6vh, 1.3rem); }
+.slide.dark .stack-row { border-top-color: rgba(var(--paper-rgb), .14); }
+.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1) { transition-delay: .05s; }
+.slide.active .anim-item:nth-child(2) { transition-delay: .15s; }
+.slide.active .anim-item:nth-child(3) { transition-delay: .25s; }
+.slide.active .anim-item:nth-child(4) { transition-delay: .35s; }
+.slide.active .anim-item:nth-child(5) { transition-delay: .45s; }
+#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
+#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p10 译者序" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
+      <div class="kicker anim-item" style="color:var(--accent);opacity:1">SRE book unit</div>
+      <h1 class="display-zh anim-item" style="max-width:9.2em">译者序 前言 与序言</h1>
+      <p class="lead-zh anim-item" style="max-width:24em;opacity:.66">本单元先给出 Google SRE 的规模、气质和成书背景，再把 SRE 定义为一种面向软件生命周期的工程职业</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>SRE Google运维解密</div><div>p10 到 p28</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Scale" data-source="p10 译者序">
+  <div class="chrome"><div>译者序 · 规模入口</div><div>02 / 25</div></div>
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="stat-num anim-item">1000</div>
+    <h2 class="h2-zh anim-item" style="max-width:16em;margin-top:clamp(1rem,2vh,2rem)">一千人运维核心应用与基础设施</h2>
+    <p class="body-zh anim-item" style="max-width:24em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.64">译者把百万台级服务器集群、全球网络架构和家喻户晓的应用放在同一张工作图里，说明传统运维问题在这个平台上被放大</p>
+  </div>
+  <div class="foot" style="width:100%"><div>规模不是炫耀项</div><div>02 / 25</div></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Pragmatism" data-source="p10 译者序">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item">SRE temper</div>
+      <h2 class="h1-zh anim-item" style="max-width:11em">怀疑宣传，追问架构、细节和监控图表</h2>
+      <p class="body-zh anim-item" style="max-width:22em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.66">译者说 SRE 没有万能药，可靠性靠务实态度和具体证据推进</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>pragmatic</div><div>03 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Craft" data-source="p10 译者序">
+  <div class="chrome"><div>译者序 · 工匠主义</div><div>04 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,4rem)">SRE 的日常被描述为一组持续修缮动作</h2>
+      <div class="process">
+        <div class="step anim-item"><div class="meta">Review</div><strong>设计评审</strong><p class="small-zh">推演各种灾难场景</p></div>
+        <div class="step anim-item"><div class="meta">Weekly</div><strong>每周例会</strong><p class="small-zh">讨论事故防范和警报策略</p></div>
+        <div class="step anim-item"><div class="meta">Code</div><strong>自动化</strong><p class="small-zh">增强工具能力，减少重复劳动</p></div>
+        <div class="step anim-item"><div class="meta">Docs</div><strong>文档维护</strong><p class="small-zh">把团队经验沉淀下来</p></div>
+        <div class="step anim-item"><div class="meta">Root</div><strong>根源问题</strong><p class="small-zh">一点一点提高服务质量</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>日拱一卒</div><div>04 / 25</div></div>
+</section>
+
+<section class="slide light bare" data-theme="light" data-screen-label="No Magic" data-source="p11 译者序">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Book style</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3.2rem,8vw,7.5rem);max-width:10em">没有魔法系统，只有问题本身</h2>
+      <p class="body-zh anim-item" style="max-width:25em;margin-top:clamp(1.4rem,3vh,2.2rem);opacity:.66">译者把本书定位为运维行业教科书，原因是它记录困难、方案和复盘，而非奇技淫巧</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p11 译者序</div><div>05 / 25</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Scaling" data-source="p12 前言">
+  <div class="chrome"><div>前言 · scaling up</div><div>06 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack w-default">
+      <h2 class="h1-zh anim-item" style="max-width:12em">Mark Burgess 从扩大规模进入 Google 历史</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">Company</div><p class="body-zh">Google 的成长标志着社会转向以 IT 为中心的商业模式</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">Ops</div><p class="body-zh">传统系统运维理念无法按原样承载 Google 系统</p></div>
+        <div class="anim-item"><div class="kicker" style="color:var(--accent);opacity:1">Pressure</div><p class="body-zh">新模式要在没有行业验证的情况下被创造出来</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Mark Burgess</div><div>06 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Profession" data-source="p12 前言">
+  <div class="chrome"><div>前言 · 职业成形</div><div>07 / 25</div></div>
+  <div class="slide-body">
+    <div class="risk-map w-wide">
+      <div class="anim-item">
+        <div class="kicker">Before Google</div>
+        <h2 class="h1-zh" style="max-width:9em">系统运维曾被认为尚未成熟到能称作工程</h2>
+      </div>
+      <div class="anim-item risk-box">
+        <p class="lead-zh">Burgess 曾把系统运维定义为人与计算机共同参与的系统性工程。Google 的高速发展把这个定义落成一个具体职业，SRE。</p>
+        <p class="body-zh" style="margin-top:clamp(1rem,2vh,1.6rem);opacity:.65">软件工程理念和自动化工具成为职业边界的核心材料</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>人与计算机共同参与</div><div>07 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Learning" data-source="p13 前言">
+  <div class="chrome"><div>前言 · 学习过程</div><div>08 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">本书更看重 Google 工程团队怎样学习和修改</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Build</div><p class="body-zh" style="margin-top:1vh">建设大型计算集群</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Learn</div><p class="body-zh" style="margin-top:1vh">从运行过程学习</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Revise</div><p class="body-zh" style="margin-top:1vh">反复修改工具和方法</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Define</div><p class="body-zh" style="margin-top:1vh">形成完整工具和科技体系</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>过程比传奇更关键</div><div>08 / 25</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Decisions" data-source="p13 前言">
+  <div class="chrome"><div>前言 · 决策张力</div><div>09 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Reader stance</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">阅读收益来自把自身选择与书中决策逻辑对照</h2>
+      <p class="body-zh anim-item" style="max-width:26em;opacity:.66">Burgess 提醒读者保持谦逊，因为外部观察者不了解 Google 当时的全部纠缠。问题会自然出现，例如为什么没选 X，选 Y 会怎样，多年后是否仍然成立。</p>
+    </div>
+  </div>
+  <div class="foot"><div>旁观者的谦逊</div><div>09 / 25</div></div>
+</section>
+
+<section class="slide light bare" data-theme="light" data-screen-label="Design Process" data-source="p14 前言">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">Against code only</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7.2vw,6.8rem);max-width:10.5em">工具只是组件，设计过程才稀缺</h2>
+      <p class="body-zh anim-item" style="max-width:26em;margin-top:clamp(1.4rem,3vh,2.2rem);opacity:.66">前言批评只看代码的行业风气，强调软件、人和海量数据被工具连接，文档化的设计过程更有长期价值</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p14 前言</div><div>10 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Growth" data-source="p14 前言">
+  <div class="chrome"><div>前言 · 公司扩展</div><div>11 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-default">
+      <div class="callout callout-mark anim-item" style="max-width:15em;color:var(--ink)">扩展一个计算机系统，牵动商业模式和工作模式一起扩展<cite>p14 前言</cite></div>
+      <div class="pill-grid" style="margin-top:clamp(2rem,5vh,3.8rem)">
+        <div class="pill anim-item"><div class="kicker" style="color:var(--accent);opacity:1">System</div><p class="body-zh">系统容量放大并不能解释全部困难</p></div>
+        <div class="pill anim-item"><div class="kicker" style="color:var(--accent);opacity:1">Business</div><p class="body-zh">公司商业模式随规模增长被重新塑形</p></div>
+        <div class="pill anim-item"><div class="kicker" style="color:var(--accent);opacity:1">Work</div><p class="body-zh">工作模式也要支持更大组织和更复杂服务</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>不只是资源扩张</div><div>11 / 25</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Introspection" data-source="p14 前言">
+  <div class="chrome"><div>前言 · 自省</div><div>12 / 25</div></div>
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3.5vh,2.6rem)">
+      <div class="kicker anim-item">Rare record</div>
+      <h2 class="h1-zh anim-item" style="max-width:13em">这些经历没有办法完全复制，却可以被模仿和借鉴</h2>
+      <p class="body-zh anim-item" style="max-width:25em;opacity:.66">Burgess 把本书价值放在分水岭时期的详细记录上。它呈现希望、担忧、成功与失败，也呈现作者们的坦率。</p>
+    </div>
+  </div>
+  <div class="foot"><div>Google 迈过分水岭</div><div>12 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Maintenance Cost" data-source="p15 序言">
+  <div class="chrome"><div>序言 · 生命周期</div><div>13 / 25</div></div>
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="stat-num anim-item">40%～90%</div>
+    <h2 class="h2-zh anim-item" style="max-width:15em;margin-top:clamp(1rem,2vh,2rem)">维护花销占比巨大</h2>
+    <p class="body-zh anim-item" style="max-width:24em;margin-top:clamp(.8rem,1.5vh,1.5rem);opacity:.64">序言用这个区间反击生产环境稳定后不需要太多工程投入的行业说法，并指出该估算本身也暴露软件工程对精确性的不足</p>
+  </div>
+  <div class="foot" style="width:100%"><div>脚注一补充数据波动</div><div>13 / 25</div></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Lifecycle Role" data-source="p15 序言">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item">SRE role</div>
+      <h2 class="h1-zh anim-item" style="max-width:12em">软件系统需要一个职业负责完整生命周期</h2>
+      <p class="body-zh anim-item" style="max-width:24em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0;opacity:.66">从设计、部署、持续改进到顺利退役，这个职业要有广泛技能，并和传统开发岗位的关注点区分开</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Site Reliability Engineering</div><div>14 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Engineer" data-source="p15 序言">
+  <div class="chrome"><div>序言 · Engineer</div><div>15 / 25</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">SRE 首先是工程师，用软件工程手段处理分布式系统</h2>
+      <div class="grid-3">
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Product</div><p class="body-zh" style="margin-top:1vh">有时与产品研发团队共同工作</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Components</div><p class="body-zh" style="margin-top:1vh">有时开发备份系统、负载均衡系统等额外组件</p></div>
+        <div class="anim-item"><div class="meta" style="color:var(--accent);opacity:1">Reuse</div><p class="body-zh" style="margin-top:1vh">理想情况下推动组件在多个项目中复用</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>计算机科学与软件工程</div><div>15 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reliability" data-source="p16 序言">
+  <div class="chrome"><div>序言 · Reliability</div><div>16 / 25</div></div>
+  <div class="slide-body">
+    <div class="risk-map w-wide">
+      <div class="anim-item">
+        <h2 class="h1-zh" style="max-width:9em">可靠性是产品设计中最基本的概念</h2>
+        <p class="body-zh" style="max-width:23em;margin-top:clamp(1rem,2vh,1.6rem);opacity:.66">系统如果无法被稳定使用，就没有存在意义</p>
+      </div>
+      <div class="anim-item risk-box">
+        <div class="kicker" style="color:var(--accent);opacity:1">Limit</div>
+        <p class="lead-zh">SRE 不无止境追求完美。当系统已经足够可靠，精力通常转向研发新功能和创造新产品。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Ben Treynor Sloss</div><div>16 / 25</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Service Scope" data-source="p16 序言">
+  <div class="chrome"><div>序言 · Service</div><div>17 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-default">
+      <div class="callout callout-mark anim-item">SRE 的 S 最早来自 google.com 的运维服务<cite>p16 序言</cite></div>
+      <div class="stack-list" style="margin-top:clamp(2rem,5vh,3.6rem)">
+        <div class="stack-row anim-item"><div class="meta" style="color:var(--accent);opacity:1">Early</div><p class="body-zh">第一个任务是维持网站正常运转</p></div>
+        <div class="stack-row anim-item"><div class="meta" style="color:var(--accent);opacity:1">Expand</div><p class="body-zh">逐渐接管绝大部分产品系统</p></div>
+        <div class="stack-row anim-item"><div class="meta" style="color:var(--accent);opacity:1">Infra</div><p class="body-zh">范围扩展到 Google Cloud Platform 和 Bigtable 等非网站类基础设施</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>业务服务运行在分布式集群管理系统上</div><div>17 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Applicability" data-source="p17 序言">
+  <div class="chrome"><div>序言 · 迁移到其他组织</div><div>18 / 25</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">序言把外部读者分成两个落点</h2>
+      <table class="data-table keyed anim-item">
+        <thead><tr><th>组织阶段</th><th>常见困惑</th><th>SRE 入口</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr><td>创业企业</td><td>日常挑战太多</td><td>越早关注可靠性越好</td><td>像盖房子先打好地基</td></tr>
+          <tr><td>中型企业</td><td>已有类似角色但缺少认可</td><td>承认这些人的工作并配备激励</td><td>可靠性工程师可能已在组织内部出现</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>理论与内部工具分开讲</div><div>18 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Apollo Timeline" data-source="p17 序言 p18 序言">
+  <div class="chrome"><div>Margaret Hamilton · 事故链</div><div>19 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,4rem)">Apollo 案例把可靠性从理念压到操作细节</h2>
+      <div class="timeline-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(1rem,2vw,2rem)">
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Apollo 7</div><p class="body-zh" style="margin-top:1vh">Lauren 按下 DSKY 键，模拟程序崩溃</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">P01</div><p class="body-zh" style="margin-top:1vh">起飞前调试程序删除现存导航信息</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Patch</div><p class="body-zh" style="margin-top:1vh">状态检查改动被 NASA 管理层拒绝</p></div>
+        <div class="timeline-node anim-item"><div class="meta" style="color:var(--accent);opacity:1">Manual</div><p class="body-zh" style="margin-top:1vh">飞行手册补入警告和恢复办法</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>重画结构图一</div><div>19 / 25</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Apollo Crisis" data-source="p18 序言">
+  <div class="chrome"><div>Apollo 8 · 危机时刻</div><div>20 / 25</div></div>
+  <div class="slide-body">
+    <div class="risk-map w-wide">
+      <div class="anim-item">
+        <div class="kicker" style="color:var(--accent);opacity:1">Christmas</div>
+        <h2 class="h1-zh" style="max-width:9em">Jim Lovell 在飞行途中意外触发 P01</h2>
+        <p class="body-zh" style="max-width:23em;margin-top:clamp(1rem,2vh,1.6rem);opacity:.66">大部分工程师休假，任务从演习变成人命关天的恢复问题</p>
+      </div>
+      <div class="anim-item risk-box">
+        <p class="lead-zh">之前被认为小题大做的手册更新，恰好提供重新上传数据和恢复执行的办法，让任务继续。</p>
+        <p class="body-zh" style="margin-top:clamp(1rem,2vh,1.6rem);opacity:.65">危机之后，状态检查改动很快获批</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>低概率不等于无后果</div><div>20 / 25</div></div>
+</section>
+
+<section class="slide light bare" data-theme="light" data-screen-label="Human Error" data-source="p18 序言 p19 序言">
+  <div class="slide-body" style="align-items:flex-start">
+    <div class="w-statement">
+      <div class="kicker anim-item" style="margin-bottom:clamp(1.6rem,4vh,3rem)">SRE instinct</div>
+      <h2 class="display-zh anim-item" style="font-size:clamp(3rem,7vw,6.8rem);max-width:10.5em">掌握原理也无法阻止人犯意外错误</h2>
+      <p class="body-zh anim-item" style="max-width:26em;margin-top:clamp(1.4rem,3vh,2.2rem);opacity:.66">序言把 Margaret 的故事收束为细节关注、灾难预案和持续警惕。这也是本单元给 SRE 的第一条实践伦理。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>Margaret Hamilton</div><div>21 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reading Map" data-source="p19 如何阅读本书">
+  <div class="chrome"><div>如何阅读本书</div><div>22 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,4rem)">读者可以跳读，但作者推荐从生产环境和风险开始</h2>
+      <div class="process" style="grid-template-columns:repeat(4,1fr)">
+        <div class="step anim-item"><div class="meta">Ch 2</div><strong>生产运行环境</strong><p class="small-zh">先理解 Google 的系统背景</p></div>
+        <div class="step anim-item"><div class="meta">Ch 3</div><strong>风险</strong><p class="small-zh">理解 SRE 如何系统化认知和量化风险</p></div>
+        <div class="step anim-item"><div class="meta">Part II III IV</div><strong>三大部分</strong><p class="small-zh">理念、最佳实践和管理经验</p></div>
+        <div class="step anim-item"><div class="meta">Site</div><strong>补充网站</strong><p class="small-zh">g.co/SREBook 提供额外读物</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>会议文集式阅读</div><div>22 / 25</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Production Network" data-source="p23 致谢 p27 致谢">
+  <div class="chrome"><div>致谢 · 成书机制</div><div>23 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-default">
+      <h2 class="h1-zh anim-item" style="max-width:12em">致谢页暴露了这本书的生产系统</h2>
+      <div class="stack-list" style="margin-top:clamp(2rem,5vh,3.6rem)">
+        <div class="stack-row anim-item"><div class="meta" style="color:var(--accent);opacity:1">Sponsors</div><p class="body-zh">Ben Lutch 和 Ben Treynor Sloss 在 Google 内部赞助本书，认可分享大规模服务运维经验</p></div>
+        <div class="stack-row anim-item"><div class="meta" style="color:var(--accent);opacity:1">Reviewers</div><p class="body-zh">内部与外部评审者提供深度反馈，每章还有大量讨论和评审人员</p></div>
+        <div class="stack-row anim-item"><div class="meta" style="color:var(--accent);opacity:1">Story</div><p class="body-zh">Margaret Hamilton 允许序言引用她的故事，个人经历进入职业定义</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>名单背后是知识生产链</div><div>23 / 25</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Boundaries" data-source="p27 脚注 p28 脚注">
+  <div class="chrome"><div>脚注 · 概念边界</div><div>24 / 25</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">序言脚注把 SRE 的适用边界说清楚</h2>
+      <table class="data-table keyed anim-item">
+        <thead><tr><th>边界项</th><th>文本给出的限定</th><th>对阅读的影响</th></tr></thead>
+        <tbody>
+          <tr><td>可靠性</td><td>系统在指定环境下持续执行功能指定时间的概率</td><td>它是可定义、可讨论、可量化的工程对象</td></tr>
+          <tr><td>系统范围</td><td>主要关注大型网站和类似 Web 服务</td><td>核电、民航、医疗器械等高安全行业另行比较</td></tr>
+          <tr><td>DevOps</td><td>认同基础设施即代码，重点仍放在可靠性</td><td>SRE 更倾向于直接消除运维需要</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>边界不是附属信息</div><div>24 / 25</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Summary" data-source="p10 译者序 p28 脚注">
+  <div class="chrome"><div>核心总结</div><div>25 / 25</div></div>
+  <div class="slide-body">
+    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(2rem,5vh,3.5rem)">
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">01</div>
+        <p class="body-zh">译者序把 SRE 的方法论放在务实证据上：怀疑宣传，查看设计架构、实现细节和监控图表，通过灾难推演、警报优化、自动化、文档和源码维护持续改善服务质量。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">02</div>
+        <p class="body-zh">前言把 SRE 放进行业转型：Google 的扩大规模迫使系统运维从个人英雄和神秘经验走向人与计算机共同参与的系统性工程，软件工程理念与自动化工具定义了新职业。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">03</div>
+        <p class="body-zh">序言给出职业定义和限制：SRE 是工程师，关注可靠性，运维服务；当系统足够可靠时，继续追求完美会让位于新功能和新产品。</p>
+      </div>
+      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
+        <div class="summary-num">04</div>
+        <p class="body-zh">Margaret Hamilton 的 P01 故事把低概率人为错误、状态检查、手册预案和危机恢复连在一起，说明可靠性工程的价值经常在事故发生前被低估。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p10 到 p28</div><div>25 / 25</div></div>
+</section>
+
+</div>
+<div id="nav"></div>
+<script>
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let isTransitioning = false;
+  const nav = document.getElementById('nav');
+  function renderNav() {
+    nav.innerHTML = '';
+    slides.forEach((s, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      dot.onclick = () => goTo(i);
+      nav.appendChild(dot);
+    });
+    const theme = slides[current].dataset.theme;
+    nav.style.setProperty('background', theme === 'light' ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)');
+    Array.from(nav.querySelectorAll('.dot')).forEach((d, i) => {
+      d.style.background = i === current ? (theme === 'light' ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.95)') : (theme === 'light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
+    });
+  }
+  function saveProgress() {
+    try { localStorage.setItem('slides-progress-00-prefaces', current); } catch(e) {}
+  }
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    isTransitioning = true;
+    current = idx;
+    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    slides.forEach(s => s.classList.remove('active'));
+    setTimeout(() => {
+      slides[current].classList.add('active');
+      isTransitioning = false;
+      renderNav();
+      saveProgress();
+    }, 900);
+  }
+  document.addEventListener('keydown', e => {
+    if (isTransitioning) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+  });
+  let wheelTimeout = null;
+  document.addEventListener('wheel', e => {
+    if (isTransitioning || wheelTimeout) return;
+    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 800);
+    if (e.deltaY > 30) goTo(current + 1);
+    if (e.deltaY < -30) goTo(current - 1);
+  }, { passive: true });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (isTransitioning) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) goTo(current + 1);
+    if (diff < -50) goTo(current - 1);
+  }, { passive: true });
+  try {
+    const p = parseInt(localStorage.getItem('slides-progress-00-prefaces'), 10);
+    if (!isNaN(p) && p >= 0 && p < total) {
+      current = p;
+      deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    }
+  } catch(e) {}
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  renderNav();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第8章 发布工程 note slides</title>
+<style>
+:root {
+  --ink: #17202b;
+  --ink-rgb: 23,32,43;
+  --paper: #fbfaf6;
+  --paper-rgb: 251,250,246;
+  --accent: #2d6f7c;
+  --muted: #65707f;
+  --warm: #b46b45;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7bb8c1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p120 章节标题">
+  <div class="slide-body" style="text-align:center;align-items:center">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 08</div>
+      <h1 class="display-zh">发布工程</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">从源代码到部署的可靠流程</p>
+    </div>
+  </div>
+  <div class="foot"><span>p120</span><span>01 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Discipline Scope" data-source="p120 发布工程 构建和交付软件">
+  <div class="chrome"><span>release engineering</span><span>p120</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布工程关注构建和交付软件</h2>
+      <p class="lead-zh">发布工程师横跨源代码管理、编译器、构建配置语言、自动化构建工具、包管理器和安装器。</p>
+      <p class="body-zh muted">材料把它放在软件工程内部，一个较新且发展较快的学科。</p>
+    </div>
+  </div>
+  <div class="foot"><span>build and deliver</span><span>02 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Reliable Release" data-source="p120 可重现 自动化 独特的雪花">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">可靠服务需要可靠发布，每一次发布都应该可以重复。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 关注二进制文件和配置文件如何从源代码走到部署，任何流程改变都应该有意为之。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p120</span><span>03 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Release Role" data-source="p120 p121 发布工程师的角色 数据驱动">
+  <div class="chrome"><span>release role</span><span>p120 p121</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">发布工程师用数据定义最佳实践</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">速度</h3><p class="body-zh">统计从代码修改提交到生产部署需要多长时间。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">使用率</h3><p class="body-zh">观察构建配置文件中某个特性的使用情况。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">默认正确</h3><p class="body-zh">让工具默认能正确工作，并用文档降低重复造轮子。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>data driven practice</span><span>04 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="SRE Partnership" data-source="p121 SRE 紧密协作 测试 回滚">
+  <div class="chrome"><span>sre partnership</span><span>p121</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布工程和 SRE 共同守住变更路径</h2>
+      <p class="lead-zh">SRE 负责产品更新的安全部署，发布工程师与 SRE 一起制定测试、无缝发布和顺利回滚的策略。</p>
+      <p class="body-zh muted">这一章后面所有工具都服务于这个目标：让业务需要的变更能被控制。</p>
+    </div>
+  </div>
+  <div class="foot"><span>test rollout rollback</span><span>05 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Four Philosophies" data-source="p121 发布工程哲学 四个主要哲学">
+  <div class="chrome"><span>release philosophy</span><span>p121</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">日常工作由四个哲学约束</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">自服务模型</h3><p class="body-zh">团队可以掌控和执行自己的发布流程。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">追求速度</h3><p class="body-zh">更快让用户可见功能上线，并缩小版本间变更。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">密闭性</h3><p class="body-zh">同一源代码版本在不同机器上应该得到相同构建结果。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">策略和流程</h3><p class="body-zh">用安全、访问控制和审计约束发布动作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>four constraints</span><span>06 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Self Service" data-source="p121 自服务模型 自动构建 自动发布">
+  <div class="chrome"><span>self service</span><span>p121</span></div>
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <h2 class="h1-zh">自服务让几千个工程师仍能快速发布</h2>
+      <p class="lead-zh muted" style="margin-top:2vh">每个团队可以决定多久发布、什么时候发布。很多项目利用自动构建工具和部署工具自动完成发布，工程师只在发生问题时干预。</p>
+    </div>
+  </div>
+  <div class="foot"><span>team controlled release</span><span>07 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Release Speed" data-source="p121 p122 追求速度 每小时构建 测试通过即发布">
+  <div class="chrome"><span>release speed</span><span>p121 p122</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">频繁发布让每个版本更小</h2>
+      <div class="grid-3">
+        <div class="soft-box"><p class="body-zh">面向用户的软件组件会频繁重构建，让用户可见功能尽快上线。</p></div>
+        <div class="soft-box"><p class="body-zh">有些团队每小时构建一次，再按测试结果和功能列表选择版本。</p></div>
+        <div class="soft-box"><p class="body-zh">有些团队采用 Push On Green，通过所有测试就部署。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>smaller changes</span><span>08 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Hermetic Build" data-source="p122 密闭性 指定版本 编译器 依赖库">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">密闭构建不依赖构建机器上碰巧安装了什么。</div>
+      <p class="body-zh muted" style="margin-top:2vh">构建过程使用指定版本的工具和依赖库，编译过程自包含，不依赖编译环境之外的其他服务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p122</span><span>09 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cherry Picking" data-source="p122 摘樱桃 构建工具 同一源代码仓库">
+  <div class="chrome"><span>cherry picking</span><span>p122</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">修复旧版本时，构建工具版本也要回到当时</h2>
+      <p class="lead-zh">Google 把构建工具放在与被构建程序相同的源代码仓库中。对上个月发布版本做 cherry picking 时，仍使用当时的编译器版本。</p>
+      <p class="body-zh muted">这样可以避免用这个月的新编译器改变旧发布的构建语义。</p>
+    </div>
+  </div>
+  <div class="foot"><span>tool version belongs to source</span><span>10 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Policy Controls" data-source="p122 p123 强调策略和流程 指定操作">
+  <div class="chrome"><span>policy controls</span><span>p122 p123</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">发布过程中的关键动作需要被授权</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>动作</th><th>材料里的控制点</th></tr></thead>
+          <tbody>
+            <tr><td>源代码改动</td><td>配置文件决定谁能批准，几乎所有修改都经过代码评审。</td></tr>
+            <tr><td>发布版本</td><td>创建发布、批准集成请求、批准 cherry picking 请求。</td></tr>
+            <tr><td>生产部署</td><td>实际部署某个发布版本，修改项目构建配置文件。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>review and access control</span><span>11 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Change Report" data-source="p123 改动报告 构建结果归档 SRE 调试">
+  <div class="chrome"><span>change report</span><span>p123</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">SRE 需要知道每个新发布里到底包含了哪些改动。</div>
+      <p class="body-zh muted" style="margin-top:2vh">自动化发布系统会生成发布中所有改动的报告，并与其他构建结果一起归档，方便发布出问题时在线调试。</p>
+    </div>
+  </div>
+  <div class="foot"><span>debuggable release</span><span>12 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Rapid Overview" data-source="p123 Rapid 自动化发布系统">
+  <div class="chrome"><span>rapid overview</span><span>p123</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Rapid 把发布生命周期自动化</h2>
+      <p class="lead-zh">Rapid 使用一系列 Google 内部技术，执行可扩展、密闭且可靠的发布流程。</p>
+      <p class="body-zh muted">后续构建、分支、测试、打包和部署，都围绕 Rapid 与相关工具展开。</p>
+    </div>
+  </div>
+  <div class="foot"><span>continuous build and deploy</span><span>13 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Build With Blaze" data-source="p123 Blaze 构建目标 构建标识符">
+  <div class="chrome"><span>build</span><span>p123</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Blaze 定义目标，Rapid 传递项目开关</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>环节</th><th>做什么</th><th>为什么有用</th></tr></thead>
+          <tbody>
+            <tr><td>Blaze</td><td>定义 Jar 文件等构建目标，并自动构建全部依赖。</td><td>多语言项目能用统一构建工具处理。</td></tr>
+            <tr><td>Rapid</td><td>项目配置文件定义二进制、测试和项目特有构建标识符。</td><td>发布流程知道要构建什么。</td></tr>
+            <tr><td>二进制</td><td>可用一个命令显示构建时间、源代码版本和构建标识符。</td><td>运行产物能追溯回构建过程。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>traceable binary</span><span>14 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Branch Model" data-source="p123 分支 主分支 发布分支 cherry picking">
+  <div class="chrome"><span>branch model</span><span>p123</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布分支从主分支切出后不再合回</h2>
+      <p class="lead-zh">所有代码默认提交到主分支。发布通常基于主分支某个版本创建新分支，Bug 修复先进入主分支，再 cherry picking 到发布分支。</p>
+      <p class="body-zh muted">这样避免第一次构建之后又引入主分支上的无关改动。</p>
+    </div>
+  </div>
+  <div class="foot"><span>explicit release contents</span><span>15 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Testing Loop" data-source="p123 p124 持续测试 发布分支 单元测试">
+  <div class="chrome"><span>testing loop</span><span>p123 p124</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">测试要在主分支和发布分支各自成立</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">主分支</h3><p class="small-zh">每次改动提交后运行单元测试。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">选择</h3><p class="small-zh">建议用最后一个测试全部通过的版本发布。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">分支</h3><p class="small-zh">发布过程中重新运行全部单元测试。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">审核</h3><p class="small-zh">为测试结果创建审核记录。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">系统</h3><p class="small-zh">打包后在独立测试环境运行系统级测试。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>branch specific proof</span><span>16 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="MPM Packaging" data-source="p124 MPM 哈希 签名 标签">
+  <div class="chrome"><span>packaging</span><span>p124</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">MPM 包把构建结果变成可识别产物</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">名称</h3><p class="body-zh">每个包有固定名称，例如 search/shakespeare/frontend。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">完整性</h3><p class="body-zh">包记录构建结果哈希值，并加入签名确保真实完整。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">标签</h3><p class="body-zh">dev、canary 和 production 等标签标记发布位置。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>name hash signature tag</span><span>17 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Rapid Workflow" data-source="p124 p126 Blueprint 工作流 四步发布流程">
+  <div class="chrome"><span>rapid workflow</span><span>p124 p126</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Rapid 工作流把发布请求分发到生产基础设施</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">1</h3><p class="small-zh">使用集成版本号创建发布分支。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">2</h3><p class="small-zh">用 Blaze 编译二进制，同时执行单元测试。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">3</h3><p class="small-zh">构建结果用于系统级集成测试和测试部署。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">4</h3><p class="small-zh">记录每一步日志，生成相对上次发布的改动报告。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">管理</h3><p class="small-zh">单独批准或拒绝每个 cherry picking 请求。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>blueprint and borg</span><span>18 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Sisyphus Rollout" data-source="p126 Sisyphus 发布 风险承受能力">
+  <div class="chrome"><span>sisyphus rollout</span><span>p126</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">部署节奏要匹配服务风险承受能力</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>服务场景</th><th>发布方式</th></tr></thead>
+          <tbody>
+            <tr><td>开发和预生产环境</td><td>每小时构建，所有测试通过后自动发布更新。</td></tr>
+            <tr><td>大型面向用户服务</td><td>先更新一个集群，再以指数速度更新其他集群。</td></tr>
+            <tr><td>敏感基础设施服务</td><td>发布扩展到几天完成，并按地理位置交替进行。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>risk based deployment</span><span>19 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Config Risk" data-source="p127 配置管理 不稳定性 代码评审">
+  <div class="chrome"><span>configuration management</span><span>p127</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">配置管理看起来简单，却是不稳定性的一个重要来源。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章给出的所有配置分发模型，都要求配置文件存放在主要代码仓库中，并经过严格代码评审。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reviewed configuration</span><span>20 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Config Models" data-source="p127 p128 四种配置文件分发模型">
+  <div class="chrome"><span>config models</span><span>p127 p128</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">配置文件分发有四种选择</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>模型</th><th>材料里的含义</th><th>适用或风险</th></tr></thead>
+          <tbody>
+            <tr><td>主分支版本</td><td>开发者和 SRE 修改主分支配置，评审后应用到运行系统。</td><td>容易理解，但二进制发布和配置变更异步。</td></tr>
+            <tr><td>随二进制打包</td><td>配置文件和二进制文件放在同一个 MPM 包里。</td><td>灵活性有限，但只需安装一个包。</td></tr>
+            <tr><td>独立配置包</td><td>用构建系统和打包系统发布配置文件。</td><td>可单独修改配置，并通过构建 ID 重建某一时刻配置。</td></tr>
+            <tr><td>外部存储</td><td>配置放在 Chubby、Bigtable 或源代码仓库文件系统中。</td><td>适合经常改变或运行时动态改变的配置。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>choose by service need</span><span>21 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Non Google Lesson" data-source="p128 不仅仅只对 Google 有用 发布政策">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">工具可以强制执行政策，但政策必须先被正确定义。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料把包版本、持续构建、发布频率、配置策略和发布指标，都列为大部分公司共同面对的问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p128</span><span>22 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Start Early" data-source="p128 p129 一开始就进行发布工程">
+  <div class="chrome"><span>start early</span><span>p128 p129</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布工程不能等规模变大后再补</h2>
+      <p class="lead-zh">团队应该在开发流程开始时就留出发布工程资源。尽早采用最佳实践和流程，可以降低未来重新改动系统的成本。</p>
+      <p class="body-zh muted">开发团队、SRE 和发布工程师必须紧密协作，互相了解构建与部署预期。</p>
+    </div>
+  </div>
+  <div class="foot"><span>lifecycle timing</span><span>23 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p120 p129 章节线索">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">发布工程把源代码、构建、测试、打包、部署和回滚连成可重复流程。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">自服务、速度、密闭性、策略和流程，是 Google 发布工程的四个约束。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">Rapid、Blaze、MPM 和 Sisyphus 分别承担构建、追溯、打包和风险化部署节奏。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">配置管理和发布政策要在项目早期建立，并由开发团队、SRE 与发布工程师共同维护。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>24 / 24</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-08-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-08-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

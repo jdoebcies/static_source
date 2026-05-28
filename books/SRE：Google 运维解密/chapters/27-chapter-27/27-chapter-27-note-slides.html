@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第27章 可靠地进行产品的大规模发布 note slides</title>
+<style>
+:root {
+  /* palette thesis: large launches combine urgency, coordination, and risk control, so the deck uses graphite ink for production pressure, warm paper for process notes, and teal for release gates. */
+  --ink: #182326;
+  --ink-rgb: 24,35,38;
+  --paper: #f6f1e6;
+  --paper-rgb: 246,241,230;
+  --accent: #2b8a84;
+  --muted: #68777a;
+  --warm: #7a6654;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7fd1c8; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p374 章节标题 作者">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 27</div>
+      <h1 class="display-zh">可靠地进行产品的大规模发布</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Rhandeev Singh、Sebastian Kirsch、Vivek Rau</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Betsy Beyer</p>
+    </div>
+  </div>
+  <div class="foot"><span>p374</span><span>01 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="SRE Role" data-source="p374 SRE确保快速迭代不会影响网站稳定性">
+  <div class="chrome"><span>launch reliability</span><span>p374</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Google 可以更快发布和迭代，SRE 要确保速度不吞掉稳定性。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章从发布协调小组和发布检查列表讲起，它们为具体开发团队提供技术顾问和支持。</p>
+    </div>
+  </div>
+  <div class="foot"><span>release coordination</span><span>02 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Keyhole Surge" data-source="p374 Keyhole 流量暴涨到25倍日常峰值 接近每秒100万条">
+  <div class="chrome"><span>opening case</span><span>p374</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">Keyhole 平常每秒几千条图像请求，平安夜接近每秒 100 万条</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">平常</h3><p class="body-zh">为 Google Maps 和 Google Earth 提供卫星图像。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">发布日</h3><p class="body-zh">2011 年圣诞节前夜，流量涨到日常峰值 25 倍。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">触发点</h3><p class="body-zh">NORAD 圣诞老人追踪网站的飞行模式调用卫星图像。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>traffic surge</span><span>03 / 38</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Santa Launch Risk" data-source="p375 不可改变的截止日期 大规模宣传 数百万使用人群 流量增速非常快">
+  <div class="chrome"><span>holiday constraints</span><span>p375</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">半娱乐网站也具备高难度发布的全部风险特征</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">日期固定</h3><p class="small-zh">圣诞节不会因为网站没上线而延期。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">宣传放大</h3><p class="small-zh">市场活动把用户集中带到同一时刻。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">用户众多</h3><p class="small-zh">数百万使用人群同时进入服务。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">增速陡峭</h3><p class="small-zh">所有人都在平安夜浏览。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">影响外溢</h3><p class="small-zh">项目有潜力拖垮 Google 全部服务。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>launch pressure</span><span>04 / 38</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="LCE Enters" data-source="p375 LCE负责预测发布可能出现的问题 协调不同开发小组">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">LCE 的任务，是在大规模发布前预判问题，并把分散团队拉到同一条发布线上。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Keyhole 发布中，SRE 做了基础设施改动，还设计了保护性功能开关。</p>
+    </div>
+  </div>
+  <div class="foot"><span>launch coordination engineering</span><span>05 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Release Definition" data-source="p375 Google将发布定义为用户可见的应用程序代码更新 每周发布70次">
+  <div class="chrome"><span>definition and cadence</span><span>p375</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Google 把发布定义为用户可见的应用程序代码更新</h2>
+      <p class="lead-zh">发布步骤多少、属性、时间和复杂度会改变流程形态。</p>
+      <p class="body-zh muted">按照这个定义，Google 有时可以做到每周发布 70 次，这要求流程足够精简且可重复改进。</p>
+    </div>
+  </div>
+  <div class="foot"><span>weekly cadence</span><span>06 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Why Process Matters" data-source="p375 发布速度要求创建和维护精简发布流程">
+  <div class="chrome"><span>why process</span><span>p375</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">高频发布让流程有机会被反复实践，也逼迫流程持续变快、变可靠。</div>
+      <p class="body-zh muted" style="margin-top:2vh">三年发布一次的公司很难靠复盘打磨组件，因为下次发布时旧组件可能已经过时。</p>
+    </div>
+  </div>
+  <div class="foot"><span>repeatable process</span><span>07 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="LCE Duties" data-source="p376 LCE团队通过以下几个方面确保发布流程平稳">
+  <div class="chrome"><span>lce duties</span><span>p376</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">LCE 不是替开发写产品，它负责发布安全的技术边界</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">审核</h3><p class="small-zh">检查新产品和内部服务是否符合可靠性标准。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">联络</h3><p class="small-zh">在发布过程中连接多个团队。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">跟进</h3><p class="small-zh">追踪发布任务进度和技术问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">守门</h3><p class="small-zh">判断某项发布是否安全。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">培训</h3><p class="small-zh">帮助开发者使用最佳实践和内部资源。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>safety gate</span><span>08 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lifecycle Audit" data-source="p376 LCE团队的成员会在整个服务生命周期的不同阶段进行审核">
+  <div class="chrome"><span>audit timing</span><span>p376</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布审核主要发生在新产品或新服务上线时，也会介入关键功能发布</h2>
+      <p class="lead-zh">没有 SRE 支持的团队，LCE 提供咨询来保证发布平稳。</p>
+      <p class="body-zh muted">已有强 SRE 支持的产品，在关键功能发布时也可能需要 LCE，因为发布挑战和平时稳定运维不同。</p>
+    </div>
+  </div>
+  <div class="foot"><span>lifecycle audit</span><span>09 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="LCE Skills" data-source="p376 LCE需要沟通和领导能力 处理冲突 提供建议和指导">
+  <div class="chrome"><span>role requirements</span><span>p376</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">LCE 的技术要求等同 SRE，还要能聚合团队和处理冲突</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">工程能力</h3><p class="body-zh">团队由直接招聘工程师和有经验的 SRE 组成。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">沟通能力</h3><p class="body-zh">把分散团队聚合到共同目标上。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">领导能力</h3><p class="body-zh">处理冲突，并为其他工程师提供建议和指导。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>people and systems</span><span>10 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="LCE Advantages" data-source="p377 广泛的经验 跨职能的视角 客观性">
+  <div class="chrome"><span>team advantages</span><span>p377</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">专职发布协调小组的优势来自位置，而不只是流程表格</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>优势</th><th>材料里的含义</th><th>发布中的作用</th></tr></thead>
+          <tbody>
+            <tr><td>广泛经验</td><td>跨产品参与公司全部产品线活动。</td><td>成为知识共享的媒介。</td></tr>
+            <tr><td>跨职能视角</td><td>协调 SRE、研发和产品团队等分散小组。</td><td>支撑复杂发布，尤其是跨七八个时区的发布。</td></tr>
+            <tr><td>客观性</td><td>作为中立建议方平衡多个团队。</td><td>在速度、产品诉求和可靠性之间做技术判断。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>organizational leverage</span><span>11 / 38</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Process Traits" data-source="p377 p378 好的发布流程特征 轻量级 鲁棒性 完整性 可扩展性 适应性">
+  <div class="chrome"><span>process traits</span><span>p377 p378</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google 用 10 年打磨发布流程，目标之间天然有张力</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">轻量</h3><p class="small-zh">占用很少开发时间。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">鲁棒</h3><p class="small-zh">最大限度避免简单错误。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">完整</h3><p class="small-zh">一致跟踪各环节重要细节。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">可扩展</h3><p class="small-zh">能覆盖简单发布和复杂发布。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">适应</h3><p class="small-zh">常见发布和全新类型都能处理。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>ten years of process</span><span>12 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Process Tactics" data-source="p378 简化 高度定制 保证通用路径快速完成">
+  <div class="chrome"><span>process tactics</span><span>p378</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">流程靠三件事保持可用：简化、定制、快速通道</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">简化</h3><p class="body-zh">确保基本信息正确，不为所有可能性做准备。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">定制</h3><p class="body-zh">有经验工程师针对每次发布裁剪流程。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">快速通道</h3><p class="body-zh">为共同模式提供简化路径，例如在新国家发布产品。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>keep it usable</span><span>13 / 38</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Avoid Bureaucracy" data-source="p378 工程师会绕过过于烦琐或者附加值不高的流程">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">如果流程烦琐且附加值不高，工程师会在上线压力下绕过去。</div>
+      <p class="body-zh muted" style="margin-top:2vh">LCE 必须持续优化发布体验，在成本与收益之间保持平衡。</p>
+    </div>
+  </div>
+  <div class="foot"><span>process adoption</span><span>14 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Checklist Examples" data-source="p379 发布检查列表 域名 持久化信息 用户滥用">
+  <div class="chrome"><span>checklist examples</span><span>p379</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">发布检查列表把常见风险转成具体待办</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>问题</th><th>待办事项</th></tr></thead>
+          <tbody>
+            <tr><td>是否需要新的域名</td><td>与市场部门协调域名并提交注册申请。</td></tr>
+            <tr><td>是否存储持久化信息</td><td>确认实现备份，并查看备份细节。</td></tr>
+            <tr><td>服务是否可能被某个用户滥用</td><td>实现限速和用户配额管理。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>actionable prompts</span><span>15 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Checklist Governance" data-source="p379 增加新的问题需要经过公司副总裁批准 每一年或者半年评估">
+  <div class="chrome"><span>checklist governance</span><span>p379</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">检查列表如果不受控，会无限增长并压垮开发者</h2>
+      <p class="lead-zh">新增问题需要副总裁批准，每个问题必须非常重要，最好由真实发布教训证明。</p>
+      <p class="body-zh muted">每个指令也必须具体可行，开发者能在合理时间内完成。LCE 还要持续修订过期建议和系统变化。</p>
+    </div>
+  </div>
+  <div class="foot"><span>question quality</span><span>16 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Convergence" data-source="p380 推动融合和简化 通用基础设施类库">
+  <div class="chrome"><span>convergence</span><span>p380</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">发布检查列表也能推动基础设施融合，避免团队反复重新发明轮子。</div>
+      <p class="body-zh muted" style="margin-top:2vh">LCE 推荐限速、配额、服务器数据推送、新版本发布等成熟基础设施，降低容量、性能和扩展性的不确定性。</p>
+    </div>
+  </div>
+  <div class="foot"><span>shared infrastructure</span><span>17 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="LCE Feedback Loop" data-source="p380 哪些方面造成困难 哪些步骤花费时间 哪些问题反复解决">
+  <div class="chrome"><span>feedback loop</span><span>p380</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">LCE 在发布现场收集第一手摩擦，再推动平台和审批改进</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">困难来源</h3><p class="body-zh">哪些方面对发布造成最多困难。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">耗时步骤</h3><p class="body-zh">哪些步骤花费时间超多。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">重复问题</h3><p class="body-zh">哪些问题总用类似方法解决，可以沉淀为通用基础设施。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>improve the path</span><span>18 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Unknown Product" data-source="p380 p381 发布Android之前 大规模消费者产品 客户端代码">
+  <div class="chrome"><span>unknown product space</span><span>p380 p381</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">进入新产品空间时，旧检查列表不能机械套用</h2>
+      <p class="lead-zh">Android 发布前，Google 几乎没有大规模消费者产品客户端代码的直接控制经验。</p>
+      <p class="body-zh muted">移动端 Bug 不能像 Gmail JavaScript 那样在数小时或数天内推送修复，LCE 必须和领域专家一起判断哪些问题适用。</p>
+    </div>
+  </div>
+  <div class="foot"><span>android example</span><span>19 / 38</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Abstract Safety" data-source="p381 坚守安全发布的抽象原则 具体细化成新的检查列表内容">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">非常规发布要守住安全发布的抽象原则，再细化成对开发者有用的问题。</div>
+      <p class="body-zh muted" style="margin-top:2vh">检查列表的新问题必须贴合待发布产品设计，不能简单堆无关问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>new checklist</span><span>20 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Architecture Dependency" data-source="p381 架构与依赖 请求流 延迟要求 非用户请求隔离">
+  <div class="chrome"><span>checklist theme one</span><span>p381</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">架构与依赖评审先看请求如何穿过系统</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>示范问题</th><th>待办事项</th></tr></thead>
+          <tbody>
+            <tr><td>从用户到前端再到后端，请求流顺序是什么样的。</td><td>将非用户请求与用户请求隔离。</td></tr>
+            <tr><td>是否存在不同延迟要求的请求类型。</td><td>确认预计请求数量，单个页面请求可能造成后端多个请求。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>request path</span><span>21 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Integration" data-source="p382 集成 DNS 负载均衡 监控">
+  <div class="chrome"><span>checklist theme two</span><span>p382</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">集成问题来自内部生态系统的特质和陷阱</h2>
+      <p class="lead-zh">新服务通常要接入建立服务器、配置服务、监控、负载均衡和 DNS 等内部系统。</p>
+      <p class="body-zh muted">检查列表会覆盖给服务建立新 DNS、配置负载均衡系统、配置监控系统等公司内具体事项。</p>
+    </div>
+  </div>
+  <div class="foot"><span>internal ecosystem</span><span>22 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Capacity Planning" data-source="p382 容量规划 15倍以上发布容量 4个或者5个部署点">
+  <div class="chrome"><span>checklist theme three</span><span>p382</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">发布初期流量尖峰可能让稳定状态压力测试失效</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>材料里的观察</th><th>发布含义</th></tr></thead>
+          <tbody>
+            <tr><td>公众兴趣难预测，有些产品需要 15 倍以上发布容量。</td><td>首次发布可以限制在单独区域或国家内，先建立信心。</td></tr>
+            <tr><td>若三个复制部署点才能服务 100% 峰值流量。</td><td>需要维护 4 个或 5 个部署点，容纳维护和突发情况。</td></tr>
+            <tr><td>数据中心和网络资源准备周期很长。</td><td>必须足够提前申请。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>launch capacity</span><span>23 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Failure Modes" data-source="p382 p383 故障模式 单点故障 依赖不可用 负载丢弃">
+  <div class="chrome"><span>checklist theme four</span><span>p382 p383</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">故障模式分析逐个组件问：坏了会影响谁</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">示范问题</h3><p class="body-zh">系统是否包括单点故障源。服务如何处理依赖系统不可用。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">待办事项</h3><p class="body-zh">设置请求截止时间，加入负载丢弃功能，在过载中尽早丢弃新请求。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>failure analysis</span><span>24 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Client Behavior" data-source="p383 客户端行为 自动保存 自动完成 心跳">
+  <div class="chrome"><span>checklist theme five</span><span>p383 p384</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">客户端不等用户点击，也能把服务打爆</h2>
+      <p class="lead-zh">自动保存、自动完成、心跳和周期同步会绕开人类点击速度的天然限制。</p>
+      <p class="body-zh muted">检查列表要求失败后按指数型增加重试延时，并在自动请求中加入随机延时抖动。</p>
+    </div>
+  </div>
+  <div class="foot"><span>automatic clients</span><span>25 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Process Automation" data-source="p384 流程与自动化 手动执行流程 文档化 自动化">
+  <div class="chrome"><span>checklist theme six</span><span>p384</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">自动化之外剩下的人工流程，也要在发布前写成文档</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">运行流程</h3><p class="body-zh">维持服务运行是否需要手动执行流程。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">迁移流程</h3><p class="body-zh">迁移到另外一个数据中心的流程要文档化。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">构建发布</h3><p class="body-zh">构建和发布新版本的流程应自动化。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>document while fresh</span><span>26 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Development Process" data-source="p384 p385 开发流程 版本控制 主线分支 发布分支 配置文件">
+  <div class="chrome"><span>checklist theme seven</span><span>p384 p385</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">代码和配置都进入版本控制，发布版本使用独立发布分支</h2>
+      <p class="lead-zh">Google 大部分开发在主线分支进行，但发布版本在每个发布分支上进行。</p>
+      <p class="body-zh muted">版本控制的历史、修改记录和代码审核优势同样适用于配置文件，部分配置还会自动推送到生产环境。</p>
+    </div>
+  </div>
+  <div class="foot"><span>version control</span><span>27 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="External Dependencies" data-source="p385 外部依赖 第三方代码 数据 服务 合作伙伴">
+  <div class="chrome"><span>checklist theme eight</span><span>p385</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">外部依赖越早确认，越有机会为不确定性准备替代路径</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>示范问题</th><th>材料里的应对经验</th></tr></thead>
+          <tbody>
+            <tr><td>发布依赖哪些第三方代码、数据、服务或事件。</td><td>提前计划第三方故障、Bug、安全问题和扩展性问题。</td></tr>
+            <tr><td>是否有合作伙伴依赖你的服务，是否需要通知。</td><td>必要时使用过滤、重新代理、数据编码流水线和缓存。</td></tr>
+            <tr><td>任一方无法按截止日期完成会发生什么。</td><td>在直接用户受影响前准备绕行方案。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>third party risk</span><span>28 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Launch Plan" data-source="p385 p386 发布计划 具体的人 危险性 备用方案">
+  <div class="chrome"><span>checklist theme nine</span><span>p385 p386</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">复杂发布要把每一项任务落到具体的人，并为每一步准备备用方案。</div>
+      <p class="body-zh muted" style="margin-top:2vh">市场和 PR 可能要求功能在主题演讲时启用，却在演讲前屏蔽。备用方案有时只是一页不同措辞的幻灯片。</p>
+    </div>
+  </div>
+  <div class="foot"><span>launch plan</span><span>29 / 38</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Gradual Rollout" data-source="p386 p387 灰度和阶段性发布 金丝雀 自动回退">
+  <div class="chrome"><span>gradual rollout</span><span>p386 p387</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google 很少让发布在某个具体时间立即对全世界可用</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">几台机器</h3><p class="small-zh">新服务先装在某个数据中心的少量机器上。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">严密监控</h3><p class="small-zh">一段时间内观察是否异常。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">单数据中心</h3><p class="small-zh">无异常后扩到一个数据中心全部机器。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">全球服务器</h3><p class="small-zh">再次监控后再推到全球。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">自动回退</h3><p class="small-zh">校验期有问题，工具自动回退。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>canary rollout</span><span>30 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Android Staged Rollout" data-source="p387 Android APP 灰度方式发布 逐渐随时间增长到100%">
+  <div class="chrome"><span>mobile rollout</span><span>p387</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">阶段性发布也适用于不运行在 Google 机器上的软件</h2>
+      <p class="lead-zh">Android APP 新版本可以先发布给一部分用户，覆盖百分比随时间逐渐增长到 100%。</p>
+      <p class="body-zh muted">如果新版本会带来新的后端流量，这种方式能在灰度期间观察服务器影响，更早检测问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>client staged rollout</span><span>31 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Feature Flag Framework" data-source="p387 p388 功能开关框架 0%～100% 多个改动 迅速单独屏蔽">
+  <div class="chrome"><span>feature flags</span><span>p387 p388</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">功能开关框架用真实负载换取更可控的发布风险</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>要求</th><th>发布意义</th></tr></thead>
+          <tbody>
+            <tr><td>新功能逐渐发布给 0%～100% 的用户。</td><td>在真实负载下观察整体行为。</td></tr>
+            <tr><td>同时发布多个改动，每个只影响部分服务器、用户、实体或数据中心。</td><td>支持大量小改动并行测试。</td></tr>
+            <tr><td>严重 Bug 或副作用出现时快速单独屏蔽某个改变。</td><td>中止发布不必撤掉整套版本。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>controlled exposure</span><span>32 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Flag Types" data-source="p388 用户界面修改 任意服务器端和逻辑修改 HTTP重写器 有状态服务">
+  <div class="chrome"><span>flag patterns</span><span>p388</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">功能开关大致分两类：界面修改和服务器端逻辑修改</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">界面修改</h3><p class="body-zh">无状态 HTTP 重写器在前端服务器之前工作，根据 Cookie 或请求回复属性生效。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">有状态服务</h3><p class="body-zh">通常按已登录用户标识或产品内实例限制开关，通过代理或按需转发测试复杂功能。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>flag implementation</span><span>33 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Client Abuse Details" data-source="p388 p389 每60s同步 10倍负载 指数型增长 重试延迟 抖动">
+  <div class="chrome"><span>client abuse</span><span>p388 p389</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">客户端滥用最常见的形态，是同步太频繁、重试太整齐</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>行为</th><th>材料里的风险</th><th>控制手段</th></tr></thead>
+          <tbody>
+            <tr><td>每 60s 同步一次</td><td>比 600s 同步造成 10 倍负载。</td><td>服务器端配置同步间隔和重试频率。</td></tr>
+            <tr><td>失败后立即重试</td><td>过载服务会被重试推向更严重过载。</td><td>指数型增长重试延迟，区分网络错误和 4xx 错误。</td></tr>
+            <tr><td>所有客户端同一时间请求</td><td>夜里 2 点更新会每天制造请求尖峰。</td><td>为自动请求和重试延迟加入随机抖动。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>retry and jitter</span><span>34 / 38</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Server Controlled Client" data-source="p389 服务器端控制客户端行为 下载配置文件 启用或禁用功能">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">服务器端能控制客户端行为，是发布回退和风险降低的重要工具。</div>
+      <p class="body-zh muted" style="margin-top:2vh">客户端周期性下载配置文件，可以启用或禁用功能、调整同步间隔和重试频率，也能提前发布代码后再激活功能。</p>
+    </div>
+  </div>
+  <div class="foot"><span>remote configuration</span><span>35 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Overload Testing" data-source="p390 过载行为和压力测试 意料之外的成功 记录调试信息 垃圾回收死亡螺旋">
+  <div class="chrome"><span>overload behavior</span><span>p390</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">过载反应很难理论预测，所以压力测试是发布可靠性的必要工作</h2>
+      <p class="lead-zh">意料之外的成功常常是发布过载的最常见因素，其他原因包括负载均衡问题、物理机故障、同步客户端行为和外界攻击。</p>
+      <p class="body-zh muted">材料举例：后端错误触发昂贵调试日志，日志又消耗更多 CPU，进一步造成超时，最终进入死锁。JVM 上类似现象被称为垃圾回收死亡螺旋。</p>
+    </div>
+  </div>
+  <div class="foot"><span>load testing</span><span>36 / 38</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="LCE Evolution" data-source="p390 p391 早期发布工程师 2004年全职LCE 生产评审 350次 1500次">
+  <div class="chrome"><span>lce evolution</span><span>p390 p391</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">LCE 从自愿顾问小组，变成 2004 年 SRE 内的全职团队</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">早期</h3><p class="small-zh">研发团队快速增长，新手工程师重复踩坑。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">发布工程师</h3><p class="small-zh">有经验工程师自愿提供发布评审。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">2004 年</h3><p class="small-zh">SRE 组建小型全职 LCE 团队。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">生产评审</h3><p class="small-zh">顾问环节标准化为 production review。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">规模</h3><p class="small-zh">三年半内一个工程师处理 350 次发布，团队总计近 1500 次。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>from review to team</span><span>37 / 38</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p392 p393 LCE没有解决的问题 小结 快速增长 公司可能受益">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">核心总结</div>
+      <div class="callout" style="margin-top:2vh">LCE 保障快速改变中的发布安全。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它不能替代全公司的平台化和自动化投入。扩展性改变、运维压力增长、基础设施变更仍需要平台级 API、框架、持续构建、自动化测试和标准化生产环境一起解决。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p392 p393</span><span>38 / 38</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-27-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-27-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

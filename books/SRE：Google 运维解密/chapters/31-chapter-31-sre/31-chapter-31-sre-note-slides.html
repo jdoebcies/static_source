@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第31章 SRE与其他团队的沟通与协作 note slides</title>
+<style>
+:root {
+  /* palette thesis: this chapter is about organizational interfaces and production feedback, so the deck uses graphite for operational seriousness, warm paper for meeting notes, and amber for coordination signals. */
+  --ink: #202526;
+  --ink-rgb: 32,37,38;
+  --paper: #f4efe3;
+  --paper-rgb: 244,239,227;
+  --accent: #b86f2d;
+  --muted: #667073;
+  --warm: #706253;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #e4a35b; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p441 章节标题 作者">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 31</div>
+      <h1 class="display-zh">SRE与其他团队的沟通与协作</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Niall Murphy、Alex Rodriguez、Carl Crous、Dario Freni、Dylan Curley、Lorenzo Blanco、Todd Underwood</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Betsy Beyer</p>
+    </div>
+  </div>
+  <div class="foot"><span>p441</span><span>01 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Special Position" data-source="p441 SRE 在 Google 的组织架构中的地位特殊">
+  <div class="chrome"><span>organizational position</span><span>p441</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">SRE 的组织位置很特殊，这直接影响它与其他组织沟通和合作的方式。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章从组织事实开始，不把沟通当成软技能附属品。</p>
+    </div>
+  </div>
+  <div class="foot"><span>why communication matters</span><span>02 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Many Models" data-source="p441 工作和工作方式存在巨大多样性">
+  <div class="chrome"><span>many working models</span><span>p441</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 不是只有一种工作模型，灵活性来自务实需求</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">团队类型</h3><p class="body-zh">基础设施团队、服务团队、横向产品团队并存。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">协作比例</h3><p class="body-zh">有些研发团队规模远大于 SRE，有些与 SRE 大致相同。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">成员能力</h3><p class="body-zh">系统工程、软件工程、项目管理、领导能力和行业背景交织。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>pragmatic flexibility</span><span>03 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Not Command" data-source="p441 SRE 不是令行禁止的组织">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">SRE 不是令行禁止的组织，它靠共同文化形成同质化的问题解决方式。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 与研发紧密协作，同时又保留自成体系的组织汇报线。</p>
+    </div>
+  </div>
+  <div class="foot"><span>culture as interface</span><span>04 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Data Flow" data-source="p441 p442 数据流作为沟通过程的比喻">
+  <div class="chrome"><span>communication model</span><span>p441 p442</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">沟通像生产数据流，项目、服务、生产环境和个人状态都要流动</h2>
+      <p class="lead-zh">最佳运行状态，是数据可靠地从一个感兴趣团队流向另一个团队。</p>
+      <p class="body-zh muted">作者把这种流动称为团队之间的接口 API，并提醒接口设计错了，之后会很痛苦。</p>
+    </div>
+  </div>
+  <div class="foot"><span>team api</span><span>05 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Production Meeting" data-source="p442 沟通 生产会议">
+  <div class="chrome"><span>production meeting</span><span>p442</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">生产会议让所有关心服务的人，对服务状态形成一致理解。</div>
+      <p class="body-zh muted" style="margin-top:2vh">会议不是个人状态更新，而是把生产中获取的知识反馈到服务设计、配置和实现里。</p>
+    </div>
+  </div>
+  <div class="foot"><span>shared service state</span><span>06 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Meeting Cadence" data-source="p442 p443 每周一次 30到60分钟">
+  <div class="chrome"><span>cadence</span><span>p442 p443</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">生产会议通常每周一次，每次 30 到 60 分钟</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>信号</th><th>材料里的判断</th></tr></thead>
+          <tbody>
+            <tr><td>频率太高</td><td>人们会找借口不参加。</td></tr>
+            <tr><td>时间太短</td><td>可能讨论不充分，或者服务内容太少。</td></tr>
+            <tr><td>时间太长</td><td>可能陷入细节，或者应按服务和团队拆分。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>meeting sizing</span><span>07 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Meeting Chair" data-source="p443 会议主席 轮值主席 较小团队选择主席">
+  <div class="chrome"><span>chair practice</span><span>p443</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">主席轮值带来服务负责人感觉，也训练事故协调能力</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">团队内部</h3><p class="body-zh">轮值主席会带来临时的次优主持，但集体参与感价值很高。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">视频会议</h3><p class="body-zh">两个团队规模差距很大时，从较小团队一侧选择主席。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>facilitation</span><span>08 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Agenda Basics" data-source="p443 p444 议程 生产环境变化 性能指标 故障">
+  <div class="chrome"><span>agenda basics</span><span>p443 p444</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">默认议程先给短期可见度，再进入服务表现和学习机会</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">变化</h3><p class="small-zh">跟踪开始时间、持续时间、预期效果。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">指标</h3><p class="small-zh">讨论延迟、CPU 利用率和资源效率。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">趋势</h3><p class="small-zh">即使无明显故障，也讨论负载增长。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">故障</h3><p class="small-zh">关注值得写事后总结的问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">学习</h3><p class="small-zh">好的事后总结总能引发很多讨论。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>service centered agenda</span><span>09 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Alert Agenda" data-source="p444 紧急警报 非紧急警报事件">
+  <div class="chrome"><span>alert review</span><span>p444</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">警报环节的核心问题，是它是否应该以这种方式打断人</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>对象</th><th>会议要问什么</th><th>后续动作</th></tr></thead>
+          <tbody>
+            <tr><td>紧急警报</td><td>谁收到警报，后续发生了什么。</td><td>判断时间、内容和紧急级别是否合适。</td></tr>
+            <tr><td>漏掉的紧急警报</td><td>应该报警却没有报警。</td><td>修复监控系统和报警规则。</td></tr>
+            <tr><td>无价值非紧急警报</td><td>不需要引起注意。</td><td>去掉警报，减少噪声。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>alert hygiene</span><span>10 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Action And Attendance" data-source="p445 之前的待办事项 出席人员">
+  <div class="chrome"><span>actions and attendance</span><span>p445</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">生产会议要追踪改进交付，也要让关键团队一起出席</h2>
+      <p class="lead-zh">待办事项分配给具体的人，并跟踪进展，即使没有待办也保留明确议程项。</p>
+      <p class="body-zh muted">SRE 团队成员有义务参加，产品负责人和合作研发团队也应该参加。</p>
+    </div>
+  </div>
+  <div class="foot"><span>delivery builds trust</span><span>11 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Repair Relationship" data-source="p445 不能邀请产品开发伙伴参加就修复关系">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">如果不能邀请产品开发伙伴参加生产会议，就应该先修复这种关系。</div>
+      <p class="body-zh muted" style="margin-top:2vh">第一步可以邀请一位代表，或者找可信中间人代理沟通，建立健康交互模型。</p>
+    </div>
+  </div>
+  <div class="foot"><span>feedback loop</span><span>12 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Shared Agenda" data-source="p446 Google Docs 实时协作 事先填充议程">
+  <div class="chrome"><span>shared document</span><span>p446</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">共享文档把会议准备变成多人并行协作</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">会前</h3><p class="body-zh">工程师用想法、评论和信息事先填充议程。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">协作</h3><p class="body-zh">有人写段落，有人加资源链接，有人整理拼写和语法。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>inclusive preparation</span><span>13 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Distributed Team" data-source="p446 SRE 的内部协作 跨时区 分布式组织">
+  <div class="chrome"><span>internal collaboration</span><span>p446</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 因为应急反应和轮值机制，天然适合分布在多个时区</h2>
+      <p class="lead-zh">团队可以是本地、同地域、跨大陆，也可以是各种大小的虚拟团队。</p>
+      <p class="body-zh muted">这种分布带来责任、技能和机会的特殊组合。</p>
+    </div>
+  </div>
+  <div class="foot"><span>team definition shifts</span><span>14 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Specialization" data-source="p446 专业化 清晰团队章程">
+  <div class="chrome"><span>specialization</span><span>p446</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">专业化降低认知难度，也会带来局部化风险</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">优势</h3><p class="body-zh">团队掌握相关系统或基础设施的子集，大幅提高技术熟练度。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">代价</h3><p class="body-zh">团队可能忽视大局，所以需要清晰章程说明做什么和不做什么。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>scope clarity</span><span>15 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Team Roles" data-source="p447 技术负责人 SRE经理 项目经理">
+  <div class="chrome"><span>team roles</span><span>p447</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">角色越动态，团队适应力越强，沟通成本也越高</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>角色</th><th>材料里的责任</th></tr></thead>
+          <tbody>
+            <tr><td>技术负责人</td><td>负责技术方向，通过代码评审、季度汇报和共识建立来领导。</td></tr>
+            <tr><td>SRE 经理</td><td>技术能力很高，额外负责绩效管理和其他人不能处理的事情。</td></tr>
+            <tr><td>项目经理</td><td>与技术负责人和 SRE 经理组成完整管理团队，组织讨论和设计文档。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>dynamic responsibility</span><span>16 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Work Techniques" data-source="p447 p448 高效工作的技术 单人项目 书面沟通 旅行">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">高价值工作需要多人协作，跨地域工作需要极好的书面沟通。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料也提醒，书面沟通最终不能完全替代当面建立的高质量关系。</p>
+    </div>
+  </div>
+  <div class="foot"><span>collaboration skills</span><span>17 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Viceroy Context" data-source="p448 SRE 内部协作案例 Viceroy 监控台框架">
+  <div class="chrome"><span>viceroy case</span><span>p448</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Viceroy 是一次成功的 SRE 内部跨团队协作</h2>
+      <p class="lead-zh">它是监控台框架，也是一项服务。</p>
+      <p class="body-zh muted">案例背景是不同 SRE 团队反复做目的相同、实现相似的监控台项目。</p>
+    </div>
+  </div>
+  <div class="foot"><span>dashboard duplication</span><span>18 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monarch Gap" data-source="p448 p449 Monarch Borgmon 监控台不足">
+  <div class="chrome"><span>monarch migration</span><span>p448 p449</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">迁移到 Monarch 时，监控台功能成了实际阻塞点</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>系统状态</th><th>阻塞问题</th></tr></thead>
+          <tbody>
+            <tr><td>Borgmon</td><td>旧监控台使用自研 HTML 模板，不符合标准，边界条件多，难以测试。</td></tr>
+            <tr><td>Monarch</td><td>小型服务容易建立页面，复杂监控台页面扩展能力不足。</td></tr>
+            <tr><td>迁移路径</td><td>Monarch 不支持过去的监控系统模板，迁移困难。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>dashboard gap</span><span>19 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Duplicate Work" data-source="p449 12到18个月 多个团队重复工作 Viceroy 诞生">
+  <div class="chrome"><span>duplicate work</span><span>p449</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">12 到 18 个月里，多个团队各自闭门造车，直到发现彼此在重复劳动。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Spanner、广告前端服务和其他服务团队最终决定联合起来，为所有 SRE 团队创造通用方案。</p>
+    </div>
+  </div>
+  <div class="foot"><span>viceroy begins</span><span>20 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Shared Requirements" data-source="p449 两个主要功能需求 多样技术要求">
+  <div class="chrome"><span>requirements</span><span>p449</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">所有监控台系统共享两个需求，但技术偏好非常分散</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>共同需求</th><th>分歧来源</th></tr></thead>
+          <tbody>
+            <tr><td>支持复杂的自定义监控台页面。</td><td>数据源可能超出核心监控系统。</td></tr>
+            <tr><td>同时支持 Monarch 和 Borgmon。</td><td>页面可能来自配置自动生成，也可能来自明确 HTML 布局。</td></tr>
+            <tr><td>迁移路径要可用。</td><td>有的系统不用 JavaScript，有的系统大量使用 JavaScript 和 Ajax。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>shared but diverse</span><span>21 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Console Plus" data-source="p449 p450 Console++ 与 Viceroy 整合">
+  <div class="chrome"><span>integration path</span><span>p449 p450</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Console++ 与 Viceroy 一度难以整合，后来技术差距缩小</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">差异</h3><p class="small-zh">Viceroy 最初少用 JavaScript，Console++ 以 JavaScript 为主。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">相似</h3><p class="small-zh">HTML 模板渲染语法类似，长期目标一致。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">搁置</h3><p class="small-zh">统一框架讨论暂时停下。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">再碰头</h3><p class="small-zh">2013 年年底两个系统都明显发展。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">原型</h3><p class="small-zh">2014 年年初集成原型证明可行。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>technical convergence</span><span>22 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Integration Benefits" data-source="p450 p451 整合过程带来巨大收益 共同愿景">
+  <div class="chrome"><span>integration benefits</span><span>p450 p451</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">整合成功的关键，是对未来有共同愿景</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">Viceroy</h3><p class="body-zh">增加大量数据源支持和 JavaScript 客户端。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">Console++</h3><p class="body-zh">从缓存和背景数据渠道等改进中受益。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">整体</h3><p class="body-zh">整合项目开发速度高于重复项目速度总和。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>shared vision</span><span>23 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Remote Challenges" data-source="p451 所面临的挑战 远程协调 贡献者变动">
+  <div class="chrome"><span>viceroy challenges</span><span>p451</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Viceroy 的困难很多来自跨地域沟通和贡献者流动</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>挑战</th><th>材料里的表现</th></tr></thead>
+          <tbody>
+            <tr><td>远程协调</td><td>书面和口语表达中的微妙暗示容易被误解。</td></tr>
+            <tr><td>即兴讨论</td><td>不在总部的成员错过会议前后立刻发生的讨论。</td></tr>
+            <tr><td>贡献者变动</td><td>许多人只能参与 1 到 3 个月，新人培训需要时间。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>coordination cost</span><span>24 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Ownership Dilution" data-source="p451 所有权稀释 范围增长 远程组件决策">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">短期贡献有用但昂贵，主要成本是所有权稀释。</div>
+      <p class="body-zh muted" style="margin-top:2vh">功能做完后维护者离开，功能会随着时间出现问题，最终往往被丢弃。</p>
+    </div>
+  </div>
+  <div class="foot"><span>maintenance ownership</span><span>25 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cross Region Advice" data-source="p452 建议 跨地域开发项目 好处和成本">
+  <div class="chrome"><span>cross region advice</span><span>p452</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">只有不得已才跨地域开发项目，但协调好会带来更高产能</h2>
+      <p class="lead-zh">跨地域工作需要更多沟通，完成更慢。</p>
+      <p class="body-zh muted">单地项目也有成本，其他人可能不知道你正在做什么。</p>
+    </div>
+  </div>
+  <div class="foot"><span>tradeoff</span><span>26 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Contributor Commitment" data-source="p452 动力十足的贡献者 特定目标 未来维护">
+  <div class="chrome"><span>contributors</span><span>p452</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">动力十足的贡献者很有价值，但贡献成果并不等价。</div>
+      <p class="body-zh muted" style="margin-top:2vh">项目要确认贡献者会实际投入时间，并愿意维护自己的贡献。</p>
+    </div>
+  </div>
+  <div class="foot"><span>commitment matters</span><span>27 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Project Framework" data-source="p452 项目负责人 长期愿景 决策方式 分而治之">
+  <div class="chrome"><span>project frame</span><span>p452</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">项目扩大后，要先把愿景、决策方式和组件边界说清楚</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>机制</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td>项目负责人</td><td>提供长期愿景，保证工作与愿景相关，设置优先级。</td></tr>
+            <tr><td>决策方式</td><td>高度认同和信任时，可以更多做本地决策。</td></tr>
+            <tr><td>组件拆分</td><td>把项目拆成合理大小的部分，最好分配给同地域小组。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>manage growth</span><span>28 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Documents Standards Summit" data-source="p452 p453 设计文档 标准化 当面交流 项目管理">
+  <div class="chrome"><span>collaboration tools</span><span>p452 p453</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">文档、标准、当面交流和项目管理，都是抵消距离的技术</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">设计文档</h3><p class="small-zh">每个组件都应有设计文档并在团队内评审。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">标准化</h3><p class="small-zh">争议要充分论证、限时、记录决定并推进。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">仲裁</h3><p class="small-zh">不能达成一致时，选择被尊重的仲裁员。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">峰会</h3><p class="small-zh">设计问题和目标可以通过团队会议解决。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">管理</h3><p class="small-zh">项目从小规模开始，随增长调整管理方式。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>distance countermeasures</span><span>29 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Early Design" data-source="p453 SRE 与其他部门之间的协作 设计阶段早期">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">SRE 与研发的合作，最好发生在设计阶段早期。</div>
+      <p class="body-zh muted" style="margin-top:2vh">理想状态是在任何一行代码提交之前，因为架构和软件行为后期改造相当困难。</p>
+    </div>
+  </div>
+  <div class="foot"><span>before code</span><span>30 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="DFP Migration" data-source="p453 p454 DFP 从 MySQL 迁移到 F1 1000个CPU 8TB内存 100TB数据">
+  <div class="chrome"><span>dfp to f1</span><span>p453 p454</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">DFP 迁移到 F1，是一次规模很大的数据库迁移</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>系统特征</th><th>材料里的数字和目标</th></tr></thead>
+          <tbody>
+            <tr><td>服务形态</td><td>不断提取和处理数据库数据，生成全球服务的索引文件。</td></tr>
+            <tr><td>资源规模</td><td>约 1000 个 CPU 和 8TB 内存。</td></tr>
+            <tr><td>数据规模</td><td>每天索引 100TB 数据。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>migration scale</span><span>31 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Migration Constraints" data-source="p454 迁移过程复杂 实时迁移 不能中断服务">
+  <div class="chrome"><span>migration constraints</span><span>p454</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">迁移不只换数据库，还重构表结构，并要求用户无感</h2>
+      <p class="lead-zh">F1 支持在列中存储和索引 Protobuf，数据库表结构被大幅重构和简化。</p>
+      <p class="body-zh muted">目标是新数据处理系统产生与现有系统相同的输出，实时迁移，不能中断服务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>live migration</span><span>32 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Design Interface" data-source="p455 SRE 主导基础设施设计 详细设计文档 接口定义">
+  <div class="chrome"><span>design interface</span><span>p455</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 主导基础设施设计，并用设计文档定义团队接口</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>SRE 设计内容</th><th>协作作用</th></tr></thead>
+          <tbody>
+            <tr><td>从 F1 提取表、过滤和合并数据、只提取变化数据。</td><td>业务逻辑可以据此独立设计。</td></tr>
+            <tr><td>承受物理机器损失、线性资源增长、容量规划。</td><td>方案可行性可复用现存监控组件和工具来支撑。</td></tr>
+            <tr><td>两位 SRE 写详细设计文档，两个团队共同评审。</td><td>基础设施与业务逻辑之间的接口很早就被明确定义。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>clear interfaces</span><span>33 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test And Prepare" data-source="p455 p456 测试环境 正确性测试 生产环境准备">
+  <div class="chrome"><span>test and production prep</span><span>p455 p456</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">后期协作分成两条线，研发验证业务逻辑，SRE 准备生产环境</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">产品开发团队</h3><p class="body-zh">用接近生产的测试环境比较新旧服务索引，快速迭代边缘情况。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">SRE 团队</h3><p class="body-zh">配置数据中心资源，运行程序，增加监控规则，培训轮值工程师，并建立发布流程。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>parallel work streams</span><span>34 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Successful Launch" data-source="p456 发布计划 SRE 最后发布 没有用户可见问题">
+  <div class="chrome"><span>release outcome</span><span>p456</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">服务准备好后，SRE 与产品开发团队共同准备发布计划，最后由 SRE 发布。</div>
+      <p class="body-zh muted" style="margin-top:2vh">发布过程非常成功、平稳，没有造成任何用户可见的问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>smooth migration</span><span>35 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Summary" data-source="p456 小结 有效沟通 困难和巨大回报">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">核心总结</div>
+      <div class="callout" style="margin-top:2vh">SRE 的沟通机制，本质是让可靠性经验持续流回产品和组织。</div>
+      <p class="body-zh muted" style="margin-top:2vh">生产会议、设计文档、共享议程、跨团队案例和早期设计介入，都是为了形成通用方法，并集合更多力量解决更困难的问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p456</span><span>36 / 36</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-31-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-31-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

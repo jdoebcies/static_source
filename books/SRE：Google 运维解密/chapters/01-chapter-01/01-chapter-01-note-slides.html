@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第1章 介绍 note slides</title>
+<style>
+:root {
+  --ink: #17202b;
+  --ink-rgb: 23,32,43;
+  --paper: #fbfaf6;
+  --paper-rgb: 251,250,246;
+  --accent: #2d6f7c;
+  --muted: #65707f;
+  --warm: #b46b45;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans-zh);
+  text-wrap: pretty;
+}
+#deck {
+  position: fixed;
+  inset: 0;
+  width: 10000vw;
+  height: 100vh;
+  display: flex;
+  flex-wrap: nowrap;
+  transition: transform .75s cubic-bezier(.77,0,.175,1);
+  will-change: transform;
+}
+.slide {
+  width: 100vw;
+  height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.chrome, .foot {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(1rem, 2vw, 2rem);
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .46;
+}
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh {
+  font-family: var(--serif-zh);
+  font-weight: 900;
+  font-size: clamp(3.2rem, 7vw, 7rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+.h1-zh {
+  font-family: var(--serif-zh);
+  font-weight: 700;
+  font-size: clamp(2rem, 4.2vw, 4rem);
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.h2-zh {
+  font-family: var(--serif-zh);
+  font-weight: 650;
+  font-size: clamp(1.55rem, 3vw, 2.55rem);
+  line-height: 1.28;
+}
+.lead-zh {
+  font-family: var(--serif-zh);
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  line-height: 1.5;
+}
+.body-zh {
+  font-size: clamp(1.35rem, 1.5vw, 1.72rem);
+  line-height: 1.56;
+}
+.small-zh {
+  font-size: clamp(1.05rem, 1.15vw, 1.32rem);
+  line-height: 1.5;
+}
+.kicker {
+  font-family: var(--mono);
+  font-size: clamp(.8rem, .9vw, 1rem);
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  opacity: .55;
+  margin-bottom: 1vh;
+}
+.meta {
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  letter-spacing: .08em;
+  opacity: .5;
+}
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7bb8c1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.2rem, 2.6vh, 2.2rem);
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.2rem, 3vw, 3rem);
+  align-items: stretch;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1rem, 2vw, 2rem);
+}
+.line-box {
+  border-top: 1px solid rgba(var(--ink-rgb), .16);
+  padding-top: clamp(1rem, 2vh, 1.8rem);
+}
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box {
+  border-radius: 8px;
+  padding: clamp(1.1rem, 1.7vw, 1.6rem);
+  background: rgba(var(--ink-rgb), .05);
+}
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout {
+  font-family: var(--serif-zh);
+  font-weight: 500;
+  font-size: clamp(2rem, 3.25vw, 3.4rem);
+  line-height: 1.42;
+}
+.callout-mark {
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent);
+  opacity: .72;
+}
+.guest-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.guest-mark::before {
+  content: "";
+  display: block;
+  width: clamp(2.4rem, 4em, 4.8rem);
+  height: 1px;
+  background: currentColor;
+  opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+.timeline-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1rem, 2vw, 2rem);
+}
+.timeline-row::before {
+  content: "";
+  position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%;
+  right: 6%;
+  height: 1px;
+  background: rgba(var(--ink-rgb), .12);
+  z-index: 0;
+}
+.timeline-item {
+  position: relative;
+  z-index: 1;
+  padding-top: clamp(2.2rem, 4vh, 3.2rem);
+}
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  top: clamp(.56rem, 1.2vh, 1rem);
+  left: 0;
+  width: clamp(.7rem, 1vw, 1rem);
+  height: clamp(.7rem, 1vw, 1rem);
+  border-radius: 50%;
+  background: var(--accent);
+}
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(1.05rem, 1.2vw, 1.35rem);
+  line-height: 1.45;
+}
+.data-table th, .data-table td {
+  padding: clamp(.75rem, 1.2vw, 1.1rem);
+  border-bottom: 1px solid rgba(var(--ink-rgb), .12);
+  vertical-align: top;
+  text-align: left;
+}
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3rem, 6.5vw, 6rem);
+  line-height: .95;
+  color: var(--accent);
+}
+#nav {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(1rem, 2vh, 2rem);
+  transform: translateX(-50%);
+  display: flex;
+  gap: .45rem;
+  z-index: 20;
+}
+.nav-dot {
+  width: clamp(.34rem, .5vw, .5rem);
+  height: clamp(.34rem, .5vw, .5rem);
+  border-radius: 50%;
+  background: rgba(var(--paper-rgb), .35);
+}
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p30 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 01</div>
+      <h1 class="display-zh">介绍</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">不能将碰运气当成战略</p>
+    </div>
+  </div>
+  <div class="foot"><span>p30</span><span>01 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Opening Problem" data-source="p30 大型分布式系统">
+  <div class="chrome"><span>opening problem</span><span>p30</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">软件系统离开人通常无法自主运行，大型分布式系统的运维问题由此出现。</div>
+      <p class="body-zh muted" style="margin-top:2vh">第 1 章先把传统系统管理员模式的问题摆出来，再解释 Google 为什么用软件工程重写运维组织。</p>
+    </div>
+  </div>
+  <div class="foot"><span>Chapter 01</span><span>02 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Sysadmin Model" data-source="p30 系统管理员模式">
+  <div class="chrome"><span>sysadmin model</span><span>p30</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">传统模式依赖人处理事件和变更</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">部署</h3><p class="body-zh">系统管理员把现成软件组件放到生产环境，提供业务服务。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">响应</h3><p class="body-zh">团队主要应对人工干预事件，以及业务部门提出的变更需求。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">扩张</h3><p class="body-zh">系统复杂度、组件数量、用户流量上升后，人工事件同步增加。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operations by humans</span><span>03 / 20</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Model Strength" data-source="p30 行业案例 工具厂商">
+  <div class="chrome"><span>why it worked</span><span>p30</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">这套模型的优势很现实</h2>
+      <div class="grid-3">
+        <div class="soft-box"><p class="body-zh">行业内应用案例多，新公司容易找到参考。</p></div>
+        <div class="soft-box"><p class="body-zh">有经验的人相对多，招聘和组队门槛较低。</p></div>
+        <div class="soft-box"><p class="body-zh">第三方工具和系统集成方案成熟，能支持简单维护操作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>practical advantage</span><span>04 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Two Costs" data-source="p31 直接成本 间接成本">
+  <div class="chrome"><span>cost model</span><span>p31</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">问题从两类成本开始</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>成本</th><th>材料中的定义</th><th>后果</th></tr></thead>
+          <tbody>
+            <tr><td>直接成本</td><td>大量系统维护事件和变更依赖人工处理</td><td>团队规模随系统负载接近线性增长</td></tr>
+            <tr><td>间接成本</td><td>研发和运维分属不同部门，背景、工具、目标差异很大</td><td>分歧逐渐变成沟通、信任和尊重问题</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>direct and indirect</span><span>05 / 20</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Dev Ops Conflict" data-source="p31 发布速度 稳定程度">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">研发想加快发布，运维想减少故障；生产故障大多由变更触发，矛盾自然被放大。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料把冲突焦点放在新版本、新配置和生产变更的发布速度上。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p31</span><span>06 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Political Workaround" data-source="p31 p32 检查清单 功能开关">
+  <div class="chrome"><span>organizational workaround</span><span>p31 p32</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">冲突会滑向流程博弈</h2>
+      <div class="grid-2">
+        <div class="soft-box">
+          <h3 class="h2-zh accent">运维侧</h3>
+          <p class="body-zh">要求上线前走长检查清单，把过去事故都列入模拟和验证范围。</p>
+        </div>
+        <div class="soft-box">
+          <h3 class="h2-zh accent">研发侧</h3>
+          <p class="body-zh">转向功能开关、增量更新和补丁化，以绕开过重流程。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>process pressure</span><span>07 / 20</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="SRE Origin" data-source="p32 2003 7名软件工程师">
+  <div class="chrome"><span>google answer</span><span>p32</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <p class="kicker accent">SRE origin</p>
+      <h2 class="h1-zh">SRE 是软件工程师设计运维团队的结果</h2>
+      <p class="lead-zh">2003 年，Benjamin Treynor Sloss 领导 7 名软件工程师组成生产环境维护组。后来这个团队发展成 Google 内部 1000 余人的 SRE 团队。</p>
+    </div>
+  </div>
+  <div class="foot"><span>software engineer led ops</span><span>08 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Hiring Mix" data-source="p32 SRE团队构成">
+  <div class="chrome"><span>team composition</span><span>p32</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 团队有两类工程师</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>比例</th><th>类型</th><th>补充能力</th></tr></thead>
+          <tbody>
+            <tr><td>50% 到 60%</td><td>标准软件工程师</td><td>能够通过 Google 软件工程师招聘流程</td></tr>
+            <tr><td>40% 到 50%</td><td>接近软件工程标准的工程师</td><td>同时具备 UNIX 内部细节或一到三层网络知识</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>hiring mix</span><span>09 / 20</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Engineering Focus" data-source="p32 p33 重复性 手工性 操作">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">SRE 对重复性、手工性的操作有天然排斥感，并有能力开发软件系统替代这些操作。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这一点把组织能力和个人技术倾向连在一起。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p32 p33</span><span>10 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Fifty Percent Rule" data-source="p33 50 percent 上限">
+  <div class="chrome"><span>guardrail</span><span>p33</span></div>
+  <div class="slide-body">
+    <div class="w-statement stack">
+      <div class="summary-num">50%</div>
+      <h2 class="h1-zh">传统运维工作有上限</h2>
+      <p class="lead-zh">Google 为 SRE 团队的传统运维工作设定 50% 上限，包括工单处理和手工操作。剩余时间必须用于改进服务，让系统更稳定、更易维护。</p>
+    </div>
+  </div>
+  <div class="foot"><span>operations cap</span><span>11 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Management Actions" data-source="p33 时间分配 调整">
+  <div class="chrome"><span>management loop</span><span>p33</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">50% 安全线需要管理层主动维护</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">度量</h3><p class="small-zh">持续记录团队时间分配。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">转移</h3><p class="small-zh">把常见运维工作交还给产品研发。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">共担</h3><p class="small-zh">让产品研发参与轮值值班。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">止损</h3><p class="small-zh">停止新增运维接入，恢复工程时间。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operational balance</span><span>12 / 20</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="On Call Limit" data-source="p35 on call 两个紧急事件">
+  <div class="chrome"><span>on call</span><span>p35</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">每次轮值最多两个紧急事件</h2>
+      <p class="lead-zh">在每 8 到 12 小时的 on call 轮值期间，最多处理两个紧急事件。目的在于留下足够时间恢复服务、调查原因和撰写事后报告。</p>
+    </div>
+  </div>
+  <div class="foot"><span>incident load</span><span>13 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Postmortem" data-source="p35 事后总结 对事对人">
+  <div class="chrome"><span>postmortem</span><span>p35</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">所有事故都应该留下事后总结</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">过程</h3><p class="body-zh">记录事故发生、发现和解决全过程。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">根因</h3><p class="body-zh">明确事故根本原因，特别关注未触发警报的监控漏洞。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">行动</h3><p class="body-zh">给出预防或优化方案，目标是堵住系统漏洞。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>learning loop</span><span>14 / 20</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Error Budget" data-source="p36 p37 错误预算">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">错误预算把迭代速度和产品稳定程度放进同一个度量框架。</div>
+      <p class="body-zh muted" style="margin-top:2vh">可靠性目标由商业部门或产品部门建立，错误预算等于 1 减去可靠性目标。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p36 p37</span><span>15 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monitoring Outputs" data-source="p37 alert ticket logging">
+  <div class="chrome"><span>monitoring outputs</span><span>p37</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">监控系统只有三类输出</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">紧急警报</h3><p class="body-zh">用户需要立即执行操作，解决已经发生或即将发生的问题。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">工单</h3><p class="body-zh">用户应该执行操作，但几天内完成也不会影响系统。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">日志</h3><p class="body-zh">平时没人主动阅读，用于调试和事后分析。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>alert ticket logging</span><span>16 / 20</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Incident Response" data-source="p38 MTTF MTTR playbook">
+  <div class="chrome"><span>incident response</span><span>p38</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">恢复能力看 MTTR</h2>
+      <p class="lead-zh">可靠性是 MTTF 和 MTTR 的函数。预案和运维手册能够把恢复时间降低三倍以上，尤其适合在时间压力和产品压力下指导排障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>mean time to recover</span><span>17 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Change Capacity Efficiency" data-source="p38 p40 70 percent 需求预测 资源效率">
+  <div class="chrome"><span>method areas</span><span>p38 p40</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">后半章把 SRE 方法展开成三组动作</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>领域</th><th>材料中的要点</th><th>目的</th></tr></thead>
+          <tbody>
+            <tr><td>变更管理</td><td>约 70% 生产事故由部署变更触发，需要渐进发布、检测和回退</td><td>同时提高速度和安全性</td></tr>
+            <tr><td>容量规划</td><td>预测自然增长和非自然增长，周期性压力测试</td><td>保障未来需求有容量和冗余</td></tr>
+            <tr><td>效率性能</td><td>用需求、容量和软件效率共同驱动资源利用率</td><td>降低总成本，守住延迟目标</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>change capacity efficiency</span><span>18 / 20</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Notes" data-source="p30 p40 章节小结">
+  <div class="chrome"><span>core notes</span><span>p30 p40</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">传统系统管理员模型的问题在于人工成本线性增长，以及 Dev Ops 组织目标持续分歧。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">SRE 的组织答案是让软件工程师负责运维，把重复劳动压缩到 50% 以内。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">错误预算把可靠性目标、功能发布和事故管理绑定到同一套合作规则。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">监控、事故响应、变更管理、容量规划和效率优化构成 SRE 方法论的基本面。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>19 / 20</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Closing" data-source="p40 小结">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <h2 class="h1-zh">从一个简单想法出发</h2>
+      <p class="lead-zh" style="margin-top:2vh">我是一名软件工程师，这是我如何应付重复劳动的办法。第 1 章用这句话收住 SRE 的起点，也为后续章节打开方法论。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p40</span><span>20 / 20</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-01-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-01-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

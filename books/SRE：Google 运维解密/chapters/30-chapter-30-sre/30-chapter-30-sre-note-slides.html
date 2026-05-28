@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第30章 通过嵌入SRE的方式帮助团队从运维过载中恢复 note slides</title>
+<style>
+:root {
+  /* palette thesis: embedding an SRE is a recovery intervention for overloaded operations, so the deck uses graphite for pressure, paper for field notes, and amber for decision discipline. */
+  --ink: #1e2422;
+  --ink-rgb: 30,36,34;
+  --paper: #f5efe2;
+  --paper-rgb: 245,239,226;
+  --accent: #b46b38;
+  --muted: #6b7470;
+  --warm: #6f5f4f;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.1vw, 5.8rem); line-height: 1.1; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.65vw, 3.45rem); line-height: 1.2; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.45vw, 2.25rem); line-height: 1.3; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #d8a070; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p432 章节标题 作者">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 30</div>
+      <h1 class="display-zh">通过嵌入 SRE 的方式帮助团队从运维过载中恢复</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Randall Bosetti</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Diame Bates</p>
+    </div>
+  </div>
+  <div class="foot"><span>p432</span><span>01 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Balance Broken" data-source="p432 项目研发和被动式工作 均匀分配时间">
+  <div class="chrome"><span>operational overload</span><span>p432</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">SRE 团队的标准平衡，是项目研发和被动式工作各占一半。</div>
+      <p class="body-zh muted" style="margin-top:2vh">每天工单不断增加时，这个平衡会被打乱，甚至持续数月。</p>
+    </div>
+  </div>
+  <div class="foot"><span>policy baseline</span><span>02 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Overload Damage" data-source="p432 繁重Ops工作 服务可扩展性和可靠性变差">
+  <div class="chrome"><span>damage path</span><span>p432</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">长时间承担繁重运维，会把团队推离真正改善服务的工作</h2>
+      <p class="lead-zh">工单越多，项目工作越少。</p>
+      <p class="body-zh muted">改进服务的时间被挤掉后，服务的可扩展性和可靠性也会变差。</p>
+    </div>
+  </div>
+  <div class="foot"><span>toil pressure</span><span>03 / 29</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Embedded Purpose" data-source="p432 临时调入一个SRE 改善团队行事方式">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">嵌入 SRE 的任务，是改善团队的工作方式。</div>
+      <p class="body-zh muted" style="margin-top:2vh">重点不在于帮助团队清理积压工单，而在于通过观察日常工作，提出团队内部不容易看到的改善意见。</p>
+    </div>
+  </div>
+  <div class="foot"><span>intervention goal</span><span>04 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="One SRE" data-source="p432 只需要调入一名SRE 两名不一定更好">
+  <div class="chrome"><span>intervention size</span><span>p432</span></div>
+  <div class="slide-body">
+    <div class="w-quote callout-mark">
+      <div class="callout">只需要调入一名 SRE。</div>
+      <p class="body-zh muted" style="margin-top:2vh">同时调入两名不一定更有效。对防御性强的团队，还可能激发问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>one embedded sre</span><span>05 / 29</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Phase One" data-source="p433 第一阶段 了解服务 了解上下文">
+  <div class="chrome"><span>phase one</span><span>p433</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">第一阶段先说明流程和习惯如何影响服务可扩展性</h2>
+      <p class="lead-zh muted">日益增加的工单不应该需要更多 SRE 来处理。</p>
+      <p class="body-zh">SRE 模型的目标，是只有系统复杂度上升时才增加新人，同时建立能减少工单时间的健康习惯。</p>
+    </div>
+  </div>
+  <div class="foot"><span>context first</span><span>06 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Ops Mode" data-source="p433 Ops模式 非线性扩展">
+  <div class="chrome"><span>ops mode</span><span>p433</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Ops 模式用更多管理员处理增长，SRE 用软件和瓶颈消除处理增长</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>模式</th><th>服务变大时的反应</th><th>人员增长逻辑</th></tr></thead>
+          <tbody>
+            <tr><td>Ops 模式</td><td>更多虚拟机和更多工作项目，靠增加管理员解决。</td><td>人数容易随服务负载同步增加。</td></tr>
+            <tr><td>SRE 模型</td><td>编写软件系统，或者消除系统瓶颈。</td><td>运维人数不随服务负载线性增长。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>nonlinear scaling</span><span>07 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Scale Question" data-source="p433 我的服务很小 100 QPS 10000 QPS">
+  <div class="chrome"><span>scale question</span><span>p433</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">判断服务规模，会改变嵌入 SRE 的策略</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">规模小但价值高</h3><p class="body-zh">关注团队工作方式，找到阻碍服务可靠性改善的部分。工作目标是保证服务正常运转。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">增长刚刚开始</h3><p class="body-zh">关注爆发式增长准备。100 QPS 的服务可能一年内变成 10,000 QPS。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>strategy choice</span><span>08 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Pressure Ranking" data-source="p433 p434 确定最大的压力来源 根据服务中断压力程度排序">
+  <div class="chrome"><span>pressure ranking</span><span>p433 p434</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">团队陷入 Ops 模式，常常源于只想着更快处理紧急事件。</div>
+      <p class="body-zh muted" style="margin-top:2vh">嵌入 SRE 要按历史中断造成的团队压力排序。很小的问题也可能因为历史和视角，正在制造很大负担。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stress sources</span><span>09 / 29</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Trigger Search" data-source="p434 找到导火索 新的没有自我管理子系统">
+  <div class="chrome"><span>trigger search</span><span>p434</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">最大问题确定后，下一步要找即将发生的紧急情况</h2>
+      <p class="lead-zh muted">最常见的导火索，是新的、没有被设计成自我管理的子系统。</p>
+      <p class="body-zh">后面的清单不是抽象风险，而是嵌入 SRE 应该主动寻找的早期信号。</p>
+    </div>
+  </div>
+  <div class="foot"><span>early signals</span><span>10 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Knowledge Gap" data-source="p434 知识代沟 过度专业化 值班需要帮助">
+  <div class="chrome"><span>knowledge gap</span><span>p434</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">过度专业化会同时制造两个问题。</div>
+      <p class="body-zh muted" style="margin-top:2vh">专门成员值班时缺乏广泛知识而需要帮助，其他成员又缺少他掌握的关键系统知识。</p>
+    </div>
+  </div>
+  <div class="foot"><span>shared understanding</span><span>11 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Hidden Triggers" data-source="p434 SRE开发功能 未来大事 视而不见的警报">
+  <div class="chrome"><span>hidden triggers</span><span>p434</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">三类问题容易被团队当作暂时安全</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">SRE 做的功能</h3><p class="body-zh">规模更小且曾有 SRE 支持，常常没有得到新功能上线同等关注。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">未来大事</h3><p class="body-zh">团队拖延数月，因为相信马上上线的新方案会解决问题。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">视而不见的警报</h3><p class="body-zh">它们可能被定性为暂时性，但仍然不断分散团队注意力。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>ignored risk</span><span>12 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Planning Smells" data-source="p434 p435 客户投诉 SLI SLO SLA 增加更多服务器 内存不足">
+  <div class="chrome"><span>planning smells</span><span>p434 p435</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">缺少正式可靠性目标和前瞻容量规划，都是导火索</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>信号</th><th>材料里的判断</th></tr></thead>
+          <tbody>
+            <tr><td>有客户投诉，却没有正式 SLI、SLO、SLA</td><td>需要回到第 4 章关于服务等级的讨论。</td></tr>
+            <tr><td>容量规划只是增加更多服务器</td><td>如果模型预测需要 2 GB 内存，上次负载测试显示 1.99 GB，并不能说明容量足够。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>reliability targets</span><span>13 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Shallow Fixes" data-source="p435 事后总结待办 回滚变更 关键组件 什么也不知道">
+  <div class="chrome"><span>shallow fixes</span><span>p435</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">浅层待办和未知关键组件，说明团队还没有掌握事故机制</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>信号</th><th>更深的问题</th></tr></thead>
+          <tbody>
+            <tr><td>待办只写回滚导致故障的变更</td><td>应该追问为什么有时需要 60s 才能获取宣传视频的第一个 MB。</td></tr>
+            <tr><td>SRE 对关键组件说开发者才明白</td><td>合理值班至少要知道组件故障会造成什么后果，以及需要多快解决。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>root cause depth</span><span>14 / 29</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Phase Two" data-source="p435 第二阶段 分享背景知识 最佳实践">
+  <div class="chrome"><span>phase two</span><span>p435</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">第二阶段把痛点转化为最佳实践</h2>
+      <p class="lead-zh muted">建立事后总结机制，辨别琐事来源，确定每个琐事的最佳解决方案。</p>
+      <p class="body-zh">目标是为改善状况做准备，而不只是指出团队哪里错了。</p>
+    </div>
+  </div>
+  <div class="foot"><span>share context</span><span>15 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Postmortem Model" data-source="p435 书写一个好的事后总结作为示范 不要评论之前总结">
+  <div class="chrome"><span>postmortem model</span><span>p435</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">不要逐篇纠正过去的事后总结，亲自写好下一次。</div>
+      <p class="body-zh muted" style="margin-top:2vh">旧文档点评容易把团队推入防御模式。更有效的方法，是与值班 SRE 合作写出一份对事不对人的总结。</p>
+    </div>
+  </div>
+  <div class="foot"><span>blameless example</span><span>16 / 29</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Bad Apple" data-source="p436 为什么是我 坏苹果理论 错误不可避免">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">如果有人问为什么是我，说明团队把事后总结看成报复。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料要求反驳坏苹果理论：在交互关系复杂的系统中，错误不可避免。总结要记录当时每个时间点的想法，找到系统误导人和认知要求过高的位置。</p>
+    </div>
+  </div>
+  <div class="foot"><span>human factors</span><span>17 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Emergency Types" data-source="p436 将紧急事件按类型排序 琐事 非琐事">
+  <div class="chrome"><span>incident types</span><span>p436</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">紧急事件要先分成琐事和非琐事</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>类型</th><th>团队应该怎么处理</th></tr></thead>
+          <tbody>
+            <tr><td>不应该存在的紧急事件</td><td>它们会制造 Ops 工作和琐事，应该被自动化。</td></tr>
+            <tr><td>日常工作中的紧急事件</td><td>可能让值班成员压力巨大，需要构建工具来控制压力。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>toil classification</span><span>18 / 29</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Phase Three" data-source="p436 第三阶段 主导改变 不是个人英雄主义">
+  <div class="chrome"><span>phase three</span><span>p436</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">主导改变不能靠个人英雄主义。</div>
+      <p class="body-zh muted" style="margin-top:2vh">嵌入 SRE 要帮助团队建立良好的 SRE 心理模型，让他们未来可以自我调节。</p>
+    </div>
+  </div>
+  <div class="foot"><span>lead change</span><span>19 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Initial Conditions" data-source="p437 人类保持心态不变 正确初始条件 简单原则">
+  <div class="chrome"><span>initial conditions</span><span>p437</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">人会在环境改变时保持心态不变，所以要恢复正确的初始条件</h2>
+      <p class="lead-zh">嵌入 SRE 要传授团队做出健康选择所依赖的简单原则。</p>
+      <p class="body-zh muted">如果团队分不清 SRE 和传统 Ops，就从第 1 章和第 6 章的原则重新开始。</p>
+    </div>
+  </div>
+  <div class="foot"><span>mental model</span><span>20 / 29</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="SLO First" data-source="p437 第一个目标 服务等级目标 SLO 最重要工具">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">SLO</div>
+      <div class="callout" style="margin-top:2vh">第一个目标，是为团队制定服务等级目标。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SLO 为事故后果提供量化依据，也为流程改变的重要性提供依据。没有研发和 SRE 的共识，本章其他建议都帮不上忙。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p437</span><span>21 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Team Help" data-source="p437 p438 获取团队成员帮助 四个步骤">
+  <div class="chrome"><span>team ownership</span><span>p437 p438</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">不要急着自己修复问题，要让团队成员完成有价值的改变</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">找到工作</h3><p class="small-zh">选择一个可以由团队成员完成的有价值工作。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">解释价值</h3><p class="small-zh">说明它如何以永久方式解决事后总结中的问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">担任评审</h3><p class="small-zh">亲自评审代码更改和文档修订。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">重复过程</h3><p class="small-zh">在两到三个问题上重复。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">写入记录</h3><p class="small-zh">新问题写入错误报告或团队文档，让成员提供意见。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>shared change</span><span>22 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reasoning Habit" data-source="p438 解释你的逻辑推理过程 建立团队心理模型">
+  <div class="chrome"><span>explain reasoning</span><span>p438</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">随着团队复原，嵌入 SRE 要把注意力转向日常决策背后的推理。</div>
+      <p class="body-zh muted" style="margin-top:2vh">不管是否有人要求，都直接解释所有决定，并引用建议背后的基础理念。离开后，团队应该能预知你会怎样评论某个设计或更改。</p>
+    </div>
+  </div>
+  <div class="foot"><span>decision model</span><span>23 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Good Reasoning" data-source="p438 错误预算耗尽 安全回退 SLO 平均恢复时间">
+  <div class="chrome"><span>good reasoning</span><span>p438</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">充分解释决策时，要把判断接回错误预算、SLO 和恢复时间</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>决策</th><th>充分解释的依据</th></tr></thead>
+          <tbody>
+            <tr><td>反对最新版本</td><td>原因来自错误预算已经耗尽，而不只是测试结果有问题。</td></tr>
+            <tr><td>要求发布可安全回退</td><td>SLO 很高时，平均恢复时间必须很短，回退前深入现场调查并不现实。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>grounded decisions</span><span>24 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Weak Reasoning" data-source="p438 p439 不充分解释 路由配置 部署不一致">
+  <div class="chrome"><span>weak reasoning</span><span>p438 p439</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">薄弱解释会被团队模仿，所以要补上具体风险链条</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>薄弱说法</th><th>材料要求补上的解释</th></tr></thead>
+          <tbody>
+            <tr><td>每台服务器自己生成路由配置不安全</td><td>一个代码错误会让其他服务同时受影响，额外代码也可能减慢回滚。</td></tr>
+            <tr><td>自动化遇到部署不一致应该放弃</td><td>简化假设是全部改变都通过自动化进行。不一致说明规则被违反，若经常发生就要消除根源。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>risk chain</span><span>25 / 29</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Guiding Questions" data-source="p439 提出引导性问题 而非指责性问题">
+  <div class="chrome"><span>guiding questions</span><span>p439</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">提问要引导团队回到基本理念，而不是制造指责</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">引导</h3><p class="body-zh">任务失败警报经常发生但值班通常不处理，这会对 SLO 有什么影响。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">指责</h3><p class="body-zh">旧的停滞发布是什么情况，某个组件为什么要做这么多事情。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>question style</span><span>26 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Notes One" data-source="p440 小结 四条宗旨">
+  <div class="chrome"><span>core notes</span><span>p440</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <div class="summary-num">核心总结</div>
+      <h2 class="h1-zh">嵌入 SRE 要给团队留下可复用的四条宗旨</h2>
+      <p class="body-zh">从技术角度，最好从量化角度说明团队为什么需要改变。提供一个详细具体的改变作为例子。</p>
+    </div>
+  </div>
+  <div class="foot"><span>principles</span><span>27 / 29</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Notes Two" data-source="p440 小结 常识背后的逻辑 核心理念">
+  <div class="chrome"><span>core notes</span><span>p440</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <div class="summary-num">续</div>
+      <h2 class="h1-zh">团队真正要学会的，是 SRE 常识背后的逻辑</h2>
+      <p class="body-zh">嵌入 SRE 要解释常识背后的推理过程，并提供用可伸缩方式处理新情况所需的核心理念。</p>
+    </div>
+  </div>
+  <div class="foot"><span>transfer model</span><span>28 / 29</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Final Report" data-source="p440 最后任务 书写报告 持续关注团队">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">最后的交付物是一份检查报告，之后仍要持续关注团队。</div>
+      <p class="body-zh muted" style="margin-top:2vh">报告要重申观点、例子和推理过程，并给出待办事项。嵌入正式结束后，仍应参与设计评审和代码评审，观察容量规划、紧急事件处理和部署发布过程是否在改善。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p440</span><span>29 / 29</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-30-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-30-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

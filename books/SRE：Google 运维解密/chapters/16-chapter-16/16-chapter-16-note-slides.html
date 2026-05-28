@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第16章 跟踪故障 note slides</title>
+<style>
+:root {
+  /* palette thesis: incident tracking is operational telemetry plus written memory, so the deck keeps dark graphite for fault gravity, quiet paper for review work, and teal for traceable signals. */
+  --ink: #20272b;
+  --ink-rgb: 32,39,43;
+  --paper: #f7f4eb;
+  --paper-rgb: 247,244,235;
+  --accent: #2c7f78;
+  --muted: #65727a;
+  --warm: #8a6f42;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #75c5bd; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.85rem, 1.5vw, 1.3rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .grid-4, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p198 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 16</div>
+      <h1 class="display-zh">跟踪故障</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">建立基线，同时不断跟踪改变。</p>
+      <p class="meta" style="margin-top:1.2vh">Gabe Krabbe，Lisa Carey</p>
+    </div>
+  </div>
+  <div class="foot"><span>p198</span><span>01 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Baseline And Change" data-source="p198 基线和改变">
+  <div class="chrome"><span>baseline and change</span><span>p198</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">提高可靠性的可靠方法，是建立基线并持续跟踪改变。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Google 使用 Outalator 被动收集监控系统发出的所有报警，并提供标记、分组和数据分析。</p>
+    </div>
+  </div>
+  <div class="foot"><span>tracking reliability</span><span>02 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Postmortem Gap" data-source="p198 事后总结只是方案一部分">
+  <div class="chrome"><span>postmortem gap</span><span>p198</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">单个故障总结会漏掉另一类改进机会</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">小而频繁</h3><p class="body-zh">只有影响很大的故障才会进入事后总结，小型高频故障容易漏掉。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">小型服务</h3><p class="body-zh">总结常讨论服务体系级改进，可能错过小型服务自己的改进点。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">全局视角</h3><p class="body-zh">单独故障不划算的改进，从全局看可能很有价值。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>beyond one incident</span><span>03 / 18</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Questions From Alerts" data-source="p198 报警次数和比例问题">
+  <div class="chrome"><span>questions from alerts</span><span>p198</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">跟踪工具把报警转成可回答的问题</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">轮值负担</h3><p class="body-zh">每次 on call 轮值发生的报警次数是多少。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">报警质量</h3><p class="body-zh">上个季度可操作报警和不可执行报警的比例是多少。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">人工消耗</h3><p class="body-zh">团队管理的服务中，哪个消耗的人工最多。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operational questions</span><span>04 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Escalator Role" data-source="p198 p199 Escalator">
+  <div class="chrome"><span>escalator role</span><span>p198 p199</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Escalator 管理报警是否被回应</h2>
+      <p class="lead-zh">Google 中 SRE 接收到的所有报警信息都由一个中央性、高可用的服务管理。</p>
+      <p class="body-zh muted">如果配置时间内没有收到回应，它会按照升级规则把报警升级到预先配置的目的地，比如从主值班工程师升级给副值班工程师。</p>
+    </div>
+  </div>
+  <div class="foot"><span>central alert service</span><span>05 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Escalator Integration" data-source="p199 邮件列表副本">
+  <div class="chrome"><span>escalator integration</span><span>p199</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Escalator 一开始通过接收值班邮件列表副本接入。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这样可以很容易整合进现有工作流，不需要改变用户习惯，也不需要改变当时的监控系统行为。</p>
+    </div>
+  </div>
+  <div class="foot"><span>workflow compatible</span><span>06 / 18</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Outalator Begins" data-source="p199 创建 Outalator">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">Outalator 把报警之上更高级的抽象称为故障。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它是在 Escalator 之后创建的，用来在现有基础设施上增加新功能。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p199</span><span>07 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Queue View" data-source="p199 图16 1 队列视图">
+  <div class="chrome"><span>queue view</span><span>p199</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">一个队列视图，同时看多个服务的报警</h2>
+      <p class="lead-zh">Outalator 允许用户将多个队列收到的报警按时间顺序交叉列出，不需要切换队列视图。</p>
+      <p class="body-zh muted">这对同时处理多个服务报警的 SRE 团队很有用。</p>
+    </div>
+  </div>
+  <div class="foot"><span>multiple queues together</span><span>08 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Raw Notices And Replies" data-source="p199 原始通知和重要回复">
+  <div class="chrome"><span>raw notices and replies</span><span>p199</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Outalator 把分散邮件变成可读记录</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">保存通知</h3><p class="small-zh">每条原始通知都会保存到数据库。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">增加标记</h3><p class="small-zh">故障可以补充标签和元数据。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">保存邮件</h3><p class="small-zh">处理过程中的邮件记录也被接收和保存。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">标出重要</h3><p class="small-zh">有价值的回复可以标为重要。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">折叠噪声</h3><p class="small-zh">默认只显示重要回复，其他记录折叠。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>readable records</span><span>09 / 18</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Grouping Alerts" data-source="p200 多个报警合并成一个">
+  <div class="chrome"><span>grouping alerts</span><span>p200</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">多个报警可以被合并成一个故障。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这些通知可能来自同一个故障，也可能是无关事件、记录性信息，或临时的监控失效报警。分组让每天的报警和每天的故障分开分析。</p>
+    </div>
+  </div>
+  <div class="foot"><span>alerts versus incidents</span><span>10 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Build Your Own" data-source="p201 打造你自己的 Outalator">
+  <div class="chrome"><span>build your own</span><span>p201</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">内部沟通系统是接入故障跟踪的好入口</h2>
+      <p class="lead-zh">很多组织使用即时消息系统进行内部沟通和 Dashboard 更新。</p>
+      <p class="body-zh muted">材料列出 Slack、Hipchat、IRC 作为例子，这些地方适合接入类似 Outalator 的系统。</p>
+    </div>
+  </div>
+  <div class="foot"><span>communication channels</span><span>11 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Aggregation" data-source="p201 聚合">
+  <div class="chrome"><span>aggregation</span><span>p201</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">聚合处理的是同一故障触发多项报警</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">网络问题</h3><p class="body-zh">所有服务超时并无法连接后端服务器，多个团队会各自收到报警。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">单服务故障</h3><p class="body-zh">较小故障也可能同时满足多种错误状态，触发多项报警。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">重复工作</h3><p class="body-zh">把多个报警聚合成一个故障，可以消除重复报警和重复处理。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>deduplicate response</span><span>12 / 18</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Tagging" data-source="p201 p202 加标签">
+  <div class="chrome"><span>tagging</span><span>p201 p202</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">标签机制不预设标准列表，团队自己长出分类</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>用途</th><th>材料里的例子</th><th>价值</th></tr></thead>
+          <tbody>
+            <tr><td>命名空间</td><td>cause，action，cause:network:switch</td><td>用冒号形成层级含义</td></tr>
+            <tr><td>对象标记</td><td>customer:123456，bug:76543</td><td>客户或缺陷记录可以被定位</td></tr>
+            <tr><td>报警性质</td><td>Bogus，problemwentaway</td><td>标记虚假报警或价值有限的记录</td></tr>
+            <tr><td>团队适配</td><td>各团队自行定义</td><td>在不做详细分析时快速看到服务问题</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>labels as metadata</span><span>13 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Analysis Layers" data-source="p202 分析">
+  <div class="chrome"><span>analysis layers</span><span>p202</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">分析从计数开始，最终要看趋势和语义</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">历史处理</h3><p class="small-zh">查找上次我们做了什么，作为本次故障处理起点。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">基础计数</h3><p class="small-zh">每周、每月、每季度的故障数量和每次故障报警数量。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">团队对比</h3><p class="small-zh">对比团队和服务，按时间看趋势和模式。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">噪声判断</h3><p class="small-zh">每天五次和每周五次代表完全不同的报警噪声。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">语义分析</h3><p class="small-zh">寻找基础设施中造成故障最多的部分。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>counts trends semantics</span><span>14 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cross Team Signals" data-source="p202 跨团队收集信息">
+  <div class="chrome"><span>cross team signals</span><span>p202</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">跨团队数据能揭示系统性问题</h2>
+      <p class="lead-zh">不同团队可能有自己的过期数据和延迟过高报警。</p>
+      <p class="body-zh muted">它们可能都由网络阻塞造成的数据复制延后导致，也可能符合服务质量目标，却无法满足用户期望。跨团队收集这些信息，才更容易找到正确解决方案。</p>
+    </div>
+  </div>
+  <div class="foot"><span>systemic signals</span><span>15 / 18</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Reports And Handoff" data-source="p203 报告和公告">
+  <div class="chrome"><span>reports and handoff</span><span>p203</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">报告功能服务两类生产节奏</h2>
+      <div class="grid-2">
+        <div class="soft-box">
+          <h3 class="h2-zh accent">值班交接</h3>
+          <p class="body-zh">选择一系列故障，把标题、标签和重要记录用邮件格式发送给下一位值班工程师，也可以抄送其他人或邮件列表。</p>
+        </div>
+        <div class="soft-box">
+          <h3 class="h2-zh accent">周期评审</h3>
+          <p class="body-zh">报告模式支持周期性的生产服务评审，重要评论会内嵌展开，提供更好的视图。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>handoff and review</span><span>16 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Unexpected Benefits" data-source="p203 未预料到的好处">
+  <div class="chrome"><span>unexpected benefits</span><span>p203</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">故障跟踪会产生跨团队可见性</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">关联故障</h3><p class="body-zh">把报警或报警系列链接到其他故障，可以加快检查速度并降低其他团队压力。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">手工报警</h3><p class="body-zh">如果服务故障明显由 Bigtable 造成，而 Bigtable 还没有报警，手工创建报警可能有帮助。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">虚设队列</h3><p class="body-zh">无真人接收报警的队列仍能进入 Outalator，用于打标签、评论分析和复审。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>visibility across teams</span><span>17 / 18</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p198 p203 章节整体线索">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">事后总结覆盖重大故障，故障跟踪覆盖小型高频、跨团队和长期趋势。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">Escalator 管报警是否被回应，Outalator 把多条报警组织成故障记录。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">聚合、标签和重要回复折叠，把分散邮件和重复报警变成可分析材料。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">真正有价值的分析来自跨团队趋势、语义标签和生产评审中的持续复用。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>18 / 18</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-16-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-16-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第32章 SRE参与模式的演进历程 note slides</title>
+<style>
+:root {
+  /* palette thesis: this chapter follows SRE engagement from review process to reusable platforms, so the deck uses graphite for operational gravity, warm paper for review notes, and steel blue for platform leverage. */
+  --ink: #20272b;
+  --ink-rgb: 32,39,43;
+  --paper: #f3efe5;
+  --paper-rgb: 243,239,229;
+  --accent: #3f7f94;
+  --muted: #647174;
+  --warm: #75695a;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #81bfd0; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p457 章节标题 作者">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 32</div>
+      <h1 class="display-zh">SRE参与模式的演进历程</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Acacio Cruz、Ashish Bhambhani</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Betsy Beyer、Tim Harvey</p>
+    </div>
+  </div>
+  <div class="foot"><span>p457</span><span>01 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Onboarding Need" data-source="p457 接手流程 评估服务 改善不足">
+  <div class="chrome"><span>onboarding</span><span>p457</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">多数服务先由研发运行，SRE 后来才评估接手。</div>
+      <p class="body-zh muted" style="margin-top:2vh">接手流程要评估服务是否符合 SRE 要求，与研发协商补足缺陷，再确定交接方式。</p>
+    </div>
+  </div>
+  <div class="foot"><span>classic entry point</span><span>02 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Earlier Is Better" data-source="p457 p458 SRE参与时机越早 质量提升越快">
+  <div class="chrome"><span>engage earlier</span><span>p457 p458</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 参与越早，服务质量提升越快，最终质量也越好</h2>
+      <p class="lead-zh">作者把它类比为软件工程中的早发现早修复。</p>
+      <p class="body-zh muted">如果 SRE 从设计阶段介入，新服务的接手阶段会很短，通常出厂时就已经可靠。</p>
+    </div>
+  </div>
+  <div class="foot"><span>early defect removal</span><span>03 / 35</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Platform Direction" data-source="p457 p458 SRE验证的基础设施平台">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">更好的方式，是让研发直接站在 SRE 验证过的平台上开发。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这样既提高可靠性，也把整体流程做得更可扩展。</p>
+    </div>
+  </div>
+  <div class="foot"><span>platform leverage</span><span>04 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Chapter Arc" data-source="p458 PRR模型 扩展参与模型 SRE平台">
+  <div class="chrome"><span>chapter arc</span><span>p458</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">本章沿着三种参与模型展开</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">PRR</h3><p class="small-zh">先从经典生产就绪程度评审开始。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">接手</h3><p class="small-zh">评审通过后，SRE 承担运维责任。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">早期参与</h3><p class="small-zh">把 SRE 经验提前放进设计和构建。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">框架</h3><p class="small-zh">把最佳实践代码化并复用。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">平台</h3><p class="small-zh">让生产控制面成为共同基础设施。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>model evolution</span><span>05 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Production Aspects" data-source="p459 生产方面 体系结构 指标 事件 容量 变更 性能">
+  <div class="chrome"><span>production aspects</span><span>p459</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 接手服务，是为了改进一组生产方面</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>方面</th><th>材料列出的内容</th></tr></thead>
+          <tbody>
+            <tr><td>系统结构</td><td>体系结构和跨服务依赖。</td></tr>
+            <tr><td>可观测性</td><td>指标选择、度量和监控。</td></tr>
+            <tr><td>运行能力</td><td>紧急事件处理、容量规划和变更管理。</td></tr>
+            <tr><td>性能目标</td><td>可用性、延迟和资源效率。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>make ops easier</span><span>06 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Alternative Support" data-source="p460 替代性支持 文档 咨询">
+  <div class="chrome"><span>alternative support</span><span>p460</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">不是所有服务都能得到完整 SRE 支持</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">文档</h3><p class="body-zh">生产指南记录最佳实践，帮助开发者按建议改善服务质量。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">咨询</h3><p class="body-zh">SRE 用有限时间学习设计和实现，指出高风险位置和常见解决方案。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>support spectrum</span><span>07 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Consulting Limit" data-source="p460 p461 咨询范围宽泛 有限时间 深刻理解不足">
+  <div class="chrome"><span>consulting limit</span><span>p460 p461</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">咨询范围很宽，但 SRE 很难在有限时间内深刻理解系统。</div>
+      <p class="body-zh muted" style="margin-top:2vh">当服务快速增长或成为许多服务的依赖时，就需要长期性的 SRE 参与。</p>
+    </div>
+  </div>
+  <div class="foot"><span>need deeper engagement</span><span>08 / 35</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Simple PRR Goal" data-source="p461 PRR评审目标 验证生产部署 运维方式">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">PRR 的目标，是验证服务已准备好和 SRE 一起工作。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它同时要提升生产可靠性，减少可预见故障的数量和严重程度。</p>
+    </div>
+  </div>
+  <div class="foot"><span>readiness review</span><span>09 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Simple PRR Flow" data-source="p461 p464 参与 分析 改进 培训 接手 持续改进">
+  <div class="chrome"><span>simple prr flow</span><span>p461 p464</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">简单 PRR 模型按接手路径推进</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">参与</h3><p class="small-zh">确定接管团队、评审者和共同目标。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">分析</h3><p class="small-zh">学习服务，建立专用检查列表。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">改进</h3><p class="small-zh">排序建议，并与研发协商实现。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">培训</h3><p class="small-zh">让整个 SRE 团队准备接管。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">接手</h3><p class="small-zh">逐步转移职责、流程和权限。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>handoff path</span><span>10 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Engagement Start" data-source="p462 参与 SLO SLA 破坏性设计变更 交接培训">
+  <div class="chrome"><span>engagement start</span><span>p462</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">参与阶段先把目标、可靠性边界和交接计划说清楚</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>讨论事项</th><th>目的</th></tr></thead>
+          <tbody>
+            <tr><td>建立 SLO 和 SLA。</td><td>明确服务可靠性承诺。</td></tr>
+            <tr><td>计划可能提高可靠性的破坏性设计变更。</td><td>提前处理结构性风险。</td></tr>
+            <tr><td>制定交接计划和培训计划。</td><td>让最终目标和结果形成共识。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>shared target</span><span>11 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Analysis Checklist" data-source="p462 p463 分析 PRR检查列表 生产指南">
+  <div class="chrome"><span>analysis checklist</span><span>p462 p463</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">分析阶段把服务知识转成一份专用 PRR 检查列表</h2>
+      <p class="lead-zh">列表来自领域专业知识、类似系统经验和生产指南。</p>
+      <p class="body-zh muted">SRE 还会查设计文档、实现、近期事故和事后总结，评估服务的紧急事件响应需求和运维操控性。</p>
+    </div>
+  </div>
+  <div class="foot"><span>service specific review</span><span>12 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Checklist Questions" data-source="p462 p463 更新影响 依赖 网络质量 错误报告 监控">
+  <div class="chrome"><span>checklist questions</span><span>p462 p463</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">检查列表的问题都指向生产风险</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>检查方向</th><th>材料中的例子</th></tr></thead>
+          <tbody>
+            <tr><td>变更半径</td><td>服务更新是否立刻影响系统中大比例部分。</td></tr>
+            <tr><td>依赖合理性</td><td>用户请求服务不应依赖主要用于批处理的系统。</td></tr>
+            <tr><td>网络要求</td><td>连接关键远程服务时是否需要较高网络服务质量。</td></tr>
+            <tr><td>错误可见度</td><td>错误是否进入中央日志，用户失败是否有度量和监控。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>risk questions</span><span>13 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Refactor Training" data-source="p463 p464 改进和重构 培训 设计概述 请求流 部署模式 手动练习">
+  <div class="chrome"><span>refactor and train</span><span>p463 p464</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">改进阶段排序风险，培训阶段复制服务理解</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">改进和重构</h3><p class="body-zh">按可靠性影响排序建议，与研发协商，并共同实现必要功能。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">培训</h3><p class="body-zh">覆盖设计概述、请求流、部署模式，以及生产运维手动练习。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>team readiness</span><span>14 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Takeover And Improvement" data-source="p464 接手服务 持续改进 运维经验 生产指南">
+  <div class="chrome"><span>takeover and improvement</span><span>p464</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">接手后，SRE 的运维经验继续反馈给研发团队</h2>
+      <p class="lead-zh">职责、变更管理流程和访问权限会逐步转移。</p>
+      <p class="body-zh muted">随着日常运维、变更评审、事件处理和事后总结，SRE 会把新功能、新组件和新依赖的建议沉淀成实践和文档。</p>
+    </div>
+  </div>
+  <div class="foot"><span>continuous learning</span><span>15 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Shakespeare Case" data-source="p464 莎士比亚搜索服务 监控台 SLO指标 oncall">
+  <div class="chrome"><span>shakespeare case</span><span>p464</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">莎士比亚搜索服务展示了上线后接手的完整路径</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">起点</h3><p class="small-zh">研发直接负责产品和紧急事件响应。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">触发</h3><p class="small-zh">用量和收入增长，服务开始需要 SRE 支持。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">修复</h3><p class="small-zh">监控台漏掉部分 SLO 指标，需要补齐。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">轮值</h3><p class="small-zh">SRE 接过值班职责，开发者也参与轮值。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">协作</h3><p class="small-zh">每周会议讨论问题、维护活动和未来计划。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>post launch onboarding</span><span>16 / 35</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Simple PRR Limit" data-source="p465 服务已经发布 已经规模化 生命周期后期">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">简单 PRR 的主要限制，是 SRE 来得太晚。</div>
+      <p class="body-zh muted" style="margin-top:2vh">服务已经发布并规模化，修复潜在问题的机会明显减少。</p>
+    </div>
+  </div>
+  <div class="foot"><span>late lifecycle cost</span><span>17 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Simple PRR Costs" data-source="p465 额外沟通 认知负担 合适评审者 可见工作">
+  <div class="chrome"><span>simple prr costs</span><span>p465</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">简单 PRR 还会带来团队成本</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>成本</th><th>材料里的说明</th></tr></thead>
+          <tbody>
+            <tr><td>额外沟通</td><td>增加研发团队开销，也给 SRE 评审者带来认知负担。</td></tr>
+            <tr><td>评审者稀缺</td><td>合适的 SRE 必须有时间，并能在现有事务之外推进流程。</td></tr>
+            <tr><td>知识共享</td><td>SRE 工作必须高度可见，并能被研发团队充分评审。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>review overhead</span><span>18 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Early Fit" data-source="p465 p466 早期参与模型 适用对象 新功能 重写 替代品">
+  <div class="chrome"><span>early engagement fit</span><span>p465 p466</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">早期参与模型要求更早判断服务重要性和未来规模</h2>
+      <p class="lead-zh">适用对象包括显著新功能、现有系统的大幅重写或替代品。</p>
+      <p class="body-zh muted">如果研发曾经寻求 SRE 建议，或发布后就需要 SRE 接管，也适合尽早引入 SRE。</p>
+    </div>
+  </div>
+  <div class="foot"><span>before launch</span><span>19 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Design Stage" data-source="p466 设计阶段 预防未来问题 最小化设计分歧">
+  <div class="chrome"><span>design stage</span><span>p466</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">设计阶段的 SRE 合作，可以预防许多未来事故。</div>
+      <p class="body-zh muted" style="margin-top:2vh">设计决策后期可以纠正，但成本和复杂性很高。早介入能减少进入生产后的设计分歧。</p>
+    </div>
+  </div>
+  <div class="foot"><span>design for reliability</span><span>20 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Build And Release" data-source="p466 p467 构建和实现 发布 隐形发布">
+  <div class="chrome"><span>build and release</span><span>p466 p467</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">构建和发布阶段，SRE 把运维能力提前放进实现里</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">构建和实现</h3><p class="body-zh">影响指标选择、控制功能、资源效率，并建议使用现存类库和组件。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">发布</h3><p class="body-zh">可以实现隐形发布，把部分用户流量复制给新服务，响应直接丢弃。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operability before launch</span><span>21 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="After Launch" data-source="p467 发布之后 稳定 减少优先级冲突">
+  <div class="chrome"><span>after launch</span><span>p467</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布稳定，会减少研发团队的优先级冲突</h2>
+      <p class="lead-zh">团队不用在提高可靠性和增加新功能之间来回拉扯。</p>
+      <p class="body-zh muted">早期经验也能帮助后期阶段更好地重构或重新设计，并让 SRE 更快接管新服务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stable momentum</span><span>22 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Disengagement" data-source="p467 从服务脱离 不值得全职管理 足够可靠">
+  <div class="chrome"><span>disengagement</span><span>p467</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">早期参与之后，SRE 也可能选择从服务脱离。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这可能意味着服务足够可靠，维护成本很低，可以由研发团队运维。</p>
+    </div>
+  </div>
+  <div class="foot"><span>healthy exit</span><span>23 / 35</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Need Frameworks" data-source="p467 p468 经验教训 每个服务需要2到3个SRE 多个季度">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">参与模型继续演进，问题转向可靠性的设计。</div>
+      <p class="body-zh muted" style="margin-top:2vh">逐个接手服务耗时多个季度，资源随服务数量线性增长，还受评审 SRE 数量限制。</p>
+    </div>
+  </div>
+  <div class="foot"><span>scaling pressure</span><span>24 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lessons From PRR" data-source="p467 p468 重新实现 日志框架 服务过载 数据热点">
+  <div class="chrome"><span>lessons from prr</span><span>p467 p468</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">过去的参与模型暴露了复用不足</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>现象</th><th>后果</th></tr></thead>
+          <tbody>
+            <tr><td>各服务软件实践不同。</td><td>相似生产功能被反复重新实现。</td></tr>
+            <tr><td>常见故障能看出模式。</td><td>修复和改进难以轻松复制到其他服务。</td></tr>
+            <tr><td>SRE 软件工程贡献偏本地。</td><td>通用解决方案难建立，新经验难在已接手服务中实践。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>reuse gap</span><span>25 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="External Pressure" data-source="p468 微服务 SRE不足 培训时间 支持模型扩展">
+  <div class="chrome"><span>external pressure</span><span>p468</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">微服务、招聘难度和未覆盖团队一起推动模型扩展</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>压力</th><th>材料里的影响</th></tr></thead>
+          <tbody>
+            <tr><td>微服务趋势</td><td>需要支持的服务数量增加，简单服务也有固定运维成本。</td></tr>
+            <tr><td>部署速度</td><td>微服务要求更短部署时间，几个月提前期的 PRR 难以满足。</td></tr>
+            <tr><td>SRE 供给</td><td>合格 SRE 难招且培训时间更长，无法覆盖全部服务。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>organizational scale</span><span>26 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Framework Principles" data-source="p469 最佳实践代码化 可重复使用 通用生产操作平台 自动化">
+  <div class="chrome"><span>framework principles</span><span>p469</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">框架模型把生产经验转成可共享结构</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">代码化</h3><p class="small-zh">把生产中运行良好的最佳实践写进代码。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">可复用</h3><p class="small-zh">常见技术实现直接改善扩展性和可靠性。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">通用平台</h3><p class="small-zh">统一生产设施接口和运维控制机制。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">统一信号</h3><p class="small-zh">监控、日志和服务配置都走一致方式。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">智能化</h3><p class="small-zh">自动化能基于统一控制接口达到更高水平。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>structured solution</span><span>27 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Framework Modules" data-source="p469 p470 Java C++ Go 框架模块 指标 请求日志 流量负载管理">
+  <div class="chrome"><span>framework modules</span><span>p469 p470</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">框架把基础设施相关问题预先解决</h2>
+      <p class="lead-zh">Google 在 Java、C++、Go 环境中建立了 SRE 支持的平台和服务框架。</p>
+      <p class="body-zh muted">模块覆盖指标度量和选择、请求日志记录、流量和负载管理控制系统，让研发更专注业务逻辑。</p>
+    </div>
+  </div>
+  <div class="foot"><span>infrastructure in modules</span><span>28 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Framework Interface" data-source="p470 语义组件 标准监控 标准日志 负载抛弃 过载">
+  <div class="chrome"><span>framework interface</span><span>p470</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">框架用标准语义暴露生产控制面</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>框架提供</th><th>标准化意义</th></tr></thead>
+          <tbody>
+            <tr><td>业务逻辑语义组件。</td><td>可以用标准术语引用。</td></tr>
+            <tr><td>标准监控维度和请求调试日志格式。</td><td>服务行为更容易被共同工具理解。</td></tr>
+            <tr><td>负载抛弃配置和过载判断方式。</td><td>度量结果能一致反馈给控制系统。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>common controls</span><span>29 / 35</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Language Consistency" data-source="p470 多种语言 同样API 行为 配置 控制组件">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">不同语言可以不同实现，但生产行为要相近。</div>
+      <p class="body-zh muted" style="margin-top:2vh">目标是在 C++ 与 Java 等平台上暴露同样的 API、行为、配置和控制组件。</p>
+    </div>
+  </div>
+  <div class="foot"><span>consistent operations</span><span>30 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Operational Savings" data-source="p471 显著降低运维开销 合规性测试 部署 监控 自动化 数天">
+  <div class="chrome"><span>operational savings</span><span>p471</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">强标准和生产平台显著降低运维开销</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>平台能力</th><th>收益</th></tr></thead>
+          <tbody>
+            <tr><td>代码结构、依赖关系、测试和样式指南合规测试。</td><td>同时提升隐私、测试和安全合规性。</td></tr>
+            <tr><td>内置部署、监控和自动化服务。</td><td>更容易管理数量暴增的微服务。</td></tr>
+            <tr><td>快速部署路径。</td><td>一个想法可以在数天内进入 SRE 级别支持的生产环境。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>lower ops cost</span><span>31 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Universal Support" data-source="p471 设计中自带通用性支持 没有完整SRE支持">
+  <div class="chrome"><span>universal support</span><span>p471</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">框架突破了 SRE 编制障碍。</div>
+      <p class="body-zh muted" style="margin-top:2vh">没有完整 SRE 支持的服务，也能使用 SRE 开发和维护的生产功能，并从框架模块改进中受益。</p>
+    </div>
+  </div>
+  <div class="foot"><span>standards for more teams</span><span>32 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Faster PRR" data-source="p471 更快更低参与成本 一个SRE 一个季度 认知负担降低">
+  <div class="chrome"><span>faster prr</span><span>p471</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">框架让 PRR 更快，也降低接手时的认知负担</h2>
+      <p class="lead-zh">服务功能已经作为框架实现的一部分内置。</p>
+      <p class="body-zh muted">接手服务通常可以由一个 SRE 在一个季度内完成，同时保持较高的服务产品质量标准。</p>
+    </div>
+  </div>
+  <div class="foot"><span>lower engagement cost</span><span>33 / 35</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Shared Responsibility" data-source="p472 共同责任 平台基础设施 研发团队 功能性问题">
+  <div class="chrome"><span>shared responsibility</span><span>p472</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">平台模型带来一种共同责任的新关系</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>责任方</th><th>负责内容</th></tr></thead>
+          <tbody>
+            <tr><td>SRE 团队</td><td>支持平台基础设施，维护负载抛弃、过载保护、自动化、流量管理、日志和监控等控制系统。</td></tr>
+            <tr><td>研发团队</td><td>为服务功能性问题提供值班支持，处理应用程序代码中的错误。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>new relationship</span><span>34 / 35</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Summary" data-source="p472 小结 三种参与模型 框架成为主要力量">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">核心总结</div>
+      <div class="callout" style="margin-top:2vh">SRE 参与模式，从逐个接手，走向提前设计，再走向平台化。</div>
+      <p class="body-zh muted" style="margin-top:2vh">简单 PRR 规范了接手流程，早期参与强调为可靠性而设计，生产服务框架把最佳实践标准化并封装，让可靠性经验覆盖更多服务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p472</span><span>35 / 35</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-32-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-32-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第19章 前端服务器的负载均衡 note slides</title>
+<style>
+:root {
+  /* palette thesis: front end load balancing is about routing pressure across distance and capacity, so the deck uses dark blue gray for network scale, warm paper for explanation, and green for healthy routing signals. */
+  --ink: #18232b;
+  --ink-rgb: 24,35,43;
+  --paper: #f7f4ec;
+  --paper-rgb: 247,244,236;
+  --accent: #3f8f72;
+  --muted: #667782;
+  --warm: #8d6d48;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.6vw, 6.6rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4vw, 3.8rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.45rem, 2.65vw, 2.45rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.45rem, 1.95vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.22rem, 1.38vw, 1.58rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.08vw, 1.24rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #76c49d; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p245 章节标题">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 19</div>
+      <h1 class="display-zh">前端服务器的<br>负载均衡</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">从用户请求进入之前开始，把流量引向合适的地点。</p>
+      <p class="meta" style="margin-top:1.2vh">Piotr Lewandowski</p>
+    </div>
+  </div>
+  <div class="foot"><span>p245</span><span>01 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Million Requests" data-source="p245 每秒数以百万计请求">
+  <div class="chrome"><span>front end scale</span><span>p245</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Google 每秒处理数以百万计的请求，因此负载必须由多台服务器承担。</div>
+      <p class="body-zh muted" style="margin-top:2vh">即使存在一台极强的超级计算机，也会立刻遇到网络带宽和单点故障问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>many servers</span><span>02 / 19</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Hardware Limit" data-source="p245 有时候硬件并不能解决问题">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">硬件不能消除物理限制。</div>
+      <p class="body-zh muted" style="margin-top:2vh">光速通过光纤通信限制远距离传输速度。理想硬件也无法让单点基础设施变成好主意。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p245</span><span>03 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Optimal Depends" data-source="p245 最优严重依赖几个因素">
+  <div class="chrome"><span>optimal depends</span><span>p245</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">最优没有独立答案</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">逻辑层级</h3><p class="body-zh">全局调节用户流量，局部处理数据中心内部资源。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">技术层面</h3><p class="body-zh">硬件层面和软件层面都会改变可行方案。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">流量属性</h3><p class="body-zh">请求天然属性决定更看重延迟还是吞吐量。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>no single optimum</span><span>04 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Search Upload" data-source="p245 p246 搜索请求和视频上传请求">
+  <div class="chrome"><span>two traffic shapes</span><span>p245 p246</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">搜索和上传走向不同的最优</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>场景</th><th>用户期待</th><th>调度变量</th><th>可能路径</th></tr></thead>
+          <tbody>
+            <tr><td>搜索请求</td><td>很快获取搜索结果</td><td>延迟，使用 RTT 评价</td><td>发往最近的可用数据中心</td></tr>
+            <tr><td>视频上传</td><td>可以花时间，但希望一次成功</td><td>吞吐量</td><td>走带宽没有占满的链路，可能牺牲部分延迟</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>latency and throughput</span><span>05 / 19</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Local Level" data-source="p246 局部层面关注资源利用率">
+  <div class="chrome"><span>inside one datacenter</span><span>p246</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">进入数据中心之后，最优换成资源利用率</h2>
+      <p class="lead-zh">同一物理建筑内的服务器通常被假设在同一个网络中，对用户等距。</p>
+      <p class="body-zh muted">因此局部负载均衡往往关注避免某台服务器负载过高。</p>
+    </div>
+  </div>
+  <div class="foot"><span>resource utilization</span><span>06 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Dynamic Reality" data-source="p246 复杂和动态化">
+  <div class="chrome"><span>dynamic factors</span><span>p246</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">现实调度还会把缓存、拥塞和地理区域纳入计算</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">缓存有效</h3><p class="body-zh">有些请求可能被指派到稍远的数据中心，用来保障该数据中心的缓存处于有效状态。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">避开拥塞</h3><p class="body-zh">某些非交互式请求会被发往另一个地理区域，以避免网络拥塞。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>complex and dynamic</span><span>07 / 19</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="DNS Entry" data-source="p246 使用 DNS 进行负载均衡">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">HTTP 请求发出之前，DNS 查询已经给了第一层负载均衡机会。</div>
+      <p class="body-zh muted" style="margin-top:2vh">最简单的方案是在 DNS 回复中提供多个 A 记录或 AAAA 记录，让客户端任选一个地址。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p246</span><span>08 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="DNS Weak Control" data-source="p246 约束力很弱">
+  <div class="chrome"><span>weak client control</span><span>p246</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">多记录回复的问题，是服务端很难约束客户端行为</h2>
+      <p class="lead-zh">记录被随机选择时，每条记录会带来基本相同数量的请求流量。</p>
+      <p class="body-zh muted">SRV 记录理论上可以指明优先级和比重，但 HTTP 协议目前没有采用 SRV 记录。</p>
+    </div>
+  </div>
+  <div class="foot"><span>random choice</span><span>09 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Nearest Address" data-source="p246 客户端无法识别最近地址">
+  <div class="chrome"><span>nearest address</span><span>p246</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">最近地址不能只交给客户端判断</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">Anycast DNS</h3><p class="small-zh">DNS 请求通常到达最近地址，服务器据此返回附近数据中心地址。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">位置对照表</h3><p class="small-zh">把网络地址和大概物理位置建立对照，用来生成回复。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">复杂服务</h3><p class="small-zh">DNS 服务变复杂，还需要数据更新流水线维护位置信息正确性。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">权衡成本</h3><p class="small-zh">越接近真实用户位置，维护成本越高。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">结果</h3><p class="small-zh">DNS 层已经开始像调度系统，而不只是名字解析。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>location pipeline</span><span>10 / 19</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Recursive Resolver" data-source="p246 DNS 中间人机制三个影响">
+  <div class="chrome"><span>recursive resolver</span><span>p246</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">DNS 中间人让权威服务器看不到完整用户现场</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">递归解析</h3><p class="body-zh">权威服务器收到的是递归解析器 IP，而不是最终用户地址。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">路径不确定</h3><p class="body-zh">一个解析器可能服务小办公室，也可能服务整个大陆。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">缓存额外影响</h3><p class="body-zh">TTL 让一个回复的后续影响难以精确预估。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>three effects</span><span>11 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="EDNS0" data-source="p246 EDNS0 扩展协议">
+  <div class="chrome"><span>edns0</span><span>p246</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">EDNS0 的关键价值，是把最终用户的子网段带回 DNS 决策。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这样权威服务器可以返回对最终用户更优的回复。材料指出它还不是正式规范，但 OpenDNS 和 Google 已经开始采用。</p>
+    </div>
+  </div>
+  <div class="foot"><span>client subnet</span><span>12 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Resolver Impact" data-source="p247 预估某个 DNS 回复的用户流量影响很困难">
+  <div class="chrome"><span>resolver impact</span><span>p247</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">一个 DNS 回复背后，可能是一个用户，也可能是几万个用户</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">分析流量变化，持续更新已知 DNS 解析器背后的用户数量，用来评估预期影响。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">根据数据评估每个已知解析器背后用户的地址位置分布，以便把用户转向最佳地址。</p></div>
+      </div>
+      <p class="body-zh muted">当用户分布很广时，只能针对大部分用户选择最优位置。</p>
+    </div>
+  </div>
+  <div class="foot"><span>estimate impact</span><span>13 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="DNS Optimum" data-source="p247 最优位置和 GSLB">
+  <div class="chrome"><span>dns optimum</span><span>p247</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">DNS 里的最优位置，还要受容量和健康状态约束</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">距离</h3><p class="body-zh">最直接答案是离用户最近的位置。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">容量</h3><p class="body-zh">被选择的数据中心必须有足够容量处理回复带来的请求。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">状态</h3><p class="body-zh">数据中心和网络要处于良好状态，不能把用户导向故障地点。</p></div>
+      </div>
+      <p class="body-zh muted">Google 将权威 DNS 服务器和全局负载均衡系统整合，用来跟踪流量水平、可用容量和基础设施状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>gslb integration</span><span>14 / 19</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="DNS Not Enough" data-source="p247 RFC 1035 将 DNS 回复限制为 512 字节">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">DNS 是简单有效的第一层，但它不能独自完成前端负载均衡。</div>
+      <p class="body-zh muted" style="margin-top:2vh">RFC 1035 将 DNS 回复限制为 512 字节，单个回复能返回的地址数量远少于服务器数量。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p247</span><span>15 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="VIP Layer" data-source="p247 负载均衡 虚拟 IP">
+  <div class="chrome"><span>virtual ip</span><span>p247</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">DNS 之后，需要用虚拟 IP 隐藏后端资源池</h2>
+      <p class="lead-zh">VIP 不绑定在某一个特定网络接口上，而是由很多设备共享。</p>
+      <p class="body-zh muted">用户看到的是一个普通 IP 地址。背后可以依次升级机器，也可以增加机器而不影响用户。</p>
+    </div>
+  </div>
+  <div class="foot"><span>hide backends</span><span>16 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Backend Choice" data-source="p247 p248 后端服务器选择和连接标识符">
+  <div class="chrome"><span>backend choice</span><span>p247 p248</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">选择后端服务器时，简单算法会撞上连接状态</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>方案</th><th>看起来的好处</th><th>材料指出的问题</th></tr></thead>
+          <tbody>
+            <tr><td>优先最小负载</td><td>请求发往最不忙的机器</td><td>有状态协议要求同一个请求过程使用同一个后端服务器</td></tr>
+            <tr><td>连接标识符取模</td><td>负载均衡器不用保存状态</td><td>后端数量从 N 变成 N 减 1 时，几乎所有请求都会改指向别的后端</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>state matters</span><span>17 / 19</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Consistent Hashing" data-source="p248 一致性哈希算法">
+  <div class="chrome"><span>consistent hashing</span><span>p248</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">一致性哈希的目标，是后端变化时尽量少影响现存连接。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它不需要在内存中保存所有连接状态，也不会在单个机器出故障时重置所有连接。Google 可以平时使用连接跟踪，压力上升时切换为一致性哈希，例如处理 DDoS 时。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stable mapping</span><span>18 / 19</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Packet Forwarding" data-source="p248 NAT DSR GRE 和 MTU">
+  <div class="chrome"><span>packet forwarding</span><span>p248 p249</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">最后的难点，是把数据包送到选中的 VIP 后端</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">NAT</h3><p class="small-zh">需要跟踪每一个连接，无法提供完全无状态后备机制。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">DSR</h3><p class="small-zh">修改目标 MAC，后端直接回应用户，能节约大量资源。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">广播域</h3><p class="small-zh">二层方案要求所有负载均衡器和后端处在同一广播域，规模上不适合 Google。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">GRE 封装</h3><p class="small-zh">把待转发网络包封装进另一个 IP 包，只要中间有路由连接即可。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">MTU 成本</h3><p class="small-zh">IPv4 加 GRE 封装需要 24 字节，可能导致碎片重组。</p></div>
+      </div>
+      <p class="body-zh muted">本章最后把原则压回实现细节：尽早做负载均衡，分级多次做负载均衡，但前端和数据中心内部都有许多细节问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>encapsulation tradeoff</span><span>19 / 19</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-19-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-19-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

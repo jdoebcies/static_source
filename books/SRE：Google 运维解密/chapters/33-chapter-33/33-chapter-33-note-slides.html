@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第33章 其他行业的实践经验 note slides</title>
+<style>
+:root {
+  /* palette thesis: this chapter compares high reliability practices across safety critical industries, so graphite carries severity, warm paper carries field notes, and restrained teal marks cross industry evidence. */
+  --ink: #1f2928;
+  --ink-rgb: 31,41,40;
+  --paper: #f3efe4;
+  --paper-rgb: 243,239,228;
+  --accent: #2f7f78;
+  --muted: #657171;
+  --warm: #76695a;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #73c4b8; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p476 章节标题 作者">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 33</div>
+      <h1 class="display-zh">其他行业的实践经验</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Jennifer Petoff</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Betsy Beyer</p>
+    </div>
+  </div>
+  <div class="foot"><span>p476</span><span>01 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Opening Questions" data-source="p476 对其他行业可靠性实践的五个问题">
+  <div class="chrome"><span>opening frame</span><span>p476</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">这一章从一个朴素问题开始，Google 外部怎样处理可靠性</h2>
+      <p class="lead-zh">作者把问题拆成指导思想、具体实践、相似点、差异来源，以及科技行业能学什么。</p>
+      <p class="body-zh muted">讨论材料来自多位有其他行业经验的 Google 工程师。</p>
+    </div>
+  </div>
+  <div class="foot"><span>what can sre learn</span><span>02 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Four Buckets" data-source="p476 p477 四大类 SRE 核心指导思想">
+  <div class="chrome"><span>four categories</span><span>p476 p477</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">为了比较其他行业，本章把 SRE 思想压进四个篮子</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">预案</h3><p class="small-zh">灾难预案与演习。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">复盘</h3><p class="small-zh">书写事后总结的文化。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">自动化</h3><p class="small-zh">降低日常运维负载。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">决策</h3><p class="small-zh">结构化的、理智的决策。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">结尾</h3><p class="small-zh">模式与反模式。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>comparison map</span><span>03 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Industry Panel" data-source="p477 p478 有其他行业背景的资深 SRE">
+  <div class="chrome"><span>expert panel</span><span>p477 p478</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">受访者的共同点，是他们都来自错误代价很高的行业</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">生命安全</h3><p class="body-zh">救生员、医疗器械、民航、核工业、核潜艇。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">公共基础设施</h3><p class="body-zh">国防系统、通信系统、E911、轨道交通信号。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">经济损失</h3><p class="body-zh">财务交易、制造业、航空延误和设备损失。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>high consequence domains</span><span>04 / 32</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Disaster Motto" data-source="p479 愿望不是一个策略">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">愿望不是一个策略。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 的灾难预案态度，是永远保持警惕，持续追问什么可能出故障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>disaster preparation</span><span>05 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="DiRT Goals" data-source="p479 DiRT 演习的三个目标">
+  <div class="chrome"><span>dirt exercise</span><span>p479</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">DiRT 在生产环境制造真实问题，目标不是表演韧性</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">验证</h3><p class="body-zh">确保系统按预想方式应对故障。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">发现</h3><p class="body-zh">找出系统中未预料到的弱点。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">改进</h3><p class="body-zh">寻找提高鲁棒性的方式，避免事故发生。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>production fault tests</span><span>06 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Disaster Practices" data-source="p479 其他行业灾难准备策略清单">
+  <div class="chrome"><span>industry strategies</span><span>p479</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">其他行业的灾难准备，集中在组织、容量、演习和设计</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>方向</th><th>材料里的实践</th></tr></thead>
+          <tbody>
+            <tr><td>组织与人</td><td>坚持安全关注、关注细节、培训与考核。</td></tr>
+            <tr><td>容量与演习</td><td>准备冗余容量，使用模拟或线上灾难演习。</td></tr>
+            <tr><td>设计</td><td>详细需求收集、系统设计、纵深防御。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>preparedness pattern</span><span>07 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Safety From Top" data-source="p479 p480 从组织架构层面坚持安全">
+  <div class="chrome"><span>safety culture</span><span>p479 p480</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">在高危制造车间，每次管理会议都从安全讨论开始</h2>
+      <p class="lead-zh">流程要极为确定，组织从上到下严格遵守，每个员工发现问题时都能主动提出。</p>
+      <p class="body-zh muted">核动力、军用飞机和轨道交通信号系统都有明确的软件安全标准与可靠性级别。</p>
+    </div>
+  </div>
+  <div class="foot"><span>standards and sil</span><span>08 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Small Tasks Matter" data-source="p480 关注任何细节 润滑油补充">
+  <div class="chrome"><span>small maintenance</span><span>p480</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">在核动力海军，小任务里的粗心可能会发展成大型潜艇事故。</div>
+      <p class="body-zh muted" style="margin-top:2vh">系统连接紧密，一个区域的小事故可能导致多个相关系统故障，所以日常维护被严肃对待。</p>
+    </div>
+  </div>
+  <div class="foot"><span>routine prevents disaster</span><span>09 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Redundant Capacity" data-source="p480 冗余容量 SOW 明星电话号码泄露">
+  <div class="chrome"><span>redundant capacity</span><span>p480</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">通信行业把冗余容量做成可移动资源，也承认容量问题不只看总量</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">SOW</h3><p class="body-zh">switch on wheels 是移动通信平台，可应急部署，也可在大型活动前提前部署。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">路由压力</h3><p class="body-zh">2005 年某明星电话号码泄露，粉丝同时拨打，造成类似 DDoS 的大面积路由错误。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>capacity is contextual</span><span>10 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Simulation And Live Drills" data-source="p480 p481 模拟以及进行线上灾难演习">
+  <div class="chrome"><span>drill mode</span><span>p480 p481</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">演习方式取决于故障后果，不能线上测试就把模拟器做逼真</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>行业</th><th>演习方式</th></tr></thead>
+          <tbody>
+            <tr><td>航空</td><td>因设备和人员安全，使用真实数据和高度一致的控制室模拟器。</td></tr>
+            <tr><td>通信</td><td>常做线上演习，关注飓风和环境灾难，建设防水机房和发电能力。</td></tr>
+            <tr><td>核动力海军</td><td>同时做假想练习和实战演习，在可控环境下进行破坏。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>severity decides drill</span><span>11 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Practice Until Remembered" data-source="p481 实战演习每周两到三天 响应机制不断练习">
+  <div class="chrome"><span>practice cadence</span><span>p481</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">假想练习有用，但灾难响应机制必须不断练习，才能确保不会忘记。</div>
+      <p class="body-zh muted" style="margin-top:2vh">核动力海军的实战演习每周进行，每次持续两到三天。</p>
+    </div>
+  </div>
+  <div class="foot"><span>rehearsal builds recall</span><span>12 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lifeguard Drills" data-source="p481 救生员 神秘顾客 伪落水事故">
+  <div class="chrome"><span>lifeguard drills</span><span>p481</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">救生员行业用类似神秘顾客的方式制造伪落水事故</h2>
+      <p class="lead-zh">设施负责人会与儿童或受训救生员构造情景，逼真到值班救生员难以区分真假。</p>
+      <p class="body-zh muted">这种演习测试的不是文档，而是人在现场识别和响应紧急事故的能力。</p>
+    </div>
+  </div>
+  <div class="foot"><span>realistic scenario</span><span>13 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Training And Recertification" data-source="p481 培训与考核 救生员再考核">
+  <div class="chrome"><span>training</span><span>p481</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">涉及人身安全的行业，把培训和再考核当成可靠性机制</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">体能</h3><p class="small-zh">托住比自己还重的人，让肩膀露出水面。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">技巧</h3><p class="small-zh">急救、CPR 等现场能力。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">流程</h3><p class="small-zh">一名救生员入水时，其他成员知道该做什么。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">本地</h3><p class="small-zh">泳池、湖边和海中救援差异很大。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">复训</h3><p class="small-zh">定期再考核，保持能力不过期。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>skills must stay current</span><span>14 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Requirements And Design" data-source="p481 p482 详细需求收集和系统设计">
+  <div class="chrome"><span>requirements and design</span><span>p481 p482</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">医疗器械和国防系统把设计阶段拉长，因为使用现场常常不同于设计想象</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">LASIK</h3><p class="body-zh">设备要简单明了，需求来自手术医生和维护工程师，减少使用者犯错机会。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">国防系统</h3><p class="body-zh">新设备可能经历一整年设计，实际编码只需要三周。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>design before code</span><span>15 / 32</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Defense In Depth" data-source="p482 纵深防御 核反应堆多层防护">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">核能行业几乎零容忍事故，所以纵深防御成为灾难预案的关键元素。</div>
+      <p class="body-zh muted" style="margin-top:2vh">主要系统有冗余和后备系统，多层防护一直延伸到核辐射物理屏障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>defense in depth</span><span>16 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Postmortem Culture" data-source="p482 事后总结的文化 CAPA">
+  <div class="chrome"><span>capa</span><span>p482</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">CAPA 与 SRE 的对事不对人复盘，关注点都是根源问题</h2>
+      <p class="lead-zh">复盘要问发生了什么、响应是否有效、下次是否有其他方案、如何避免再次发生。</p>
+      <p class="body-zh muted">材料强调纠结于谁造成故障没有意义，组织要找出什么出了问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>corrective preventive action</span><span>17 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Regulation And Safety" data-source="p482 p483 监管部门与安全关注">
+  <div class="chrome"><span>why reviews happen</span><span>p482 p483</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">其他行业也做类似复盘，但动力不完全相同</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>动力</th><th>材料里的例子</th></tr></thead>
+          <tbody>
+            <tr><td>监管</td><td>通信、航空、制造、化工、医疗器械、核工业和运输业都面对严密监管。</td></tr>
+            <tr><td>安全</td><td>高温、高压、有毒气体、腐蚀性液体让员工伤亡风险长期存在。</td></tr>
+            <tr><td>领导关注</td><td>Aloca 前 CEO Paul O'Neil 要求人员伤亡事故 24 小时内通知他。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>drivers differ</span><span>18 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Near Misses" data-source="p483 差点出事 潜伏的错误 CHIRP">
+  <div class="chrome"><span>near misses</span><span>p483</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">差点出事也是事故信号，它让组织在严重后果出现前学习。</div>
+      <p class="body-zh muted" style="margin-top:2vh">未遵守标准流程、泄漏时及时躲开、台阶液体未清理，都意味着潜在事故和优化机会。</p>
+    </div>
+  </div>
+  <div class="foot"><span>latent incident</span><span>19 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lifeguard After Action" data-source="p483 救生员事后分析与计划文化">
+  <div class="chrome"><span>after action review</span><span>p483</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">救生员行业把事故之后的报告、复盘、训练和心理恢复连成一条链</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">报告</h3><p class="small-zh">水边出现任何事故都要写详细总结。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">分析</h3><p class="small-zh">严重问题会集体从头到尾分析。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">规则</h3><p class="small-zh">根据讨论结果修改运营规则。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">训练</h3><p class="small-zh">组织培训，建立类似事故处理能力。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">恢复</h3><p class="small-zh">创伤性事故后可能有医疗顾问介入。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>blameless in chaos</span><span>20 / 32</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Automation Question" data-source="p484 将重复性工作自动化 消除运维负载">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">Google SRE 反感重复性和被动性工作，自动化用来省下工程时间。</div>
+      <p class="body-zh muted" style="margin-top:2vh">但其他行业对自动化的信任程度差异很大。</p>
+    </div>
+  </div>
+  <div class="foot"><span>automation tradeoff</span><span>21 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Human Chain" data-source="p484 核动力海军避免自动化 人工决策链">
+  <div class="chrome"><span>manual control</span><span>p484</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">美国核动力海军用人工交叉管理，主动避免某些自动化</h2>
+      <p class="lead-zh">操作阀门需要操作员、监督员、船员与工程负责人通话配合。</p>
+      <p class="body-zh muted">这里担心自动化发现不了人能注意到的问题，也担心计算机太快造成无法挽回的后果。</p>
+    </div>
+  </div>
+  <div class="foot"><span>slow and steady</span><span>22 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Fast Automation Risk" data-source="p484 Knight Capital 4.4亿美元 Flash Crash">
+  <div class="chrome"><span>speed can harm</span><span>p484</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">交易行业的教训，是配置错误的自动化会把速度变成伤害</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>事件</th><th>材料里的损失</th></tr></thead>
+          <tbody>
+            <tr><td>Knight Capital Group</td><td>2012 年软件错误在几个小时内造成 4.4 亿美元损失。</td></tr>
+            <tr><td>美国股票交易所 Flash Crash</td><td>2010 年一次自动化操纵尝试导致 30 分钟内千亿美元级损失。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>misconfigured speed</span><span>23 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Automation When Faster" data-source="p484 p485 制造业与英国核能工业自动化">
+  <div class="chrome"><span>when automation helps</span><span>p484 p485</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">也有行业正因为计算机反应更快，才大量使用自动化</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">制造业</h3><p class="body-zh">自动化带来更高效率、更低成本和更稳定的重复性输出。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">英国核能工业</h3><p class="body-zh">如果发电站需要在少于 30 分钟内响应某种情况，响应必须自动化。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>response time threshold</span><span>24 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Selective Automation" data-source="p485 航空行业有选择地采用自动化">
+  <div class="chrome"><span>selective automation</span><span>p485</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">航空行业有选择地自动化。</div>
+      <p class="body-zh muted" style="margin-top:2vh">后备系统切换常自动进行，其他任务仍要求人工二次校验。即使有很多自动监控系统，空中交通管理系统最终实现仍需要人来校验运行。</p>
+    </div>
+  </div>
+  <div class="foot"><span>human verification</span><span>25 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="LASIK Automation" data-source="p485 LASIK 输入数据检查 虹膜图像对比">
+  <div class="chrome"><span>lasik automation</span><span>p485</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">LASIK 的自动化价值，是把用户错误挡在手术前</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>风险</th><th>自动化改进</th></tr></thead>
+          <tbody>
+            <tr><td>医生手动输入数字，可能输错病人或左右眼。</td><td>输入超出预期范围时，程序立刻警告。</td></tr>
+            <tr><td>屈光度测试数据与手术环节可能混乱。</td><td>操作环节虹膜照片自动对比测量环节虹膜图像。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>automation reduces user error</span><span>26 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Structured Decisions" data-source="p485 p486 结构化和理性的决策">
+  <div class="chrome"><span>decision principles</span><span>p485 p486</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">在 SRE 里，理性决策要把方向、信息源、假设和数据先摆清楚</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">过程</h3><p class="body-zh">决策基本方向事先决定，信息源清楚，假设明确说明。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">优先级</h3><p class="body-zh">数据驱动优于情感、直觉和资深人士意见，每个人都为用户负责。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>data before hierarchy</span><span>27 / 32</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="HiPPO" data-source="p486 HiPPO 工资最高的员工的意见">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">决策应该是通知式的，过程不应该围绕最资深成员的个人意见。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Eric Schmidt 和 Jonathan Rosenberg 将这种风险称为 HiPPO，工资最高的员工的意见。</p>
+    </div>
+  </div>
+  <div class="foot"><span>avoid highest paid opinion</span><span>28 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Stable Old Technology" data-source="p486 如果运行正常就不要修改 通信远程交换机">
+  <div class="chrome"><span>do not change lightly</span><span>p486</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">一些行业把大量设计投入转化为对底层技术的保守态度</h2>
+      <p class="lead-zh">通信行业仍使用 19 世纪 80 年代部署的远程交换机，因为它们基本不会出错，冗余度非常高。</p>
+      <p class="body-zh muted">核能行业也类似，目前运行正常就不要修改，是很多决策背后的想法。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stable systems resist change</span><span>29 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Procedures And Experiments" data-source="p486 手册流程 可控测试 实验文化">
+  <div class="chrome"><span>procedures and tests</span><span>p486</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">手册和实验都是理性决策方式，只适用于不同系统节奏</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>方式</th><th>适用逻辑</th></tr></thead>
+          <tbody>
+            <tr><td>手册与流程</td><td>适合发展慢、故障场景稳定，或员工技能水平较低的行业。</td></tr>
+            <tr><td>可控测试</td><td>制造业经常构建和测试猜想，确认变更不会带来意外。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>decision rhythm</span><span>30 / 32</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Risk Control" data-source="p486 交易行业风险控制部门">
+  <div class="chrome"><span>risk control</span><span>p486</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">交易行业把决策切成更小的块，并让独立风险控制部门掌握停止权。</div>
+      <p class="body-zh muted" style="margin-top:2vh">系统异常时，第一反应是关掉系统。只有风险控制部门可以重新启用。</p>
+    </div>
+  </div>
+  <div class="foot"><span>risk owns restart</span><span>31 / 32</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Summary" data-source="p487 小结 Google 变更速度 错误预算">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">核心总结</div>
+      <div class="callout" style="margin-top:2vh">Google 采用了行业普遍的可靠性原则，再用错误预算支撑快速创新文化。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章最后的差异点很清楚：Google 更倾向于变更速度，但必须根据故障影响来选择保守程度。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p487</span><span>32 / 32</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-33-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-33-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>附录B 生产环境运维过程中的最佳实践 note slides</title>
+<style>
+:root {
+  /* palette thesis: this appendix is a production operations checklist, so the deck uses graphite for operational severity, warm paper for runbook readability, and teal blue for controls that reduce incident risk. */
+  --ink: #202526;
+  --ink-rgb: 32,37,38;
+  --paper: #f4efe3;
+  --paper-rgb: 244,239,227;
+  --accent: #2f7184;
+  --muted: #667073;
+  --warm: #756653;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(2.8rem, 6.2vw, 6rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(1.9rem, 3.6vw, 3.45rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.38rem, 2.35vw, 2.25rem); line-height: 1.3; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.38rem, 1.85vw, 1.9rem); line-height: 1.52; }
+.body-zh { font-size: clamp(1.16rem, 1.34vw, 1.52rem); line-height: 1.58; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #86c6d5; }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.1rem, 2.4vh, 2.1rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); align-items: stretch; }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(1.9rem, 3vw, 3.1rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+.slide.dark .summary-num { color: #86c6d5; }
+.timeline { display: flex; flex-direction: column; gap: clamp(.9rem, 1.6vh, 1.4rem); }
+.timeline-row { display: grid; grid-template-columns: minmax(8rem, 14rem) 1fr; gap: clamp(1rem, 2vw, 2rem); align-items: start; padding-top: clamp(.85rem, 1.35vh, 1.15rem); border-top: 1px solid rgba(var(--ink-rgb), .15); }
+.slide.dark .timeline-row { border-top-color: rgba(var(--paper-rgb), .18); }
+.label { font-family: var(--mono); color: var(--accent); font-size: clamp(.92rem, 1vw, 1.12rem); letter-spacing: .08em; text-transform: uppercase; }
+.slide.dark .label { color: #86c6d5; }
+.big-number { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(4rem, 9vw, 8.4rem); line-height: .98; color: var(--accent); }
+.slide.dark .big-number { color: #86c6d5; }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p493 附录B 生产环境运维过程中的最佳实践">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Appendix B</div>
+      <h1 class="display-zh">生产环境运维过程中的最佳实践</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">作者 Ben Treynor Sloss，编辑 Betsy Beyer</p>
+    </div>
+  </div>
+  <div class="foot"><span>p493</span><span>01 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Controlled Failure Modes" data-source="p493 可控的故障模式 配置文件 服务输入 正确性和准确性检查">
+  <div class="chrome"><span>controlled failure modes</span><span>p493</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">配置文件和服务输入，在进入服务之前先检查正确性和准确性。</div>
+      <p class="body-zh muted" style="margin-top:2vh">收到不合理输入时，服务继续保持之前状态正常工作，同时发出错误输入警报。</p>
+    </div>
+  </div>
+  <div class="foot"><span>validate before apply</span><span>02 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Incorrect Data" data-source="p493 不正确的数据 语法 语义 空数据 部分数据 截断数据">
+  <div class="chrome"><span>bad data</span><span>p493</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">不正确的数据，要在处理前拦住</h2>
+      <div class="grid-3">
+        <div class="line-box"><div class="label">syntax</div><p class="body-zh">先检查数据语法。</p></div>
+        <div class="line-box"><div class="label">semantics</div><p class="body-zh">可能时检查语义正确性。</p></div>
+        <div class="line-box"><div class="label">shape</div><p class="body-zh">注意空数据、部分数据和截断数据。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>empty partial truncated</span><span>03 / 23</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Smaller Than Previous" data-source="p493 新数据比之前的数据小N%的时候发出警报">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="summary-num">N%</div>
+      <p class="lead-zh" style="margin-top:2vh">新数据比之前的数据小 N% 时，服务应该发出警报。</p>
+    </div>
+  </div>
+  <div class="foot"><span>size regression alert</span><span>04 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Stale Data" data-source="p493 过期的数据 数据过期之前发出警报">
+  <div class="chrome"><span>stale data</span><span>p493</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">过期数据可能影响当前数据，警报要在数据过期之前发出。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这里的重点是提前发现，而不是等到过期结果进入生产路径。</p>
+    </div>
+  </div>
+  <div class="foot"><span>alert before expiry</span><span>05 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Hold Previous Config" data-source="p493 p494 维持之前的配置运行 直到某个人批准采用新数据">
+  <div class="chrome"><span>safe apply</span><span>p493 to p494</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">收到新数据后，继续用旧配置运行，直到有人批准采用新数据</h2>
+      <p class="lead-zh">材料把这种做法称为最安全的方式，因为新数据可能无效。</p>
+    </div>
+  </div>
+  <div class="foot"><span>approval gate</span><span>06 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="DNS Empty Config" data-source="p494 2005年 Google全球DNS负载延迟均衡系统 空数据 NXDOMAIN 6分钟">
+  <div class="chrome"><span>example 2005</span><span>p494</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">2005 年，空配置让 Google DNS 返回 NXDOMAIN</h2>
+      <div class="timeline">
+        <div class="timeline-row"><div class="label">cause</div><p class="body-zh">文件权限错误，服务收到一份空数据。</p></div>
+        <div class="timeline-row"><div class="label">impact</div><p class="body-zh">服务接受空配置，对全部 Google DNS 请求返回 NXDOMAIN，故障持续 6 分钟。</p></div>
+        <div class="timeline-row"><div class="label">fix</div><p class="body-zh">新配置需要通过安全性检查，包括确认 google.com IP 地址，否则继续按旧配置工作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>empty dns config</span><span>07 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Malware Slash Config" data-source="p494 2009年 错误的数据 整个Web 标记成病毒感染网站 只有/">
+  <div class="chrome"><span>example 2009</span><span>p494</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">2009 年，一个格式正确的数据把整个 Web 标成病毒感染网站</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="label">trigger</div><p class="body-zh">含有病毒 URL 地址的配置文件，被错误替换为只有 /，结果匹配全部 URL。</p></div>
+        <div class="soft-box"><div class="label">guardrail</div><p class="body-zh">后续检查配置文件的大幅度改变，并检查是否匹配已知不太可能含有病毒的网站。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>semantic bad config</span><span>08 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Progressive Rollout" data-source="p494 渐进式发布 非紧急的发布过程应该是按阶段进行的">
+  <div class="chrome"><span>progressive rollout</span><span>p494</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">非紧急发布按阶段进行，用小规模应用变更来控制配置和二进制风险。</div>
+      <p class="body-zh muted" style="margin-top:2vh">部署容量百分比和阶段等待时间，由服务规模、发布规模和可承受风险决定。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stage capacity and wait</span><span>09 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Rollout Supervision" data-source="p494 整个发布过程应该是有监管的 回退是第一选择 MTTR">
+  <div class="chrome"><span>supervised rollout</span><span>p494</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布过程需要监管，出现意外先回退</h2>
+      <p class="lead-zh">工程师或可靠的监控系统盯住发布过程。出现未预料情况时，先降低平均恢复时间 MTTR，后续再分析。</p>
+    </div>
+  </div>
+  <div class="foot"><span>rollback first</span><span>10 / 23</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="User View SLO" data-source="p494 p495 从用户的视角来定义SLO Gmail客户端 错误率与延迟">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <h2 class="h1-zh">从最终用户视角定义可用性与服务性能 SLO</h2>
+      <p class="lead-zh muted" style="margin-top:2vh">Gmail 在客户端度量错误率与延迟，几年内把可用性从 99.0% 提升到 99.9%。</p>
+    </div>
+  </div>
+  <div class="foot"><span>client measured slo</span><span>11 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Error Budget" data-source="p495 错误预算 1-SLO 99.99% 0.01%">
+  <div class="chrome"><span>error budget</span><span>p495</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">错误预算用 1 减 SLO 得出，平衡可靠性与创新速度</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="big-number">0.01%</div><p class="body-zh">99.99% 可用性目标，对应一个月内 0.01% 的错误预算。</p></div>
+        <div class="soft-box"><div class="label">release rule</div><p class="body-zh">预算未用完，开发团队可以合理发布新功能和新变更。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>one minus slo</span><span>12 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Budget Exhausted" data-source="p495 如果错误预算用完了 服务应该停止任何改动">
+  <div class="chrome"><span>budget exhausted</span><span>p495</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">错误预算用完后，停止改动，除非是重要安全问题或错误修复。</div>
+      <p class="body-zh muted" style="margin-top:2vh">成熟且 SLO 超过 99.99% 的系统，可以按季度计算预算。</p>
+    </div>
+  </div>
+  <div class="foot"><span>freeze changes</span><span>13 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monitoring Outputs" data-source="p495 p496 监控系统 应该仅仅有三种输出 紧急警报 工单 日志">
+  <div class="chrome"><span>monitoring outputs</span><span>p495 to p496</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">监控系统只应该有三种输出</h2>
+      <div class="grid-3">
+        <div class="line-box"><div class="label">page</div><p class="body-zh">紧急警报，某个人必须执行某项操作。</p></div>
+        <div class="line-box"><div class="label">ticket</div><p class="body-zh">工单，某个人必须在几天内执行某种操作。</p></div>
+        <div class="line-box"><div class="label">log</div><p class="body-zh">日志，没人马上看，以后需要时用于分析。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>alert ticket log</span><span>14 / 23</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Email Alert Trap" data-source="p496 将警报用E-mail发送 最终这些警报一定会被无视">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">把警报发到 E-mail，并指望有人读完，最终一定会被无视。</div>
+      <p class="lead-zh muted" style="margin-top:2vh">历史证明，这种策略一开始可行，最终会要求人随时保持警惕性。</p>
+    </div>
+  </div>
+  <div class="foot"><span>email alert failure</span><span>15 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Blameless Postmortem" data-source="p496 事后总结 对事不对人 关注流程 技术而非人">
+  <div class="chrome"><span>postmortem</span><span>p496</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">事后总结对事不对人，关注流程和技术</h2>
+      <p class="lead-zh">假设事故处理者理智、善意，并使用当时所有可用信息做了最佳决策。我们可以修复工作环境，例如系统设计、信息可用性和运维操作校验。</p>
+    </div>
+  </div>
+  <div class="foot"><span>fix the environment</span><span>16 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Capacity N Plus Two" data-source="p496 容量规划 N+2 两个最大的副本不可用">
+  <div class="chrome"><span>capacity planning</span><span>p496</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">服务需要 N+2 配置，在两个最大副本不可用时，峰值流量仍可由 N 个实例承担。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料允许这种承担发生在某种降级模式下，核心是用户体验不能严重受损。</p>
+    </div>
+  </div>
+  <div class="foot"><span>planned and unplanned failures</span><span>17 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Capacity Forecast Load Test" data-source="p496 p497 流量预测 负载测试 资源与容量的比例">
+  <div class="chrome"><span>forecast and load test</span><span>p496 to p497</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">容量规划要不断校准预测，并用负载测试建立资源比例</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="label">forecast</div><p class="body-zh">持续对比流量预测与真实情况，偏差可能意味着预测方法、容量效率或容量不足问题。</p></div>
+        <div class="soft-box"><div class="label">load test</div><p class="body-zh">依靠负载测试建立资源与容量比例，不只依赖三个月前的历史数据。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>do not trust old capacity</span><span>18 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Launch Day Load" data-source="p497 不要将上线第一天的负载与稳定状态下的负载混淆">
+  <div class="chrome"><span>launch load</span><span>p497</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">不要把上线第一天的负载，和稳定状态下的负载混淆。</div>
+      <p class="body-zh muted" style="margin-top:2vh">发布通常会吸引更多流量，而这恰好也是需要显示服务质量的时机。</p>
+    </div>
+  </div>
+  <div class="foot"><span>launch is not steady state</span><span>19 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Overload Degradation" data-source="p497 过载与故障 过载情况下 合理程度上的次优结果 Google搜索">
+  <div class="chrome"><span>overload behavior</span><span>p497</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">过载时先提供合理的次优结果</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="label">search example</div><p class="body-zh">Google 搜索会只搜索一部分索引数据，并中止某些即时提示功能。</p></div>
+        <div class="soft-box"><div class="label">sre test</div><p class="body-zh">搜索 SRE 对集群进行超出容量的测试，确保过载情况下仍能工作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>degraded service</span><span>20 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Graceful Shedding Retry" data-source="p497 队列 动态超时 优雅地流量抛弃 重试 连锁故障 指数型延迟重试 抖动">
+  <div class="chrome"><span>shedding and retry</span><span>p497</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">次优结果也不够时，优雅丢弃流量，并控制重试放大</h2>
+      <div class="timeline">
+        <div class="timeline-row"><div class="label">shed</div><p class="body-zh">使用队列、动态超时、延迟回复，或让部分用户接收错误来保障其他客户质量。</p></div>
+        <div class="timeline-row"><div class="label">cascade</div><p class="body-zh">重试会把低错误率转化为高流量，引发连锁故障。</p></div>
+        <div class="timeline-row"><div class="label">client</div><p class="body-zh">发送 RPC 的客户端应实现带抖动的指数型延迟重试。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>exponential backoff with jitter</span><span>21 / 23</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="SRE Team Sustainability" data-source="p498 SRE团队 运维工作不超过50% on-call团队至少8个人 两个地理位置 每12小时1个 假想灾难演习">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 团队的最佳实践，最终落到可持续性</h2>
+      <div class="grid-3">
+        <div class="line-box"><div class="summary-num">50%</div><p class="body-zh">运维工作不超过团队时间的一半，过载由产品研发部门承担。</p></div>
+        <div class="line-box"><div class="summary-num">8</div><p class="body-zh">on-call 团队至少 8 人。跨两个地理区域时，每个区域至少 6 人。</p></div>
+        <div class="line-box"><div class="summary-num">2</div><p class="body-zh">每次 on-call 轮值处理不超过两起事故，并用周期性假想灾难演习保持熟练。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>toil oncall drills</span><span>22 / 23</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Notes" data-source="p493 p494 p495 p496 p497 p498 保持之前状态 渐进式发布 错误预算 监控系统 N+2 过载 SRE团队">
+  <div class="chrome"><span>core notes</span><span>p493 to p498</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结，生产运维最佳实践都在降低故障扩大的机会</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="label">change control</div><p class="body-zh">输入先校验，错误输入保持之前状态。发布按阶段进行，出现意外先回退。</p></div>
+        <div class="soft-box"><div class="label">service control</div><p class="body-zh">SLO 从用户视角定义，错误预算约束发布风险，监控只输出紧急警报、工单和日志。</p></div>
+        <div class="soft-box"><div class="label">load control</div><p class="body-zh">容量按 N+2 准备，过载时提供次优结果，必要时优雅丢弃流量并控制重试。</p></div>
+        <div class="soft-box"><div class="label">team control</div><p class="body-zh">SRE 运维工作不超过 50%，on-call 规模和事故上限服务于团队可持续性。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>core summary</span><span>23 / 23</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-appendix-b-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-appendix-b-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

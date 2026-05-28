@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第23章 管理关键状态 note slides</title>
+<style>
+:root {
+  /* palette thesis: distributed consensus is about keeping critical state calm under failure, so the deck uses graphite ink for risk, warm paper for explanation, and amber for quorum signals. */
+  --ink: #1d2428;
+  --ink-rgb: 29,36,40;
+  --paper: #f7f2e8;
+  --paper-rgb: 247,242,232;
+  --accent: #b7792f;
+  --muted: #6f7a7d;
+  --warm: #7c6752;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #d5a866; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p293 章节标题">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 23</div>
+      <h1 class="display-zh">管理关键状态</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">利用分布式共识来提高可靠性。</p>
+      <p class="meta" style="margin-top:1.2vh">Laura Nolan</p>
+    </div>
+  </div>
+  <div class="foot"><span>p293</span><span>01 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Failure Context" data-source="p293 服务进程崩溃 硬盘故障 自然灾难">
+  <div class="chrome"><span>failure context</span><span>p293</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">SRE 要预先假设进程、硬盘、区域都会失败。</div>
+      <p class="body-zh muted" style="margin-top:2vh">分布式运行能提升灾难下的生存能力，也同时带来维护一致状态视图的问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>distributed state</span><span>02 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Consensus Questions" data-source="p293 共识问题列表">
+  <div class="chrome"><span>what must agree</span><span>p293</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">一组进程真正要一致的是这些关键状态</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">领头人</h3><p class="small-zh">哪个进程目前负责带队。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">成员</h3><p class="small-zh">这个组里到底包含哪些进程。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">队列</h3><p class="small-zh">消息是否已经成功插入。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">租约</h3><p class="small-zh">某个进程是否仍然持有租约。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">键值</h3><p class="small-zh">数据存储中某个键对应什么值。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>critical state</span><span>03 / 37</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Use Proven Consensus" data-source="p294 建议采用正式证明和详尽测试的分布式共识系统">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">关键状态要交给经过证明和测试的共识系统。</div>
+      <p class="body-zh muted" style="margin-top:2vh">领头人选举、共享状态和分布式锁不能靠临时方案，否则可能留下难以修复的数据一致性问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>proven primitive</span><span>04 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="CAP" data-source="p294 p295 CAP 理论 网络分区迟早会发生">
+  <div class="chrome"><span>cap pressure</span><span>p294 p295</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">CAP 把分布式状态的代价说清楚了</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">一致</h3><p class="body-zh">每个节点上看到的数据一致。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">可用</h3><p class="body-zh">每个节点都能访问数据。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">分区容忍</h3><p class="body-zh">网络分区发生时系统仍要面对选择。</p></div>
+      </div>
+      <p class="body-zh muted">光缆、拥塞、硬件故障和网络配置错误都让分区成为迟早会出现的现实。</p>
+    </div>
+  </div>
+  <div class="foot"><span>partition happens</span><span>05 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="BASE Burden" data-source="p295 BASE 最终一致 开发者负担">
+  <div class="chrome"><span>base tradeoff</span><span>p295</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">最终一致把一部分复杂度推给应用开发者</h2>
+      <p class="lead-zh">多主复制常用最后操作为准解决冲突，但时钟漂移和网络分区会带来意外问题。</p>
+      <p class="body-zh muted">材料引用 Jeff Shute 的判断：开发者不应该把大量时间花在处理可能过时的数据上，一致性问题应在数据库层解决。</p>
+    </div>
+  </div>
+  <div class="foot"><span>eventual consistency</span><span>06 / 37</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Correctness First" data-source="p295 财务交易 正确性">
+  <div class="chrome"><span>correctness first</span><span>p295</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">处理关键数据时，可靠性和性能不能靠牺牲正确性换来。</div>
+      <p class="body-zh muted" style="margin-top:2vh">财务交易的例子很直接：最终结果不正确时，可靠和快速都没有价值。</p>
+    </div>
+  </div>
+  <div class="foot"><span>critical data</span><span>07 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Partial Network" data-source="p296 网络非常慢 某些消息丢弃 单方面节流">
+  <div class="chrome"><span>failure is messy</span><span>p296</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">真正难排查的故障，常常不是完全断网</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">网络很慢</h3><p class="body-zh">延迟变高，超时判断开始摇摆。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">部分丢包</h3><p class="body-zh">某些消息到达，某些消息消失。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">单边节流</h3><p class="body-zh">通信不对称，系统行为更难解释。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>coordination failure</span><span>08 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Split Brain Case" data-source="p296 案例1 脑裂问题 STONITH">
+  <div class="chrome"><span>case one</span><span>p296 p297</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">案例 1：简单心跳不能正确实现领头人选举</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">复制组</h3><p class="small-zh">两组文件服务器互相复制，提高可靠性。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">心跳</h3><p class="small-zh">一方联系不到另一方时，发送 STONITH 命令。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">网络变慢</h3><p class="small-zh">命令可能没有成功送达。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">双主</h3><p class="small-zh">两个文件服务器可能同时成为主服务者。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">后果</h3><p class="small-zh">数据损坏，或两个服务同时关闭导致不可用。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>heartbeat trap</span><span>09 / 37</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Manual Failover Case" data-source="p297 案例2 需要人工干预的灾备切换">
+  <div class="chrome"><span>case two</span><span>p297</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">案例 2：人工兜底避免数据丢失，却把可用性和扩展性交给了人</h2>
+      <p class="lead-zh">主实例无法确定副实例健康度时，把自己标记为不可用，并升级给人工处理。</p>
+      <p class="body-zh muted">这种方案避开脑裂风险，但大型基础设施故障时，运维人员往往已经在处理其他问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>manual pressure</span><span>10 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Gossip Case" data-source="p297 案例3 有问题的小组成员算法">
+  <div class="chrome"><span>case three</span><span>p297</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">案例 3：谣言协议发现成员，不等于拥有一致成员视图</h2>
+      <p class="lead-zh">网络分区后，两个分区各自选出领头者，同时接受写入和删除操作。</p>
+      <p class="body-zh muted">材料把维护一致的小组成员信息定义为分布式共识问题的另一种变种。</p>
+    </div>
+  </div>
+  <div class="foot"><span>membership consensus</span><span>11 / 37</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Same Shape" data-source="p297 领头人选举 小组成员 分布式锁 租约 队列 消息传递">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">很多分布式系统问题，最后都归结为共识问题的不同形状。</div>
+      <p class="body-zh muted" style="margin-top:2vh">领头人选举、成员信息、锁、租约、可靠队列、消息传递，临时办法在实践中都会遇到可靠性问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>same problem family</span><span>12 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Async Limits" data-source="p297 p298 异步式分布式共识 FLP impossibility result">
+  <div class="chrome"><span>asynchronous consensus</span><span>p297 p298</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">异步共识的理论边界很硬，工程上靠环境和退避推进</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>材料里的边界</th><th>工程里的应对</th></tr></thead>
+          <tbody>
+            <tr><td>消息可能无限延迟。</td><td>保证有足够健康副本和良好网络连接。</td></tr>
+            <tr><td>有限时间内一定达成共识在理论上不可能。</td><td>加入随机指数型延迟，避免重试连锁反应。</td></tr>
+            <tr><td>协议只在有利环境下继续推进。</td><td>保持安全性，同时提供足够冗余度。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>flp boundary</span><span>13 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Paxos Proposal" data-source="p298 p299 Paxos 提案 大多数 序列号">
+  <div class="chrome"><span>paxos shape</span><span>p298 p299</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Paxos 用提案、序列号和大多数建立顺序</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">提案</h3><p class="small-zh">每个提案可能被大多数进程接受，也可能失败。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">序列号</h3><p class="small-zh">每个提案带唯一序列号，保证操作严格排序。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">同意</h3><p class="small-zh">接收者没有见过更高序列号时才同意。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">提交</h3><p class="small-zh">提案者得到大多数同意后发送带值的提交消息。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">重试</h3><p class="small-zh">失败时用更高序列号重新提案。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>proposal order</span><span>14 / 37</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Majority Journal" data-source="p299 大多数重合 持久存储日志">
+  <div class="chrome"><span>majority and journal</span><span>p299</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">两个大多数一定至少重合一个节点，所以同一个提案不能提交两个不同的值。</div>
+      <p class="body-zh muted" style="margin-top:2vh">接收者接受提案时必须写持久日志，因为重启后仍要保留这个状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>quorum overlap</span><span>15 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Paxos Primitive" data-source="p299 Paxos 本身不那么好用">
+  <div class="chrome"><span>primitive only</span><span>p299</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Paxos 本身只是很底层的原语</h2>
+      <p class="lead-zh">它只能让节点共同接收一次某个值和提案号码。</p>
+      <p class="body-zh muted">由于共同接收该值的节点数可以只是法定人数，任何一个节点可能都没有完整视图。</p>
+    </div>
+  </div>
+  <div class="foot"><span>not enough alone</span><span>16 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Service Primitive" data-source="p299 p300 ZooKeeper Consul etcd Chubby 服务原语">
+  <div class="chrome"><span>architecture pattern</span><span>p299 p300</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">真正有用的是共识之上的高级服务</h2>
+      <p class="lead-zh">数据存储、配置存储、队列、锁机制和领头人选举，才对应系统设计师的实际需求。</p>
+      <p class="body-zh muted">材料把 ZooKeeper、Consul、etcd 和 Chubby 都放在这个服务原语模式里，而不是要求每个应用自己链接共识库。</p>
+    </div>
+  </div>
+  <div class="foot"><span>consensus as service</span><span>17 / 37</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="RSM" data-source="p300 可靠的复制状态机">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">复制状态机把同一组操作，以同样顺序，在多个进程中执行。</div>
+      <p class="body-zh muted" style="margin-top:2vh">共识算法负责全局排序，RSM 按这个顺序执行操作，并在成员之间同步状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>replicated state machine</span><span>18 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Datastore Timestamp" data-source="p300 p301 可靠复制数据存储 时间戳问题 Spanner">
+  <div class="chrome"><span>datastore semantics</span><span>p300 p301</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">复制数据存储把共识放进关键路径，也把一致性语义放到台前</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">读语义</h3><p class="body-zh">读操作可以提供多种一致性语义，这很大程度决定数据存储的扩展性。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">时间戳</h3><p class="body-zh">依赖时间戳选择返回数据在分布式系统中问题很大，因为多台物理机器无法保证时间同步。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>read semantics</span><span>19 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Leader Election" data-source="p301 p302 使用领头人选举机制实现高可用处理系统">
+  <div class="chrome"><span>leader election pattern</span><span>p301 p302</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">唯一领头人是粗粒度互斥的常见做法</h2>
+      <p class="lead-zh">当工作可以由一个进程满足，或者领头人只是协调工作者池时，复制几份服务再选出唯一领头人就能构成高可用服务。</p>
+      <p class="body-zh muted">这里共识算法通常不在关键路径中，所以吞吐量不是主要问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>single leader</span><span>20 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Barrier Lock" data-source="p302 p303 屏障 锁 可续租约">
+  <div class="chrome"><span>coordination primitives</span><span>p302 p303</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">屏障和锁可以由 RSM 实现，但锁要慎用</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>原语</th><th>材料里的用途</th><th>风险提醒</th></tr></thead>
+          <tbody>
+            <tr><td>屏障</td><td>阻挡一组进程继续工作，直到条件满足，例如 Map 完成后再 Reduce。</td><td>单独协调者会成为不可接受的单点故障源。</td></tr>
+            <tr><td>锁</td><td>保障多个工作进程不会操作同一个输入文件。</td><td>实践中应使用可续租约，避免进程崩溃后锁被无限持有。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>barrier and lease</span><span>21 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Queue Broadcast" data-source="p303 p305 可靠分布式队列 原子性广播">
+  <div class="chrome"><span>queue and broadcast</span><span>p303 p305</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">队列用来分发任务，但必须证明任务被成功处理</h2>
+      <p class="lead-zh">材料建议用租约系统，而不是单纯从队列取出任务。</p>
+      <p class="body-zh muted">原子性广播要求参与者可靠接收消息，并以同样顺序处理。材料指出它和分布式共识本质上是一个问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reliable queue</span><span>22 / 37</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Performance Myth" data-source="p305 分布式共识算法速度太慢观点是错误的">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">分布式共识太慢，不适合高吞吐低延迟系统，这个传统看法是错误的。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料的限定很重要：某些实现确实慢，但有很多办法可以提高性能，Google 的关键系统已经在使用它。</p>
+    </div>
+  </div>
+  <div class="foot"><span>performance myth</span><span>23 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Workload Deployment" data-source="p305 p306 负载维度 部署策略 RTT">
+  <div class="chrome"><span>performance variables</span><span>p305 p306</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">没有性能最优算法，只有负载、目标和部署共同决定的取舍</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>负载变量</th><th>部署变量</th><th>直接影响</th></tr></thead>
+          <tbody>
+            <tr><td>峰值吞吐量、写请求比例、读一致性要求、请求大小。</td><td>局部还是广域部署，仲裁过程如何分布。</td><td>领头人与客户端距离不同，RTT 差距会变得非常大。</td></tr>
+            <tr><td>系统是否读多写少，是否可以接受过期读。</td><td>是否使用分片、流水线和批处理。</td><td>扩展性和延迟目标会指向不同方案。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>no single optimum</span><span>24 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Multi Paxos" data-source="p306 p308 复合式 Paxos 强势领头人 提议者决斗">
+  <div class="chrome"><span>multi paxos flow</span><span>p306 p308</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">复合式 Paxos 用稳定领头人减少消息，但必须处理提议者决斗</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">视图</h3><p class="small-zh">第一阶段成功后建立新的有序视图，也就是领头人租约。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">跳过</h3><p class="small-zh">视图不变时，后续阶段可以跳过第一阶段。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">更换</h3><p class="small-zh">新提议者会带来重新执行第一阶段的成本。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">决斗</h3><p class="small-zh">两个提议者可能不停打断对方，形成活跃死锁。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">退避</h3><p class="small-zh">随机变量和后退策略是避免冲突的重要机制。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>dueling proposers</span><span>25 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Read Heavy" data-source="p308 p310 大量读操作 法定租约">
+  <div class="chrome"><span>read optimization</span><span>p308 p310</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">读多系统的关键，是哪些读必须强一致</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">任意副本读</h3><p class="body-zh">如果过期数据只造成额外工作，而不是错误结果，读可以从任意副本进行。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">法定租约</h3><p class="body-zh">给法定人数副本授予某部分数据的短租约，换来强一致本地读，但会牺牲部分写性能。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>quorum leases</span><span>26 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Network RTT" data-source="p310 p311 RTT TCP/IP 慢启动 代理池">
+  <div class="chrome"><span>network latency</span><span>p310 p311</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">写性能先撞上两个物理限制：RTT 和持久化写入</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>因素</th><th>材料里的数字或机制</th><th>工程应对</th></tr></thead>
+          <tbody>
+            <tr><td>网络 RTT</td><td>数据中心内毫秒级，美国本土约 45ms，纽约到伦敦约 70ms。</td><td>副本分布跨故障域，但必须接受距离带来的延迟。</td></tr>
+            <tr><td>TCP/IP</td><td>建连需要三次握手，慢启动限制初始带宽。</td><td>用地域性代理池保持到共识组的持久连接。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>proxy pool</span><span>27 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Fast Paxos Leader" data-source="p311 p312 快速 Paxos 稳定领头人机制">
+  <div class="chrome"><span>fast paxos caveat</span><span>p311 p312</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Fast Paxos 看起来更短，但慢链路长尾可能让它更慢</h2>
+      <p class="lead-zh">如果客户端到接收者 RTT 很高，而接收者之间连接很快，N 个慢网络并发操作可能不如一次慢消息加 N 个快网络操作。</p>
+      <p class="body-zh muted">稳定领头人也有代价：所有改变状态的操作经由领头人，领头人外发带宽和机器性能都会成为瓶颈。</p>
+    </div>
+  </div>
+  <div class="foot"><span>leader bottleneck</span><span>28 / 37</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Batch Disk" data-source="p313 p314 批处理 流水线 磁盘访问">
+  <div class="chrome"><span>batch pipeline disk</span><span>p313 p314</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">批处理、流水线和日志合并，都是把固定成本摊薄</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">批处理</h3><p class="body-zh">多个操作合成一个操作，提升系统吞吐量。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">流水线</h3><p class="body-zh">多个提议同时进行，仍然用视图序号和交易序号全局排序。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">日志合并</h3><p class="body-zh">共识日志和 RSM 交易日志合并，减少在磁盘不同位置交替写入。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>amortize cost</span><span>29 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Replica Count" data-source="p314 p316 副本数量 2f+1 5个副本">
+  <div class="chrome"><span>replica count</span><span>p314 p316</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">副本数量是可靠性、维护、风险、性能和成本的妥协</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>数量</th><th>材料里的含义</th><th>运维含义</th></tr></thead>
+          <tbody>
+            <tr><td>3 个</td><td>非拜占庭失败下最小数量，可承受 1 个副本失败。</td><td>计划维护时还能继续工作，但维护期间再坏一个就不可用。</td></tr>
+            <tr><td>5 个</td><td>可允许两个副本不可用时继续运行。</td><td>只剩 3 个健康副本时，需要立刻增加额外副本。</td></tr>
+            <tr><td>大多数不可达</td><td>理论上进入无法恢复状态。</td><td>强制重配永远存在数据丢失可能性，应全力避免。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>quorum math</span><span>30 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Replica Location" data-source="p316 p318 副本的位置 故障域 RTT 备份">
+  <div class="chrome"><span>replica location</span><span>p316 p318</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">副本位置在故障域承受力和客户端可见性能之间取舍</h2>
+      <p class="lead-zh">副本距离越远，能承受的故障域越大，网络 RTT 通常也越高。</p>
+      <p class="body-zh muted">即使共识副本跨故障域部署，关键数据仍要备份在其他地方，因为软件 Bug 和系统管理员人为错误无法靠副本位置消除。</p>
+    </div>
+  </div>
+  <div class="foot"><span>failure domain</span><span>31 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Capacity Availability" data-source="p318 p320 容量规划 增加副本降低可用性 领头人分布">
+  <div class="chrome"><span>capacity and balance</span><span>p318 p320</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">增加副本不总是提高可用性，也可能制造新的瓶颈</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>场景</th><th>材料里的风险</th><th>需要看的量</th></tr></thead>
+          <tbody>
+            <tr><td>5 个变 6 个</td><td>法定人数从 3 变 4，超过 33% 副本不可用就会导致系统无法工作。</td><td>副本数量与仲裁门槛。</td></tr>
+            <tr><td>最近副本读</td><td>某区域负载升高会吞没最近副本，再传导到第二近副本。</td><td>过载传播路径。</td></tr>
+            <tr><td>领头人聚集</td><td>领头人使用更多网络容量，集中放置会造成出口瓶颈。</td><td>领头人在数据中心之间的分布。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>availability surprise</span><span>32 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Quorum Shape" data-source="p321 p324 仲裁组的组成 重叠仲裁组 层级型仲裁过程">
+  <div class="chrome"><span>quorum composition</span><span>p321 p324</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">仲裁组形状会决定故障后的延迟曲线</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">重叠仲裁组</h3><p class="body-zh">一个东海岸副本可以连接北美和欧洲两个可能仲裁组，但它故障后 RTT 会大幅改变。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">层级仲裁</h3><p class="body-zh">9 个副本分成 3 组，每组 3 个，多数组完成仲裁，可减少对中央副本的依赖。</p></div>
+      </div>
+      <p class="body-zh muted">更多副本意味着更高成本，但在高度分片且读可由副本服务的系统中，可以用更少共识组抵消成本。</p>
+    </div>
+  </div>
+  <div class="foot"><span>hierarchical quorum</span><span>33 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monitoring" data-source="p324 p325 对分布式共识系统的监控">
+  <div class="chrome"><span>monitoring</span><span>p324 p325</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">共识系统监控要看成员、领头人、进度和瓶颈</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">成员</h3><p class="small-zh">每个共识组的成员数量和健康状态。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">落后</h3><p class="small-zh">副本是否正在恢复、落后，或完全参与。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">领头人</h3><p class="small-zh">是否存在，以及角色变化次数是否快速增加。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">交易数</h3><p class="small-zh">递增交易数字是否持续增长。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">延迟</h3><p class="small-zh">提议接收延迟、网络延迟和日志持久化时间。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operability</span><span>34 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary One" data-source="p293 p297 p326 关键状态问题类型">
+  <div class="chrome"><span>core notes</span><span>p293 p297 p326</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结 1</div>
+      <h2 class="h1-zh">先识别问题形状，再选择机制</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">需要一致视图</h3><p class="body-zh">领头人、成员列表、租约、锁、队列和键值状态都属于同一问题族。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">不能靠心跳补丁</h3><p class="body-zh">心跳、谣言协议和人工兜底都可能在网络变慢或分区时暴露可靠性问题。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>problem shape</span><span>35 / 37</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary Two" data-source="p305 p314 p324 性能 部署 监控">
+  <div class="chrome"><span>core notes</span><span>p305 p314 p324</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结 2</div>
+      <h2 class="h1-zh">生产可用性来自协议、部署和监控三层一起成立</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">协议</h3><p class="body-zh">稳定领头人、法定租约、批处理和流水线改变性能曲线。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">部署</h3><p class="body-zh">副本数量、故障域、仲裁组形状和领头人分布共同决定故障表现。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">监控</h3><p class="body-zh">成员健康、落后副本、领头人变化、交易数字和延迟必须可见。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operating consensus</span><span>36 / 37</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p325 p326 小结 分布式共识 定时炸弹">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">每当见到领头人选举、关键共享状态或分布式锁，就应该想到分布式共识。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料最后的结论很重：使用心跳等其他方案，会把一枚随时可能爆炸的定时炸弹放进系统。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p325 p326</span><span>37 / 37</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-23-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-23-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

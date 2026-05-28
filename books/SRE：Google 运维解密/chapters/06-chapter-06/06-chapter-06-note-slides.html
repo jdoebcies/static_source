@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第6章 分布式系统的监控 note slides</title>
+<style>
+:root {
+  --ink: #17202b;
+  --ink-rgb: 23,32,43;
+  --paper: #fbfaf6;
+  --paper-rgb: 251,250,246;
+  --accent: #2d6f7c;
+  --muted: #65707f;
+  --warm: #b46b45;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans-zh);
+  text-wrap: pretty;
+}
+#deck {
+  position: fixed;
+  inset: 0;
+  width: 10000vw;
+  height: 100vh;
+  display: flex;
+  flex-wrap: nowrap;
+  transition: transform .75s cubic-bezier(.77,0,.175,1);
+  will-change: transform;
+}
+.slide {
+  width: 100vw;
+  height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(1rem, 2vw, 2rem);
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .46;
+}
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.32rem, 1.48vw, 1.7rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.05rem, 1.15vw, 1.32rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7bb8c1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 6%; right: 6%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(1.02rem, 1.16vw, 1.32rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.75rem, 1.2vw, 1.1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p86 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 06</div>
+      <h1 class="display-zh">分布式系统<br>的监控</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">警报的核心问题是何时需要人工干预</p>
+    </div>
+  </div>
+  <div class="foot"><span>p86</span><span>01 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Chapter Scope" data-source="p86 核心思想 最佳实践">
+  <div class="chrome"><span>chapter scope</span><span>p86</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">本章讨论监控和报警系统的核心思想，重点是决定什么时候应该叫醒人。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它也讨论不那么严重的警报如何处理，避免把监控系统做成噪声机器。</p>
+    </div>
+  </div>
+  <div class="foot"><span>alert boundary</span><span>02 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Term Monitoring" data-source="p86 p87 术语定义">
+  <div class="chrome"><span>terms</span><span>p86 p87</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">先把术语放平</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>术语</th><th>材料中的含义</th><th>阅读时的用法</th></tr></thead>
+          <tbody>
+            <tr><td>监控</td><td>收集、处理、汇总并显示实时量化数据</td><td>请求、错误、处理用时、存活时间</td></tr>
+            <tr><td>监控台页面</td><td>展示服务核心指标，也可显示工单、Bug、轮值和发布信息</td><td>回答服务基本问题</td></tr>
+            <tr><td>警报</td><td>发向人或系统地址的通知</td><td>可能进入工单、E mail 或传呼机</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>monitoring dashboard alert</span><span>03 / 22</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="White Black Box" data-source="p86 p91 白盒监控 黑盒监控">
+  <div class="chrome"><span>white box black box</span><span>p86 p91</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">白盒看内部，黑盒看外部行为</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">白盒监控</h3><p class="body-zh">依靠系统内部暴露的指标，包括日志、虚拟机监控接口、HTTP 指标接口。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">黑盒监控</h3><p class="body-zh">测试外部用户可见的系统行为，判断用户现在是否正在看到故障。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>internal and external</span><span>04 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Root Cause Node Push" data-source="p87 p88 根源问题 节点 推送">
+  <div class="chrome"><span>more terms</span><span>p87 p88</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">另外三个词决定排障边界</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">根源问题</h3><p class="body-zh">系统或流程中的缺陷，修复后同类问题不会再次以同样方式发生。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">节点机器</h3><p class="body-zh">物理机、虚拟机或容器里运行的实例，一台机器可承载多个服务。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">推送</h3><p class="body-zh">关于服务正在运行的软件或配置文件的任何改动。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>diagnosis boundary</span><span>05 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Why Monitor" data-source="p88 为什么要监控">
+  <div class="chrome"><span>why monitor</span><span>p88</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">监控不只为了报警</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">趋势</h3><p class="small-zh">分析数据库规模、增长速度、活跃用户变化。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">比较</h3><p class="small-zh">跨时间范围比较，或对比实验组和控制组。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">报警</h3><p class="small-zh">发现需要立刻修复或尽快查看的问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">回溯</h3><p class="small-zh">在线调试，回答延迟上升时还有什么同时发生。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>trend compare alert debug</span><span>06 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Alert Cost" data-source="p88 p89 紧急警报 宝贵时间">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">紧急警报会占用宝贵时间，也会打断工作流、个人生活和睡眠。</div>
+      <p class="body-zh muted" style="margin-top:2vh">警报太频繁会导致狼来了效应，工程师开始怀疑警报有效性，甚至漏掉真实故障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p88 p89</span><span>07 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reasonable Expectation" data-source="p89 p90 监控系统预期">
+  <div class="chrome"><span>expectation</span><span>p89 p90</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">监控本身就是工程项目</h2>
+      <p class="lead-zh">即使基础设施成熟，标记、收集、显示和报警也需要人持续维护。Google 倾向于简单快速的监控系统，再配合高效工具做事后分析。</p>
+      <p class="body-zh muted">本章反复强调，生产故障、人工处理、简单定位、深入调试的过程必须足够简单，团队任何人都能理解。</p>
+    </div>
+  </div>
+  <div class="foot"><span>simple and reliable</span><span>08 / 22</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Symptom Cause" data-source="p90 现象与原因">
+  <div class="chrome"><span>symptom and cause</span><span>p90</span></div>
+  <div class="slide-body">
+    <div class="w-statement stack">
+      <p class="kicker accent">key distinction</p>
+      <h2 class="h1-zh">监控系统要回答两个问题</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">什么出故障了</h3><p class="body-zh">这是现象，通常更接近用户实际感受到的问题。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">为什么出故障</h3><p class="body-zh">这是原因，可能只是中间原因，还未必是根源问题。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>signal quality</span><span>09 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Layered View" data-source="p91 多层系统 数据库">
+  <div class="chrome"><span>layered systems</span><span>p91</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">一个服务的现象，可能是另一个服务的原因</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">数据库 SRE</h3><p class="body-zh">数据库读操作缓慢，是数据库服务自身看到的现象。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">前端 SRE</h3><p class="body-zh">网站缓慢是前端看到的现象，数据库读操作缓慢变成了原因。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>service boundary</span><span>10 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Golden Four" data-source="p91 4个黄金指标">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">如果只能监控用户可见系统的 4 个指标，就监控延迟、流量、错误和饱和度。</div>
+    </div>
+  </div>
+  <div class="foot"><span>p91</span><span>11 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Latency Traffic" data-source="p91 p92 延迟 流量">
+  <div class="chrome"><span>golden signals one</span><span>p91 p92</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">延迟和流量分别描述体验与负载</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">延迟</h3><p class="body-zh">服务处理请求所需时间。成功请求和失败请求要分开看，慢错误尤其糟糕。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">流量</h3><p class="body-zh">用高层指标度量系统需求。Web 服务可看每秒 HTTP 请求，流媒体可看网络 I O 或并发会话。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>latency traffic</span><span>12 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Errors Saturation" data-source="p92 错误 饱和度">
+  <div class="chrome"><span>golden signals two</span><span>p92</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">错误和饱和度决定告警边界</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">错误</h3><p class="body-zh">请求失败的速率，包括显式失败、隐式失败，以及超出策略目标的失败。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">饱和度</h3><p class="body-zh">服务容量有多满，通常看最受限资源。延迟增加是饱和度的前导现象。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>errors saturation</span><span>13 / 22</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Tail Latency" data-source="p93 长尾问题">
+  <div class="chrome"><span>tail problem</span><span>p93</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">平均值会掩盖长尾</h2>
+      <p class="lead-zh">一个 Web 服务每秒处理 1000 个请求，平均延迟 100ms，仍可能有 1% 的请求耗时 5s。</p>
+      <p class="body-zh muted">如果前端页面依赖多个后端服务，某个后端请求的 99% 延迟可能成为前端延迟的中位数。</p>
+    </div>
+  </div>
+  <div class="foot"><span>percentiles matter</span><span>14 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Metric Precision" data-source="p93 p94 精度 采样">
+  <div class="chrome"><span>metric precision</span><span>p93 p94</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">指标精度要服务目标</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>选择</th><th>风险</th><th>材料给出的方向</th></tr></thead>
+          <tbody>
+            <tr><td>低频平均值</td><td>可能错过短时间 CPU 峰值和长尾延迟</td><td>按需要提高采样粒度</td></tr>
+            <tr><td>高频全量采集</td><td>收集、存储、分析成本很高</td><td>内部采样，外部汇总</td></tr>
+            <tr><td>可用率目标明确</td><td>过度检查会增加无意义数据</td><td>按目标可用率设计检查频率</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>precision and cost</span><span>15 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Simplify" data-source="p94 p95 简化">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">简化，直到不能再简化。</div>
+      <p class="body-zh muted" style="margin-top:2vh">监控系统也会变得过于复杂，进而经常出问题、变更困难、维护成本上升。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p94 p95</span><span>16 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Simplification Rules" data-source="p94 p95 删除规则">
+  <div class="chrome"><span>simplification rules</span><span>p94 p95</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">复杂度靠删除来控制</h2>
+      <div class="grid-3">
+        <div class="soft-box"><p class="body-zh">反映真实故障的规则越简单越好，要可预测、强可靠。</p></div>
+        <div class="soft-box"><p class="body-zh">不常用的数据收集、汇总和警报配置要定时删除。</p></div>
+        <div class="soft-box"><p class="body-zh">没有暴露给监控台，也没有被警报使用的信息要定时删除。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>delete stale signals</span><span>17 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Alert Review Questions" data-source="p95 新规则问题">
+  <div class="chrome"><span>alert review</span><span>p95</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">新增警报前先回答五个问题</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <tbody>
+            <tr><td>它能检测目前检测不到的、紧急的、可操作的用户可见故障吗？</td></tr>
+            <tr><td>这条警报是否会被忽略，什么情况会导致忽略，如何避免？</td></tr>
+            <tr><td>它是否确实显示用户正在受到影响，测试环境和维护状态是否已过滤？</td></tr>
+            <tr><td>收到后是否需要操作，是否必须立即执行，能否安全自动化？</td></tr>
+            <tr><td>是否还有其他人收到相关紧急警报，这些重复警报是否必要？</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>reduce false positives</span><span>18 / 22</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Alert Principles" data-source="p96 紧急警报理念">
+  <div class="chrome"><span>alert principles</span><span>p96</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">紧急警报有四条深层规则</h2>
+      <div class="grid-2">
+        <div class="soft-box"><p class="body-zh">每次收到紧急警报，都应该立即需要某种操作。</p></div>
+        <div class="soft-box"><p class="body-zh">每个紧急警报都应该是可以具体操作的。</p></div>
+        <div class="soft-box"><p class="body-zh">每个回复都应该需要智力分析，固定机械动作应该自动化。</p></div>
+        <div class="soft-box"><p class="body-zh">每个紧急警报都应该指向一个新问题，彼此不重叠。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>actionable and unique</span><span>19 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Long Term Maintenance" data-source="p96 长期维护">
+  <div class="chrome"><span>long term maintenance</span><span>p96</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">监控系统要跟软件一起演进</h2>
+      <p class="lead-zh">软件经常重构，负载特性和性能目标也经常变化。今天偶发且难自动化的警报，未来可能变成频繁触发的问题。</p>
+      <p class="body-zh muted">如果不能消除根源问题，警报响应就必须完全自动化。</p>
+    </div>
+  </div>
+  <div class="foot"><span>maintain the monitor</span><span>20 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Bigtable Gmail" data-source="p96 p98 Bigtable Gmail">
+  <div class="chrome"><span>cases</span><span>p96 p98</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">两个案例都在处理短期和长期的张力</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>案例</th><th>问题</th><th>处理方式</th></tr></thead>
+          <tbody>
+            <tr><td>Bigtable</td><td>SLO 警报数量巨大，工程师消耗大量时间甄别，真实用户影响反而被掩盖</td><td>临时降低 SLO 目标，改用 75% 百分位，关闭 E mail 警报，争取长期修复空间</td></tr>
+            <tr><td>Gmail</td><td>Workqueue 干掉任务就报警，几千个任务让规则不可持续</td><td>构建工具缓解影响，同时要求管理者继续推动长期修复，避免补丁变成债务</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>case evidence</span><span>21 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p86 p99 小结">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">健康的监控和警报系统应该简单、易懂、信噪比高。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">紧急警报优先关注现象，原因分析适合作为调试补充。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">延迟、流量、错误和饱和度是用户可见系统的四个黄金指标。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">长期成功依赖合理目标、可操作警报、快速定位，以及持续删除噪声。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>22 / 22</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-06-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-06-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

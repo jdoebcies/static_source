@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>附录C 事故状态文档示范 note slides</title>
+<style>
+:root {
+  /* palette thesis: this appendix is an incident status example, so the deck uses graphite for incident command, warm paper for document readability, and red amber for active response markers. */
+  --ink: #24272a;
+  --ink-rgb: 36,39,42;
+  --paper: #f3eee3;
+  --paper-rgb: 243,238,227;
+  --accent: #b25c3b;
+  --muted: #687174;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .48; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #e2a07d; }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); align-items: stretch; }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline { display: flex; flex-direction: column; gap: clamp(.8rem, 1.5vh, 1.2rem); }
+.timeline-row { display: grid; grid-template-columns: clamp(10rem, 19vw, 17rem) 1fr; gap: clamp(1rem, 2vw, 2rem); padding-top: clamp(.85rem, 1.4vh, 1.1rem); border-top: 1px solid rgba(var(--ink-rgb), .13); }
+.slide.dark .timeline-row { border-top-color: rgba(var(--paper-rgb), .16); }
+.time { font-family: var(--mono); font-size: clamp(.9rem, 1vw, 1.12rem); line-height: 1.45; color: var(--accent); }
+.slide.dark .time { color: #e2a07d; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: clamp(2rem, 5vw, 2rem) clamp(1.35rem, 4vw, 1.35rem) clamp(1.6rem, 4vw, 1.6rem); }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .data-table { font-size: clamp(.88rem, 3vw, 1rem); }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p499 附录C 事故状态文档示范">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Appendix C</div>
+      <h1 class="display-zh">事故状态文档示范</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">莎士比亚搜索服务，新韵文++过载事故，2015 10 21</p>
+    </div>
+  </div>
+  <div class="foot"><span>p499</span><span>01 / 10</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Incident Header" data-source="p499 莎士比亚搜索服务 新韵文++过载事故 2015-10-21 事故管理网站">
+  <div class="chrome"><span>header</span><span>p499</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">文档开头先写清楚事故对象、事故名、日期和处理入口</h2>
+      <div class="grid-2">
+        <div class="line-box">
+          <p class="small-zh muted">事故对象与名称</p>
+          <p class="body-zh">莎士比亚搜索服务，新韵文++过载事故</p>
+        </div>
+        <div class="line-box">
+          <p class="small-zh muted">事故管理网站</p>
+          <p class="body-zh">http://incident-managment-cheat-sheet</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>title and entry</span><span>02 / 10</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Summary Owner" data-source="p499 沟通负责人会随时更新事故概要 摘要">
+  <div class="chrome"><span>summary</span><span>p499</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">沟通负责人会随时更新事故概要。</div>
+      <p class="lead-zh muted" style="margin-top:2vh">本例摘要写明：莎士比亚搜索服务由于新发现的韵文不在索引中而处于连锁故障状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>communications lead updates</span><span>03 / 10</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Status And Channel" data-source="p499 状态 活跃 事故编号 #465 事故处理中心 IRC #shakespeare 频道">
+  <div class="chrome"><span>status and room</span><span>p499</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">状态字段把事故是否仍在处理中说清楚</h2>
+      <div class="grid-3">
+        <div class="soft-box"><p class="small-zh muted">状态</p><p class="h2-zh accent">活跃</p></div>
+        <div class="soft-box"><p class="small-zh muted">事故编号</p><p class="h2-zh">#465</p></div>
+        <div class="soft-box"><p class="small-zh muted">事故处理中心</p><p class="h2-zh">IRC #shakespeare 频道</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>active incident</span><span>04 / 10</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Incident Roles" data-source="p499 事故处理组织架构 目前事故总负责人 运维负责人 计划负责人 沟通负责人">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <div class="guest-mark">
+        <h2 class="h1-zh">组织架构只列正在承担职责的人</h2>
+      </div>
+      <div class="grid-2">
+        <div class="line-box"><p class="small-zh muted">目前事故总负责人</p><p class="lead-zh">jennifer</p></div>
+        <div class="line-box"><p class="small-zh muted">运维负责人</p><p class="lead-zh">docbrown</p></div>
+        <div class="line-box"><p class="small-zh muted">计划负责人</p><p class="lead-zh">jennfier</p></div>
+        <div class="line-box"><p class="small-zh muted">沟通负责人</p><p class="lead-zh">jennifer</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>roles</span><span>05 / 10</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Handoff Cadence" data-source="p499 下一个事故总负责人 待定 沟通负责人在交接班时或者每4个小时更新一次">
+  <div class="chrome"><span>handoff cadence</span><span>p499</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">下一个事故总负责人：待定。</div>
+      <p class="lead-zh muted" style="margin-top:2vh">沟通负责人在交接班时，或者每 4 个小时更新一次。</p>
+    </div>
+  </div>
+  <div class="foot"><span>handoff and update</span><span>06 / 10</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Detail Status" data-source="p500 细节状态 最终更新时间 2015-10-21 15:28 UTC Jennifer">
+  <div class="chrome"><span>detail status</span><span>p500</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">细节状态先标最后更新时间和更新人</h2>
+      <div class="grid-2">
+        <div class="soft-box"><p class="small-zh muted">最终更新时间</p><p class="lead-zh">2015 10 21 15:28 UTC</p></div>
+        <div class="soft-box"><p class="small-zh muted">更新人</p><p class="lead-zh">Jennifer</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>last update marker</span><span>07 / 10</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Exit Criteria" data-source="p500 退出条件 添加新的韵文 30分钟内维持SLO">
+  <div class="chrome"><span>exit criteria</span><span>p500</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">退出条件写成未完成的检查项</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>退出条件</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>向莎士比亚搜索服务的 Search Corpus 中添加新的韵文</td><td>待处理</td></tr>
+            <tr><td>在 30 分钟内维持 SLO，可用性为 99.99%，延迟为 99% 小于 100ms</td><td>待处理</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>done condition</span><span>08 / 10</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Action Items And Bugs" data-source="p500 代办列表以及已提交的工单 MapReduce 紧急资源 flux capacitor Bug 5554823">
+  <div class="chrome"><span>action items and bugs</span><span>p500</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">代办列表把行动项、资源动作和工单放在同一处</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>事项</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>执行 MapReduce 任务，重新索引 Shakespeare corpus</td><td>已完成</td></tr>
+            <tr><td>借用一些紧急资源来提高容量</td><td>已完成</td></tr>
+            <tr><td>启用 flux capacitor，在集群之间均衡负载，Bug 5554823</td><td>待处理</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>action list</span><span>09 / 10</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Incident Timeline" data-source="p500-p501 事故时间线 倒序排列 时区为UTC">
+  <div class="chrome"><span>timeline</span><span>p500 p501</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">事故时间线倒序排列，时区为 UTC</h2>
+      <div class="timeline">
+        <div class="timeline-row"><div class="time">15:28<br>jennifer</div><p class="body-zh">全球服务容量提升为 2 倍。</p></div>
+        <div class="timeline-row"><div class="time">15:21<br>jennifer</div><p class="body-zh">将所有流量导向 USA 2 泄洪集群，其他集群下线恢复；MapReduce 索引任务完成，等待 Bigtable 复制到所有集群。</p></div>
+        <div class="timeline-row"><div class="time">15:10<br>martym</div><p class="body-zh">向 Shakespeare corpus 中增加新的韵文，同时启动 MapReduce 索引任务。</p></div>
+        <div class="timeline-row"><div class="time">15:04<br>martym</div><p class="body-zh">从 Shakespeare-discuss@ 邮件列表中获得新发现的韵文全文。</p></div>
+        <div class="timeline-row"><div class="time">15:01<br>docbrown</div><p class="body-zh">由于出现连锁故障，声明目前进入紧急状态。</p></div>
+        <div class="timeline-row"><div class="time">14:55<br>docbrown</div><p class="body-zh">出现大量紧急报警，全部集群出现 ManyHttp500s。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>reverse chronological</span><span>10 / 10</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-appendix-c-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-appendix-c-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

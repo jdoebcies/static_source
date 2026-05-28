@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第13章 紧急事件响应 note slides</title>
+<style>
+:root {
+  /* palette thesis: emergency response needs a calm incident room, with dark ink for pressure, warm paper for postmortem learning, and red clay for urgency kept under control. */
+  --ink: #171b22;
+  --ink-rgb: 23,27,34;
+  --paper: #fbf8f1;
+  --paper-rgb: 251,248,241;
+  --accent: #a44f3e;
+  --muted: #68717d;
+  --cool: #2f6f7e;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #df8d78; }
+.cool { color: var(--cool); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .14); }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.slide.dark .table-wrap { border-top-color: rgba(var(--paper-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.slide.dark .data-table th, .slide.dark .data-table td { border-bottom-color: rgba(var(--paper-rgb), .12); }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.slide.dark .data-table th { color: #df8d78; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p174 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 13</div>
+      <h1 class="display-zh">紧急事件响应</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">东西早晚要坏的，这就是生活。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p174</span><span>01 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Response Defines Organization" data-source="p174 组织特质">
+  <div class="chrome"><span>response defines organization</span><span>p174</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">一个组织最明显的特质，是紧急事件来临时人们如何应对。</div>
+      <p class="body-zh muted" style="margin-top:2vh">恰当处理紧急情况依赖平时的实战训练，也依赖董事会、管理层和专注投入的人持续支持。</p>
+    </div>
+  </div>
+  <div class="foot"><span>training before crisis</span><span>02 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="First Rule" data-source="p174 p175 当系统出现问题时怎么办">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">首先，别惊慌失措。</div>
+      <p class="body-zh muted" style="margin-top:2vh">深吸一口气，慢慢来。你接受过训练，也不是一个人在战斗。应对不了时，就把更多人拉进来。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stay calm get help</span><span>03 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test Incident Setup" data-source="p175 测试导致的紧急事故">
+  <div class="chrome"><span>test incident setup</span><span>p175</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">主动测试本来是为了发现弱点</h2>
+      <p class="lead-zh">SRE 故意破坏系统、模拟事故，再针对失败模式进行预防。</p>
+      <p class="body-zh muted">这次测试想找出哪些服务依赖大型分布式 MySQL 集群中的一个测试数据库，计划是限制一百多个数据库中的一个访问权限。</p>
+    </div>
+  </div>
+  <div class="foot"><span>controlled test unexpected dependency</span><span>04 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test Incident Response" data-source="p175 测试事故 响应">
+  <div class="chrome"><span>test incident response</span><span>p175</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">几分钟后，关键业务系统开始时通时断</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">几分钟</h3><p class="small-zh">大批服务报告内外部用户无法访问关键系统。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">停止测试</h3><p class="small-zh">SRE 判断事故由测试导致，立即终止测试。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">回滚失败</h3><p class="small-zh">恢复访问权限的回滚操作没有成功。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">换方案</h3><p class="small-zh">用已测试方案在副本和灾备系统上恢复访问。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">一小时</h3><p class="small-zh">所有访问权限恢复，服务恢复正常。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>rollback failed alternate path worked</span><span>05 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test Incident Good" data-source="p176 测试事故 做得好的地方">
+  <div class="chrome"><span>test incident good</span><span>p176</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">这次测试事故恢复快，靠的是并行动作</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">沟通及时</h3><p class="body-zh">受影响服务在公司内部及时沟通，帮助团队判断测试是触发因素。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">恢复并行</h3><p class="body-zh">一些团队重新配置服务，把测试数据库从配置中去掉。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">修复彻底</h3><p class="body-zh">代码待办快速完成，并制定周期性测试避免复现。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>communicate parallelize fix</span><span>06 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test Incident Lessons" data-source="p176 测试事故 做得不好的地方">
+  <div class="chrome"><span>test incident lessons</span><span>p176</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">问题暴露在测试前评审、流程熟悉度和回滚验证</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>暴露点</th><th>材料里的情况</th><th>后续要求</th></tr></thead>
+          <tbody>
+            <tr><td>系统理解</td><td>评审认为测试合理，事实证明相关系统理解不足</td><td>继续识别潜在依赖</td></tr>
+            <tr><td>响应流程</td><td>流程刚建立几个星期，还没有深入人心</td><td>优化和测试应急流程工具</td></tr>
+            <tr><td>回滚机制</td><td>没有在测试环境中验证回滚，事故总时长被延长</td><td>大型测试必须先测试回滚机制</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>review process rollback</span><span>07 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Config Incident Setup" data-source="p176 p177 变更部署带来的紧急事故">
+  <div class="chrome"><span>config incident setup</span><span>p176 p177</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">配置文件改动也会突破测试预期</h2>
+      <p class="lead-zh">某个星期五，防滥用基础服务的新配置被推送到所有服务器。</p>
+      <p class="body-zh muted">这个服务和所有对外服务直接联系。新版配置触发 Bug，导致对外服务进入崩溃循环，很多内部应用程序也失去响应。</p>
+    </div>
+  </div>
+  <div class="foot"><span>small config large blast radius</span><span>08 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Config Incident Timeline" data-source="p177 配置事故 响应">
+  <div class="chrome"><span>config incident timeline</span><span>p177</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">这次事故的关键动作发生在前十分钟</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">几秒内</h3><p class="small-zh">监控报警网站失去响应。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">同时</h3><p class="small-zh">值班工程师发现内网问题，前往灾难安全屋。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">5 分钟</h3><p class="small-zh">发布工程师发现内网问题，推送修正配置回滚。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">10 分钟</h3><p class="small-zh">值班工程师按流程宣告紧急状态。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">1 小时</h3><p class="small-zh">受附带 Bug 和错误配置影响的服务陆续恢复。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>first ten minutes mattered</span><span>09 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Config Incident Strengths" data-source="p178 配置事故 做得好的地方">
+  <div class="chrome"><span>config incident strengths</span><span>p178</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">恢复依赖四层支撑，也承认运气存在</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">监控和流程</h3><p class="body-zh">监控及时检测问题，应急流程给出清晰及时的事态更新。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">带外通信</h3><p class="body-zh">专线数据中心连接让复杂软件问题下的工程师仍能保持连接。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">访问工具</h3><p class="body-zh">命令行工具和备用访问方式让更新和回滚仍可执行。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">限速保护</h3><p class="body-zh">受影响系统的限速机制抑制了崩溃循环扩散速度。</p></div>
+      </div>
+      <p class="body-zh muted">发布工程师恰好监控实时通信频道，迅速注意到网络故障报告，这一点不在发布要求内。</p>
+    </div>
+  </div>
+  <div class="foot"><span>monitor process access luck</span><span>10 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Canary Lesson" data-source="p178 p179 配置事故 我们从中学到的">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">不管风险看起来有多小，也要经过严格完整的部署测试。</div>
+      <p class="body-zh muted" style="margin-top:2vh">完整试验周期没有触发 Bug，因为当时没有用到那个很少使用的关键词。全球部署时，未测试的关键词和新功能组合触发灾难。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p178 p179</span><span>11 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Alert Noise And Tool Dependency" data-source="p179 配置事故 监控和工具依赖">
+  <div class="chrome"><span>alert noise and tool dependency</span><span>p179</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">全球节点同时失去响应时，报警本身会干扰事故处理。</div>
+      <p class="body-zh muted" style="margin-top:2vh">在线调试和内部沟通工具又依赖进入崩溃循环的任务。如果事故没有快速解决，在线调试能力会受到极大影响。</p>
+    </div>
+  </div>
+  <div class="foot"><span>noise blocks response</span><span>12 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Automation Incident Setup" data-source="p179 流程导致的严重事故">
+  <div class="chrome"><span>automation incident setup</span><span>p179</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">自动化的效率，有时会变得很可怕</h2>
+      <p class="lead-zh">常规自动化测试对同一个即将退役的集群发送了两个连续下线请求。</p>
+      <p class="body-zh muted">处理第二个请求时，一个隐蔽 Bug 把全球所有数据中心的所有机器加入磁盘销毁队列，导致硬盘数据被清空。</p>
+    </div>
+  </div>
+  <div class="foot"><span>automation amplifies mistakes</span><span>13 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Automation Response" data-source="p179 p180 自动化事故 灾难响应">
+  <div class="chrome"><span>automation response</span><span>p179 p180</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">响应动作先止血，再进入漫长恢复</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">小型站点</h3><p class="small-zh">值班工程师发现全部机器下线，即将退役。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">导流</h3><p class="small-zh">机器硬盘已清空，用户流量被导向其他地区。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">停止工具</h3><p class="small-zh">全球报警后，团队停止自动化工具和维护活动。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">一小时内</h3><p class="small-zh">所有用户流量被导向其他地方，请求仍能正常处理。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">三天内</h3><p class="small-zh">大部分服务器恢复服务，其余留到后续月份恢复。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>stop drain rebuild</span><span>14 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Recovery Organization" data-source="p180 自动化事故 恢复">
+  <div class="chrome"><span>recovery organization</span><span>p180</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">恢复工作被拆成可交接的手工步骤</h2>
+      <p class="lead-zh">一个数据中心被选为第一个重建对象，三个小时后成功重建，可以再次接受用户请求。</p>
+      <p class="body-zh muted">美国团队把工作交接给欧洲团队。SRE 设计了手动快速重建计划，团队分成三部分，每部分负责一步。</p>
+    </div>
+  </div>
+  <div class="foot"><span>handoff and manual plan</span><span>15 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Automation Incident Good" data-source="p180 p181 自动化事故 做得好的地方">
+  <div class="chrome"><span>automation incident good</span><span>p180 p181</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">这次事故的好处，来自隔离设计和成熟流程</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>支撑</th><th>材料里的表现</th><th>直接效果</th></tr></thead>
+          <tbody>
+            <tr><td>架构差异</td><td>大型数据中心管理方式不同，没有受到影响</td><td>可承接全部用户流量</td></tr>
+            <tr><td>快速导流</td><td>值班工程师把流量从小型数据中心导向大型数据中心</td><td>降低终端用户影响</td></tr>
+            <tr><td>监控恢复</td><td>下线自动化干掉监控后，工程师快速恢复改动</td><td>重新评估事故严重程度</td></tr>
+            <tr><td>流程成熟</td><td>第一个事故后，应急流程快速成熟</td><td>全公司沟通和协作表现出色</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>isolation process collaboration</span><span>16 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Zero Means All" data-source="p181 自动化事故 根源">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">有的时候，零就等于全部。</div>
+      <p class="body-zh muted" style="margin-top:2vh">自动化系统获取机柜列表时得到空白回应，没有抛弃这个回复，反而在机器数据库上运行空白过滤，把所有机器转移到磁盘擦除队列。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p181</span><span>17 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reinstall Bottlenecks" data-source="p181 自动化事故 重装问题">
+  <div class="chrome"><span>reinstall bottlenecks</span><span>p181</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">重装慢，暴露了恢复路径也需要容量设计</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">TFTP</h3><p class="body-zh">小文件传输协议配合最差 QoS，机器启动文件传输不稳定。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">BIOS</h3><p class="body-zh">不同网卡上可能停止，也可能进入重启循环。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">安装服务</h3><p class="body-zh">基础服务不能处理几千台机器同时安装，且超时和 QoS 设置错误。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>recovery path must scale</span><span>18 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Problems Have Solutions" data-source="p181 p182 所有的问题都有解决方案">
+  <div class="chrome"><span>problems have solutions</span><span>p181 p182</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">所有的问题都有对应的解决方案，只是面对疯狂报警时未必显而易见。</div>
+      <p class="body-zh muted" style="margin-top:2vh">想不到解决办法时，就在更大范围内寻求帮助。触发事故的人往往对事故了解最多，要充分利用这一点。</p>
+    </div>
+  </div>
+  <div class="foot"><span>expand the room quickly</span><span>19 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Write Incidents Down" data-source="p182 为事故保留记录">
+  <div class="chrome"><span>write incidents down</span><span>p182</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">过去事故记录，是最好的学习资料</h2>
+      <p class="lead-zh">记录中要诚实、事无巨细，并提出关键问题。</p>
+      <p class="body-zh muted">公布和维护事后报告，让全公司每个人都能学到同样的知识。事故结束后，还要确保待办事项切实完成。</p>
+    </div>
+  </div>
+  <div class="foot"><span>record publish finish actions</span><span>20 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Ask Big Questions" data-source="p182 提出那些大的甚至不可能的问题">
+  <div class="chrome"><span>ask big questions</span><span>p182</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">把不可能的问题提前问出来</h2>
+      <div class="grid-2">
+        <div class="soft-box"><p class="body-zh">整栋大楼电源坏了怎么办。</p></div>
+        <div class="soft-box"><p class="body-zh">网络设备被泡在半米深的水里怎么办。</p></div>
+        <div class="soft-box"><p class="body-zh">主数据中心突然下线怎么办。</p></div>
+        <div class="soft-box"><p class="body-zh">有人入侵 Web 服务器怎么办。</p></div>
+      </div>
+      <p class="body-zh muted">材料追问的是联系谁、谁付钱、有没有计划、你和旁边的人能不能立刻最小化损失。</p>
+    </div>
+  </div>
+  <div class="foot"><span>make response explicit</span><span>21 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Test Assumptions" data-source="p182 p183 鼓励主动测试">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">不要依赖任何没有经过测试的假设。</div>
+      <p class="body-zh muted" style="margin-top:2vh">理论和实践面对失败时完全不同。只有系统真的失败时，才知道它、依赖它的系统和它的用户会如何应对。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p182 p183</span><span>22 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Three Failures One Pattern" data-source="p183 小结 三种失败情况">
+  <div class="chrome"><span>three failures one pattern</span><span>p183</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">三种触发方式，落到同一种响应模式</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>触发方式</th><th>本章案例</th><th>共同点</th></tr></thead>
+          <tbody>
+            <tr><td>主动测试</td><td>屏蔽测试数据库访问权限</td><td>没有惊慌，拉入帮助，修复后增加测试</td></tr>
+            <tr><td>配置改动</td><td>防滥用基础服务配置触发崩溃循环</td><td>流程宣告紧急状态，沟通情况，回滚恢复</td></tr>
+            <tr><td>自动化流程</td><td>下线请求把所有机器加入磁盘销毁队列</td><td>停止扩散，导流止血，跨团队重建</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>same response pattern</span><span>23 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p183 小结 记录和改进">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">紧急响应的第一动作是控制惊慌，把更多合适的人带进来。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">测试、配置和自动化都会触发新失败模式，回滚路径和流程本身也要被测试。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">监控、带外通信、备用访问工具、限速和隔离架构，是事故中真实可用的支撑。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">事故记录、待办闭环和主动测试，把一次失败转成未来的防护。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>24 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Closing Pattern" data-source="p183 小结 最后一段">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">每次事故和测试，都让系统和流程不断进步。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章案例属于 Google，但这种对待紧急事故的模式可以应用在不同规模的组织架构上。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p183</span><span>25 / 25</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-13-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-13-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# SRE Google 运维解密 note-slides final check
+
+- Checked at: 2026-05-27 23:30:15 
+- Units: 41
+- Total slides: 1024
+- Artifact index: PASS, 41 links, 0 missing
+- Artifact chapter HTML: PASS, 41 files, 0 warning
+- Archived index: PASS, 41 links, 0 missing
+- Archived chapter HTML: PASS, 41 files, 0 warning
+- Archived HTML count: 42, including top-level index
+- Archived raw source files: 0 source.md, 0 pdf, 0 jpg
+- Validator: /root/.openclaw/skills/note-slides/scripts/check_deck.py

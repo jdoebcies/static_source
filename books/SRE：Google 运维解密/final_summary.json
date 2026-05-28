@@ -1,0 +1,418 @@
+{
+  "title": "SRE Google 运维解密",
+  "units": 41,
+  "slides": 1024,
+  "warning_count": 0,
+  "chapters": [
+    {
+      "num": "00",
+      "slug": "00-prefaces",
+      "title": "SRE：Google运维解密 · 译者序、前言与序言",
+      "pages": "p10-28",
+      "status": "done",
+      "slides": 25,
+      "verify": "PASS 0 warning",
+      "href": "chapters/00-prefaces/00-prefaces-note-slides.html"
+    },
+    {
+      "num": "01",
+      "slug": "01-chapter-01",
+      "title": "第1章 介绍",
+      "pages": "p30-40",
+      "status": "done",
+      "slides": 20,
+      "verify": "PASS 0 warning",
+      "href": "chapters/01-chapter-01/01-chapter-01-note-slides.html"
+    },
+    {
+      "num": "02",
+      "slug": "02-chapter-2-google-sre",
+      "title": "第2章 Google 生产环境：SRE视角",
+      "pages": "p41-53",
+      "status": "done",
+      "slides": 21,
+      "verify": "PASS 0 warning",
+      "href": "chapters/02-chapter-2-google-sre/02-chapter-2-google-sre-note-slides.html"
+    },
+    {
+      "num": "03",
+      "slug": "03-chapter-03",
+      "title": "第3章 拥抱风险",
+      "pages": "p56-68",
+      "status": "done",
+      "slides": 22,
+      "verify": "PASS 0 warning",
+      "href": "chapters/03-chapter-03/03-chapter-03-note-slides.html"
+    },
+    {
+      "num": "04",
+      "slug": "04-chapter-04",
+      "title": "第4章 服务质量目标",
+      "pages": "p69-79",
+      "status": "done",
+      "slides": 22,
+      "verify": "PASS 0 warning",
+      "href": "chapters/04-chapter-04/04-chapter-04-note-slides.html"
+    },
+    {
+      "num": "05",
+      "slug": "05-chapter-05",
+      "title": "第5章 减少琐事",
+      "pages": "p80-85",
+      "status": "done",
+      "slides": 20,
+      "verify": "PASS 0 warning",
+      "href": "chapters/05-chapter-05/05-chapter-05-note-slides.html"
+    },
+    {
+      "num": "06",
+      "slug": "06-chapter-06",
+      "title": "第6章 分布式系统的监控",
+      "pages": "p86-99",
+      "status": "done",
+      "slides": 22,
+      "verify": "PASS 0 warning",
+      "href": "chapters/06-chapter-06/06-chapter-06-note-slides.html"
+    },
+    {
+      "num": "07",
+      "slug": "07-chapter-7-google",
+      "title": "第7章 Google 的自动化系统的演进",
+      "pages": "p100-119",
+      "status": "done",
+      "slides": 24,
+      "verify": "PASS 0 warning",
+      "href": "chapters/07-chapter-7-google/07-chapter-7-google-note-slides.html"
+    },
+    {
+      "num": "08",
+      "slug": "08-chapter-08",
+      "title": "第8章 发布工程",
+      "pages": "p120-129",
+      "status": "done",
+      "slides": 24,
+      "verify": "PASS 0 warning",
+      "href": "chapters/08-chapter-08/08-chapter-08-note-slides.html"
+    },
+    {
+      "num": "09",
+      "slug": "09-chapter-09",
+      "title": "第9章 简单化",
+      "pages": "p130-136",
+      "status": "done",
+      "slides": 18,
+      "verify": "PASS 0 warning",
+      "href": "chapters/09-chapter-09/09-chapter-09-note-slides.html"
+    },
+    {
+      "num": "10",
+      "slug": "10-chapter-10",
+      "title": "第10章 基于时间序列数据进行有效报警",
+      "pages": "p142-154",
+      "status": "done",
+      "slides": 25,
+      "verify": "PASS 0 warning",
+      "href": "chapters/10-chapter-10/10-chapter-10-note-slides.html"
+    },
+    {
+      "num": "11",
+      "slug": "11-chapter-11-on-call",
+      "title": "第11章 on-call轮值",
+      "pages": "p155-162",
+      "status": "done",
+      "slides": 26,
+      "verify": "PASS 0 warning",
+      "href": "chapters/11-chapter-11-on-call/11-chapter-11-on-call-note-slides.html"
+    },
+    {
+      "num": "12",
+      "slug": "12-chapter-12",
+      "title": "第12章 有效的故障排查手段",
+      "pages": "p163-173",
+      "status": "done",
+      "slides": 26,
+      "verify": "PASS 0 warning",
+      "href": "chapters/12-chapter-12/12-chapter-12-note-slides.html"
+    },
+    {
+      "num": "13",
+      "slug": "13-chapter-13",
+      "title": "第13章 紧急事件响应",
+      "pages": "p174-183",
+      "status": "done",
+      "slides": 25,
+      "verify": "PASS 0 warning",
+      "href": "chapters/13-chapter-13/13-chapter-13-note-slides.html"
+    },
+    {
+      "num": "14",
+      "slug": "14-chapter-14",
+      "title": "第14章 紧急事故管理",
+      "pages": "p184-190",
+      "status": "done",
+      "slides": 25,
+      "verify": "PASS 0 warning",
+      "href": "chapters/14-chapter-14/14-chapter-14-note-slides.html"
+    },
+    {
+      "num": "15",
+      "slug": "15-chapter-15",
+      "title": "第15章 事后总结：从失败中学习",
+      "pages": "p191-197",
+      "status": "done",
+      "slides": 22,
+      "verify": "PASS 0 warning",
+      "href": "chapters/15-chapter-15/15-chapter-15-note-slides.html"
+    },
+    {
+      "num": "16",
+      "slug": "16-chapter-16",
+      "title": "第16章 跟踪故障",
+      "pages": "p198-203",
+      "status": "done",
+      "slides": 18,
+      "verify": "PASS 0 warning",
+      "href": "chapters/16-chapter-16/16-chapter-16-note-slides.html"
+    },
+    {
+      "num": "17",
+      "slug": "17-chapter-17",
+      "title": "第17章 测试可靠性",
+      "pages": "p204-225",
+      "status": "done",
+      "slides": 30,
+      "verify": "PASS 0 warning",
+      "href": "chapters/17-chapter-17/17-chapter-17-note-slides.html"
+    },
+    {
+      "num": "18",
+      "slug": "18-chapter-18-sre",
+      "title": "第18章 SRE部门中的软件工程实践",
+      "pages": "p226-244",
+      "status": "done",
+      "slides": 31,
+      "verify": "PASS 0 warning",
+      "href": "chapters/18-chapter-18-sre/18-chapter-18-sre-note-slides.html"
+    },
+    {
+      "num": "19",
+      "slug": "19-chapter-19",
+      "title": "第19章 前端服务器的负载均衡",
+      "pages": "p245-249",
+      "status": "done",
+      "slides": 19,
+      "verify": "PASS 0 warning",
+      "href": "chapters/19-chapter-19/19-chapter-19-note-slides.html"
+    },
+    {
+      "num": "20",
+      "slug": "20-chapter-20",
+      "title": "第20章 数据中心内部的负载均衡系统",
+      "pages": "p250-261",
+      "status": "done",
+      "slides": 26,
+      "verify": "PASS 0 warning",
+      "href": "chapters/20-chapter-20/20-chapter-20-note-slides.html"
+    },
+    {
+      "num": "21",
+      "slug": "21-chapter-21",
+      "title": "第21章 应对过载",
+      "pages": "p262-274",
+      "status": "done",
+      "slides": 24,
+      "verify": "PASS 0 warning",
+      "href": "chapters/21-chapter-21/21-chapter-21-note-slides.html"
+    },
+    {
+      "num": "22",
+      "slug": "22-chapter-22",
+      "title": "第22章 处理连锁故障",
+      "pages": "p275-292",
+      "status": "done",
+      "slides": 30,
+      "verify": "PASS 0 warning",
+      "href": "chapters/22-chapter-22/22-chapter-22-note-slides.html"
+    },
+    {
+      "num": "23",
+      "slug": "23-chapter-23",
+      "title": "第23章 管理关键状态：利用分布式共识来提高可靠性",
+      "pages": "p293-326",
+      "status": "done",
+      "slides": 37,
+      "verify": "PASS 0 warning",
+      "href": "chapters/23-chapter-23/23-chapter-23-note-slides.html"
+    },
+    {
+      "num": "24",
+      "slug": "24-chapter-24",
+      "title": "第24章 分布式周期性任务系统",
+      "pages": "p327-340",
+      "status": "done",
+      "slides": 34,
+      "verify": "PASS 0 warning",
+      "href": "chapters/24-chapter-24/24-chapter-24-note-slides.html"
+    },
+    {
+      "num": "25",
+      "slug": "25-chapter-25",
+      "title": "第25章 数据处理流水线",
+      "pages": "p341-353",
+      "status": "done",
+      "slides": 33,
+      "verify": "PASS 0 warning",
+      "href": "chapters/25-chapter-25/25-chapter-25-note-slides.html"
+    },
+    {
+      "num": "26",
+      "slug": "26-chapter-26",
+      "title": "第26章 数据完整性：读写一致",
+      "pages": "p354-373",
+      "status": "done",
+      "slides": 46,
+      "verify": "PASS 0 warning",
+      "href": "chapters/26-chapter-26/26-chapter-26-note-slides.html"
+    },
+    {
+      "num": "27",
+      "slug": "27-chapter-27",
+      "title": "第27章 可靠地进行产品的大规模发布",
+      "pages": "p374-403",
+      "status": "done",
+      "slides": 38,
+      "verify": "PASS 0 warning",
+      "href": "chapters/27-chapter-27/27-chapter-27-note-slides.html"
+    },
+    {
+      "num": "28",
+      "slug": "28-chapter-28-sre-on-call",
+      "title": "第28章 迅速培养SRE加入on-call",
+      "pages": "p406-422",
+      "status": "done",
+      "slides": 36,
+      "verify": "PASS 0 warning",
+      "href": "chapters/28-chapter-28-sre-on-call/28-chapter-28-sre-on-call-note-slides.html"
+    },
+    {
+      "num": "29",
+      "slug": "29-chapter-29",
+      "title": "第29章 处理中断性任务",
+      "pages": "p423-431",
+      "status": "done",
+      "slides": 28,
+      "verify": "PASS 0 warning",
+      "href": "chapters/29-chapter-29/29-chapter-29-note-slides.html"
+    },
+    {
+      "num": "30",
+      "slug": "30-chapter-30-sre",
+      "title": "第30章 通过嵌入SRE的方式帮助团队从运维过载中恢复",
+      "pages": "p432-440",
+      "status": "done",
+      "slides": 29,
+      "verify": "PASS 0 warning",
+      "href": "chapters/30-chapter-30-sre/30-chapter-30-sre-note-slides.html"
+    },
+    {
+      "num": "31",
+      "slug": "31-chapter-31-sre",
+      "title": "第31章 SRE与其他团队的沟通与协作",
+      "pages": "p441-456",
+      "status": "done",
+      "slides": 36,
+      "verify": "PASS 0 warning",
+      "href": "chapters/31-chapter-31-sre/31-chapter-31-sre-note-slides.html"
+    },
+    {
+      "num": "32",
+      "slug": "32-chapter-32-sre",
+      "title": "第32章 SRE参与模式的演进历程",
+      "pages": "p457-474",
+      "status": "done",
+      "slides": 35,
+      "verify": "PASS 0 warning",
+      "href": "chapters/32-chapter-32-sre/32-chapter-32-sre-note-slides.html"
+    },
+    {
+      "num": "33",
+      "slug": "33-chapter-33",
+      "title": "第33章 其他行业的实践经验",
+      "pages": "p476-487",
+      "status": "done",
+      "slides": 32,
+      "verify": "PASS 0 warning",
+      "href": "chapters/33-chapter-33/33-chapter-33-note-slides.html"
+    },
+    {
+      "num": "34",
+      "slug": "34-chapter-34",
+      "title": "第34章 结语",
+      "pages": "p488-491",
+      "status": "done",
+      "slides": 15,
+      "verify": "PASS 0 warning",
+      "href": "chapters/34-chapter-34/34-chapter-34-note-slides.html"
+    },
+    {
+      "num": "35",
+      "slug": "35-appendix-a",
+      "title": "附录A 系统可用性",
+      "pages": "p492-492",
+      "status": "done",
+      "slides": 8,
+      "verify": "PASS 0 warning",
+      "href": "chapters/35-appendix-a/35-appendix-a-note-slides.html"
+    },
+    {
+      "num": "36",
+      "slug": "36-appendix-b",
+      "title": "附录B 生产环境运维过程中的最佳实践",
+      "pages": "p493-498",
+      "status": "done",
+      "slides": 23,
+      "verify": "PASS 0 warning",
+      "href": "chapters/36-appendix-b/36-appendix-b-note-slides.html"
+    },
+    {
+      "num": "37",
+      "slug": "37-appendix-c",
+      "title": "附录C 事故状态文档示范",
+      "pages": "p499-501",
+      "status": "done",
+      "slides": 10,
+      "verify": "PASS 0 warning",
+      "href": "chapters/37-appendix-c/37-appendix-c-note-slides.html"
+    },
+    {
+      "num": "38",
+      "slug": "38-appendix-d",
+      "title": "附录D 事后总结示范",
+      "pages": "p502-507",
+      "status": "done",
+      "slides": 14,
+      "verify": "PASS 0 warning",
+      "href": "chapters/38-appendix-d/38-appendix-d-note-slides.html"
+    },
+    {
+      "num": "39",
+      "slug": "39-appendix-e",
+      "title": "附录E 发布协调检查列表",
+      "pages": "p508-510",
+      "status": "done",
+      "slides": 12,
+      "verify": "PASS 0 warning",
+      "href": "chapters/39-appendix-e/39-appendix-e-note-slides.html"
+    },
+    {
+      "num": "40",
+      "slug": "40-appendix-f",
+      "title": "附录F 生产环境会议记录示范",
+      "pages": "p511-513",
+      "status": "done",
+      "slides": 13,
+      "verify": "PASS 0 warning",
+      "href": "chapters/40-appendix-f/40-appendix-f-note-slides.html"
+    }
+  ]
+}

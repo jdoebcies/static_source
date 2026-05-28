@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第5章 减少琐事 note slides</title>
+<style>
+:root {
+  --ink: #17202b;
+  --ink-rgb: 23,32,43;
+  --paper: #fbfaf6;
+  --paper-rgb: 251,250,246;
+  --accent: #2d6f7c;
+  --accent-rgb: 45,111,124;
+  --warm: #b46b45;
+  --muted: #65707f;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans-zh);
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+}
+#deck {
+  position: fixed;
+  inset: 0;
+  width: 10000vw;
+  height: 100vh;
+  display: flex;
+  flex-wrap: nowrap;
+  transition: transform .85s cubic-bezier(.77,0,.175,1);
+  z-index: 10;
+  will-change: transform;
+}
+.slide {
+  width: 100vw;
+  height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.chrome, .foot {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(1rem, 2vw, 2rem);
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .46;
+}
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh {
+  font-family: var(--serif-zh);
+  font-weight: 900;
+  font-size: clamp(3.2rem, 7vw, 7rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+.h1-zh {
+  font-family: var(--serif-zh);
+  font-weight: 700;
+  font-size: clamp(2rem, 4.4vw, 4rem);
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.h2-zh {
+  font-family: var(--serif-zh);
+  font-weight: 650;
+  font-size: clamp(1.55rem, 3vw, 2.55rem);
+  line-height: 1.28;
+}
+.lead-zh {
+  font-family: var(--serif-zh);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  line-height: 1.5;
+}
+.body-zh {
+  font-family: var(--sans-zh);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 1.55vw, 1.75rem);
+  line-height: 1.55;
+}
+.small-zh {
+  font-family: var(--sans-zh);
+  font-size: clamp(1.05rem, 1.15vw, 1.32rem);
+  line-height: 1.5;
+}
+.kicker {
+  font-family: var(--mono);
+  font-size: clamp(.8rem, .9vw, 1rem);
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  opacity: .52;
+  margin-bottom: 1vh;
+}
+.meta {
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  letter-spacing: .08em;
+  opacity: .5;
+}
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7bb8c1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.note-stack {
+  width: var(--w-default);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2rem, 4vh, 3.6rem);
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.2rem, 3vw, 3.2rem);
+  align-items: center;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1rem, 2vw, 2rem);
+}
+.line-box {
+  border-top: 1px solid rgba(var(--ink-rgb), .16);
+  padding-top: clamp(1rem, 2vh, 1.8rem);
+}
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box {
+  border-radius: 8px;
+  padding: clamp(1.1rem, 1.7vw, 1.6rem);
+  background: rgba(var(--ink-rgb), .05);
+}
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout {
+  font-family: var(--serif-zh);
+  font-weight: 500;
+  font-size: clamp(2rem, 3.3vw, 3.4rem);
+  line-height: 1.42;
+}
+.callout-mark {
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(.5rem, .75vw, .85rem);
+  height: clamp(.5rem, .75vw, .85rem);
+  background: var(--accent);
+  opacity: .72;
+}
+.guest-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.guest-mark::before {
+  content: "";
+  display: block;
+  width: clamp(2.4rem, 4em, 4.8rem);
+  height: 1px;
+  background: currentColor;
+  opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+.timeline-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1rem, 2vw, 2rem);
+}
+.timeline-row::before {
+  content: "";
+  position: absolute;
+  top: clamp(.85rem, 1.6vh, 1.4rem);
+  left: 6%;
+  right: 6%;
+  height: 1px;
+  background: rgba(var(--ink-rgb), .12);
+  z-index: 0;
+}
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .14); }
+.timeline-node { position: relative; z-index: 1; }
+.timeline-node .meta {
+  display: inline-block;
+  background: var(--paper);
+  padding-right: clamp(.5rem, 1vw, 1rem);
+}
+.slide.dark .timeline-node .meta { background: var(--ink); }
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3.2rem, 7vw, 6.4rem);
+  font-weight: 600;
+  color: var(--accent);
+  opacity: .86;
+  line-height: .95;
+}
+.slide.dark .summary-num { color: #7bb8c1; }
+.table-wrap {
+  width: var(--w-wide);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.4rem, 3.5vh, 2.8rem);
+}
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 clamp(.45rem, 1vh, .8rem);
+  font-family: var(--sans-zh);
+  font-size: clamp(1.08rem, 1.22vw, 1.42rem);
+  line-height: 1.45;
+}
+.data-table th, .data-table td {
+  padding: clamp(.8rem, 1.35vw, 1.25rem) clamp(.9rem, 1.6vw, 1.45rem);
+  text-align: left;
+  vertical-align: middle;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .82vw, .95rem);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .08);
+}
+.data-table td { background: rgba(var(--ink-rgb), .045); }
+.slide.dark .data-table td { background: rgba(var(--paper-rgb), .075); }
+.data-table tr > *:first-child { border-radius: 6px 0 0 6px; }
+.data-table tr > *:last-child { border-radius: 0 6px 6px 0; }
+.diagram-flow {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(.6rem, 1.2vw, 1rem);
+  align-items: stretch;
+}
+.flow-chip {
+  min-height: clamp(7rem, 12vh, 9.5rem);
+  border-top: 3px solid var(--accent);
+  background: rgba(var(--ink-rgb), .045);
+  border-radius: 8px;
+  padding: clamp(.9rem, 1.4vw, 1.2rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(.5rem, 1vh, .8rem);
+}
+.slide.dark .flow-chip { background: rgba(var(--paper-rgb), .08); }
+.bar-track {
+  height: clamp(4rem, 9vh, 6rem);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  background: rgba(var(--ink-rgb), .08);
+}
+.bar-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: clamp(1rem, 1.2vw, 1.4rem);
+  letter-spacing: .08em;
+}
+.bar-toil { background: var(--warm); }
+.bar-engineering { background: var(--accent); }
+.bar-rest { background: rgba(var(--ink-rgb), .42); }
+.matrix {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1rem, 2vw, 1.8rem);
+}
+.matrix-cell {
+  border-top: 2px solid rgba(var(--ink-rgb), .2);
+  padding-top: clamp(1rem, 2vh, 1.6rem);
+}
+.slide.dark .matrix-cell { border-top-color: rgba(var(--paper-rgb), .22); }
+.harm-chain {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: clamp(.75rem, 1.3vw, 1.1rem);
+}
+.harm {
+  min-height: clamp(8rem, 15vh, 11rem);
+  border-radius: 8px;
+  background: rgba(var(--ink-rgb), .045);
+  padding: clamp(1rem, 1.4vw, 1.25rem);
+  border-top: 3px solid rgba(var(--warm), .85);
+}
+.source-pill {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid rgba(var(--paper-rgb), .22);
+  border-radius: 999px;
+  padding: clamp(.35rem, .65vw, .55rem) clamp(.8rem, 1.2vw, 1rem);
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .8vw, .9rem);
+  letter-spacing: .08em;
+  opacity: .72;
+}
+.slide.light .source-pill {
+  border-color: rgba(var(--ink-rgb), .18);
+}
+#dots {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(.9rem, 1.5vw, 1.4rem);
+  transform: translateX(-50%);
+  display: flex;
+  gap: clamp(.28rem, .5vw, .45rem);
+  z-index: 20;
+}
+.dot {
+  width: clamp(.35rem, .5vw, .5rem);
+  height: clamp(.35rem, .5vw, .5rem);
+  border-radius: 999px;
+  background: rgba(var(--paper-rgb), .36);
+}
+.dot.active { background: var(--accent); }
+.slide.light ~ #dots .dot { background: rgba(var(--ink-rgb), .28); }
+@media (max-width: 760px) {
+  .slide { padding: clamp(1.3rem, 6vw, 2rem); }
+  .grid-2, .grid-3, .timeline-row, .diagram-flow, .harm-chain { grid-template-columns: 1fr; }
+  .table-wrap, .w-wide, .w-default, .w-note, .w-statement, .w-quote { width: 100%; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+  <section class="slide dark bare" data-theme="dark" data-screen-label="封面" data-source="p80 章标题">
+    <div class="slide-body">
+      <div class="w-statement">
+        <p class="kicker">SRE BOOK CHAPTER 05</p>
+        <h1 class="display-zh">减少琐事</h1>
+        <p class="lead-zh muted" style="margin-top: clamp(1.5rem, 3vh, 2.4rem);">把运维负担转成工程杠杆</p>
+      </div>
+    </div>
+    <div class="foot"><span>Vivek Rau</span><span>p80 to p85</span></div>
+  </section>
+
+  <section class="slide dark bare" data-theme="dark" data-screen-label="开场判断" data-source="p80 Carla Geisser 判断">
+    <div class="slide-body">
+      <div class="w-quote guest-mark">
+        <h2 class="h1-zh">正常运转还需要人工干预，应该被视为一种 Bug</h2>
+        <p class="lead-zh muted" style="margin-top: clamp(1.4rem, 3vh, 2.2rem);">正常会随着系统进步而改变</p>
+      </div>
+    </div>
+    <div class="foot"><span>opening stance</span><span>02</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="命名问题" data-source="p80 日常运维与琐事">
+    <div class="chrome"><span>TERM SHIFT</span><span>03</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-note">
+        <div>
+          <p class="kicker">operational work</p>
+          <h2 class="h1-zh">作者先改词，是为了把问题边界缩窄</h2>
+        </div>
+        <p class="body-zh">日常运维这个词太宽，会把必要流程、长期清理和可消除的重复劳动混在一起。章节改用琐事来标记 SRE 应该持续压低的那部分工作。</p>
+      </div>
+    </div>
+    <div class="foot"><span>p80</span><span>减少琐事</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="排除项" data-source="p80 琐事的定义">
+    <div class="chrome"><span>NOT TOIL</span><span>04</span></div>
+    <div class="slide-body">
+      <div class="table-wrap">
+        <h2 class="h2-zh">先排除三类容易误判的工作</h2>
+        <table class="data-table">
+          <tr><th>类别</th><th>为什么不直接算琐事</th><th>章节给出的边界</th></tr>
+          <tr><td>不喜欢做的事</td><td>个人偏好差异很大</td><td>有人会喜欢手工重复劳动</td></tr>
+          <tr><td>流程开销</td><td>和运维服务不直接相关</td><td>会议、目标评估、总结、人力事务</td></tr>
+          <tr><td>脏活累活</td><td>可能带来长期价值</td><td>清理告警规则、降低噪声率</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="foot"><span>p80</span><span>boundary</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="定义图" data-source="p80 p81 六项属性">
+    <div class="chrome"><span>DEFINITION MAP</span><span>05</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-wide">
+        <div>
+          <p class="kicker">redrawn diagram</p>
+          <h2 class="h2-zh">琐事由六个属性共同逼近</h2>
+        </div>
+        <div class="diagram-flow">
+          <div class="flow-chip"><p class="meta accent">01</p><h3 class="body-zh">手动性</h3><p class="small-zh muted">人要花时间触发或执行</p></div>
+          <div class="flow-chip"><p class="meta accent">02</p><h3 class="body-zh">重复性</h3><p class="small-zh muted">反复出现，而非首次探索</p></div>
+          <div class="flow-chip"><p class="meta accent">03</p><h3 class="body-zh">可自动化</h3><p class="small-zh muted">机器或设计变更可以替代</p></div>
+          <div class="flow-chip"><p class="meta accent">04</p><h3 class="body-zh">战术性</h3><p class="small-zh muted">突然出现，应对式处理</p></div>
+          <div class="flow-chip"><p class="meta accent">05</p><h3 class="body-zh">无持久价值</h3><p class="small-zh muted">做完服务状态没有改变</p></div>
+          <div class="flow-chip"><p class="meta accent">06</p><h3 class="body-zh">线性增长</h3><p class="small-zh muted">随服务规模同步变多</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p80 p81</span><span>definition</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="手动性" data-source="p81 手动运行脚本例子">
+    <div class="chrome"><span>MANUALNESS</span><span>06</span></div>
+    <div class="slide-body">
+      <div class="grid-2 w-default">
+        <div>
+          <p class="kicker">example</p>
+          <h2 class="h1-zh">脚本自动化之后，触发脚本的人力仍然可能是琐事</h2>
+        </div>
+        <div class="line-box">
+          <p class="body-zh">章节把脚本运行时间和人工触发时间拆开看。机器在跑不算人的负担，人去运行脚本这段可重复的人工时间，仍然应被纳入琐事。</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p81</span><span>manual trigger</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="重复与自动化" data-source="p81 重复性和可以被自动化">
+    <div class="chrome"><span>REPEATABLE AND AUTOMATABLE</span><span>07</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-default">
+        <h2 class="h2-zh">两个判断把探索和琐事分开</h2>
+        <div class="grid-2">
+          <div class="soft-box">
+            <p class="meta accent">重复性</p>
+            <p class="body-zh">第一次甚至第二次处理问题，不宜立刻归类为琐事。新问题和新解法仍属于探索。</p>
+          </div>
+          <div class="soft-box">
+            <p class="meta accent">可自动化</p>
+            <p class="body-zh">如果计算机可以同样完成，或者设计变更能消除需求，这项任务就进入琐事候选区。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p81</span><span>boundary test</span></div>
+  </section>
+
+  <section class="slide dark bare" data-theme="dark" data-screen-label="持久价值" data-source="p81 战术性和没有持久价值">
+    <div class="slide-body">
+      <div class="w-statement guest-mark">
+        <p class="kicker">TACTICAL WORK</p>
+        <h2 class="h1-zh">如果做完以后服务没有改变，这项工作很可能只是把今天撑过去</h2>
+        <p class="lead-zh muted" style="margin-top: clamp(1.3rem, 3vh, 2rem);">紧急告警很难完全消除，但减少它本身就是持续工程任务。</p>
+      </div>
+    </div>
+    <div class="foot"><span>p81</span><span>08</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="线性增长" data-source="p81 p82 与服务同步线性增长">
+    <div class="chrome"><span>SCALING TEST</span><span>09</span></div>
+    <div class="slide-body">
+      <div class="grid-2 w-default">
+        <div>
+          <h2 class="h1-zh">线性增长是琐事最危险的形态</h2>
+          <p class="lead-zh muted" style="margin-top: clamp(1rem, 2vh, 1.6rem);">服务大一倍，人力也跟着大一倍，系统设计已经给组织发出警报。</p>
+        </div>
+        <div class="soft-box">
+          <p class="body-zh">章节给出的目标更高：一个设计良好的服务，至少应该能应对一个数量级增长，除了增加资源这类一次性动作之外，不额外制造持续负担。</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p81 p82</span><span>scale</span></div>
+  </section>
+
+  <section class="slide dark bare" data-theme="dark" data-screen-label="目标比例" data-source="p82 为什么琐事越少越好">
+    <div class="slide-body">
+      <div class="w-quote guest-mark">
+        <p class="summary-num">50%</p>
+        <h2 class="h1-zh">SRE 公开目标，是把每个人至少一半时间留给工程项目</h2>
+        <p class="lead-zh muted" style="margin-top: clamp(1.2rem, 2.6vh, 2rem);">工程项目用来减少未来琐事，或者提升可靠性、性能与利用率。</p>
+      </div>
+    </div>
+    <div class="foot"><span>p82</span><span>10</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="工程杠杆" data-source="p82 SRE 中的 E">
+    <div class="chrome"><span>ENGINEERING LEVERAGE</span><span>11</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-note">
+        <h2 class="h1-zh">琐事会自然填满时间，工程工作必须主动抢回时间</h2>
+        <p class="body-zh">章节把减少琐事和扩大服务规模称为 SRE 中的 Engineering。它解释了为什么 SRE 可以在服务规模变大时减少人数压力，并比单纯研发团队或单纯运维团队更有效地管理服务。</p>
+      </div>
+    </div>
+    <div class="foot"><span>p82</span><span>SRE E</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="组织承诺" data-source="p82 招聘承诺">
+    <div class="chrome"><span>ORGANIZATIONAL PROMISE</span><span>12</span></div>
+    <div class="slide-body">
+      <div class="grid-2 w-default">
+        <div class="soft-box">
+          <p class="meta accent">招聘承诺</p>
+          <p class="body-zh">新 SRE 不会被招来专门做运维劳动。</p>
+        </div>
+        <div class="soft-box">
+          <p class="meta accent">组织护栏</p>
+          <p class="body-zh">SRE 组织及小团队不能退化成只承担运维工作的组织。</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p82</span><span>promise</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="轮值计算" data-source="p82 琐事的计算">
+    <div class="chrome"><span>TOIL BUDGET</span><span>13</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-wide">
+        <div>
+          <p class="kicker">redrawn diagram</p>
+          <h2 class="h2-zh">轮值本身会制造一个琐事底线</h2>
+        </div>
+        <div class="grid-2">
+          <div class="soft-box">
+            <p class="meta accent">六人轮值</p>
+            <div class="bar-track" style="margin-top: clamp(1rem, 2vh, 1.4rem);"><div class="bar-seg bar-toil" style="width: 33%;">2/6</div><div class="bar-seg bar-engineering" style="width: 67%;">67%</div></div>
+            <p class="small-zh muted" style="margin-top: clamp(.8rem, 1.4vh, 1rem);">一周主轮值加一周副轮值，潜在琐事最小值约为 33%</p>
+          </div>
+          <div class="soft-box">
+            <p class="meta accent">八人轮值</p>
+            <div class="bar-track" style="margin-top: clamp(1rem, 2vh, 1.4rem);"><div class="bar-seg bar-toil" style="width: 25%;">2/8</div><div class="bar-seg bar-engineering" style="width: 75%;">75%</div></div>
+            <p class="small-zh muted" style="margin-top: clamp(.8rem, 1.4vh, 1rem);">轮值人数增多时，个人潜在琐事底线下降到 25%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p82</span><span>calculation</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="琐事来源" data-source="p82 p83 最大来源">
+    <div class="chrome"><span>SOURCES</span><span>14</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-wide">
+        <h2 class="h2-zh">Google SRE 数据把琐事来源排成四类</h2>
+        <div class="timeline-row">
+          <div class="timeline-node"><p class="meta accent">01</p><h3 class="body-zh">中断性工作</h3><p class="small-zh muted">服务相关的非紧急邮件和事务</p></div>
+          <div class="timeline-node"><p class="meta accent">02</p><h3 class="body-zh">轮值</h3><p class="small-zh muted">紧急事件处理</p></div>
+          <div class="timeline-node"><p class="meta accent">03</p><h3 class="body-zh">发布</h3><p class="small-zh muted">即使高度自动化仍有改进空间</p></div>
+          <div class="timeline-node"><p class="meta accent">04</p><h3 class="body-zh">数据更新</h3><p class="small-zh muted">自动化流程之外仍残留人工负担</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p82 p83</span><span>source ranking</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="平均值陷阱" data-source="p83 季度调查">
+    <div class="chrome"><span>AVERAGE HIDES LOAD</span><span>15</span></div>
+    <div class="slide-body">
+      <div class="grid-2 w-default">
+        <div>
+          <p class="summary-num">33%</p>
+          <h2 class="h2-zh">季度调查的平均值看起来优于 50% 目标</h2>
+        </div>
+        <div class="line-box">
+          <p class="body-zh">平均值掩盖了异常负载：有些 SRE 是 0%，因为只做开发项目且不参与轮值；也有人报告 80%。过量报告通常要求管理者重新分配团队负担，并帮助个人找到满意的工程项目。</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p83</span><span>distribution</span></div>
+  </section>
+
+  <section class="slide dark bare" data-theme="dark" data-screen-label="工程定义" data-source="p83 什么算作工程工作">
+    <div class="slide-body">
+      <div class="w-statement guest-mark">
+        <p class="kicker">ENGINEERING WORK</p>
+        <h2 class="h1-zh">工程工作是新颖、需要判断、符合长期战略，并能持久改善服务的工作</h2>
+        <p class="lead-zh muted" style="margin-top: clamp(1.3rem, 3vh, 2rem);">越能通过通用设计解决问题，越能让同样人员接手更大或更多服务。</p>
+      </div>
+    </div>
+    <div class="foot"><span>p83</span><span>16</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="工作分类" data-source="p83 p84 四类 SRE 活动">
+    <div class="chrome"><span>WORK TAXONOMY</span><span>17</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-wide">
+        <div>
+          <p class="kicker">redrawn matrix</p>
+          <h2 class="h2-zh">章节把 SRE 活动拆成四个桶</h2>
+        </div>
+        <div class="matrix">
+          <div class="matrix-cell"><p class="meta accent">软件工程</p><p class="body-zh">写代码、改代码、设计文档、自动化脚本、工具框架、可靠性和扩展性功能。</p></div>
+          <div class="matrix-cell"><p class="meta accent">系统工程</p><p class="body-zh">生产配置、监控更新、负载均衡、系统参数、基础设施咨询和架构建议。</p></div>
+          <div class="matrix-cell"><p class="meta accent">琐事</p><p class="body-zh">与运维服务相关的重复性手工劳动。</p></div>
+          <div class="matrix-cell"><p class="meta accent">流程负担</p><p class="body-zh">招聘、人力书面工作、会议、任务系统清理、评价和培训。</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p83 p84</span><span>taxonomy</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="琐事的诱惑" data-source="p84 琐事繁多是不是一定不好">
+    <div class="chrome"><span>TRADEOFF</span><span>18</span></div>
+    <div class="slide-body">
+      <div class="grid-2 w-default">
+        <div>
+          <h2 class="h1-zh">少量琐事可以让人感觉平静</h2>
+          <p class="lead-zh muted" style="margin-top: clamp(1rem, 2vh, 1.6rem);">这正是它的管理难点。</p>
+        </div>
+        <div class="line-box">
+          <p class="body-zh">已知、重复、低风险、低压力的工作会带来快速完成感。章节没有把所有琐事道德化处理，而是提醒它不可避免，只是在数量变多时会开始伤人和伤组织。</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p84</span><span>risk nuance</span></div>
+  </section>
+
+  <section class="slide light" data-theme="light" data-screen-label="危害链" data-source="p84 p85 琐事有害的原因">
+    <div class="chrome"><span>HARM CHAIN</span><span>19</span></div>
+    <div class="slide-body">
+      <div class="note-stack w-wide">
+        <div>
+          <p class="kicker">redrawn diagram</p>
+          <h2 class="h2-zh">过量琐事会同时侵蚀个人、团队和组织契约</h2>
+        </div>
+        <div class="harm-chain">
+          <div class="harm"><p class="meta warm">个人</p><h3 class="body-zh">职业停滞</h3><p class="small-zh muted">工程项目太少，发展会变慢</p></div>
+          <div class="harm"><p class="meta warm">个人</p><h3 class="body-zh">士气低落</h3><p class="small-zh muted">过劳、厌倦和不满累积</p></div>
+          <div class="harm"><p class="meta warm">角色</p><h3 class="body-zh">造成误解</h3><p class="small-zh muted">SRE 工程组织定位被稀释</p></div>
+          <div class="harm"><p class="meta warm">交付</p><h3 class="body-zh">进展缓慢</h3><p class="small-zh muted">救火挤占新功能发布</p></div>
+          <div class="harm"><p class="meta warm">边界</p><h3 class="body-zh">开创先例</h3><p class="small-zh muted">其他团队继续转入更多负担</p></div>
+          <div class="harm"><p class="meta warm">团队</p><h3 class="body-zh">摩擦增加</h3><p class="small-zh muted">队友会寻找更有价值的工作</p></div>
+          <div class="harm"><p class="meta warm">信任</p><h3 class="body-zh">违反承诺</h3><p class="small-zh muted">新人和转岗者会感到被误导</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>p84 p85</span><span>risk map</span></div>
+  </section>
+
+  <section class="slide dark bare" data-theme="dark" data-screen-label="收束" data-source="p85 小结">
+    <div class="slide-body">
+      <div class="w-statement guest-mark">
+        <p class="kicker">CORE NOTES</p>
+        <h2 class="h1-zh">核心总结：每周消除一点琐事，服务才会持续变得更整洁</h2>
+        <p class="lead-zh muted" style="margin-top: clamp(1.3rem, 3vh, 2rem);">省下来的力量会回到规模化工程、下一代架构和跨 SRE 工具链。</p>
+      </div>
+    </div>
+    <div class="foot"><span>p85</span><span>20</span></div>
+  </section>
+</main>
+<div id="dots"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const dots = document.getElementById("dots");
+let current = Number(localStorage.getItem("05-chapter-05-slide") || 0);
+if (!Number.isFinite(current)) current = 0;
+current = Math.max(0, Math.min(slides.length - 1, current));
+
+slides.forEach((slide, index) => {
+  const dot = document.createElement("div");
+  dot.className = "dot";
+  dot.addEventListener("click", () => go(index));
+  dots.appendChild(dot);
+});
+
+function go(index) {
+  current = Math.max(0, Math.min(slides.length - 1, index));
+  document.getElementById("deck").style.transform = `translateX(${-current * 100}vw)`;
+  localStorage.setItem("05-chapter-05-slide", String(current));
+  Array.from(dots.children).forEach((dot, dotIndex) => dot.classList.toggle("active", dotIndex === current));
+}
+
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft" || event.key === "PageUp") go(current - 1);
+});
+window.addEventListener("wheel", event => {
+  if (Math.abs(event.deltaX) + Math.abs(event.deltaY) < 20) return;
+  if (event.deltaX > 0 || event.deltaY > 0) go(current + 1);
+  if (event.deltaX < 0 || event.deltaY < 0) go(current - 1);
+}, { passive: true });
+go(current);
+</script>
+</body>
+</html>

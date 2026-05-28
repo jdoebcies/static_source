@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第7章 Google 的自动化系统的演进 note slides</title>
+<style>
+:root {
+  --ink: #17202b;
+  --ink-rgb: 23,32,43;
+  --paper: #fbfaf6;
+  --paper-rgb: 251,250,246;
+  --accent: #2d6f7c;
+  --muted: #65707f;
+  --warm: #b46b45;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7bb8c1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p100 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 07</div>
+      <h1 class="display-zh">Google 的<br>自动化系统演进</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">自动化是一种力量倍增器，但不是万能药</p>
+    </div>
+  </div>
+  <div class="foot"><span>p100</span><span>01 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Automation Boundary" data-source="p100 力量倍增器 自治系统">
+  <div class="chrome"><span>automation boundary</span><span>p100</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">草率自动化会在解决问题的同时制造新问题，真正更好的方向是自治系统。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章讨论自动化的价值，以及 SRE 对自动化态度的演进历史。</p>
+    </div>
+  </div>
+  <div class="foot"><span>from automation to autonomy</span><span>02 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Value One" data-source="p100 p102 自动化的价值">
+  <div class="chrome"><span>automation value</span><span>p100 p102</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">自动化的价值先体现在五件事</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">一致性</h3><p class="body-zh">范围明确、步骤已知的程序可以稳定重复。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">平台性</h3><p class="body-zh">正确设计后，可以扩展成通用平台并集中修复错误。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">速度</h3><p class="body-zh">常见故障可以更快修复，基础设施动作也能更快执行。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>consistency platform speed</span><span>03 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Time Saving" data-source="p102 节省时间 解耦">
+  <div class="chrome"><span>time saving</span><span>p102</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">节省时间的价值常被低估</h2>
+      <p class="lead-zh">一旦任务被自动化封装，任何人都可以执行它。操作和具体操作的人解耦后，节省的时间会作用于所有使用者。</p>
+      <p class="body-zh muted">材料把这种解耦视为自动化的重要收益，而不只是一次任务省几分钟。</p>
+    </div>
+  </div>
+  <div class="foot"><span>decouple operation from operator</span><span>04 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Google Bias" data-source="p102 p103 Google 自动化偏爱">
+  <div class="chrome"><span>google bias</span><span>p102 p103</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google 更偏爱自动化，有环境原因</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>条件</th><th>材料里的解释</th><th>影响</th></tr></thead>
+          <tbody>
+            <tr><td>全球部署</td><td>产品和服务在全球运行，没有时间像其他组织一样手动运维</td><td>一致性、快速性和可靠性主导权衡</td></tr>
+            <tr><td>统一生产环境</td><td>Google 通常能给缺少 API 的系统构建自己的 API</td><td>自动化障碍可以被长期克服</td></tr>
+            <tr><td>源代码可用</td><td>SRE 接触的系统源代码大多可用</td><td>更容易在生产环境中拥有产品</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>global and unified stack</span><span>05 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Meta Software" data-source="p103 p104 元软件 使用案例">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">自动化是操作其他软件的软件。</div>
+      <p class="body-zh muted" style="margin-top:2vh">在运维行业中，它覆盖账户创建、服务上线下线、安装退役、版本发布、运行时配置和依赖更改。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p103 p104</span><span>06 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="SRE Use Cases" data-source="p104 基础设施 生命周期">
+  <div class="chrome"><span>sre use cases</span><span>p104</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 主要自动化基础设施生命周期</h2>
+      <p class="lead-zh">材料明确划线：SRE 主要负责运维基础设施，不主要管理穿过基础设施的数据质量。</p>
+      <p class="body-zh muted">因此自动化情境通常是系统生命周期管理，例如部署新的集群服务，而不是修改账户子集属性这类数据操作。</p>
+    </div>
+  </div>
+  <div class="foot"><span>lifecycle automation</span><span>07 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Tool Abstraction" data-source="p104 p105 Puppet Chef Perl 抽象">
+  <div class="chrome"><span>abstraction level</span><span>p104 p105</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">自动化工具的差异在抽象层次</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>层次</th><th>例子</th><th>风险</th></tr></thead>
+          <tbody>
+            <tr><td>低层接口</td><td>Perl 提供 POSIX 级别接口，扩展范围很大</td><td>灵活但需要自己处理复杂性</td></tr>
+            <tr><td>高层抽象</td><td>Chef 和 Puppet 提供服务或高级对象抽象</td><td>遇到有漏洞的抽象时，会系统性重复失败</td></tr>
+            <tr><td>真实生产</td><td>发布二进制到集群看似原子</td><td>网络、物理机和管理层通信都可能让状态不一致</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>leaky abstraction</span><span>08 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Automation Ladder" data-source="p105 p106 自动化路径">
+  <div class="chrome"><span>automation ladder</span><span>p105 p106</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">自动化演进有五级</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">1</h3><p class="small-zh">没有自动化，手动转移数据库主进程。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">2</h3><p class="small-zh">SRE 主目录里保存系统特定脚本。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">3</h3><p class="small-zh">把支持加入通用故障转移脚本。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">4</h3><p class="small-zh">数据库自己发布故障转移脚本。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">5</h3><p class="small-zh">数据库发现问题并自行故障转移。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>manual to autonomous</span><span>09 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Case MySQL Start" data-source="p107 广告 MySQL Borg">
+  <div class="chrome"><span>case one</span><span>p107</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">广告数据库先从成熟状态走向下一步</h2>
+      <p class="lead-zh">2005 年到 2008 年，广告数据库已经可管理，常规副本替换中最糟糕的部分已自动化。团队开始考虑把 MySQL 迁移到 Borg 之下。</p>
+      <p class="body-zh muted">预期收益有两项：消除物理机和数据库副本维护，用容器化把多个 MySQL 实例放到同一台物理机。</p>
+    </div>
+  </div>
+  <div class="foot"><span>mysql to borg</span><span>10 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Failover Constraint" data-source="p107 30s 故障转移">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">为了满足错误预算，每次故障转移停机时间要小于 30s。</div>
+      <p class="body-zh muted" style="margin-top:2vh">依赖人为操作的流程无法达到这个目标，自动故障转移成为唯一选择。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p107</span><span>11 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Decision Maker" data-source="p108 决策者 MOB">
+  <div class="chrome"><span>decision maker</span><span>p108</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">决策者让 MySQL On Borg 成为现实</h2>
+      <div class="grid-3">
+        <div class="soft-box"><h3 class="h2-zh accent">95%</h3><p class="body-zh">在 95% 的时间内，计划内和计划外故障转移小于 30s。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">95%</h3><p class="body-zh">迁移后无聊运维任务花费时间下降 95%。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">60%</h3><p class="body-zh">通过同机多实例释放近 60% 硬件资源。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>platform payoff</span><span>12 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Cluster Bringup" data-source="p108 p109 集群上线步骤">
+  <div class="chrome"><span>case two</span><span>p108 p109</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">集群上线最初被当作新人训练</h2>
+      <p class="lead-zh">新集群上线频率接近招新频率，启动服务可以让新人接触服务内部信息。</p>
+      <p class="body-zh muted">但第 4 步和第 6 步极其复杂：基础服务、锁服务、存储、计算、用户服务资源分配都在快速变化。</p>
+    </div>
+  </div>
+  <div class="foot"><span>bringup complexity</span><span>13 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Unsafe Signal" data-source="p109 Bigtable 磁盘清除">
+  <div class="chrome"><span>hidden safety signal</span><span>p109</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">自动化必须小心隐含的安全信号。</div>
+      <p class="body-zh muted" style="margin-top:2vh">一个 Bigtable 集群不使用第 1 个磁盘，一年后自动化程序把这个信号理解成未配置存储服务，导致数据被清除。幸好数据有多个实时备份。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p109</span><span>14 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Prodtest" data-source="p110 p111 Prodtest">
+  <div class="chrome"><span>prodtest</span><span>p110 p111</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">Prodtest 把实际服务纳入单元测试</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">输入</h3><p class="body-zh">传入集群名称，验证该集群中的服务。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">链条</h3><p class="body-zh">测试有依赖关系，一个故障可以快速中止后续测试。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">图表</h3><p class="body-zh">生成测试状态图，工程师能看到哪个步骤失败，以及原因。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>test real services</span><span>15 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Idempotent Repair" data-source="p112 p113 幂等 修复程序">
+  <div class="chrome"><span>idempotent repair</span><span>p112 p113</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">下一步是从发现错误到修复错误</h2>
+      <p class="lead-zh">团队给每个测试增加修复程序，并要求修复程序具备幂等性。这样可以每 15 分钟运行一次修复脚本，而不担心损害集群配置。</p>
+      <p class="body-zh muted">后来发现测试、修复、再测试之间的延迟会引入不稳定测试，非幂等修复还会制造不一致状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>repair loop</span><span>16 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Specialization Trap" data-source="p114 p115 专业化倾向">
+  <div class="chrome"><span>specialization trap</span><span>p114 p115</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">专门团队加速上线，也削弱了相关性</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>阶段</th><th>收益</th><th>代价</th></tr></thead>
+          <tbody>
+            <tr><td>服务团队自己运行</td><td>能力强、相关性高</td><td>延迟高，通常在业余时间执行</td></tr>
+            <tr><td>集群上线团队运行</td><td>流程更快，工单可跟踪阶段</td><td>操作者不再是领域专家</td></tr>
+            <tr><td>长期结果</td><td>速度短期上升</td><td>自动化和现实脱节，质量下降后才影响速度</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>ownership matters</span><span>17 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Bad Incentives" data-source="p114 p115 组织激励">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">自动化代码像单元测试代码一样，维护团队不再关心同步时就会逐渐死去。</div>
+      <p class="body-zh muted" style="margin-top:2vh">一个不亲自运行自动化的团队，也缺少动力去建设容易自动化的系统。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p114 p115</span><span>18 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Admin Server" data-source="p115 Admin 服务器 RPC ACL">
+  <div class="chrome"><span>admin server</span><span>p115</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">安全任务推动了 Admin 服务器</h2>
+      <div class="grid-3">
+        <div class="soft-box"><p class="body-zh">用支持认证、ACL 驱动、基于 RPC 的本地管理进程取代 sshd。</p></div>
+        <div class="soft-box"><p class="body-zh">没有人可以绕过审计跟踪安装或修改服务器。</p></div>
+        <div class="soft-box"><p class="body-zh">RPC 请求者、参数和结果都会被记录，用于调试和安全审计。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>auditable operations</span><span>19 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Service Oriented Bringup" data-source="p115 p116 SOA 集群上线">
+  <div class="chrome"><span>service oriented bringup</span><span>p115 p116</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">上线流程回到服务所有者手里</h2>
+      <p class="lead-zh">服务拥有者负责创建 Admin 服务器，处理集群就绪后发出的上线和下线 RPC。每个团队按照 API 合同提供自动化，同时保留底层实现自由。</p>
+      <p class="body-zh muted">这个流程低延迟、能力强、精确，并能在团队和服务数量每年翻倍时保持可靠。</p>
+    </div>
+  </div>
+  <div class="foot"><span>contract and ownership</span><span>20 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Borg" data-source="p116 p118 Borg 仓库规模计算机">
+  <div class="chrome"><span>borg</span><span>p116 p118</span></div>
+  <div class="slide-body">
+    <div class="w-statement stack">
+      <p class="kicker accent">warehouse scale computer</p>
+      <h2 class="h1-zh">Borg 把机器管理改成资源协调</h2>
+      <p class="lead-zh">早期系统把服务和物理机绑得很紧。Borg 的关键变化是把一系列机器看成受管理的海量资源，并通过中央协调主体提供 API。</p>
+    </div>
+  </div>
+  <div class="foot"><span>central coordinator</span><span>21 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reliability Feature" data-source="p118 可靠性 自主性">
+  <div class="chrome"><span>reliability feature</span><span>p118</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">可靠性是最基本的功能，自主性和弹性行为是达到它的有效途径。</div>
+      <p class="body-zh muted" style="margin-top:2vh">系统规模扩大后，手动操作能力会逐渐失效，自动化和自主化不再只是附加项。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p118</span><span>22 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Automation Failure" data-source="p119 磁盘擦除 空列表 所有">
+  <div class="chrome"><span>automation failure</span><span>p119</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">自动化也能放大事故</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>环节</th><th>发生了什么</th><th>修复动作</th></tr></thead>
+          <tbody>
+            <tr><td>机架退役</td><td>磁盘擦除步骤成功后，清退流程被重启调试</td><td>重新审计流程状态</td></tr>
+            <tr><td>空列表</td><td>代码认为待擦除机器列表为空，空列表被解释为所有机器</td><td>增加合理性检查和速率限制</td></tr>
+            <tr><td>大规模影响</td><td>CDN 机器磁盘被擦除，只剩轻微延迟增加</td><td>重装机架，并让退役流程具备幂等性</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>safety checks</span><span>23 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p100 p119 章节线索">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">自动化的价值来自一致性、平台性、修复速度、行动速度和人员解耦。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">最高级的自动化会消除自身，把系统推向自治和自我修复。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">自动化必须跟所有权绑定，否则会因为现实变化和组织激励而失效。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">自动化会放大正确流程，也会放大错误假设，所以幂等、审计、速率限制和合理性检查是底线。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>24 / 24</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-07-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-07-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第15章 事后总结：从失败中学习 note slides</title>
+<style>
+:root {
+  /* palette thesis: postmortems are operational memory, so the deck uses dark ink for incident gravity, warm paper for written records, and copper for corrective action. */
+  --ink: #1f2428;
+  --ink-rgb: 31,36,40;
+  --paper: #fbf8f1;
+  --paper-rgb: 251,248,241;
+  --accent: #a85f32;
+  --muted: #66717b;
+  --warm: #7a8a61;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #d39a72; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.85rem, 1.5vw, 1.3rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .grid-4, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p191 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 15</div>
+      <h1 class="display-zh">事后总结：<br>从失败中学习</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">学习是避免失败的最好办法。</p>
+      <p class="meta" style="margin-top:1.2vh">John Lunney、Sue Lueder</p>
+    </div>
+  </div>
+  <div class="foot"><span>p191</span><span>01 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Why Postmortem" data-source="p191 事故难以避免">
+  <div class="chrome"><span>why postmortem</span><span>p191</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">在大型复杂分布式系统里，事故难以避免。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 一边运维系统，一边持续增加新功能和新系统。改动速率和部署规模让事故成为现实问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>failure is expected</span><span>02 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Learning Loop" data-source="p191 事故循环反复">
+  <div class="chrome"><span>learning loop</span><span>p191</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">没有学习机制，事故会循环反复</h2>
+      <p class="lead-zh">事故发生后，团队要修复根源性问题，也要把服务恢复到正常状态。</p>
+      <p class="body-zh muted">如果不能从已发生的事故中学习，随着系统规模和复杂度增加，事故可能成倍增加，最终消耗掉处理事故的资源并影响用户。</p>
+    </div>
+  </div>
+  <div class="foot"><span>learn or repeat</span><span>03 / 22</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="What It Records" data-source="p191 书面记录">
+  <div class="chrome"><span>what it records</span><span>p191</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">一篇事后总结记录四类事实</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">影响</h3><p class="small-zh">事故造成了什么影响。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">缓解</h3><p class="small-zh">团队采取了哪些缓解措施。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">根因</h3><p class="small-zh">事故的根本原因是什么。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">任务</h3><p class="small-zh">后续用什么任务防止重现。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">学习</h3><p class="small-zh">让其他团队也能从事故中获益。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>written incident record</span><span>04 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Google Philosophy" data-source="p192 Google 的事后总结哲学">
+  <div class="chrome"><span>google philosophy</span><span>p192</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">主要目的，是让未来重现的几率和影响下降</h2>
+      <p class="lead-zh">文档要记录事故，理清所有根源性问题，最关键的是确保实施有效措施。</p>
+      <p class="body-zh muted">重要事故发生后，团队必须书写事后总结。它不是惩罚措施，而是整个公司的一次学习机会。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reduce recurrence</span><span>05 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Postmortem Criteria" data-source="p192 基本的事后总结条件">
+  <div class="chrome"><span>postmortem criteria</span><span>p192</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">哪些事故必须写，标准要提前定义</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">可见影响</h3><p class="small-zh">用户可见的宕机时间或服务质量降级达到标准。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">数据丢失</h3><p class="small-zh">任何类型的数据丢失。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">人工介入</h3><p class="small-zh">on call 工程师需要回滚或切换用户流量。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">解决超时</h3><p class="small-zh">问题解决耗时超过限制。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">监控问题</h3><p class="small-zh">问题由人工发现，报警系统没有先发现。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>criteria before incidents</span><span>06 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Blameless Rule" data-source="p192 对事不对人">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">事后总结必须对事不对人。</div>
+      <p class="body-zh muted" style="margin-top:2vh">重点是定位造成事件的根本问题，不是指责某个人或某团队的错误举动。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p192</span><span>07 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Blameless Assumption" data-source="p192 善意假设">
+  <div class="chrome"><span>blameless assumption</span><span>p192</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">先假设参与者是善意的</h2>
+      <p class="lead-zh">他们在当时拥有的信息下做了正确举动。</p>
+      <p class="body-zh muted">公开指责或羞辱会让人逃避事后总结。系统性讨论为什么团队或个人会得到错误信息，才可能建立更好的预防措施。</p>
+    </div>
+  </div>
+  <div class="foot"><span>assume good intent</span><span>08 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="System Fix" data-source="p192 不能修好某个人">
+  <div class="chrome"><span>system fix</span><span>p192</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">我们不能修好某个人，但可以改善系统和流程。</div>
+      <p class="body-zh muted" style="margin-top:2vh">对事不对人的文化来自医疗和航空行业。每个错误都被看作让系统更可靠的学习机会。</p>
+    </div>
+  </div>
+  <div class="foot"><span>fix systems and processes</span><span>09 / 22</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Writing Example" data-source="p193 指责 对事不对人">
+  <div class="chrome"><span>writing example</span><span>p193</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">同一个问题，可以写成抱怨，也可以写成建设性意见</h2>
+      <div class="grid-2">
+        <div class="soft-box">
+          <h3 class="h2-zh accent">指责写法</h3>
+          <p class="body-zh">复杂后端系统每周出问题，团队已经厌烦，不想再一点一点修复。</p>
+        </div>
+        <div class="soft-box">
+          <h3 class="h2-zh accent">对事写法</h3>
+          <p class="body-zh">重写后端系统可能减少报警，当前维护手册冗长，学习成本很高。</p>
+        </div>
+      </div>
+      <p class="body-zh muted">材料给出的最佳实践是避免指责，提供建设性意见。</p>
+    </div>
+  </div>
+  <div class="foot"><span>constructive language</span><span>10 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Collaboration Tools" data-source="p193 p194 协作和知识共享">
+  <div class="chrome"><span>collaboration tools</span><span>p193 p194</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">书写过程本身也要协作</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">实时协作</h3><p class="body-zh">快速收集数据和想法，尤其适合早期阶段。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">开放评论</h3><p class="body-zh">让大家参与解决方案，补足事故处理细节。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">邮件通知</h3><p class="body-zh">在文档里给用户发消息，或引入他人共同填写。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>collaborative writing</span><span>11 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Review Questions" data-source="p194 评审的条件">
+  <div class="chrome"><span>review questions</span><span>p194</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">正式评审先问完整性</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>评审项</th><th>材料里的问题</th><th>目的</th></tr></thead>
+          <tbody>
+            <tr><td>灾难数据</td><td>关键灾难数据是否已经收集并保存</td><td>保留事故证据</td></tr>
+            <tr><td>影响评估</td><td>本次事故影响评估是否完整</td><td>理解用户和服务影响</td></tr>
+            <tr><td>根源问题</td><td>根源问题是否足够深入</td><td>避免停在表层原因</td></tr>
+            <tr><td>任务优先级</td><td>记录的任务能否及时解决根源问题</td><td>把学习转成行动</td></tr>
+            <tr><td>共享范围</td><td>事故处理过程是否共享给相关部门</td><td>让受益面扩大</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>review before publish</span><span>12 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Review Required" data-source="p194 p195 所有的事后总结都需要评审">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">未经评审的事后总结还不如不写。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Google 鼓励定期举行评审会议，集中解决疑问和评论，收集想法，把文档完成。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p194 p195</span><span>13 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Publishing Flow" data-source="p194 p195 更大范围内公布">
+  <div class="chrome"><span>publishing flow</span><span>p194 p195</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">评审后，文档要进入更大的共享面</h2>
+      <p class="lead-zh">初期评审结束之后，事后总结会在更大范围的研发部门传阅，或以内部邮件列表传播。</p>
+      <p class="body-zh muted">目标是传递给所有能够从中获益的团队和部门。同时，内部文档不允许包含可以定位个人的信息。</p>
+    </div>
+  </div>
+  <div class="foot"><span>share widely with controls</span><span>14 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Culture Building" data-source="p195 建立事后总结文化">
+  <div class="chrome"><span>culture building</span><span>p195</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">建立文化需要持续培育和加强</h2>
+      <p class="lead-zh">Google 通过高级管理层参与协作和评审环节，持续强化内部事后总结文化。</p>
+      <p class="body-zh muted">管理层可以鼓励对事不对人的氛围，工程师自主驱动时效果会更好。</p>
+    </div>
+  </div>
+  <div class="foot"><span>culture needs reinforcement</span><span>15 / 22</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Learning Rituals" data-source="p195 p196 集体学习活动">
+  <div class="chrome"><span>learning rituals</span><span>p195 p196</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 用集体学习活动让事故经验流动</h2>
+      <div class="grid-4">
+        <div class="soft-box"><h3 class="h2-zh accent">本月最佳</h3><p class="small-zh">每周新闻邮件共享一篇有趣且高质量的总结。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">Google+ 小组</h3><p class="small-zh">共享内部和外部总结，也讨论最佳实践和评论文章。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">阅读俱乐部</h3><p class="small-zh">参与者和未参与者共同讨论事故过程、经验教训和善后处理。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">命运之轮</h3><p class="small-zh">新 SRE 工程师再现过去总结里的事故场景和角色。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>rituals move knowledge</span><span>16 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="ROI Resistance" data-source="p196 投入产出比的质疑">
+  <div class="chrome"><span>roi resistance</span><span>p196</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">引入机制时，最大的阻力是投入产出比</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">逐渐引入</h3><p class="body-zh">先做几次完整且成功的总结，证明价值并确定条件。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">奖励庆祝</h3><p class="body-zh">对有效书面总结给出公开渠道和绩效层面的认可。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">高层参与</h3><p class="body-zh">鼓励公司高级管理层认可并参与其中。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>prove value gradually</span><span>17 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Public Reward" data-source="p196 公开奖励做正确事的人">
+  <div class="chrome"><span>public reward</span><span>p196</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">公开奖励的样例来自一次 4 分钟事故</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>环节</th><th>材料里的事实</th><th>结果</th></tr></thead>
+          <tbody>
+            <tr><td>事故</td><td>某次更新经过详细测试，仍因不可预知的关联系统问题导致关键服务停止运行</td><td>服务停止 4 分钟</td></tr>
+            <tr><td>处理</td><td>SRE 立刻执行回滚</td><td>避免更长时间和更大影响</td></tr>
+            <tr><td>认可</td><td>收到两个同事发来的 Peer Bonus，并在 TGIF 大会上获得掌声</td><td>良好处理赢得从 CEO 到工程师的好评</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>reward correct action</span><span>18 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Feedback Loop" data-source="p196 p197 收集关于事后总结有效性的反馈">
+  <div class="chrome"><span>feedback loop</span><span>p196 p197</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">流程本身也要被反馈改进</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">文化支持</h3><p class="body-zh">团队文化是否支持你的工作。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">杂事负担</h3><p class="body-zh">书写事后总结是否引入了太多杂事。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">最佳实践</h3><p class="body-zh">你的团队有什么最佳实践可以分享。</p></div>
+      </div>
+      <p class="body-zh muted">这些调查让平时很忙的 SRE 有机会提供有效性的改进和反馈意见。</p>
+    </div>
+  </div>
+  <div class="foot"><span>ask whether the process helps</span><span>19 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Part Of Culture" data-source="p197 事故流程管理之外">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">事后总结已经成为 Google 文化的一部分。</div>
+      <p class="body-zh muted" style="margin-top:2vh">在任何严重问题发生时都会产生总结，某项产品上线之后反响很差，也会有类似的事后总结。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p197</span><span>20 / 22</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Continuous Improvement" data-source="p197 小结以及不断优化">
+  <div class="chrome"><span>continuous improvement</span><span>p197</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">文化背后还有流程、模板和数据</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">模板</h3><p class="small-zh">建立事故总结模板。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">流程工具</h3><p class="small-zh">自动化数据收集。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">元数据</h3><p class="small-zh">自动化收集元数据用于趋势分析。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">共享</h3><p class="small-zh">最佳实践共享到 YouTube、Google Fiber、Gmail、Google Cloud、AdWords 和 Google Maps。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">共同目标</h3><p class="small-zh">不同产品部门围绕共同学习目标做总结。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>templates data sharing</span><span>21 / 22</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p197 寻找共同的模式和主题">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">事后总结的价值在于降低未来重现的几率和影响，文档必须落到有效后续措施。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">对事不对人让团队敢于暴露问题，也把改进对象从个人转回系统和流程。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">评审、发布和文档汇总让事故经验从单个团队扩散到更多相关部门。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">大量总结汇总后，工具可以寻找共同模式和主题，形成改进意见，并继续尝试预测系统弱点。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>22 / 22</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-15-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-15-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

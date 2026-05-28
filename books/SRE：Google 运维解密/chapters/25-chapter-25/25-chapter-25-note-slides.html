@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第25章 数据处理流水线 note slides</title>
+<style>
+:root {
+  /* palette thesis: data pipelines move between fragile batch timing and durable workflow state, so graphite carries operational pressure, warm paper carries explanation, and teal marks leases, tokens, and continuity. */
+  --ink: #1f2729;
+  --ink-rgb: 31,39,41;
+  --paper: #f5f0e7;
+  --paper-rgb: 245,240,231;
+  --accent: #2c8f84;
+  --muted: #687678;
+  --warm: #7a6655;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #71cfc6; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.9rem, 1.7vw, 1.4rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .14); }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .grid-4, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p341 章节标题 作者 Dan Dennison">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent">SRE Book Chapter 25</div>
+      <h1 class="display-zh">数据处理流水线</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">从周期性批处理的脆弱点，走到持续运行的 Workflow 模式。</p>
+      <p class="meta" style="margin-top:1.2vh">Dan Dennison</p>
+    </div>
+  </div>
+  <div class="foot"><span>p341</span><span>01 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Chapter Focus" data-source="p341 周期性运行 持续运行 运维痛点">
+  <div class="chrome"><span>chapter focus</span><span>p341</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">本章盯住两类流水线共同的复杂性，以及差异带来的运维痛点。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料把周期性运行和持续运行放在一起讨论，最后提出用更可靠、更易扩展的领头人追随者模式替代海量数据的周期性模型。</p>
+    </div>
+  </div>
+  <div class="foot"><span>periodic and continuous</span><span>02 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Pipeline Origin" data-source="p341 流水线设计模式的起源 data pipeline">
+  <div class="chrome"><span>origin</span><span>p341</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">经典流水线是读取、变换、输出，再由调度器周期性触发</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">读取</h3><p class="small-zh">程序从输入数据开始。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">变换</h3><p class="small-zh">执行某种模式变换。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">输出</h3><p class="small-zh">产出新的数据。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">调度</h3><p class="small-zh">通常由类似 Cron 的程序控制。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">扩张</h3><p class="small-zh">大数据让这种模式重新流行。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>data pipeline</span><span>03 / 33</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Depth" data-source="p341 p342 简单单相流水线 多相流水线 深度">
+  <div class="chrome"><span>depth</span><span>p341 p342</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">大数据把一个程序变成一串程序</h2>
+      <p class="lead-zh">单相流水线只做一次数据变换。多相流水线把多个独立处理单元串起来，前一个输出成为后一个输入。</p>
+      <p class="body-zh muted">材料把串联程序数量称为深度，浅流水线可能只有一个程序，深流水线可能有几十个甚至几百个程序。</p>
+    </div>
+  </div>
+  <div class="foot"><span>one phase to multiphase</span><span>04 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Initial Stability" data-source="p342 周期性流水线模式的挑战 MapReduce Flume">
+  <div class="chrome"><span>batch comfort</span><span>p342</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">周期性流水线在几个条件满足时确实很好用</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">工作进程够</h3><p class="body-zh">数量能满足数据量需求。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">计算容量够</h3><p class="body-zh">容量足够完成所需执行。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">吞吐接近</h3><p class="body-zh">串联程序数量相对固定，各阶段吞吐量基本一致。</p></div>
+      </div>
+      <p class="body-zh muted">Google 也广泛使用这种模式，并为此编写了 MapReduce 和 Flume 等框架。</p>
+    </div>
+  </div>
+  <div class="foot"><span>works when tuned</span><span>05 / 33</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Fragility" data-source="p342 SRE运维经验 周期性模型 脆弱易坏">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">SRE 经验看到的是，周期性数据流水线模型非常脆弱易坏。</div>
+      <p class="body-zh muted" style="margin-top:2vh">刚安装时仔细调校出的稳定性，会随着数据量自然增长和环境变化逐步失效。</p>
+    </div>
+  </div>
+  <div class="foot"><span>growth pressure</span><span>06 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Work Skew" data-source="p342 p343 工作分发不均 客户分块 最大客户">
+  <div class="chrome"><span>work skew</span><span>p342 p343</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">令人羞愧的并发性也挡不住分块大小不均</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">切块</h3><p class="small-zh">巨大工作集被切成可以放进单台机器的小块。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">差异</h3><p class="small-zh">不同分块需要的处理资源可能不同。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">客户</h3><p class="small-zh">按客户切块时，某些客户天然更大。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">下限</h3><p class="small-zh">流水线运行时间至少等于最大客户分块耗时。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">压力</h3><p class="small-zh">最差分块拖住整体完成时间。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>largest shard wins</span><span>07 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Stuck Chunk" data-source="p343 卡住的工作分块 排序流式传输的数据">
+  <div class="chrome"><span>stuck chunk</span><span>p343</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">卡住的分块可能来自资源，也可能来自操作本身</h2>
+      <p class="lead-zh">资源分配不均、资源分配过量，都会让某些分块异常慢。</p>
+      <p class="body-zh muted">材料举的实时流式排序更棘手：排序需要等待全部数据就位，下一阶段必须等前一阶段全部完成。</p>
+    </div>
+  </div>
+  <div class="foot"><span>sort waits for all data</span><span>08 / 33</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Restart Waste" data-source="p343 杀掉任务 重启 没有状态记录">
+  <div class="chrome"><span>restart waste</span><span>p343</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">没有状态记录时，杀掉卡住任务会把全部分块重新计算一遍。</div>
+      <p class="body-zh muted" style="margin-top:2vh">前一次运行消耗的时间、CPU 和人力成本都会浪费，原本看似合理的操作会放大损失。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stateless batch cost</span><span>09 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Batch Scheduling" data-source="p343 批处理任务 低优先级 Borg preemption">
+  <div class="chrome"><span>batch scheduling</span><span>p343</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">低优先级批处理把成本降下来，也把启动和挤走风险带进来</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">低优先级</h3><p class="body-zh">流水线通常不像用户业务那样延迟敏感。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">资源缝隙</h3><p class="body-zh">任务依赖高优先级服务之间的剩余资源运行。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">微妙平衡</h3><p class="body-zh">良好调校的周期性流水线也在资源成本与挤占风险之间摇摆。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>cost and preemption</span><span>10 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Delay Floor" data-source="p344 几个小时启动延迟 执行间隔 平均启动延迟">
+  <div class="chrome"><span>delay floor</span><span>p344</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">执行频率越高，启动延迟越快变成下限</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>场景</th><th>材料里的风险</th><th>运维表现</th></tr></thead>
+          <tbody>
+            <tr><td>每天一次</td><td>几个小时启动延迟可能可以接受。</td><td>周期性模型还能承受等待。</td></tr>
+            <tr><td>提高频率</td><td>执行间隔很快接近平均启动延迟。</td><td>流水线延迟出现下限。</td></tr>
+            <tr><td>继续缩短</td><td>新执行在调度器上累积，或杀掉即将结束的运行。</td><td>加速操作可能让流水线完全停滞。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>frequency threshold</span><span>11 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Capacity Problem" data-source="p344 足够服务容量 共享分布式环境 资源获取成本">
+  <div class="chrome"><span>capacity</span><span>p344</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">正常运行需要足够容量，但共享集群里容量来自供需变化</h2>
+      <p class="lead-zh">开发团队通常不愿费力获取资源，再把资源贡献给公共池共享。</p>
+      <p class="body-zh muted">材料给出的方向是区分批处理调度资源和生产系统调度资源，让资源获取成本更清楚。</p>
+    </div>
+  </div>
+  <div class="foot"><span>resource accounting</span><span>12 / 33</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Monitoring Gap" data-source="p345 监控周期性流水线 任务失败 不会有统计信息">
+  <div class="chrome"><span>monitoring gap</span><span>p345</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">周期性任务执行中失败时，标准监控模型可能交不出统计信息。</div>
+      <p class="body-zh muted" style="margin-top:2vh">实时指标对紧急响应很重要，但实践中很多任务只在完成时一次性提交指标。</p>
+    </div>
+  </div>
+  <div class="foot"><span>metrics disappear</span><span>13 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Herd Effect" data-source="p345 惊群效应 几千个工作进程 10000个工作进程">
+  <div class="chrome"><span>herd effect</span><span>p345</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">足够大的周期性流水线会同时唤醒成千上万个工作进程</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">服务器</h3><p class="body-zh">同一服务器上工作进程过多时容易过载。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">重试</h3><p class="body-zh">配置错误或重试方式错误会放大压力。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">集群</h3><p class="body-zh">分布式集群服务和网络基础设施也可能被拖垮。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>thousands start now</span><span>14 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Human Worsens" data-source="p345 人工干预 添加更多工作进程">
+  <div class="chrome"><span>manual reaction</span><span>p345</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">任务赶不上进度时，加更多工作进程可能正好让问题变糟</h2>
+      <p class="lead-zh">没有重试逻辑会丢工作，重试逻辑太简单会放大问题。</p>
+      <p class="body-zh muted">经验不足的工程师在流水线无法按时完成时，经常会向其中添加更多工作进程。</p>
+    </div>
+  </div>
+  <div class="foot"><span>more workers more pressure</span><span>15 / 33</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Moire Load" data-source="p345 p346 p347 摩尔负载模式 聚合负载 1.2M">
+  <div class="chrome"><span>moire load</span><span>p345 p347</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">多个周期性流水线重叠时，会在共享资源上叠出摩尔负载模式。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料用三个流水线的资源图说明，当聚合负载接近 1.2M 时，会给值班工程师造成麻烦。</p>
+    </div>
+  </div>
+  <div class="foot"><span>shared resource overlap</span><span>16 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Design Before Deadline" data-source="p347 Google Workflow简介 预期增长轨迹 延迟性需求">
+  <div class="chrome"><span>before workflow</span><span>p347</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">业务需求最常在不适合重构的时候出现</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">结果更新</h3><p class="small-zh">一次性批处理开始持续需要更新结果。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">重构压力</h3><p class="small-zh">团队要么重构原设计，要么迁移到持续模式。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">客户变大</h3><p class="small-zh">更大的客户带来扩展性问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">功能增加</h3><p class="small-zh">还要在最后期限前加入新功能。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">提前规划</h3><p class="small-zh">设计阶段就要估计增长、设计更改、资源和延迟需求。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>growth path first</span><span>17 / 33</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Workflow Intro" data-source="p347 p348 Workflow 领头人追随者 流式系统 仅运行一次">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">Workflow 把领头人追随者模式和流式系统模式组合起来。</div>
+      <p class="body-zh muted" style="margin-top:2vh">目标是支持超大规模交易性数据流，并提供仅运行一次的语义来保障正确性。</p>
+    </div>
+  </div>
+  <div class="foot"><span>workflow</span><span>18 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="MVC Mapping" data-source="p348 Workflow 是 MVC 模式 主任务 工作进程 控制器">
+  <div class="chrome"><span>mvc mapping</span><span>p348</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Workflow 用 MVC 分开状态、观察和辅助控制</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>角色</th><th>在 Workflow 中对应什么</th><th>材料里的职责</th></tr></thead>
+          <tbody>
+            <tr><td>模型</td><td>主任务进程</td><td>在内存中保存任务状态，并同步写入持久化日志。</td></tr>
+            <tr><td>视图</td><td>工作进程</td><td>作为流水线子组件，不断向主任务更新自己看到的系统状态。</td></tr>
+            <tr><td>控制器</td><td>可选辅助组件</td><td>支持实时伸缩、状态快照、周期管理、回滚和紧急停止。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>state observation control</span><span>19 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Stateless Workers" data-source="p348 主任务 保存指针 工作进程 无状态">
+  <div class="chrome"><span>stateless workers</span><span>p348</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">主任务通常只保存工作指针，真正输入输出放在存储系统里</h2>
+      <p class="lead-zh">这让工作进程保持完全无状态，可以在任一时间被抛弃。</p>
+      <p class="body-zh muted">材料明确说，全部数据都能放进主任务，但为了性能，主任务通常只保存具体工作的指针。</p>
+    </div>
+  </div>
+  <div class="foot"><span>pointer not payload</span><span>20 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Execution Stages" data-source="p349 Workflow中的执行阶段 Mapping Shuffling 排序 分割 合并">
+  <div class="chrome"><span>execution stages</span><span>p349</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">Workflow 通过任务组任意增加流水线深度</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">阶段</h3><p class="body-zh">每个任务组负责一个执行阶段的数据。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">操作</h3><p class="body-zh">阶段内可以实现 Mapping、Shuffling、排序、分割和合并。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">调度</h3><p class="body-zh">工作进程可以通过选择不同类型的工作来自我调度。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>arbitrary depth</span><span>21 / 33</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Once Only" data-source="p349 精确地执行了一次 且仅仅一次 永久状态">
+  <div class="chrome"><span>once only</span><span>p349</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">系统可以很容易保证记录在永久状态中的工作只执行一次。</div>
+      <p class="body-zh muted" style="margin-top:2vh">工作进程处理前序阶段产生的工作单元，再生产新的输出单元，输出可以终止执行，也可以成为下一阶段输入。</p>
+    </div>
+  </div>
+  <div class="foot"><span>persistent state</span><span>22 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lease Pointer" data-source="p349 正确性保障 唯一命名的指针 全局唯一的租约">
+  <div class="chrome"><span>lease pointer</span><span>p349</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">正确性先靠指针和租约把状态更新权收紧</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">唯一指针</h3><p class="body-zh">主任务状态给所有数据分配唯一命名的指针。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">全局租约</h3><p class="body-zh">每个工作单元都有全局唯一租约，只有持有有效租约的进程可以汇报状态。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>who may update</span><span>23 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Unique Output" data-source="p350 全局唯一的名字 脱离管理的工作进程">
+  <div class="chrome"><span>unique output</span><span>p350</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">每个输出文件全局唯一，失控工作进程也无法覆盖别人</h2>
+      <p class="lead-zh">脱离管理的进程可以继续写自己的输出文件，但提交回主进程时会被拒绝。</p>
+      <p class="body-zh muted">双重保障来自两处：输出文件永远全局唯一，流水线状态只能由拥有租约的任务更新。</p>
+    </div>
+  </div>
+  <div class="foot"><span>double guard</span><span>24 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Config Version" data-source="p350 版本信息 配置文件 正确ID 三重保障">
+  <div class="chrome"><span>config guard</span><span>p350</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">配置更新会让旧工作成果失效，避免新旧配置混在一起</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>机制</th><th>触发</th><th>结果</th></tr></thead>
+          <tbody>
+            <tr><td>任务版本</td><td>任务更新或租约变化。</td><td>产生新任务，替换旧任务，并带有新的全局 ID。</td></tr>
+            <tr><td>配置 ID</td><td>工作进程工作期间配置文件更新。</td><td>即使仍有租约，也无法提交状态。</td></tr>
+            <tr><td>三重保障</td><td>配置文件、租约、唯一文件名同时存在。</td><td>输出与新的配置文件保持一致。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>versioned tasks</span><span>25 / 33</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Server Token" data-source="p350 p351 服务器令牌 主任务 每个操作检查令牌">
+  <div class="chrome"><span>server token</span><span>p350 p351</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">主任务还需要服务器令牌，防止请求误打到错误的主任务。</div>
+      <p class="body-zh muted" style="margin-top:2vh">网络地址改变、错误主任务、负载均衡器误加到主任务前面，都可能破坏流水线状态。客户端和服务端每次操作都检查令牌。</p>
+    </div>
+  </div>
+  <div class="foot"><span>fourth guard</span><span>26 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Four Guarantees" data-source="p351 Workflow为正确性提供4点保障">
+  <div class="chrome"><span>correctness guards</span><span>p351</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Workflow 的正确性保障落在四个检查点上</h2>
+      <div class="grid-4">
+        <div class="line-box"><h3 class="h2-zh accent">配置</h3><p class="small-zh">配置文件本身作为屏障。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">租约</h3><p class="small-zh">工作结果必须由当前拥有租约的进程提交。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">文件名</h3><p class="small-zh">工作进程输出文件都是全局唯一命名。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">令牌</h3><p class="small-zh">客户端和服务器在每次操作时校验主任务令牌。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>four guards</span><span>27 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Why Not Database" data-source="p351 Spanner 数据库 每个任务都是独特的 不可变的">
+  <div class="chrome"><span>why not database</span><span>p351</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">直接用数据库实现也可行，但会变得低效</h2>
+      <p class="lead-zh">Workflow 的特殊点是每个任务都是独特且不可变的。</p>
+      <p class="body-zh muted">如果直接把数据库交易日志当作 Workflow 日志，那么每个读操作都必须成为长期运行交易操作的一部分。</p>
+    </div>
+  </div>
+  <div class="foot"><span>immutable task</span><span>28 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Business Continuity" data-source="p351 保障业务的持续性 光纤被切 天气状况 连锁性供电故障">
+  <div class="chrome"><span>business continuity</span><span>p351</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">强任务状态保障是业务持续性的基础</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">故障条件</h3><p class="body-zh">光纤被切、天气状况、连锁性供电故障都可能让数据中心不可用。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">未定义状态</h3><p class="body-zh">没有流式设计的流水线经常会进入未定义状态。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">恢复成本</h3><p class="body-zh">恢复流水线运行和其中数据，可能消耗大量人力物力。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>survive data center loss</span><span>29 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Global Workflow" data-source="p351 p352 Spanner Chubby 全局Workflow 本地Workflow 任务引用">
+  <div class="chrome"><span>global workflow</span><span>p351 p352</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">全球 Workflow 用 Spanner、Chubby 和任务引用协调本地流水线</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">日志</h3><p class="small-zh">主任务把日志存储在 Spanner 上。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">领头人</h3><p class="small-zh">主任务使用 Chubby 选举可以写入数据的领头人。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">名称</h3><p class="small-zh">客户端用内部名称系统查询当前主任务。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">引用</h3><p class="small-zh">本地任务经过流水线时，把任务引用插入全球系统。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">暂停</h3><p class="small-zh">无法删除任务引用时，本地系统暂停，直到全球系统恢复可用。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>local and global state</span><span>30 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary One" data-source="p342 p345 p347 周期性流水线 脆弱 惊群效应 摩尔负载模式">
+  <div class="chrome"><span>core notes</span><span>p342 p347</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结 1</div>
+      <h2 class="h1-zh">周期性流水线的风险来自时间、分块和共享资源</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">时间</h3><p class="body-zh">启动延迟会给执行频率设置下限，缩短周期可能造成重叠和停滞。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">分块</h3><p class="body-zh">最大或卡住的工作分块会决定整体完成时间。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">资源</h3><p class="body-zh">惊群效应和摩尔负载模式会把压力叠到共享基础设施上。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>batch failure shape</span><span>31 / 33</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary Two" data-source="p348 p350 p351 p352 主任务 租约 令牌 任务引用">
+  <div class="chrome"><span>core notes</span><span>p348 p352</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结 2</div>
+      <h2 class="h1-zh">Workflow 把可运维性放在状态和正确性机制里</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">状态集中</h3><p class="body-zh">主任务保存状态和指针，工作进程保持无状态。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">提交受控</h3><p class="body-zh">租约、唯一文件名、配置 ID 和服务器令牌共同限制提交路径。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">持续迁移</h3><p class="body-zh">全球系统用任务引用和心跳任务支撑本地流水线的自动灾难迁移。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>workflow operability</span><span>32 / 33</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p352 p353 助手二进制文件 自动灾难迁移 小结">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">如果数据处理问题会自然增长为持续性，就采用类似 Workflow 的持续设计。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料最后的判断是，强一致性的持续数据处理系统在分布式集群环境中性能和扩展性都很好，也更可靠、更稳定、更可运维。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p352 p353</span><span>33 / 33</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-25-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-25-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

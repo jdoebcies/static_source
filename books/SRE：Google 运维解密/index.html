@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SRE Google 运维解密 note-slides 总索引</title>
+<style>
+:root {
+  --ink: #18202b;
+  --paper: #f6f1e8;
+  --panel: #fffaf1;
+  --accent: #b94a3a;
+  --muted: #6e7580;
+  --line: rgba(24, 32, 43, .12);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 72px) clamp(18px, 4vw, 48px);
+}
+.kicker {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 760;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: .34em 0 .22em;
+  font-size: clamp(40px, 6vw, 82px);
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+.lead {
+  max-width: 38em;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.68;
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+.stat {
+  min-width: 150px;
+  padding: 16px 18px;
+  background: rgba(255, 250, 241, .72);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.stat b {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--accent);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1;
+}
+.stat span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 44px;
+}
+.chapter-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 178px;
+  padding: 22px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(24, 32, 43, .06);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.chapter-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(185, 74, 58, .48);
+  box-shadow: 0 20px 50px rgba(24, 32, 43, .10);
+}
+.chapter-num {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--accent);
+  font-size: 14px;
+}
+.chapter-card strong {
+  font-size: 21px;
+  line-height: 1.36;
+  font-weight: 760;
+}
+.chapter-meta {
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.footer {
+  margin-top: 42px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+@media (max-width: 560px) {
+  .chapter-grid { grid-template-columns: 1fr; }
+  .chapter-card { min-height: 150px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Note Slides Collection</div>
+  <h1>SRE Google 运维解密</h1>
+  <p class="lead">按原书结构拆分的 HTML 笔记幻灯片。打开任意章节后可用方向键翻页，所有章节已通过 note-slides 机械检查。</p>
+  <section class="stats" aria-label="collection stats">
+    <div class="stat"><b>41</b><span>处理单元</span></div>
+    <div class="stat"><b>1024</b><span>总 slides</span></div>
+    <div class="stat"><b>0</b><span>check_deck warning</span></div>
+  </section>
+  <section class="chapter-grid" aria-label="chapters">
+      <a class="chapter-card" href="chapters/00-prefaces/00-prefaces-note-slides.html">
+        <span class="chapter-num">00</span>
+        <strong>SRE：Google运维解密 · 译者序、前言与序言</strong>
+        <span class="chapter-meta">p10-28 · 25 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/01-chapter-01/01-chapter-01-note-slides.html">
+        <span class="chapter-num">01</span>
+        <strong>第1章 介绍</strong>
+        <span class="chapter-meta">p30-40 · 20 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/02-chapter-2-google-sre/02-chapter-2-google-sre-note-slides.html">
+        <span class="chapter-num">02</span>
+        <strong>第2章 Google 生产环境：SRE视角</strong>
+        <span class="chapter-meta">p41-53 · 21 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/03-chapter-03/03-chapter-03-note-slides.html">
+        <span class="chapter-num">03</span>
+        <strong>第3章 拥抱风险</strong>
+        <span class="chapter-meta">p56-68 · 22 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/04-chapter-04/04-chapter-04-note-slides.html">
+        <span class="chapter-num">04</span>
+        <strong>第4章 服务质量目标</strong>
+        <span class="chapter-meta">p69-79 · 22 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/05-chapter-05/05-chapter-05-note-slides.html">
+        <span class="chapter-num">05</span>
+        <strong>第5章 减少琐事</strong>
+        <span class="chapter-meta">p80-85 · 20 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/06-chapter-06/06-chapter-06-note-slides.html">
+        <span class="chapter-num">06</span>
+        <strong>第6章 分布式系统的监控</strong>
+        <span class="chapter-meta">p86-99 · 22 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/07-chapter-7-google/07-chapter-7-google-note-slides.html">
+        <span class="chapter-num">07</span>
+        <strong>第7章 Google 的自动化系统的演进</strong>
+        <span class="chapter-meta">p100-119 · 24 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/08-chapter-08/08-chapter-08-note-slides.html">
+        <span class="chapter-num">08</span>
+        <strong>第8章 发布工程</strong>
+        <span class="chapter-meta">p120-129 · 24 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/09-chapter-09/09-chapter-09-note-slides.html">
+        <span class="chapter-num">09</span>
+        <strong>第9章 简单化</strong>
+        <span class="chapter-meta">p130-136 · 18 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/10-chapter-10/10-chapter-10-note-slides.html">
+        <span class="chapter-num">10</span>
+        <strong>第10章 基于时间序列数据进行有效报警</strong>
+        <span class="chapter-meta">p142-154 · 25 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/11-chapter-11-on-call/11-chapter-11-on-call-note-slides.html">
+        <span class="chapter-num">11</span>
+        <strong>第11章 on-call轮值</strong>
+        <span class="chapter-meta">p155-162 · 26 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/12-chapter-12/12-chapter-12-note-slides.html">
+        <span class="chapter-num">12</span>
+        <strong>第12章 有效的故障排查手段</strong>
+        <span class="chapter-meta">p163-173 · 26 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/13-chapter-13/13-chapter-13-note-slides.html">
+        <span class="chapter-num">13</span>
+        <strong>第13章 紧急事件响应</strong>
+        <span class="chapter-meta">p174-183 · 25 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/14-chapter-14/14-chapter-14-note-slides.html">
+        <span class="chapter-num">14</span>
+        <strong>第14章 紧急事故管理</strong>
+        <span class="chapter-meta">p184-190 · 25 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/15-chapter-15/15-chapter-15-note-slides.html">
+        <span class="chapter-num">15</span>
+        <strong>第15章 事后总结：从失败中学习</strong>
+        <span class="chapter-meta">p191-197 · 22 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/16-chapter-16/16-chapter-16-note-slides.html">
+        <span class="chapter-num">16</span>
+        <strong>第16章 跟踪故障</strong>
+        <span class="chapter-meta">p198-203 · 18 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/17-chapter-17/17-chapter-17-note-slides.html">
+        <span class="chapter-num">17</span>
+        <strong>第17章 测试可靠性</strong>
+        <span class="chapter-meta">p204-225 · 30 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/18-chapter-18-sre/18-chapter-18-sre-note-slides.html">
+        <span class="chapter-num">18</span>
+        <strong>第18章 SRE部门中的软件工程实践</strong>
+        <span class="chapter-meta">p226-244 · 31 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/19-chapter-19/19-chapter-19-note-slides.html">
+        <span class="chapter-num">19</span>
+        <strong>第19章 前端服务器的负载均衡</strong>
+        <span class="chapter-meta">p245-249 · 19 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/20-chapter-20/20-chapter-20-note-slides.html">
+        <span class="chapter-num">20</span>
+        <strong>第20章 数据中心内部的负载均衡系统</strong>
+        <span class="chapter-meta">p250-261 · 26 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/21-chapter-21/21-chapter-21-note-slides.html">
+        <span class="chapter-num">21</span>
+        <strong>第21章 应对过载</strong>
+        <span class="chapter-meta">p262-274 · 24 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/22-chapter-22/22-chapter-22-note-slides.html">
+        <span class="chapter-num">22</span>
+        <strong>第22章 处理连锁故障</strong>
+        <span class="chapter-meta">p275-292 · 30 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/23-chapter-23/23-chapter-23-note-slides.html">
+        <span class="chapter-num">23</span>
+        <strong>第23章 管理关键状态：利用分布式共识来提高可靠性</strong>
+        <span class="chapter-meta">p293-326 · 37 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/24-chapter-24/24-chapter-24-note-slides.html">
+        <span class="chapter-num">24</span>
+        <strong>第24章 分布式周期性任务系统</strong>
+        <span class="chapter-meta">p327-340 · 34 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/25-chapter-25/25-chapter-25-note-slides.html">
+        <span class="chapter-num">25</span>
+        <strong>第25章 数据处理流水线</strong>
+        <span class="chapter-meta">p341-353 · 33 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/26-chapter-26/26-chapter-26-note-slides.html">
+        <span class="chapter-num">26</span>
+        <strong>第26章 数据完整性：读写一致</strong>
+        <span class="chapter-meta">p354-373 · 46 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/27-chapter-27/27-chapter-27-note-slides.html">
+        <span class="chapter-num">27</span>
+        <strong>第27章 可靠地进行产品的大规模发布</strong>
+        <span class="chapter-meta">p374-403 · 38 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/28-chapter-28-sre-on-call/28-chapter-28-sre-on-call-note-slides.html">
+        <span class="chapter-num">28</span>
+        <strong>第28章 迅速培养SRE加入on-call</strong>
+        <span class="chapter-meta">p406-422 · 36 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/29-chapter-29/29-chapter-29-note-slides.html">
+        <span class="chapter-num">29</span>
+        <strong>第29章 处理中断性任务</strong>
+        <span class="chapter-meta">p423-431 · 28 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/30-chapter-30-sre/30-chapter-30-sre-note-slides.html">
+        <span class="chapter-num">30</span>
+        <strong>第30章 通过嵌入SRE的方式帮助团队从运维过载中恢复</strong>
+        <span class="chapter-meta">p432-440 · 29 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/31-chapter-31-sre/31-chapter-31-sre-note-slides.html">
+        <span class="chapter-num">31</span>
+        <strong>第31章 SRE与其他团队的沟通与协作</strong>
+        <span class="chapter-meta">p441-456 · 36 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/32-chapter-32-sre/32-chapter-32-sre-note-slides.html">
+        <span class="chapter-num">32</span>
+        <strong>第32章 SRE参与模式的演进历程</strong>
+        <span class="chapter-meta">p457-474 · 35 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/33-chapter-33/33-chapter-33-note-slides.html">
+        <span class="chapter-num">33</span>
+        <strong>第33章 其他行业的实践经验</strong>
+        <span class="chapter-meta">p476-487 · 32 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/34-chapter-34/34-chapter-34-note-slides.html">
+        <span class="chapter-num">34</span>
+        <strong>第34章 结语</strong>
+        <span class="chapter-meta">p488-491 · 15 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/35-appendix-a/35-appendix-a-note-slides.html">
+        <span class="chapter-num">35</span>
+        <strong>附录A 系统可用性</strong>
+        <span class="chapter-meta">p492-492 · 8 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/36-appendix-b/36-appendix-b-note-slides.html">
+        <span class="chapter-num">36</span>
+        <strong>附录B 生产环境运维过程中的最佳实践</strong>
+        <span class="chapter-meta">p493-498 · 23 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/37-appendix-c/37-appendix-c-note-slides.html">
+        <span class="chapter-num">37</span>
+        <strong>附录C 事故状态文档示范</strong>
+        <span class="chapter-meta">p499-501 · 10 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/38-appendix-d/38-appendix-d-note-slides.html">
+        <span class="chapter-num">38</span>
+        <strong>附录D 事后总结示范</strong>
+        <span class="chapter-meta">p502-507 · 14 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/39-appendix-e/39-appendix-e-note-slides.html">
+        <span class="chapter-num">39</span>
+        <strong>附录E 发布协调检查列表</strong>
+        <span class="chapter-meta">p508-510 · 12 页 · PASS 0 warning</span>
+      </a>
+      <a class="chapter-card" href="chapters/40-appendix-f/40-appendix-f-note-slides.html">
+        <span class="chapter-num">40</span>
+        <strong>附录F 生产环境会议记录示范</strong>
+        <span class="chapter-meta">p511-513 · 13 页 · PASS 0 warning</span>
+      </a>
+  </section>
+  <div class="footer">来源文件：source.pdf。进度与验收记录见 PROGRESS.md。章节页遵循 note-slides 单文件 HTML 标准。</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>附录E 发布协调检查列表 note slides</title>
+<style>
+:root {
+  /* palette thesis: Appendix E is an operations checklist, so the deck uses graphite for release control, warm paper for checklist readability, and steel blue for coordination anchors. */
+  --ink: #24292a;
+  --ink-rgb: 36,41,42;
+  --paper: #f5efe2;
+  --paper-rgb: 245,239,226;
+  --accent: #2f7190;
+  --muted: #667174;
+  --line: rgba(var(--ink-rgb), .16);
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans-zh);
+  text-wrap: pretty;
+}
+#deck {
+  position: fixed;
+  inset: 0;
+  width: 10000vw;
+  height: 100vh;
+  display: flex;
+  flex-wrap: nowrap;
+  transition: transform .75s cubic-bezier(.77,0,.175,1);
+  will-change: transform;
+}
+.slide {
+  width: 100vw;
+  height: 100vh;
+  flex: 0 0 100vw;
+  position: relative;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.chrome, .foot {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(1rem, 2vw, 2rem);
+  font-family: var(--mono);
+  font-size: clamp(.75rem, .82vw, .94rem);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .46;
+}
+.chrome { margin-bottom: clamp(1rem, 2vh, 1.8rem); }
+.foot { margin-top: auto; padding-top: clamp(1rem, 2vh, 1.8rem); }
+.display-zh {
+  font-family: var(--serif-zh);
+  font-weight: 900;
+  font-size: clamp(3rem, 6.3vw, 6.1rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+.h1-zh {
+  font-family: var(--serif-zh);
+  font-weight: 760;
+  font-size: clamp(2rem, 3.7vw, 3.6rem);
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.h2-zh {
+  font-family: var(--serif-zh);
+  font-weight: 680;
+  font-size: clamp(1.42rem, 2.35vw, 2.3rem);
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+.lead-zh {
+  font-family: var(--serif-zh);
+  font-size: clamp(1.4rem, 1.9vw, 1.95rem);
+  line-height: 1.5;
+}
+.body-zh {
+  font-size: clamp(1.16rem, 1.34vw, 1.52rem);
+  line-height: 1.6;
+}
+.small-zh {
+  font-size: clamp(.98rem, 1.04vw, 1.18rem);
+  line-height: 1.52;
+}
+.kicker {
+  font-family: var(--mono);
+  font-size: clamp(.78rem, .88vw, .98rem);
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  opacity: .55;
+  margin-bottom: clamp(.8rem, 1.4vh, 1.2rem);
+}
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #84c2dc; }
+.muted { opacity: .64; }
+.w-quote, .w-statement, .w-note, .w-default, .w-wide { margin-left: auto; margin-right: auto; }
+.w-quote { width: var(--w-quote); }
+.w-statement { width: var(--w-statement); }
+.w-note { width: var(--w-note); }
+.w-default { width: var(--w-default); }
+.w-wide { width: var(--w-wide); }
+.stack { display: flex; flex-direction: column; gap: clamp(1.1rem, 2.4vh, 2rem); }
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.2rem, 3vw, 3rem);
+  align-items: stretch;
+}
+.check-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(.9rem, 1.7vh, 1.3rem);
+}
+.check-item {
+  border-top: 1px solid var(--line);
+  padding-top: clamp(.9rem, 1.6vh, 1.25rem);
+}
+.slide.dark .check-item { border-top-color: rgba(var(--paper-rgb), .18); }
+.callout {
+  font-family: var(--serif-zh);
+  font-weight: 560;
+  font-size: clamp(1.9rem, 3.1vw, 3.25rem);
+  line-height: 1.42;
+}
+.callout-mark {
+  padding-top: clamp(1.6rem, 3vh, 2.4rem);
+  position: relative;
+}
+.callout-mark::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(.5rem, .72vw, .82rem);
+  height: clamp(.5rem, .72vw, .82rem);
+  background: var(--accent);
+  opacity: .72;
+}
+.guest-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.guest-mark::before {
+  content: "";
+  display: block;
+  width: clamp(2.4rem, 4em, 4.8rem);
+  height: 1px;
+  background: currentColor;
+  opacity: .35;
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+.summary-num {
+  font-family: var(--serif-zh);
+  font-size: clamp(3rem, 6.3vw, 5.8rem);
+  line-height: .95;
+  color: var(--accent);
+}
+.matrix {
+  border-top: 1px solid var(--line);
+}
+.matrix-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, .55fr) 1.45fr;
+  gap: clamp(1rem, 2.4vw, 2.4rem);
+  padding: clamp(.95rem, 1.6vw, 1.35rem) 0;
+  border-bottom: 1px solid var(--line);
+  align-items: start;
+}
+.matrix-key {
+  font-family: var(--mono);
+  font-size: clamp(.9rem, 1vw, 1.08rem);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--accent);
+}
+#nav {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(1rem, 2vh, 2rem);
+  transform: translateX(-50%);
+  display: flex;
+  gap: clamp(.28rem, .45vw, .45rem);
+  z-index: 20;
+}
+.nav-dot {
+  width: clamp(.34rem, .5vw, .5rem);
+  height: clamp(.34rem, .5vw, .5rem);
+  border-radius: 50%;
+  background: rgba(var(--paper-rgb), .35);
+  border: 0;
+}
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: clamp(1.6rem, 6vw, 2rem) clamp(1.1rem, 4vw, 1.35rem) clamp(1.4rem, 5vw, 1.6rem); }
+  .grid-2, .matrix-row { grid-template-columns: 1fr; }
+  .chrome, .foot { gap: clamp(.6rem, 2vw, 1rem); }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p508 附录E 发布协调检查列表">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent">SRE Book Appendix E</div>
+      <h1 class="display-zh">发布协调检查列表</h1>
+      <p class="lead-zh muted">Google 最初的发布协调检查列表，写于 2005 年，有简单修改。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p508</span><span>01 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Checklist Scope" data-source="p508 Google最初的发布协调检查列表 写于2005年 有简单修改">
+  <div class="chrome"><span>checklist scope</span><span>p508</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">这份附录不是发布方案模板，而是一张发布协调时逐项追问的清单。</div>
+      <p class="body-zh muted">材料只给检查项。责任边界要按每一组检查项落到谁提供信息、谁确认风险、谁执行变更。</p>
+    </div>
+  </div>
+  <div class="foot"><span>coordination checklist</span><span>02 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Architecture" data-source="p508 架构 架构草图 服务器类型 客户端请求类型 编程性客户端的请求">
+  <div class="chrome"><span>architecture</span><span>p508</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">先把服务形态画清楚</h2>
+      <div class="check-list">
+        <div class="check-item body-zh">架构草图，服务器类型，客户端请求类型。</div>
+        <div class="check-item body-zh">编程性客户端的请求。</div>
+      </div>
+      <p class="small-zh muted">边界：发布协调先确认系统由哪些服务器和请求组成，再谈容量、可靠性和变更。</p>
+    </div>
+  </div>
+  <div class="foot"><span>service shape</span><span>03 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Machines And Datacenters" data-source="p508 物理机与数据中心 物理机数量与带宽数量 数据中心 N+2冗度 网络QoS 新的域名 DNS负载均衡">
+  <div class="chrome"><span>machines datacenters</span><span>p508</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">物理资源、数据中心和入口都要被列入协调范围</h2>
+      <div class="matrix">
+        <div class="matrix-row"><div class="matrix-key">capacity</div><div class="body-zh">物理机数量与带宽数量，数据中心，N+2 冗度，网络 QoS。</div></div>
+        <div class="matrix-row"><div class="matrix-key">traffic entry</div><div class="body-zh">新的域名，DNS 负载均衡。</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>infrastructure boundary</span><span>04 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Traffic Capacity Performance" data-source="p508 流量预估 容量以及性能 HTTP流量与带宽预估 发布时的峰值 流量的组成 6个月的预测 压力测试 端到端测试 每个数据中心最高延迟下的容量 对其他服务的影响 存储容量">
+  <div class="chrome"><span>traffic capacity performance</span><span>p508</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">容量讨论要覆盖发布当天和六个月之后</h2>
+      <div class="grid-2">
+        <div class="stack">
+          <div class="check-item body-zh">HTTP 流量与带宽预估，发布时的峰值，流量组成，6 个月预测。</div>
+          <div class="check-item body-zh">压力测试，端到端测试，每个数据中心最高延迟下的容量。</div>
+        </div>
+        <div class="stack">
+          <div class="check-item body-zh">对其他我们关注的服务的影响。</div>
+          <div class="check-item body-zh">存储容量。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>peak and forecast</span><span>05 / 12</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Reliability Disaster Recovery" data-source="p509 系统可靠性与灾难恢复 物理机故障 机柜故障 集群故障 两个数据中心之间的网络故障 数据备份恢复 灾难恢复">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">故障</div>
+      <div class="callout">发布前要回答服务在物理机、机柜、集群和跨数据中心网络故障时会怎么样。</div>
+      <p class="body-zh muted">同一组检查项还要求覆盖数据备份、恢复和灾难恢复。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p509 reliability</span><span>06 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Backend Failure Handling" data-source="p509 对每种需要联系其他服务器后端的服务器 如何检测后端故障 后端故障如何处理 如何在不影响客户端和用户的情况下重启服务器 负载均衡 速度限制 超时 重试 错误处理">
+  <div class="chrome"><span>backend handling</span><span>p509</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">凡是要联系后端的服务器，都要说明故障处理边界</h2>
+      <div class="matrix">
+        <div class="matrix-row"><div class="matrix-key">detect</div><div class="body-zh">如何检测后端故障，后端故障如何处理。</div></div>
+        <div class="matrix-row"><div class="matrix-key">restart</div><div class="body-zh">如何在不影响客户端和用户的情况下重启服务器。</div></div>
+        <div class="matrix-row"><div class="matrix-key">control</div><div class="body-zh">负载均衡，速度限制，超时，重试，以及错误处理。</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>backend contract</span><span>07 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monitoring Management" data-source="p509 监控与服务器管理 监控内部状态 监控端到端行为 警报的管理 监控监控系统 有关财务的警报和日志 在集群环境下运行服务的技巧 不要在代码中给自己发送海量邮件">
+  <div class="chrome"><span>monitoring management</span><span>p509</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">监控本身也在检查列表里</h2>
+      <div class="check-list">
+        <div class="check-item body-zh">监控内部状态，监控端到端行为，警报的管理。</div>
+        <div class="check-item body-zh">监控监控系统。</div>
+        <div class="check-item body-zh">有关财务的警报和日志。</div>
+        <div class="check-item body-zh">在集群环境下运行服务的技巧。</div>
+        <div class="check-item body-zh">不要在代码中给自己发送海量邮件，会导致邮件服务器崩溃。</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>alerting boundary</span><span>08 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Security" data-source="p509 安全 安全设计评审 安全代码评审 垃圾邮件风险 验证 SSL 发布之前的可见可访问性控制 各种类型的黑名单">
+  <div class="chrome"><span>security</span><span>p509</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">安全检查覆盖评审、访问控制和滥用风险</h2>
+      <div class="check-list">
+        <div class="check-item body-zh">安全设计评审，安全代码评审，垃圾邮件风险，验证，SSL。</div>
+        <div class="check-item body-zh">发布之前的可见性和可访问性控制，各种类型的黑名单。</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>security gates</span><span>09 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Automation Release Tasks" data-source="p509-p510 自动化与人工任务 更新服务器 数据 配置文件的方式和变更管理 发布流程 可重复的构建过程 金丝雀测试 分阶段发布">
+  <div class="chrome"><span>automation manual tasks</span><span>p509 p510</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">变更方式和发布流程要能重复执行</h2>
+      <div class="matrix">
+        <div class="matrix-row"><div class="matrix-key">change</div><div class="body-zh">更新服务器、数据、配置文件的方式和变更管理。</div></div>
+        <div class="matrix-row"><div class="matrix-key">release</div><div class="body-zh">发布流程，可重复的构建过程，金丝雀测试，分阶段发布。</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>repeatable release</span><span>10 / 12</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Growth And Dependencies" data-source="p510 增长问题 空余容量 10倍增长 增长型的警报 扩展性的瓶颈 线性扩展 与硬件性能的同步扩展 所需要的变更 缓存 数据分片重新分片 外部依赖 第三方系统 监控 网络条件 流量配比 发布时的流量峰值 优雅降级 避免意外对第三方服务造成过载 与合作伙伴 邮件系统 Google内部服务良好对接">
+  <div class="chrome"><span>growth dependencies</span><span>p510</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">增长和外部依赖决定发布后的压力会流向哪里</h2>
+      <div class="grid-2">
+        <div class="stack">
+          <h3 class="h2-zh">增长问题</h3>
+          <div class="check-item body-zh">空余容量，10 倍增长，增长型的警报。</div>
+          <div class="check-item body-zh">扩展性的瓶颈，线性扩展，与硬件性能的同步扩展，所需要的变更。</div>
+          <div class="check-item body-zh">缓存，数据分片和重新分片。</div>
+        </div>
+        <div class="stack">
+          <h3 class="h2-zh">外部依赖</h3>
+          <div class="check-item body-zh">第三方系统，监控，网络条件，流量配比，发布时的流量峰值。</div>
+          <div class="check-item body-zh">优雅降级，如何避免意外对第三方服务造成过载。</div>
+          <div class="check-item body-zh">与合作伙伴、邮件系统，以及 Google 内部服务良好对接。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>scale and dependency</span><span>11 / 12</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Timing Plan" data-source="p510 发布时间与发布计划 不可改变的截止日期 外部事件 星期一或者星期五 该服务标准的运维流程 以及其他服务的运维流程">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">最后落到发布时间和运维流程：不可改变的截止日期、外部事件、星期一或者星期五。</div>
+      <p class="lead-zh muted">还要检查该服务标准的运维流程，以及其他服务的运维流程。</p>
+    </div>
+  </div>
+  <div class="foot"><span>release timing and ops plan</span><span>12 / 12</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-appendix-e-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-appendix-e-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

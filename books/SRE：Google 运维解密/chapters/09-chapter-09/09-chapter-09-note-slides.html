@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第9章 简单化 note slides</title>
+<style>
+:root {
+  --ink: #162029;
+  --ink-rgb: 22,32,41;
+  --paper: #fbfaf5;
+  --paper-rgb: 251,250,245;
+  --accent: #2f6f73;
+  --muted: #66717b;
+  --warm: #a8653f;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #83bdc1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p130 章节标题 Hoare 引语" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 09</div>
+      <h1 class="display-zh">简单化</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">可靠性来自对最大程度简化的不断追求</p>
+      <p class="meta" style="margin-top:2vh">作者 Max Luebbe</p>
+    </div>
+  </div>
+  <div class="foot"><span>p130</span><span>01 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Dynamic Software" data-source="p130 软件系统 动态 不稳定">
+  <div class="chrome"><span>dynamic systems</span><span>p130</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">软件系统本质上是动态的和不稳定的。</div>
+      <p class="body-zh muted" style="margin-top:2vh">只有停止修改代码、冻结底层组件、冻结用户群，系统才会接近静止。真实生产环境没有这个条件。</p>
+    </div>
+  </div>
+  <div class="foot"><span>software keeps moving</span><span>02 / 18</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Balance" data-source="p130 p131 稳定性 灵活性">
+  <div class="chrome"><span>balance</span><span>p130 p131</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 管理系统的方法，就是维持稳定性和灵活性的平衡</h2>
+      <p class="lead-zh">流程、实践和工具要提高可靠性，同时尽量减少对开发灵活性的影响。</p>
+      <p class="body-zh muted">材料进一步指出，快速、可靠的发布流程会让生产系统变化更明显，错误也更容易被定位和修正。</p>
+    </div>
+  </div>
+  <div class="foot"><span>stability and flexibility</span><span>03 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Exploratory Code" data-source="p130 探索性编码 保质期">
+  <div class="chrome"><span>exploratory code</span><span>p130</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">有些代码可以为了探索牺牲稳定性</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>前提</th><th>材料里的做法</th><th>边界</th></tr></thead>
+          <tbody>
+            <tr><td>问题域陌生</td><td>先探索以及失败，才能真正理解任务</td><td>代码必须有明确保质期</td></tr>
+            <tr><td>不进生产</td><td>测试覆盖和发行管理可以更宽松</td><td>不会发布给用户使用</td></tr>
+            <tr><td>生产系统</td><td>仍然需要稳定性和灵活性的平衡</td><td>宽松规则不能继承过去</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>expiry date matters</span><span>04 / 18</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Boring Virtue" data-source="p131 乏味是一种美德">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">对于软件而言，乏味是一种美德。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料说，生产环境里的意外是 SRE 最大的敌人。理想源代码缺少刺激、悬念和困惑。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p131</span><span>05 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Complexity Types" data-source="p131 必要复杂度 意外复杂度">
+  <div class="chrome"><span>complexity</span><span>p131</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">复杂度要分清两种来源</h2>
+      <div class="grid-2">
+        <div class="soft-box">
+          <h3 class="h2-zh accent">必要复杂度</h3>
+          <p class="body-zh">给定情况固有的复杂度，无法从问题定义中移除。Web 服务器必须处理快速提供页面的问题。</p>
+        </div>
+        <div class="soft-box">
+          <h3 class="h2-zh accent">意外复杂度</h3>
+          <p class="body-zh">不固定，可以通过工程努力解决。用 Java 写服务器时减少 GC 影响，可能引入这类复杂度。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>essential and accidental</span><span>06 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="SRE Protest" data-source="p131 最小化意外复杂度">
+  <div class="chrome"><span>sre stance</span><span>p131</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 对意外复杂度要主动抗议</h2>
+      <p class="lead-zh">团队在负责系统里引入意外复杂度时，要及时提出抗议。</p>
+      <p class="body-zh muted">同时还要不断消除正在接手和已经负责运维的系统复杂度。这是本章后续所有建议的共同底线。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reduce accidental complexity</span><span>07 / 18</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Code Attachment" data-source="p131 p132 我绝对不放弃我的代码">
+  <div class="chrome"><span>code attachment</span><span>p131 p132</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">保留旧代码的三个常见理由，材料都判为糟糕建议</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">以后可能需要</h3><p class="body-zh">源代码控制系统里的变更反转很容易。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">先注释掉</h3><p class="body-zh">数百行注释代码会制造干扰和混乱。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">加功能开关</h3><p class="body-zh">未执行代码会像定时炸弹一样等待爆炸。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>delete stale code</span><span>08 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Every Line Burden" data-source="p132 每一行新代码都是负担">
+  <div class="chrome"><span>line burden</span><span>p132</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">当 Web 服务需要 7×24 可用时，每一行新代码都是负担。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 推崇确保所有代码都有必须存在的目的，包括代码审查、定期删除无用代码，以及在测试中增加代码膨胀检测。</p>
+    </div>
+  </div>
+  <div class="foot"><span>every line carries risk</span><span>09 / 18</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Negative Lines" data-source="p132 负代码行 软件膨胀">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">负</div>
+      <h2 class="h1-zh">删除代码也是令人满意的编码工作</h2>
+      <p class="lead-zh muted" style="margin-top:2vh">较小的项目更容易理解、更容易测试，通常缺陷也更少。新增功能需求出现时，要保持保守态度。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p132</span><span>10 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Minimal API" data-source="p132 最小 API 少就是多">
+  <div class="chrome"><span>minimal api</span><span>p132</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">明确的、最小的 API 是管理简单性的必要部分</h2>
+      <p class="lead-zh">提供给消费者的方法和参数越少，API 就越容易理解，团队也越能完善这些方法。</p>
+      <p class="body-zh muted">材料把有意识地不解决某些问题，视为专注核心问题的方式。很小、很简单的 API 通常也是深刻理解问题的标志。</p>
+    </div>
+  </div>
+  <div class="foot"><span>less is more</span><span>11 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Modularity" data-source="p132 p133 模块化 松耦合">
+  <div class="chrome"><span>modularity</span><span>p132 p133</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">模块化让局部变更可以被隔离</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>对象</th><th>简化模式</th><th>收益</th></tr></thead>
+          <tbody>
+            <tr><td>二进制文件</td><td>在二进制文件之间推行松耦合</td><td>修复一个组件后，可以独立更新该程序</td></tr>
+            <tr><td>配置</td><td>二进制文件与配置之间保持松耦合</td><td>同时提高开发灵活性和系统稳定性</td></tr>
+            <tr><td>API 变更</td><td>通过版本化允许旧系统继续依赖原版本</td><td>升级可以更安全、更深思熟虑</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>isolate change</span><span>12 / 18</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Responsibility Separation" data-source="p133 责任分离 util misc">
+  <div class="chrome"><span>responsibility</span><span>p133</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">设计良好的分布式系统，由一系列范围明确的合作者组成。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料反对把无关功能塞进大杂烩类，也反对构建和发布 util 或 misc 二进制文件。</p>
+    </div>
+  </div>
+  <div class="foot"><span>clear scope</span><span>13 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Data Format" data-source="p133 Protobuf 向后 向前兼容">
+  <div class="chrome"><span>data format</span><span>p133</span></div>
+  <div class="slide-body">
+    <div class="w-statement stack">
+      <p class="kicker accent">protobuf</p>
+      <h2 class="h1-zh">模块化也适用于数据格式</h2>
+      <p class="lead-zh">Google 的 Protobuf 的一个主要优势和设计目标，是创建同时向后和向前兼容的传输格式。</p>
+    </div>
+  </div>
+  <div class="foot"><span>compatibility as simplification</span><span>14 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Release Simplicity" data-source="p133 发布的简单化 小批次">
+  <div class="chrome"><span>release simplicity</span><span>p133</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">发布流程越简单，变化影响越容易被理解</h2>
+      <div class="grid-2">
+        <div class="soft-box">
+          <h3 class="h2-zh accent">大批量发布</h3>
+          <p class="body-zh">如果同时发布 100 个不相关的更改，性能变差后要花大量时间定位原因。</p>
+        </div>
+        <div class="soft-box">
+          <h3 class="h2-zh accent">小批次发布</h3>
+          <p class="body-zh">每个变更的影响可以独立理解，因此可以更有信心地进行更快发布。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>smaller batches</span><span>15 / 18</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Gradient Descent" data-source="p133 梯度下降法 每次进展一点">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">小批次发布像梯度下降法，每次进展一点。</div>
+      <p class="body-zh muted" style="margin-top:2vh">每次改变都要观察对系统的改善和退化，再继续寻找最佳方案。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p133</span><span>16 / 18</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Chapter Summary" data-source="p133 p134 小结 简单性 可靠性">
+  <div class="chrome"><span>chapter summary</span><span>p133 p134</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">软件的简单性是可靠性的前提条件</h2>
+      <p class="lead-zh">考虑如何简化任务的每一步，不是在偷懒，而是在明确实际要完成什么，以及如何更容易做到。</p>
+      <p class="body-zh muted">对新功能说不，是保持环境整洁，避免分心，让团队持续关注创新和真正的工程工作。</p>
+    </div>
+  </div>
+  <div class="foot"><span>simplicity enables reliability</span><span>17 / 18</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p130 p134 章节线索">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">生产软件持续变化，SRE 要在稳定性和灵活性之间维持平衡。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">乏味、可预见、缺少意外，是源代码和生产环境的理想状态。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">新增代码、新 API、新发布批次都会增加风险，删除和拒绝同样是工程动作。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">模块化、兼容数据格式和小批次发布，都是把系统变化压到可理解范围内。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>18 / 18</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-09-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-09-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

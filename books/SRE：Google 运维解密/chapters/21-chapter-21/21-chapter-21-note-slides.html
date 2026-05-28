@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第21章 应对过载 note slides</title>
+<style>
+:root {
+  /* palette thesis: overload handling is about pressure, refusal, and graceful survival, so the deck uses dark graphite for stress, warm paper for operating notes, and amber for limit signals. */
+  --ink: #1f2528;
+  --ink-rgb: 31,37,40;
+  --paper: #f7f3e8;
+  --paper-rgb: 247,243,232;
+  --accent: #b8782d;
+  --muted: #687276;
+  --warm: #7f5f42;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.6vw, 6.6rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4vw, 3.8rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.45rem, 2.65vw, 2.45rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.45rem, 1.95vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.22rem, 1.38vw, 1.58rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.08vw, 1.24rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #e0a761; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p262 章节标题">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 21</div>
+      <h1 class="display-zh">应对过载</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">系统压力持续上升时，某个部位总会过载。</p>
+      <p class="meta" style="margin-top:1.2vh">Alejandro Forero Cuervo</p>
+    </div>
+  </div>
+  <div class="foot"><span>p262</span><span>01 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Overload Inevitable" data-source="p262 随着压力不断上升">
+  <div class="chrome"><span>graceful overload</span><span>p262</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">可靠系统的根本要求之一，是能够优雅地处理过载。</div>
+      <p class="body-zh muted" style="margin-top:2vh">负载均衡再有效，也不能保证压力上升时所有部位永远不过载。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reliability requirement</span><span>02 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Degradation Choices" data-source="p262 服务降级 两个例子">
+  <div class="chrome"><span>degraded replies</span><span>p262</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">过载时，服务可以先降低回复成本</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">缩小搜索范围</h3><p class="body-zh">平时查整个文档库，过载时只查文档库的一小部分。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">使用本地缓存</h3><p class="body-zh">用本地缓存的旧数据回复，避免访问主存储系统。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>reduce work</span><span>03 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Datacenter Ceiling" data-source="p262 100个后端任务 每个500 QPS">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">数据中心级调度只能降低风险，不能替代后端的资源边界处理。</div>
+      <p class="body-zh muted" style="margin-top:2vh">100 个后端任务，每个 500 QPS，负载均衡策略就不应调度超过 50000 QPS 到这个数据中心。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p262</span><span>04 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="QPS Trap" data-source="p263 QPS陷阱">
+  <div class="chrome"><span>qps trap</span><span>p263</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">按 QPS 规划容量，会遮住请求成本的差异</h2>
+      <p class="lead-zh">不同请求需要的资源数量可能相差很大。</p>
+      <p class="body-zh muted">成本会受客户端代码、现实时间、家庭用户和企业用户、交互型请求和批量请求影响。</p>
+    </div>
+  </div>
+  <div class="foot"><span>different costs</span><span>05 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Resource Capacity" data-source="p263 500 CPU 内核和1TB内存">
+  <div class="chrome"><span>capacity model</span><span>p263</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">更好的容量模型，是直接看可用资源。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料给出的例子是某服务在一个数据中心预留 500 CPU 内核和 1TB 内存，请求成本通常按正常情况下消耗的 CPU 时间定义。</p>
+    </div>
+  </div>
+  <div class="foot"><span>cpu time</span><span>06 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="CPU Signal" data-source="p263 使用CPU数量作为主要信号">
+  <div class="chrome"><span>cpu as signal</span><span>p263</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">多数场景里，CPU 可以作为主要配给信号</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">有 GC 的环境</h3><p class="body-zh">内存压力通常会转化成 CPU 压力，因为内存受限会增加 GC。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">其他环境</h3><p class="body-zh">其他资源可以按某种比例配置，使短缺情况尽量罕见。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>resource allocation</span><span>07 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="User Quotas" data-source="p263 p264 给每个用户设置限制">
+  <div class="chrome"><span>per user limits</span><span>p263 p264</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">全局过载时，错误应该集中落在异常客户上</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>用户</th><th>示例限额</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td>Gmail</td><td>4000 CPU</td><td>按约定配置用户配额和资源</td></tr>
+            <tr><td>Calendar</td><td>4000 CPU</td><td>同一后端服务按客户拆分限制</td></tr>
+            <tr><td>Android</td><td>3000 CPU</td><td>配额总和可以超过总容量</td></tr>
+            <tr><td>Google Plus</td><td>2000 CPU</td><td>所有用户同时打满配额很罕见</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>quota contracts</span><span>08 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Usage Feedback" data-source="p264 实时获取用量信息">
+  <div class="chrome"><span>usage feedback</span><span>p264</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">配额不是静态表格，后端任务会实时接收调整信息</h2>
+      <p class="lead-zh">系统从所有后端任务中实时获取用量信息，再把配额调整推送给每个后端任务。</p>
+      <p class="body-zh muted">难点之一是实时计算每个请求消耗的资源，尤其是在非阻塞 API 和线程池模式的软件服务器中计算 CPU。</p>
+    </div>
+  </div>
+  <div class="foot"><span>per request cost</span><span>09 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Client Throttling" data-source="p264 p265 客户端侧的节流机制">
+  <div class="chrome"><span>client throttling</span><span>p264 p265</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">后端一直发送拒绝回复，也可能把自己拖进过载。</div>
+      <p class="body-zh muted" style="margin-top:2vh">客户端检测到大量配额不足错误后，应自行限制请求速度，超过限制的请求在本地失败，不再进入网络层。</p>
+    </div>
+  </div>
+  <div class="foot"><span>fail locally</span><span>10 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Adaptive Throttling" data-source="p265 自适应节流 请求数量 请求接受数量">
+  <div class="chrome"><span>adaptive throttling</span><span>p265</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">自适应节流只依赖客户端本地记录</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">requests</h3><p class="body-zh">过去两分钟里，应用层代码发出的所有请求数量。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">accepts</h3><p class="body-zh">过去两分钟里，后端任务接受的请求数量。</p></div>
+      </div>
+      <p class="body-zh muted">常规情况下两者相等。后端开始拒绝后，客户端继续发送直到 requests 等于 K 乘以 accepts。</p>
+    </div>
+  </div>
+  <div class="foot"><span>local counters</span><span>11 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Stable Rate" data-source="p266 保持稳定请求速率 50%的处理率">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">本地拒绝的请求也让 requests 上升，这正是算法的重点。</div>
+      <p class="body-zh muted" style="margin-top:2vh">客户端发送速度越快，相对后端接受速度越高，本地丢弃概率也会提高。超大型过载时，后端服务基本可以保持 50% 的处理率。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p266</span><span>12 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="K Parameter" data-source="p266 修改accepts的倍值K">
+  <div class="chrome"><span>tuning k</span><span>p266</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">K 决定客户端节流的激进程度</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">降低 K</h3><p class="body-zh">自适应节流更激进，后端收到的拒绝请求更少。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">增加 K</h3><p class="body-zh">算法不那么激进，后端状态能更快传递到客户端。</p></div>
+      </div>
+      <p class="body-zh muted">材料一般推荐 K 等于 2。低频客户端记录有限，客户端节流可能不适用。</p>
+    </div>
+  </div>
+  <div class="foot"><span>aggressiveness</span><span>13 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Criticality Classes" data-source="p266 p267 重要性 四类">
+  <div class="chrome"><span>criticality</span><span>p266 p267</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">重要性把请求分成四类</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>类型</th><th>材料中的含义</th><th>默认来源</th></tr></thead>
+          <tbody>
+            <tr><td>CRITICAL_PLUS</td><td>拒绝会造成非常严重的用户可见问题</td><td>最重要请求</td></tr>
+            <tr><td>CRITICAL</td><td>拒绝也会造成用户可见问题</td><td>生产任务默认请求</td></tr>
+            <tr><td>SHEDDABLE_PLUS</td><td>可以容忍某种程度的不可用性</td><td>批量任务默认请求</td></tr>
+            <tr><td>SHEDDABLE</td><td>可能经常遇到部分不可用，偶尔完全不可用</td><td>可丢弃流量</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>four classes</span><span>14 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Criticality Propagation" data-source="p267 p268 RPC系统自动传递重要性信息">
+  <div class="chrome"><span>rpc propagation</span><span>p267 p268</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">重要性成为 RPC 系统的一级属性后，拒绝顺序可以跨服务保持一致</h2>
+      <p class="lead-zh">后端处理请求 A 时发出请求 B 和 C，B 和 C 会继承 A 的重要性。</p>
+      <p class="body-zh muted">Google 通常在离浏览器或客户端最近的位置设置优先级，特殊情况下才在处理栈中覆盖。</p>
+    </div>
+  </div>
+  <div class="foot"><span>shared priority</span><span>15 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Utilization Signal" data-source="p268 p269 资源利用率信号 执行器负载均值">
+  <div class="chrome"><span>utilization signal</span><span>p268 p269</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">任务过载保护基于本地资源利用率</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">CPU 利用率</h3><p class="small-zh">多数情况下是目前 CPU 使用量除以全部预留 CPU 数量。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">重要性阈值</h3><p class="small-zh">利用率上升后，根据请求重要性拒绝请求，高重要性对应高阈值。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">活跃线程</h3><p class="small-zh">执行器负载均值统计正在运行或等待 CPU 的线程。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">指数衰变</h3><p class="small-zh">平滑突发的大批短时请求，避免短脉冲触发错误拒绝。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">多个信号</h3><p class="small-zh">系统也可以接入内存压力等后端自定义信号。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>local protection</span><span>16 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Two Overload Errors" data-source="p269 处理过载错误 两种情况">
+  <div class="chrome"><span>overload errors</span><span>p269</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">客户端收到过载错误时，先判断范围</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">大量任务过载</h3><p class="body-zh">如果大部分后端任务都过载，请求不应重试，应向上传递给请求者。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">少量任务过载</h3><p class="body-zh">如果只有小部分任务过载，更倾向于立即重试，请求可能落到仍有容量的任务上。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>scope matters</span><span>17 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Retry As Balancing" data-source="p270 快速拒绝 天然的负载均衡机制">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">轻微过载的任务快速拒绝，反而让重试成为天然负载均衡。</div>
+      <p class="body-zh muted" style="margin-top:2vh">重试请求和新请求被同等对待，多余负载就有机会自动转移到其他任务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p270</span><span>18 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Retry Limits" data-source="p270 p271 决定何时重试 三个方法">
+  <div class="chrome"><span>retry limits</span><span>p270 p271</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">重试必须被限制，否则会放大过载</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">三次上限</h3><p class="small-zh">请求失败 3 次后，把错误回应给调用者。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">10% 比例</h3><p class="small-zh">每个客户端跟踪重试与请求比例，低于 10% 才重试。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">1.1 倍</h3><p class="small-zh">按客户端限制后，重试请求在大多数情况下只增加到原来的 1.1 倍。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">重试计数</h3><p class="small-zh">客户端在请求元数据中加入重试计数，并记录近期直方图。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">无须重试</h3><p class="small-zh">后端可根据直方图返回过载且无须重试错误。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>retry budget</span><span>19 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Retry Layer" data-source="p271 p272 请求只应该在被拒绝层面上面一层重试">
+  <div class="chrome"><span>retry layer</span><span>p271 p272</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">请求只应该在被拒绝层面的直接上层重试。</div>
+      <p class="body-zh muted" style="margin-top:2vh">数据库前端过载时，后端任务 B 负责重试。B 确认数据库前端无法处理后，应向 A 返回过载且无须重试错误，或返回降级回复。</p>
+    </div>
+  </div>
+  <div class="foot"><span>avoid retry explosion</span><span>20 / 24</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Connection Load" data-source="p273 连接造成的负载">
+  <div class="chrome"><span>connection load</span><span>p273</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">大型系统里，连接本身也会制造负载</h2>
+      <p class="lead-zh">维护大型连接池有 CPU 和内存成本，连接快速变动也有成本。</p>
+      <p class="body-zh muted">请求率很低的客户端会被健康检查放大成本，有时健康检查消耗比实际处理请求更多。</p>
+    </div>
+  </div>
+  <div class="foot"><span>health checks</span><span>21 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Batch Proxy Fuse" data-source="p273 批处理代理任务 保险丝">
+  <div class="chrome"><span>batch proxy</span><span>p273</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">批处理代理把新连接冲击隔离在后端之外</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">原路径</h3><p class="body-zh">批处理客户端直接访问后端，短时间建立大量客户端时会压垮后端连接管理。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">代理路径</h3><p class="body-zh">批处理客户端先访问批处理代理，再由代理转发给后端，代理承担保险丝角色。</p></div>
+      </div>
+      <p class="body-zh muted">代理还能减少后端连接数量，并提高负载均衡效率。</p>
+    </div>
+  </div>
+  <div class="foot"><span>protect backend</span><span>22 / 24</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary" data-source="p273 p274 小结">
+  <div class="chrome"><span>core notes</span><span>p273 p274</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结：单个任务必须保护自己的服务质量</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">一个后端任务被配置为服务一定流量，不管多少额外流量被指向它，都应该保证服务质量。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">后端任务不应该在过载情况下崩溃，过载阈值应被推高到很难发生的程度。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>core summary</span><span>23 / 24</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="No Silver Bullet" data-source="p274 没有万能药">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="kicker accent" style="opacity:1">Core Notes</div>
+      <div class="callout">严肃对待降级情况，过载保护没有万能药。</div>
+      <p class="body-zh muted" style="margin-top:2vh">设计良好的后端程序应该只接受它能处理的请求，并优雅地拒绝其他请求。负载均衡经常需要深入理解系统和请求处理语义。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p274</span><span>24 / 24</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-21-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-21-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

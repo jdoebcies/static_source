@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第17章 测试可靠性 note slides</title>
+<style>
+:root {
+  /* palette thesis: reliability testing is about reducing uncertainty, so the deck uses dark graphite for operational risk, lab paper for evidence, and teal for measurable confidence. */
+  --ink: #20272b;
+  --ink-rgb: 32,39,43;
+  --paper: #f7f5ec;
+  --paper-rgb: 247,245,236;
+  --accent: #2c7d78;
+  --muted: #68747b;
+  --warm: #9b6b3d;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #78c2bc; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .16); }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.slide.dark .timeline-item::before { background: #78c2bc; }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.slide.dark .table-wrap { border-top-color: rgba(var(--paper-rgb), .18); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.slide.dark .data-table th, .slide.dark .data-table td { border-bottom-color: rgba(var(--paper-rgb), .16); }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.slide.dark .data-table th { color: #78c2bc; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+.slide.dark .summary-num { color: #78c2bc; }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p204 章节标题">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 17</div>
+      <h1 class="display-zh">测试可靠性</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">如果你还没有亲自试过某件东西，那么就假设它是坏的。</p>
+      <p class="meta" style="margin-top:1.2vh">Alex Perry、Max Luebbe</p>
+    </div>
+  </div>
+  <div class="foot"><span>p204</span><span>01 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reliability Forecast" data-source="p204 未来可靠度">
+  <div class="chrome"><span>reliability forecast</span><span>p204</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">测试减少的是变更带来的不确定性。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 要定量分析服务质量。过去可靠度来自历史监控，未来可靠度来自基于历史数据的预测。</p>
+    </div>
+  </div>
+  <div class="foot"><span>uncertainty after change</span><span>02 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Prediction Conditions" data-source="p204 预测准确条件">
+  <div class="chrome"><span>prediction conditions</span><span>p204</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">预测未来可靠性，先看系统有没有变</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">完全没变</h3><p class="body-zh">没有软件更新，也没有服务器数量变化，未来行为应该接近过去行为。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">变更可描述</h3><p class="body-zh">系统所有改变都能被充分描述，每个变化引入的不确定性可以被分析。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>stable or describable</span><span>03 / 30</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Testing Coverage" data-source="p204 至 p205 测试覆盖度">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">覆盖度越高，每次改动降低可靠度的可能性越低。</div>
+      <p class="body-zh muted" style="margin-top:2vh">短时间大量改动会让预测可靠性逼近可接受极限。此时应停止引入新改动，等待监控数据继续累积。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p204 to p205</span><span>04 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test And MTTR" data-source="p205 测试和平均修复时间">
+  <div class="chrome"><span>test and mttr</span><span>p205</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">通过测试不能证明稳定，失败测试通常能证明不可靠</h2>
+      <p class="lead-zh">监控也能发现 Bug，但受报警规则间隔和汇报速度限制。</p>
+      <p class="body-zh muted">系统级测试如果提前抓住监控也会发现的 Bug，就可以阻挡发布，让这个 Bug 的 MTTR 变成 0。</p>
+    </div>
+  </div>
+  <div class="foot"><span>zero mttr bug</span><span>05 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Test Types" data-source="p205 软件测试的类型">
+  <div class="chrome"><span>test types</span><span>p205</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">本章把测试分成两大类</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">传统测试</h3><p class="body-zh">开发过程中离线评估软件正确性，包含单元测试、集成测试、系统测试。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">生产测试</h3><p class="body-zh">在生产 Web 服务器上进行，评估已经部署的软件系统是否正常工作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>traditional and production</span><span>06 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Traditional Levels" data-source="p206 至 p207 传统测试层级">
+  <div class="chrome"><span>traditional levels</span><span>p206 to p207</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">传统测试从最小单元向系统端到端推进</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">单元</h3><p class="small-zh">验证类或函数，也成为模块行为规范。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">集成</h3><p class="small-zh">把组件装成更大系统组件，检验组件功能。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">系统</h3><p class="small-zh">在未部署系统上装载模块，端到端测试。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">性能</h3><p class="small-zh">保证响应时间和资源要求不悄悄变坏。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">回归</h3><p class="small-zh">把旧 Bug 固化成测试，防止重构时带回。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>unit to regression</span><span>07 / 30</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Test Cost" data-source="p208 测试成本">
+  <div class="chrome"><span>test cost</span><span>p208</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">每个测试都有时间成本和计算资源成本。</div>
+      <p class="body-zh muted" style="margin-top:2vh">单元测试可能毫秒级完成。完整软件服务器加所有依赖系统运行测试，可能需要几分钟到几小时，并占用专属计算资源。</p>
+    </div>
+  </div>
+  <div class="foot"><span>cost matters</span><span>08 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Release Reality" data-source="p208 变更发布与测试">
+  <div class="chrome"><span>release reality</span><span>p208</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">生产环境通常无法被一个代码版本代表</h2>
+      <p class="lead-zh">发布流程按阶段进行，逐渐把用户切到新系统，同时监控每个新阶段。</p>
+      <p class="body-zh muted">多个二进制版本和待发布配置文件可能同时存在。测试如果混用新配置和旧二进制，就可能得出错误结论。</p>
+    </div>
+  </div>
+  <div class="foot"><span>staged release</span><span>09 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Config Test" data-source="p209 配置测试">
+  <div class="chrome"><span>config test</span><span>p209</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">配置测试检查生产系统与配置文件是否一致</h2>
+      <p class="lead-zh">在 Google 内部，每个配置文件都有单独配置测试，检查服务配置和仓库文件的一致性。</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>复杂来源</th><th>测试为什么变难</th></tr></thead>
+          <tbody>
+            <tr><td>二进制默认值</td><td>查询返回结果会和提交版本不一致。</td></tr>
+            <tr><td>预处理器参数</td><td>结果取决于 Bash 等预处理器的执行结果。</td></tr>
+            <tr><td>运行时特殊行为</td><td>测试还会依赖共享运行时的版本。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>production config</span><span>10 / 30</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Stress Test" data-source="p209 至 p210 压力测试">
+  <div class="chrome"><span>stress test</span><span>p209 to p210</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">压力测试用来找到性能边界</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">容量边界</h3><p class="body-zh">数据库容量满到什么程度，会导致写请求失败。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">请求边界</h3><p class="body-zh">每秒多少请求会让应用过载，并导致请求处理失败。</p></div>
+      </div>
+      <p class="body-zh muted">很多组件超过临界值时不会优雅降级，会灾难性失败。</p>
+    </div>
+  </div>
+  <div class="foot"><span>performance boundary</span><span>11 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Canary Test" data-source="p210 金丝雀测试">
+  <div class="chrome"><span>canary test</span><span>p210</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">金丝雀是一种结构化的最终用户验收测试</h2>
+      <p class="lead-zh">一小部分服务器先升级到新版本或新配置，经过孵化期后，再逐渐升级其他服务器。</p>
+      <p class="body-zh muted">它把代码放进难以预测的生产实时流量下观察，因此并不完美，有时会漏掉 Bug。</p>
+    </div>
+  </div>
+  <div class="foot"><span>real traffic exposure</span><span>12 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Canary Severity" data-source="p210 至 p211 U 错误等级">
+  <div class="chrome"><span>canary severity</span><span>p210 to p211</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">指数型发布里，错误等级决定回滚压力</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>等级</th><th>用户请求的影响</th></tr></thead>
+          <tbody>
+            <tr><td>U=1</td><td>请求只触发某段逻辑错误代码。</td></tr>
+            <tr><td>U=2</td><td>请求可能随机损坏未来该用户会访问的数据。</td></tr>
+            <tr><td>U=3</td><td>随机损坏的数据也包括前序请求需要使用的数据。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="body-zh muted">低阶 Bug 可以从异常日志变成回归测试。高阶 Bug 必须在发布过程中尽早发现。</p>
+    </div>
+  </div>
+  <div class="foot"><span>severity estimate</span><span>13 / 30</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Where To Start" data-source="p211 至 p212 从哪里开始测试">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">没有测试时，从最小力气换最大收益的地方开始。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 经常在项目开工一段时间后才加入。完整测试还没有写出时，不要平均用力。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p211 to p212</span><span>14 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Prioritize Tests" data-source="p212 优先级问题">
+  <div class="chrome"><span>prioritize tests</span><span>p212</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">先给要测试的组件排序</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">重要程度</h3><p class="small-zh">所有任务都是高优先级时，它们就全是低优先级。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">业务关键</h3><p class="small-zh">计费系统代码通常关键，也常能被干净剥离测试。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">外部 API</h3><p class="small-zh">其他团队集成的 API 会影响他们的客户端代码质量。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>rank components</span><span>15 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Smoke And Regression" data-source="p212 冒烟测试和回归测试体系">
+  <div class="chrome"><span>smoke and regression</span><span>p212</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">先用冒烟测试挡住明显故障代码</h2>
+      <p class="lead-zh">发布明显故障代码是开发者最备受指责的行为。发布前的冒烟测试低成本、高收益，应该成为第一步。</p>
+      <p class="body-zh muted">强测试文化的做法是把所有遇到的问题都测试案例化。Bug 修复前，测试用例应处于失败状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>make bugs tests</span><span>16 / 30</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Continuous Build" data-source="p212 至 p213 持续构建系统">
+  <div class="chrome"><span>continuous build</span><span>p212 to p213</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">持续构建要实时通知搞坏代码的人</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">早修复</h3><p class="small-zh">问题引入后再叠加新变动，修复会更难。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">少影响</h3><p class="small-zh">不工作的代码会让团队手动绕过问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">保周期</h3><p class="small-zh">定时每晚构建和每周构建才有意义。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">能应急</h3><p class="small-zh">紧急发布能力不会被破坏。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">快迭代</h3><p class="small-zh">可靠构建反过来驱动敏捷性。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>stable build enables speed</span><span>17 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Bazel And Coverage" data-source="p213 Bazel 和测试覆盖">
+  <div class="chrome"><span>bazel and coverage</span><span>p213</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">工具让测试从理念变成工程项目</h2>
+      <p class="lead-zh">Bazel 可以生成依赖图，文件改动后只重新构建受影响部分，让测试更便宜、更快。</p>
+      <p class="body-zh muted">覆盖度工具可以帮助聚焦测试，把持续喊更多测试变成更准确的目标和期限。</p>
+    </div>
+  </div>
+  <div class="foot"><span>dependency graph</span><span>18 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Large Scale Testing" data-source="p213 至 p214 大规模测试">
+  <div class="chrome"><span>large scale testing</span><span>p213 to p214</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">规模越大，测试环境本身也要被测试覆盖</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">小测试</h3><p class="body-zh">可能只依赖一个代码文件、测试类库、运行时库、编译器和本地硬件。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">发布测试</h3><p class="body-zh">可能间接依赖整个代码仓库，环境变动会影响判断。</p></div>
+      </div>
+      <p class="body-zh muted">如果单元测试依赖运行时里无覆盖代码，环境中无关改动也可能让测试失去意义。</p>
+    </div>
+  </div>
+  <div class="foot"><span>test the test environment</span><span>19 / 30</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="SRE Tools" data-source="p214 测试大规模使用的工具">
+  <div class="chrome"><span>sre tools</span><span>p214</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 工具也是软件项目，也需要测试</h2>
+      <p class="lead-zh">这些工具可能获取性能指标、预测未来用量、重构备份副本数据，或者修改文件。</p>
+      <p class="body-zh muted">它们的副作用通常在主流 API 范围内，且因为验证和发布流程，基本不会直接影响用户。</p>
+    </div>
+  </div>
+  <div class="foot"><span>tools need tests</span><span>20 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Danger Guardrail" data-source="p214 至 p215 防护边界">
+  <div class="chrome"><span>danger guardrail</span><span>p214 to p215</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">危险工具要靠设计设立防护边界</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">隔离副本</h3><p class="small-zh">复制配置文件中设边界，让副本无法通过健康检查。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">工具检查</h3><p class="small-zh">危险工具上线后检查边界，只访问不健康副本。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">同一机制</h3><p class="small-zh">使用与黑盒监控一致的副本健康检查。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">避免面客</h3><p class="small-zh">防止批量操作误跑在用户可见实例上。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">先设计</h3><p class="small-zh">严重后果要通过设计方式提前挡住。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>guardrails by design</span><span>21 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Automation Coupling" data-source="p215 至 p216 自动化工具环境">
+  <div class="chrome"><span>automation coupling</span><span>p215 to p216</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">自动化工具会改变彼此依赖的环境</h2>
+      <p class="lead-zh">容器调派工具最终也会移动自己所在的容器。集群升级工具和容器平衡器还可能同时影响对方。</p>
+      <p class="body-zh muted">循环依赖未必是问题，前提是 API 有良好重启机制，并且有人记得针对这种情况写测试。</p>
+    </div>
+  </div>
+  <div class="foot"><span>environment changes tools</span><span>22 / 30</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Disaster Tests" data-source="p216 针对灾难的测试">
+  <div class="chrome"><span>disaster tests</span><span>p216</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">灾难恢复工具要在灾难前满足五个条件</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">离线</h3><p class="small-zh">工具能在服务停止等价状态下工作。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">可记录</h3><p class="small-zh">能计算出 checkpoint state。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">可验证</h3><p class="small-zh">状态能推送给非灾难验证工具。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">有边界</h3><p class="small-zh">支持常见发布安全边界检查。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">干净启动</h3><p class="small-zh">启动结果能被检查为干净。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>before disaster</span><span>23 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Statistical Tools" data-source="p217 利用统计学工具">
+  <div class="chrome"><span>statistical tools</span><span>p217</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">随机化测试不能一次性证明修复，但能缩小问题空间</h2>
+      <p class="lead-zh">Lemon、Chaos Monkey 和 Jepsen 不一定能重复执行。代码修改后只运行一次，不能确定地证明问题已经修复。</p>
+      <p class="body-zh muted">它们的价值在于记录随机动作顺序，复现失败频率，暴露不同表现形式，并帮助升级 Bug 优先级。</p>
+    </div>
+  </div>
+  <div class="foot"><span>randomized evidence</span><span>24 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Need For Speed" data-source="p217 至 p219 对速度的渴求">
+  <div class="chrome"><span>need for speed</span><span>p217 to p219</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">测试反馈只有在工程师走神前回来才有用。</div>
+      <p class="body-zh muted" style="margin-top:2vh">21,000 个简单测试在提交前后各跑一次，要让 100 个修改里只有 1 个被错误拒绝，单个独立测试需要接近 99.9999% 正确执行。</p>
+    </div>
+  </div>
+  <div class="foot"><span>feedback deadline</span><span>25 / 30</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Release To Production" data-source="p219 至 p220 发布到生产环境">
+  <div class="chrome"><span>release to production</span><span>p219 to p220</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">测试环境和生产环境分离，会制造不一致</h2>
+      <p class="lead-zh">生产配置通常存在版本控制中，却常和源代码分开存放，测试自动化系统也经常忽略这些位置。</p>
+      <p class="body-zh muted">SRE 模型下，这种分离仍会影响工程师在开发环境中重现生产问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>config and code split</span><span>26 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Allow Failures" data-source="p220 至 p221 允许测试失败">
+  <div class="chrome"><span>allow failures</span><span>p220 to p221</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">发布越频繁，越需要用测试覆盖来控制不确定性</h2>
+      <p class="lead-zh">年度发布里，上次可靠性数据对下次几乎没有意义。中间版本持续测试后，问题更容易对应到根源。</p>
+      <p class="body-zh muted">可靠性管理把代码测试覆盖度决定的不确定性限制，与用户可见问题控制结合起来，用来调节发布节奏。</p>
+    </div>
+  </div>
+  <div class="foot"><span>release cadence</span><span>27 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Config Changes" data-source="p221 配置文件修改">
+  <div class="chrome"><span>config changes</span><span>p221</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">配置文件也要按可靠性风险分类</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>配置类型</th><th>可靠性含义</th></tr></thead>
+          <tbody>
+            <tr><td>只在故障时修改</td><td>修改频率低于系统 MTBF，单次修改会引入很大不确定性。</td></tr>
+            <tr><td>比软件更新更频繁</td><td>如果测试和监控不够强，可能对可靠性产生重大负面影响。</td></tr>
+            <tr><td>经常修改的配置</td><td>需要足够覆盖度，发布前等待发布测试，并提供应急机制。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>config risk class</span><span>28 / 30</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Emergency And Probes" data-source="p221 至 p224 应急机制和生产环境探针">
+  <div class="chrome"><span>emergency and probes</span><span>p221 to p224</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">应急发布绕过测试后，反馈仍要尽快补回来</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">应急机制</h3><p class="body-zh">后台继续运行测试，把发布动作和执行中的测试关联起来，失败后快速标记发布事件。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">生产探针</h3><p class="body-zh">用确定请求检验生产组合。探针失败意味着前端 API 或后端 API 在测试环境和发布环境中不一致。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>fast feedback after bypass</span><span>29 / 30</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p225 小结">
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结</div>
+      <div class="grid-2">
+        <div class="line-box"><p class="body-zh">测试是工程师提高可靠性投入回报比最高的手段。</p></div>
+        <div class="line-box"><p class="body-zh">测试是持久活动，优质测试和测试基础框架都需要持续投入。</p></div>
+        <div class="line-box"><p class="body-zh">工程领域理解问题的方法是实际度量。</p></div>
+        <div class="line-box"><p class="body-zh">本章方法为度量失败与不确定性提供基础，帮助推演可靠性。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>p225</span><span>30 / 30</span></div>
+</section>
+</main>
+
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let index = Number(localStorage.getItem("sreChapter17Slide") || 0);
+if (!Number.isFinite(index) || index < 0 || index >= slides.length) index = 0;
+
+slides.forEach((_, i) => {
+  const dot = document.createElement("button");
+  dot.className = "nav-dot";
+  dot.type = "button";
+  dot.addEventListener("click", () => go(i));
+  nav.appendChild(dot);
+});
+
+function go(next) {
+  index = Math.max(0, Math.min(slides.length - 1, next));
+  deck.style.transform = `translateX(${-index * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+  Array.from(nav.children).forEach((dot, i) => dot.classList.toggle("active", i === index));
+  localStorage.setItem("sreChapter17Slide", String(index));
+}
+
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") go(index + 1);
+  if (event.key === "ArrowLeft" || event.key === "PageUp") go(index - 1);
+  if (event.key === "Home") go(0);
+  if (event.key === "End") go(slides.length - 1);
+});
+
+let touchStart = null;
+window.addEventListener("touchstart", event => {
+  touchStart = event.changedTouches[0].clientX;
+}, { passive: true });
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(index + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, { passive: true });
+
+go(index);
+</script>
+</body>
+</html>

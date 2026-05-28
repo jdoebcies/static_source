@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第24章 分布式周期性任务系统 note slides</title>
+<style>
+:root {
+  /* palette thesis: distributed cron is a scheduler under time pressure, so the deck uses graphite ink for failure risk, warm paper for operator notes, and clock amber for launch decisions. */
+  --ink: #1d2428;
+  --ink-rgb: 29,36,40;
+  --paper: #f7f2e8;
+  --paper-rgb: 247,242,232;
+  --accent: #b7792f;
+  --muted: #6f7a7d;
+  --warm: #7c6752;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #d5a866; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p327 章节标题 作者 编辑">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 24</div>
+      <h1 class="display-zh">分布式周期性任务系统</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Google 内部 Cron 如何从单机工具变成数据中心级基础服务。</p>
+      <p class="meta" style="margin-top:1.2vh">Stepan Davidovic</p>
+    </div>
+  </div>
+  <div class="foot"><span>p327</span><span>01 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Chapter Scope" data-source="p327 描述 Google 分布式 Cron 系统 问题 解决方案">
+  <div class="chrome"><span>chapter scope</span><span>p327</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Cron 看起来简单，放到 Google 规模后会暴露分布式系统问题。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章先讲单机 Cron，再讨论大型分布式环境下如何避开单物理机造成的单点故障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>distributed cron</span><span>02 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cron Basics" data-source="p327 p328 crontab 格式 crond 守护进程">
+  <div class="chrome"><span>classic cron</span><span>p327 p328</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">常规 Cron 的核心很小：时间表加守护进程</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">定义</h3><p class="small-zh">用户指定某时某刻运行某个指令。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">格式</h3><p class="small-zh">crontab 支持简单周期，也支持复杂组合。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">加载</h3><p class="small-zh">crond 读取任务定义列表。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">等待</h3><p class="small-zh">守护进程等到对应时间。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">启动</h3><p class="small-zh">到点后启动对应用户任务。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>crontab and crond</span><span>03 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Single Machine Reliability" data-source="p328 Cron 服务故障域 单台物理机器 crontab 配置文件">
+  <div class="chrome"><span>single host boundary</span><span>p328</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">单机 Cron 的故障域就是那台机器</h2>
+      <p class="lead-zh">机器没有运行，Cron 服务和用户任务都不会运行。</p>
+      <p class="body-zh muted">crond 重启时唯一需要保存的状态是 crontab 配置文件。任务启动后，Cron 进程不会继续追踪任务状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>failure domain</span><span>04 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Anacron Exception" data-source="p328 anacron 上次运行时间 宕机时间">
+  <div class="chrome"><span>anacron exception</span><span>p328</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">anacron 只补回较低频的错过任务</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">触发</h3><p class="body-zh">系统恢复运行时，尝试运行宕机期间本应运行的程序。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">范围</h3><p class="body-zh">只适合每天一次或更短周期的任务。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">状态</h3><p class="body-zh">把所有已注册任务的上次运行时间记录在文件中。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>missed jobs</span><span>05 / 34</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Idempotency Range" data-source="p328 p329 垃圾回收 E mail 通知 工资计算">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">Cron 任务的可靠性要求差异很大。</div>
+      <p class="body-zh muted" style="margin-top:2vh">垃圾回收可以多跑一次，批量发送 E mail 通知不应该多跑，每月工资计算不应该被跳过。</p>
+    </div>
+  </div>
+  <div class="foot"><span>task semantics</span><span>06 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Fail Close" data-source="p329 跳过执行 执行两次 失效关闭">
+  <div class="chrome"><span>fail close</span><span>p329</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">通用取舍是宁可跳过，也要避免系统性重复执行</h2>
+      <p class="lead-zh">任务没执行通常更容易修复，任务执行两次造成的问题经常更难恢复。</p>
+      <p class="body-zh muted">Cron 任务所有者应监控自己的任务，包括 Cron 暴露的状态和任务执行效果。</p>
+    </div>
+  </div>
+  <div class="foot"><span>prefer omission</span><span>07 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Scale Pressure" data-source="p329 p330 1000 台物理机 单台物理机 1 比 1000">
+  <div class="chrome"><span>scale pressure</span><span>p329 p330</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">在 1000 台机器的数据中心里，单机 Cron 会把一次机器不可用放大成整个 Cron 不可用。</div>
+      <p class="body-zh muted" style="margin-top:2vh">大规模部署要求 Cron 分布到多台机器上，并重新定义任务启动和状态追踪。</p>
+    </div>
+  </div>
+  <div class="foot"><span>one host is enough</span><span>08 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Decouple Process" data-source="p330 进程与物理机器分开 任务分发系统 RPC">
+  <div class="chrome"><span>decoupled process</span><span>p330</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">可靠性提升的第一步，是把进程和机器解耦</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">声明</h3><p class="small-zh">指定服务资源要求和运行的数据中心。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">分配</h3><p class="small-zh">数据中心任务分发系统决定运行机器。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">迁移</h3><p class="small-zh">物理机故障后重新安排服务位置。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">启动</h3><p class="small-zh">安装软件并启动新的进程。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">调用</h3><p class="small-zh">运行任务等于向分发器发送 RPC。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>scheduler dependency</span><span>09 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Migration Delay" data-source="p330 健康检查超时 本地状态丢失 一分钟 热备任务">
+  <div class="chrome"><span>migration delay</span><span>p330</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">迁移过程会同时带来状态丢失和启动延迟</h2>
+      <p class="lead-zh">故障发现、重新分发、安装软件和启动进程都需要时间，可能超过 Cron 的一分钟最小间隔。</p>
+      <p class="body-zh muted">把状态放到 GFS 可以帮助补跑迁移期间漏掉的任务，但对每 5 分钟一次的任务来说，一两分钟延迟仍可能不可接受，因此需要热备任务及时介入。</p>
+    </div>
+  </div>
+  <div class="foot"><span>hot standby</span><span>10 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Resource Isolation" data-source="p330 p331 容器 资源隔离 记录全过程">
+  <div class="chrome"><span>resource isolation</span><span>p330 p331</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">数据中心级 Cron 必须提前知道每个进程的资源需求</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">隔离</h3><p class="body-zh">进程通常部署到容器中，避免独立进程互相影响。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">追踪</h3><p class="body-zh">资源要求和用户监控需要让 Cron 记录任务从预计执行到终止的全过程。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>container boundary</span><span>11 / 34</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Partial Start" data-source="p331 部分启动 多个 RPC 部分故障">
+  <div class="chrome"><span>partial start</span><span>p331</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">启动任务可能只成功了一半。</div>
+      <p class="body-zh muted" style="margin-top:2vh">某些 Cron 任务启动需要多个 RPC，可能出现一个 RPC 成功而另一个失败，故障恢复必须处理这种部分启动状态。</p>
+    </div>
+  </div>
+  <div class="foot"><span>rpc boundary</span><span>12 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Failure Domain Choice" data-source="p331 部分供电故障 存储系统故障 单独数据中心">
+  <div class="chrome"><span>failure domain choice</span><span>p331</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Cron 依赖增多后，副本要分散，范围要克制</h2>
+      <p class="lead-zh">基础服务需要在数据中心部分供电或存储故障时继续工作，因此调度器副本要分散运行。</p>
+      <p class="body-zh muted">把 Cron 放在单个数据中心内有低延迟和共享故障域的好处，因为数据中心任务分发系统是核心依赖。</p>
+    </div>
+  </div>
+  <div class="foot"><span>single datacenter</span><span>13 / 34</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="State Consistency" data-source="p331 跟踪 Cron 任务状态 状态一致性">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">Cron 状态的一致性是关键问题。</div>
+      <p class="body-zh muted" style="margin-top:2vh">非幂等任务让状态追踪不能只追求可用，还必须知道任务是否已经被启动。</p>
+    </div>
+  </div>
+  <div class="foot"><span>consistent state</span><span>14 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="State Storage Choice" data-source="p331 p332 外部分布式存储 系统内部状态 小型写操作">
+  <div class="chrome"><span>state storage</span><span>p331 p332</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google 选择让 Cron 自己保存少量关键状态</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>方案</th><th>材料里的问题</th><th>设计取向</th></tr></thead>
+          <tbody>
+            <tr><td>外部分布式存储</td><td>GFS 和 HDFS 适合大文件，小型写操作开销和延迟都高。</td><td>不适合作为频繁状态写入路径。</td></tr>
+            <tr><td>系统内部状态</td><td>状态量很小，Cron 又是基础服务。</td><td>减少下游依赖，让数据中心部分故障时仍能服务更多内部用户。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>dependency budget</span><span>15 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Paxos Leader" data-source="p332 多个副本 Paxos Fast Paxos 单独领头人任务">
+  <div class="chrome"><span>paxos leader</span><span>p332</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">多个 Cron 副本用 Paxos 保持共享状态一致</h2>
+      <p class="lead-zh">只要整个组中大多数成员可用，系统就可以顺利进行状态变更。</p>
+      <p class="body-zh muted">分布式 Cron 使用单独的领头人任务，只有这个副本可以修改共享状态，也只有它可以启动 Cron 任务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>fast paxos</span><span>16 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Leader Failover" data-source="p333 健康检查 几秒 新领头人 一分钟故障时间">
+  <div class="chrome"><span>leader failover</span><span>p333</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">领头人崩溃后，系统目标是在一分钟内接管</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">发现</h3><p class="body-zh">Paxos 小组健康检查通常几秒内发现问题。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">选举</h3><p class="body-zh">已有多个 Cron 进程处于启动状态，可以快速选出新领头人。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">接手</h3><p class="body-zh">新领头人完成额外操作，接手前任未完成工作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>one minute budget</span><span>17 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Leader Scheduler" data-source="p333 领头人角色 内置调度器 预期执行时间 唯一标识符">
+  <div class="chrome"><span>leader scheduler</span><span>p333</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">领头人调度任务时，必须把某次启动时间记成唯一标识</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">排序</h3><p class="small-zh">按预定启动时间维护任务列表。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">等待</h3><p class="small-zh">在第一个任务的预期执行时间前等待。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">宣布</h3><p class="small-zh">到点后宣布将要启动该任务。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">计算</h3><p class="small-zh">计算新的下次启动时间。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">标识</h3><p class="small-zh">用启动时间避免高频任务记录歧义。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>launch identity</span><span>18 / 34</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Sync Before Launch" data-source="p334 Paxos 通信同步 法定仲裁 实际启动">
+  <div class="chrome"><span>synchronous paxos</span><span>p334</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">实际启动必须等 Paxos 法定仲裁完成。</div>
+      <p class="body-zh muted" style="margin-top:2vh">如果通知异步进行，旧领头人可能已经完成启动，新领头人在故障切换后却不知道，于是重新启动同一个任务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>quorum before action</span><span>19 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Leader Exclusivity" data-source="p334 失去领头人角色 立刻终止 数据中心任务分发系统">
+  <div class="chrome"><span>leader exclusivity</span><span>p334</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">失去领头人身份后，进程必须立刻停止和任务分发系统交互</h2>
+      <p class="lead-zh">领头人角色必须意味着对数据中心级任务分发服务的独占性。</p>
+      <p class="body-zh muted">否则旧领头人可能和新领头人同时进行冲突操作。</p>
+    </div>
+  </div>
+  <div class="foot"><span>exclusive actor</span><span>20 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Follower Role" data-source="p335 追随者角色 状态改变 未完成启动">
+  <div class="chrome"><span>follower role</span><span>p335</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">追随者持续维护同一份任务列表，随时准备接替</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">同步状态</h3><p class="body-zh">所有状态改变都由领头人通过 Paxos 传递，任务列表在所有副本中保持一致。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">记录启动</h3><p class="body-zh">收到启动通知后更新下次预计启动时间，同时记录所有未完成启动。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>standby state</span><span>21 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Two Sync Points" data-source="p335 p336 启动执行之前 启动执行之后 RPC 是否成功发送">
+  <div class="chrome"><span>two sync points</span><span>p335 p336</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">每次任务启动有两个同步点，用来界定部分失败</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>同步点</th><th>它回答的问题</th><th>失败窗口</th></tr></thead>
+          <tbody>
+            <tr><td>启动执行之前</td><td>系统知道这次具体启动将要发生。</td><td>标记后，外部 RPC 可能没有成功完成。</td></tr>
+            <tr><td>启动执行之后</td><td>系统知道 Cron 已经尝试过这次启动。</td><td>领头人可能在结束通知前崩溃。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>partial failure marker</span><span>22 / 34</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Recovery Prerequisite" data-source="p336 幂等 查询外部系统状态 无疑义">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">故障后继续外部操作，必须满足幂等或可查询。</div>
+      <p class="body-zh muted" style="margin-top:2vh">系统要么能安全重试外部操作，要么能无疑义地查询外部状态判断操作是否成功。</p>
+    </div>
+  </div>
+  <div class="foot"><span>recovery condition</span><span>23 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Deterministic Names" data-source="p336 预计算任务名称 预期启动时间 双重启动">
+  <div class="chrome"><span>deterministic names</span><span>p336</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">预计算任务名称，把 Cron 状态和调度器状态接起来</h2>
+      <p class="lead-zh">新的领头人可以用预先构建的一致任务名称，查询启动过程中崩溃前留下的外部任务状态。</p>
+      <p class="body-zh muted">任务名称也要包含本次预期启动时间，避免高频短任务完成后被误认为没有启动过。</p>
+    </div>
+  </div>
+  <div class="foot"><span>launch name</span><span>24 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Risk Choice" data-source="p337 双重启动 错过启动 具体基础设施">
+  <div class="chrome"><span>risk choice</span><span>p337</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">实现者最终要在双重启动和错过启动之间做取舍。</div>
+      <p class="body-zh muted" style="margin-top:2vh">状态查询在实际实现中可能很复杂，具体取决于底层基础设施细节。</p>
+    </div>
+  </div>
+  <div class="foot"><span>infrastructure detail</span><span>25 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Paxos Log" data-source="p337 Paxos 日志 新增 日志压缩 快照">
+  <div class="chrome"><span>paxos log</span><span>p337</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Paxos 共识之后，还要管理日志增长和持久化</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>问题</th><th>材料里的处理</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td>日志无限增长</td><td>定期把当前状态做成快照。</td><td>不再需要回放所有历史状态改变。</td></tr>
+            <tr><td>日志丢失</td><td>只丢失上次快照后的信息。</td><td>Cron 会回到上次快照时间。</td></tr>
+            <tr><td>快照丢失</td><td>内部状态全部丢失，需要从零开始。</td><td>快照是最重要的状态信息。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>snapshot boundary</span><span>26 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Storage Compromise" data-source="p337 p338 本地磁盘 三份日志 分布式存储 快照备份">
+  <div class="chrome"><span>storage compromise</span><span>p337 p338</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">日志放本地，快照做备份，这是性能和恢复之间的折中</h2>
+      <p class="lead-zh">标准情况下三个副本运行，日志和快照保存在本地磁盘，关键快照同时备份到分布式存储。</p>
+      <p class="body-zh muted">直接把日志放在分布式文件系统会受到大量小型写操作拖累。材料认为丢失一小段最近日志是可接受风险。</p>
+    </div>
+  </div>
+  <div class="foot"><span>local logs</span><span>27 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Replica Bootstrap" data-source="p338 启动副本 获得最新快照和日志 物理机器状态">
+  <div class="chrome"><span>replica bootstrap</span><span>p338</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">新副本可以从正在运行的副本拿到最新快照和日志。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这个能力让启动过程不依赖本地物理机器状态，副本重启、重新调度或迁移不会影响服务稳定性。</p>
+    </div>
+  </div>
+  <div class="foot"><span>state transfer</span><span>28 / 34</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Thundering Herd" data-source="p338 惊群效应 每日任务 午夜 MapReduce">
+  <div class="chrome"><span>thundering herd</span><span>p338</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">大型 Cron 的日常风险之一，是用户把每日任务集中到同一个时刻。</div>
+      <p class="body-zh muted" style="margin-top:2vh">午夜任务在单机上也许可行，但数千个 MapReduce 工作进程再叠加几十个团队，就会制造数据中心用量峰值。</p>
+    </div>
+  </div>
+  <div class="foot"><span>load spike</span><span>29 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Question Mark Extension" data-source="p339 问号 任意一个值 Cron 系统自行选择时间">
+  <div class="chrome"><span>schedule spreading</span><span>p339</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">Google 在 crontab 中加入问号，让系统自行选择可接受时间</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">普通格式</h3><p class="body-zh">用户显式写分钟、小时、日期、月份和周内日期，也可以用星号表示任意值。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">扩展格式</h3><p class="body-zh">问号表示任意一个值都可以接受，Cron 可以按需要把任务分散到时间序列里。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>crontab extension</span><span>30 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Load Peaks Remain" data-source="p339 全球 Cron 任务启动数量 负载峰值 特定时间">
+  <div class="chrome"><span>load peaks remain</span><span>p339</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">即使能摊平一部分任务，Cron 负载仍会出现尖峰</h2>
+      <p class="lead-zh">图 24 3 展示了 Google 全球 Cron 任务启动数量中的经常性峰值。</p>
+      <p class="body-zh muted">某些任务必须在特定时间启动，原因可能来自对外部事件的临时依赖。</p>
+    </div>
+  </div>
+  <div class="foot"><span>global cron starts</span><span>31 / 34</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p340 小结 数据中心 最小硬件单元 Paxos 强一致性">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">数据中心成为最小硬件单元后，Cron 也必须重写自己的可靠性模型。</div>
+      <p class="body-zh muted" style="margin-top:2vh">Google 的新设计建立在服务必要属性和任务具体需求之上，核心需要分布式环境下的强一致性保障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p340</span><span>32 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary One" data-source="p328 p329 p335 p336 任务语义 状态追踪 部分启动">
+  <div class="chrome"><span>core notes</span><span>p328 p336</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结 1</div>
+      <h2 class="h1-zh">分布式 Cron 的难点来自任务语义和启动边界</h2>
+      <div class="grid-2">
+        <div class="line-box"><h3 class="h2-zh accent">任务语义</h3><p class="body-zh">同样是周期任务，有的可跳过，有的不可跳过，有的绝不能重复。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">启动边界</h3><p class="body-zh">多 RPC 启动可能停在中间状态，恢复时必须知道该重试还是确认完成。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>task semantics</span><span>33 / 34</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary Two" data-source="p332 p337 p338 p339 Paxos 快照 惊群效应">
+  <div class="chrome"><span>core notes</span><span>p332 p339</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <div class="summary-num">核心总结 2</div>
+      <h2 class="h1-zh">可靠 Cron 同时需要共识、状态压缩和负载治理</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">共识</h3><p class="body-zh">Paxos 让多个副本在任务启动状态上保持一致。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">状态</h3><p class="body-zh">日志需要压缩，快照需要备份，新副本需要快速追上。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">运维</h3><p class="body-zh">问号扩展能分散部分任务，但特定时间启动仍会产生负载峰值。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operating cron</span><span>34 / 34</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-24-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-24-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

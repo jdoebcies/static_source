@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第2章 Google 生产环境 SRE视角</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #17202d;
+  --ink-rgb: 23,32,45;
+  --paper: #f7f5ef;
+  --paper-rgb: 247,245,239;
+  --accent: #1f6f8b;
+  --accent-rgb: 31,111,139;
+  --muted: #687282;
+  --serif-zh: "Noto Serif SC", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .7s cubic-bezier(.77,0,.175,1); z-index: 10; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem,5vw,5.5rem) clamp(2rem,6vw,6.5rem) clamp(1.5rem,3vw,3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem,7vw,7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem,4.4vw,4.2rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.55rem,3vw,2.75rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.45rem,2vw,2rem); line-height: 1.5; }
+.body-zh { font-family: var(--sans-zh); font-weight: 400; font-size: clamp(1.28rem,1.5vw,1.72rem); line-height: 1.55; }
+.small-zh { font-size: clamp(1rem,1.12vw,1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.78rem,.88vw,1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: clamp(.8rem,1.6vh,1.2rem); }
+.meta { font-family: var(--mono); font-size: clamp(.75rem,.82vw,.94rem); letter-spacing: .1em; text-transform: uppercase; opacity: .58; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: 1rem; font-family: var(--mono); font-size: clamp(.74rem,.8vw,.9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.note-stack { width: var(--w-default); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(1.7rem,3.8vh,3.4rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem,3vw,3rem); align-items: center; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: clamp(1rem,2.2vw,2rem); }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(.9rem,1.8vw,1.6rem); }
+.cardless { border-top: 1px solid rgba(var(--accent-rgb),.38); padding-top: clamp(1rem,2vh,1.5rem); }
+.slide.dark .cardless { border-top-color: rgba(var(--paper-rgb),.22); }
+.soft { color: rgba(var(--ink-rgb),.6); }
+.slide.dark .soft { color: rgba(var(--paper-rgb),.68); }
+.accent { color: var(--accent); }
+.slide.dark .accent { color: #7bc0d5; }
+.callout { font-family: var(--serif-zh); font-size: clamp(2rem,3.2vw,3.45rem); line-height: 1.42; }
+.callout-mark { position: relative; padding-top: clamp(1.5rem,3vh,2.2rem); }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem,.75vw,.85rem); height: clamp(.5rem,.75vw,.85rem); background: var(--accent); opacity: .75; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; }
+.guest-mark::before { content: ""; width: clamp(2.4rem,4em,4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem,3vh,2.4rem); }
+.timeline-row { position: relative; display: grid; gap: clamp(.9rem,1.8vw,1.6rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.9rem,1.5vh,1.35rem); left: 6%; right: 6%; height: 1px; background: rgba(var(--ink-rgb),.12); z-index: 0; }
+.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb),.14); }
+.timeline-node { position: relative; z-index: 1; }
+.slide.light .timeline-node .meta { background: var(--paper); padding-right: .6rem; }
+.slide.dark .timeline-node .meta { background: var(--ink); padding-right: .6rem; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem,6.5vw,6rem); font-weight: 700; color: var(--accent); line-height: .95; }
+.stat-num { font-family: var(--serif-zh); font-size: clamp(5rem,12vw,11rem); font-weight: 900; line-height: .9; color: var(--accent); }
+.table-wrap { width: var(--w-wide); margin: 0 auto; display: flex; flex-direction: column; gap: clamp(1.4rem,3.4vh,2.6rem); }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0 clamp(.45rem,1vh,.8rem); font-size: clamp(1.05rem,1.18vw,1.38rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.75rem,1.15vw,1.1rem) clamp(.8rem,1.3vw,1.3rem); text-align: left; vertical-align: top; }
+.data-table th { font-family: var(--mono); font-size: clamp(.72rem,.78vw,.9rem); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(var(--accent-rgb),.08); }
+.data-table td { background: rgba(var(--ink-rgb),.045); }
+.diagram { display: grid; gap: clamp(.8rem,1.5vw,1.3rem); font-size: clamp(.95rem,1.06vw,1.2rem); line-height: 1.35; }
+.diagram-box { border: 1px solid rgba(var(--accent-rgb),.42); background: rgba(var(--accent-rgb),.075); padding: clamp(.75rem,1.1vw,1.05rem); border-radius: 8px; }
+.slide.dark .diagram-box { border-color: rgba(var(--paper-rgb),.24); background: rgba(var(--paper-rgb),.07); }
+.diagram-pill { display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(var(--accent-rgb),.45); border-radius: 999px; padding: clamp(.4rem,.7vw,.65rem) clamp(.65rem,1vw,.95rem); background: rgba(var(--paper-rgb),.7); }
+.slide.dark .diagram-pill { background: rgba(var(--paper-rgb),.08); border-color: rgba(var(--paper-rgb),.28); }
+.nested-campus { background: linear-gradient(180deg,#cfe8f0 0%,#cfe8f0 22%,#93b66f 22%,#93b66f 48%,#b59a38 48%,#b59a38 100%); border: 1px solid rgba(var(--ink-rgb),.22); min-height: clamp(19rem,40vh,28rem); padding: clamp(1rem,2vw,1.8rem); display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem,2vw,1.8rem); align-items: end; }
+.datacenter { background: rgba(var(--paper-rgb),.86); border: 1px solid rgba(var(--ink-rgb),.24); padding: clamp(.75rem,1.2vw,1rem); }
+.cluster-row { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-top: .7rem; }
+.rack-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: .12rem; margin-top: .45rem; }
+.rack-grid span { height: clamp(.6rem,1vw,.9rem); background: rgba(var(--ink-rgb),.62); }
+.flow { display: flex; align-items: center; gap: clamp(.5rem,1vw,1rem); flex-wrap: wrap; }
+.arrow { color: var(--accent); opacity: .9; font-family: var(--mono); }
+#nav { position: fixed; left: 50%; bottom: 2.1vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); }
+#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.35); border: 0; padding: 0; cursor: pointer; transition: all .25s ease; }
+#nav .dot.active { width: 20px; border-radius: 999px; background: rgba(255,255,255,.95); }
+.anim-item { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+.slide.active .anim-item { opacity: 1; transform: translateY(0); }
+.slide.active .anim-item:nth-child(1) { transition-delay: .04s; }
+.slide.active .anim-item:nth-child(2) { transition-delay: .14s; }
+.slide.active .anim-item:nth-child(3) { transition-delay: .24s; }
+.slide.active .anim-item:nth-child(4) { transition-delay: .34s; }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.25rem 1.4rem; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .nested-campus { grid-template-columns: 1fr; min-height: auto; }
+  .table-wrap { width: 100%; }
+  .data-table { font-size: clamp(.95rem,3.5vw,1.1rem); }
+}
+</style>
+</head>
+<body>
+<div id="deck">
+
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p41 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body" style="align-items:center">
+    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.3rem,3vh,2.3rem)">
+      <div class="kicker anim-item accent" style="opacity:1">SRE Book Chapter 02</div>
+      <h1 class="display-zh anim-item">Google 生产环境<br>SRE 视角</h1>
+      <p class="lead-zh anim-item soft" style="max-width:25em">这一章把后续章节反复使用的生产环境名词先放到同一张地图上</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>JC van Winkel</div><div>p41 to p53</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Machine Server Split" data-source="p41 p42 machine server Borg">
+  <div class="chrome"><div>抽象边界 · 硬件</div><div>02 / 21</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">Google 先把物理服务器和软件服务器拆开</h2>
+      <div class="grid-3">
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Machine</div><p class="body-zh">代表具体硬件，有时也代表一个虚拟机。硬件配置在数据中心内大体一致。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Server</div><p class="body-zh">代表对外提供服务的软件系统。它可以运行在任何合适的物理服务器上。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Borg</div><p class="body-zh">集群管理系统负责分配资源，避免把业务服务绑定到某台固定机器。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p41 p42</div><div>02 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Datacenter Topology" data-source="p42 图2 1">
+  <div class="chrome"><div>结构图 · 园区拓扑</div><div>03 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-wide grid-2">
+      <div class="anim-item">
+        <h2 class="h1-zh" style="max-width:10em">拓扑从机柜一直放大到园区</h2>
+        <p class="body-zh soft" style="max-width:20em;margin-top:1.4rem">章节先给出物理层级，因为后面的故障域、调度和容量规划都要落在这些边界上。</p>
+      </div>
+      <div class="nested-campus anim-item">
+        <div class="datacenter">
+          <div class="meta accent" style="opacity:1">Datacenter</div>
+          <div class="cluster-row">
+            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+          </div>
+        </div>
+        <div class="datacenter">
+          <div class="meta accent" style="opacity:1">Datacenter</div>
+          <div class="cluster-row">
+            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>约10台机器成机柜，多个数据中心成园区</div><div>03 / 21</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Jupiter B4" data-source="p43 Jupiter B4">
+  <div class="chrome"><div>网络底座 · Jupiter 与 B4</div><div>04 / 21</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">数据中心内部和数据中心之间，各有一层网络抽象</h2>
+      <div class="grid-2">
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Jupiter</div><p class="body-zh">几百台自制交换机用 Clos 连接方式组成一个高速虚拟交换机，最大数据中心可提供 1.3 Pb/s 交叉带宽。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">B4</div><p class="body-zh">全球骨干网基于 SDN 和 OpenFlow，使用动态带宽管理优化连接，提升平均带宽利用。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p43</div><div>04 / 21</div></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Failure Isolation" data-source="p43 硬件故障">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item accent" style="opacity:1">Operational Premise</div>
+      <h2 class="h1-zh anim-item">硬件故障不是异常事件，而是日常背景噪声</h2>
+      <p class="body-zh anim-item soft" style="max-width:23em;margin:clamp(1.4rem,3vh,2.4rem) auto 0">一个集群一年内会有几千起机器损坏和几千块硬盘损失，业务团队不能每天处理这些事。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p43</div><div>05 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Borg Control Loop" data-source="p43 p44 图2 2 Borg">
+  <div class="chrome"><div>结构图 · Borg</div><div>06 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-wide grid-2">
+      <div class="anim-item">
+        <h2 class="h1-zh" style="max-width:10em">Borg 把任务实例安放到集群机器上</h2>
+        <p class="body-zh soft" style="max-width:20em;margin-top:1.4rem">任务可以是长期运行的软件服务器，也可以是 MapReduce 这类批处理任务。</p>
+      </div>
+      <div class="diagram anim-item">
+        <div class="flow">
+          <div class="diagram-pill">用户提交 Job</div><span class="arrow">→</span><div class="diagram-pill">Borg 主节点</div><span class="arrow">→</span><div class="diagram-pill">资源计划</div>
+        </div>
+        <div class="grid-3">
+          <div class="diagram-box"><div class="meta accent" style="opacity:1">Task 1</div><p>机器 A 上启动，异常时终止并重启。</p></div>
+          <div class="diagram-box"><div class="meta accent" style="opacity:1">Task 2</div><p>机器 B 上启动，承接同一任务流量。</p></div>
+          <div class="diagram-box"><div class="meta accent" style="opacity:1">Task N</div><p>可扩展到几千个实例，支撑冗余和吞吐。</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>运行 监控 终止 重启</div><div>06 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="BNS Addressing" data-source="p44 p45 BNS">
+  <div class="chrome"><div>名称解析 · BNS</div><div>07 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-note" style="text-align:center">
+      <div class="kicker anim-item accent" style="opacity:1">Borg Name Service</div>
+      <h2 class="h1-zh anim-item">实例不固定在机器上，地址也不能写死</h2>
+      <p class="lead-zh anim-item soft" style="max-width:24em;margin:1.5rem auto 0">BNS 给每个任务实例分配名字和编号，再解析到当前 IP 地址与端口。</p>
+      <div class="diagram-box anim-item" style="margin:clamp(1.6rem,3vh,2.4rem) auto 0;max-width:42em;font-family:var(--mono);font-size:clamp(1.1rem,1.4vw,1.55rem)">/bns/集群名/用户名/任务名/实例名<br><span class="arrow">→</span> IP 地址:端口</div>
+    </div>
+  </div>
+  <div class="foot"><div>p44 p45</div><div>07 / 21</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Resource Discipline" data-source="p45 资源 故障域">
+  <div class="chrome"><div>调度约束 · 资源与故障域</div><div>08 / 21</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">调度器同时追求利用率和故障隔离</h2>
+      <div class="grid-3">
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">资源声明</div><p class="body-zh">任务配置声明 CPU 和内存，Borg 据此把实例合理塞进物理机器。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">故障域</div><p class="body-zh">同一任务的全部实例不会放在同一机柜上，避免机柜交换机成为单点故障源。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">资源越界</div><p class="body-zh">实例超出分配范围会被杀掉并重启，慢速重启优于长期泄露资源。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p45</div><div>08 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Storage Stack" data-source="p45 p46 图2 3">
+  <div class="chrome"><div>结构图 · 存储系统</div><div>09 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-wide grid-2">
+      <div class="diagram anim-item" style="text-align:center">
+        <div class="diagram-box">Bigtable<br><span class="small-zh soft">NoSQL 与 PB 级数据</span></div>
+        <div class="flow" style="justify-content:center"><span class="arrow">↙</span><div class="diagram-box">Colossus<br><span class="small-zh soft">集群文件系统 复制 加密</span></div><span class="arrow">↘</span></div>
+        <div class="grid-3">
+          <div class="diagram-box">Spanner<br><span class="small-zh soft">SQL 与一致性</span></div>
+          <div class="diagram-box">D<br><span class="small-zh soft">磁盘和 SSD 文件服务</span></div>
+          <div class="diagram-box">Blobstore<br><span class="small-zh soft">按场景选择</span></div>
+        </div>
+      </div>
+      <div class="anim-item">
+        <h2 class="h1-zh" style="max-width:10em">永久数据通过集群级存储承接</h2>
+        <p class="body-zh soft" style="max-width:21em;margin-top:1.4rem">本地硬盘主要用于临时文件，底层 D 服务分布在几乎所有机器上，用户面向 Colossus 和数据库服务工作。</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p45 p46</div><div>09 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Network Control" data-source="p46 p47 BwE GSLB">
+  <div class="chrome"><div>控制平面 · 网络与流量</div><div>10 / 21</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">网络也被当成可调度资源</h2>
+      <table class="data-table anim-item">
+        <thead><tr><th>组件</th><th>职责</th><th>SRE 视角</th></tr></thead>
+        <tbody>
+          <tr><td>SDN 控制器</td><td>用集中化且有备份的控制器计算最佳路径</td><td>把复杂路由从交换硬件中抽离</td></tr>
+          <tr><td>BwE</td><td>管理全部可用带宽</td><td>像 Borg 管 CPU 一样管网络</td></tr>
+          <tr><td>GSLB</td><td>在 DNS、用户服务、RPC 三层分配流量</td><td>把请求导向有容量且更近的位置</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p46 p47</div><div>10 / 21</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Chubby" data-source="p47 p48 Chubby">
+  <div class="chrome"><div>一致性工具 · Chubby</div><div>11 / 21</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:12em">强一致的小状态需要单独的基础设施</h2>
+      <div class="grid-3">
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">锁 API</div><p class="body-zh">Chubby 提供类似文件系统的锁操作接口，可处理异地和跨机房请求。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Paxos</div><p class="body-zh">它用 Paxos 提供分布式一致性，适合要求很高的小规模关键数据。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">主实例选举</div><p class="body-zh">五个冗余实例可通过 Chubby 自动选出一个主实例处理对外请求。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>BNS 路径映射也使用 Chubby</div><div>11 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Borgmon" data-source="p48 Borgmon">
+  <div class="chrome"><div>观测 · Borgmon</div><div>12 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-default grid-2">
+      <div class="anim-item">
+        <div class="stat-num">3</div>
+        <h2 class="h2-zh" style="max-width:10em;margin-top:1rem">监控指标有三种主要用途</h2>
+      </div>
+      <div class="diagram anim-item">
+        <div class="diagram-box"><strong>真实问题报警</strong><p class="small-zh soft">把用户会感知的问题推到值班链路。</p></div>
+        <div class="diagram-box"><strong>版本前后对比</strong><p class="small-zh soft">判断新版本是否更快或更稳。</p></div>
+        <div class="diagram-box"><strong>资源趋势计划</strong><p class="small-zh soft">观察资源使用随时间变化，支撑容量规划。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p48</div><div>12 / 21</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Software Infrastructure" data-source="p48 p49 RPC Protobuf">
+  <div class="chrome"><div>软件基础设施 · RPC</div><div>13 / 21</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">服务默认通过 RPC 连接，调试和监控也内置到进程里</h2>
+      <div class="grid-3">
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">多线程</div><p class="body-zh">代码库大量采用多线程，一个任务实例可以同时利用多个 CPU。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">HTTP 调试</div><p class="body-zh">每个软件服务器内置 HTTP 服务，暴露调试信息和统计信息。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Protobuf</div><p class="body-zh">比 XML 更小更快，数据大小小 3 到 10 倍，序列化速度快 100 倍。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>Stubby gRPC Protobuf</div><div>13 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Development Pipeline" data-source="p49 研发环境">
+  <div class="chrome"><div>研发环境 · 仓库与测试</div><div>14 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,4rem)">生产环境的可靠性从提交链路开始</h2>
+      <div class="timeline-row grid-4">
+        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">共享仓库</div><p class="body-zh">除部分开源项目外，工程师使用同一个共享软件仓库。</p></div>
+        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">CL</div><p class="body-zh">跨项目基础组件问题也可以直接修改并提交评审。</p></div>
+        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">并行编译</div><p class="body-zh">编译请求发往数据中心里的编译服务器并行处理。</p></div>
+        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">持续测试</div><p class="body-zh">被 CL 直接或间接影响的测试都会运行，部分项目测试通过后自动部署。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p49</div><div>14 / 21</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Shakespeare Service" data-source="p49 p50 莎士比亚搜索">
+  <div class="chrome"><div>示范服务 · 两个部分</div><div>15 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-wide grid-2">
+      <div class="anim-item">
+        <h2 class="h1-zh" style="max-width:10em">假想搜索服务把基础设施串起来</h2>
+        <p class="body-zh soft" style="max-width:20em;margin-top:1.4rem">章节用莎士比亚搜索展示一个服务怎样利用索引、存储、前端、负载均衡和 RPC。</p>
+      </div>
+      <div class="diagram anim-item">
+        <div class="diagram-box"><div class="meta accent" style="opacity:1">Batch</div><p>Map 阶段分词，Shuffle 阶段排序，Reduce 阶段合并位置列表，最终写入 Bigtable。</p></div>
+        <div class="diagram-box"><div class="meta accent" style="opacity:1">Frontend</div><p>长期运行，接收全球用户请求，再调用后端查询 Bigtable 中的索引。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p49 p50</div><div>15 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Request Flow" data-source="p50 p51 图2 4">
+  <div class="chrome"><div>结构图 · 用户请求链路</div><div>16 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-wide">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(1.6rem,4vh,3rem)">一次请求穿过 DNS、GFE、GSLB、RPC 和 Bigtable</h2>
+      <div class="diagram anim-item">
+        <div class="flow" style="justify-content:center">
+          <div class="diagram-pill">用户浏览器</div><span class="arrow">①</span><div class="diagram-pill">Google DNS</div><span class="arrow">→</span><div class="diagram-pill">GSLB</div>
+        </div>
+        <div class="flow" style="justify-content:center">
+          <div class="diagram-pill">GFE</div><span class="arrow">②</span><div class="diagram-pill">Shakespeare 前端</div><span class="arrow">③④</span><div class="diagram-pill">Shakespeare 后端</div><span class="arrow">⑤</span><div class="diagram-pill">Bigtable</div>
+        </div>
+        <div class="grid-3">
+          <div class="diagram-box">GFE 终结 TCP 连接，并按配置反向代理到真实服务。</div>
+          <div class="diagram-box">前端构造 Protobuf 查询，再通过 GSLB 获取可用后端 BNS 地址。</div>
+          <div class="diagram-box">后端读取 Bigtable，结果沿 Protobuf 结构返回，前端生成 HTML。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p50 p51</div><div>16 / 21</div></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Reliability Chain" data-source="p52 几百毫秒 GSLB">
+  <div class="slide-body" style="align-items:center;text-align:center">
+    <div class="w-quote guest-mark">
+      <div class="kicker anim-item accent" style="opacity:1">Reliability Chain</div>
+      <h2 class="h1-zh anim-item">几百毫秒背后是一串必须可靠的组件</h2>
+      <p class="body-zh anim-item soft" style="max-width:24em;margin:clamp(1.4rem,3vh,2.4rem) auto 0">GSLB 出问题会造成严重故障，所以测试、灰度发布和主动优雅降级成为链路的一部分。</p>
+    </div>
+  </div>
+  <div class="foot" style="width:100%"><div>p52</div><div>17 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Capacity Math" data-source="p52 100 QPS 3470 QPS N+2">
+  <div class="chrome"><div>容量计算 · N+2</div><div>18 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-default grid-2">
+      <div class="anim-item">
+        <div class="stat-num">37</div>
+        <h2 class="h2-zh" style="max-width:11em;margin-top:1rem">实例数量来自峰值流量和失效假设</h2>
+      </div>
+      <div class="diagram anim-item">
+        <div class="diagram-box"><strong>100 QPS</strong><p class="small-zh soft">压测显示单个服务器大约每秒处理 100 个请求。</p></div>
+        <div class="diagram-box"><strong>3470 QPS</strong><p class="small-zh soft">预计峰值需要至少 35 个任务实例。</p></div>
+        <div class="diagram-box"><strong>N+2</strong><p class="small-zh soft">一次更新占掉一个实例，叠加一台物理服务器故障后仍剩 35 个实例。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p52</div><div>18 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Geo Placement" data-source="p52 区域流量 南美洲">
+  <div class="chrome"><div>部署取舍 · 地理流量</div><div>19 / 21</div></div>
+  <div class="slide-body">
+    <div class="table-wrap">
+      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto">区域部署不是平均撒实例，而是按流量和成本权衡</h2>
+      <table class="data-table anim-item">
+        <thead><tr><th>区域</th><th>峰值流量</th><th>部署含义</th></tr></thead>
+        <tbody>
+          <tr><td>北美洲</td><td>1430 QPS</td><td>部署在美国，靠近主要用户并保留容量余量。</td></tr>
+          <tr><td>欧洲和非洲</td><td>1400 QPS</td><td>单独部署以降低跨洲访问延迟。</td></tr>
+          <tr><td>亚洲及澳大利亚</td><td>350 QPS</td><td>本地区部署，避免后端访问远端数据。</td></tr>
+          <tr><td>南美洲</td><td>290 QPS</td><td>只放 4 个实例，降低为 N+1，极端情况下让 GSLB 导走流量，节省约 20% 硬件。</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><div>p52</div><div>19 / 21</div></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Data Placement" data-source="p52 p53 Bigtable 副本">
+  <div class="chrome"><div>数据放置 · Bigtable 副本</div><div>20 / 21</div></div>
+  <div class="slide-body">
+    <div class="note-stack">
+      <h2 class="h1-zh anim-item" style="max-width:13em">后端靠近数据，数据也要靠近后端</h2>
+      <div class="grid-3">
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">延迟</div><p class="body-zh">亚洲后端访问美国 Bigtable 会产生延迟，章节因此选择每个地理区域放副本。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">可用性</div><p class="body-zh">Bigtable 出现问题时，可以利用副本继续提供服务。</p></div>
+        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">一致性限制</div><p class="body-zh">Bigtable 只提供最终一致性，但该示例数据更新不频繁，所以可以接受。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p52 p53</div><div>20 / 21</div></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Notes" data-source="p41 p53 章节术语">
+  <div class="chrome"><div>Core Notes · 生产环境视角</div><div>21 / 21</div></div>
+  <div class="slide-body">
+    <div class="w-default grid-2">
+      <div class="anim-item">
+        <div class="summary-num">04</div>
+        <h2 class="h2-zh" style="max-width:10em;margin-top:1rem">这一章真正沉淀的是四类生产机制</h2>
+      </div>
+      <div class="diagram anim-item">
+        <div class="diagram-box"><strong>抽象</strong><p class="small-zh soft">machine 和 server 分离，BNS 消除地址固定性。</p></div>
+        <div class="diagram-box"><strong>调度</strong><p class="small-zh soft">Borg 管计算资源，BwE 管带宽，GSLB 管全局流量。</p></div>
+        <div class="diagram-box"><strong>状态</strong><p class="small-zh soft">Colossus、Bigtable、Spanner 和 Chubby 分别承载不同一致性需求。</p></div>
+        <div class="diagram-box"><strong>闭环</strong><p class="small-zh soft">Borgmon、测试、灰度、降级和容量模型把故障纳入日常控制。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div>p53 提醒这些术语后续会反复引用</div><div>21 / 21</div></div>
+</section>
+
+</div>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-02-slide") || 0), slides.length - 1);
+slides.forEach((slide, index) => {
+  const dot = document.createElement("button");
+  dot.className = "dot";
+  dot.setAttribute("aria-label", `go to slide ${index + 1}`);
+  dot.addEventListener("click", () => go(index));
+  nav.appendChild(dot);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  nav.querySelectorAll(".dot").forEach((dot, i) => dot.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-02-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft" || event.key === "PageUp") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.touches[0].clientX; }, { passive: true });
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 45) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, { passive: true });
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>附录D 事后总结示范 note slides</title>
+<style>
+:root {
+  /* palette thesis: appendix D is an incident review specimen, so graphite carries operational severity, warm paper keeps it readable as a template, and red clay marks failure signals without turning the deck into an alarm screen. */
+  --ink: #24292a;
+  --ink-rgb: 36,41,42;
+  --paper: #f3eee2;
+  --paper-rgb: 243,238,226;
+  --accent: #9a4f3c;
+  --muted: #677173;
+  --line: rgba(var(--ink-rgb), .15);
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.4rem) clamp(2rem, 6vw, 6.4rem) clamp(1.6rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.74rem, .78vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .48; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.2vw, 6rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.55vw, 3.45rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.42rem, 2.35vw, 2.3rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.38rem, 1.86vw, 1.92rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.16rem, 1.32vw, 1.52rem); line-height: 1.58; }
+.small-zh { font-size: clamp(.96rem, 1.02vw, 1.18rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.78rem, .86vw, .98rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #d79683; }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.1rem, 2.4vh, 2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.line-box { border-top: 1px solid var(--line); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1rem, 1.65vw, 1.55rem); background: rgba(var(--ink-rgb), .055); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(1.95rem, 3vw, 3.2rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.52rem, .74vw, .84rem); height: clamp(.52rem, .74vw, .84rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline { display: flex; flex-direction: column; gap: clamp(.72rem, 1.25vh, 1rem); }
+.timeline-row { display: grid; grid-template-columns: clamp(4.8rem, 7vw, 6.8rem) 1fr; gap: clamp(1rem, 2vw, 2rem); align-items: start; border-top: 1px solid var(--line); padding-top: clamp(.75rem, 1.15vh, 1rem); }
+.time { font-family: var(--mono); font-size: clamp(.96rem, 1.02vw, 1.16rem); color: var(--accent); }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.2vw, 5.8rem); line-height: .95; color: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid var(--line); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.96rem, 1.02vw, 1.18rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.02vw, .95rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.big-number { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(4rem, 8.8vw, 8.2rem); line-height: .98; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: clamp(.36rem, .48vw, .48rem); z-index: 20; }
+.nav-dot { width: clamp(.34rem, .48vw, .5rem); height: clamp(.34rem, .48vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: clamp(1.6rem, 7vw, 2rem) clamp(1.2rem, 5vw, 1.35rem) clamp(1.4rem, 6vw, 1.6rem); }
+  .grid-2, .timeline-row { grid-template-columns: 1fr; }
+  .data-table { font-size: clamp(.88rem, 3vw, 1rem); }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p502 附录D 事后总结示范">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Appendix D</div>
+      <h1 class="display-zh">事后总结示范</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">附录 D，把事故报告写成可复用模板</p>
+    </div>
+  </div>
+  <div class="foot"><span>p502</span><span>01 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Incident Header" data-source="p502 莎士比亚新韵文事故总结 事故编号#465 日期 作者 状态">
+  <div class="chrome"><span>header fields</span><span>p502</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">第一页先固定身份信息，事故编号、日期、作者、状态</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>字段</th><th>样例内容</th></tr></thead>
+          <tbody>
+            <tr><td>事故</td><td>莎士比亚新韵文事故总结，事故编号 #465</td></tr>
+            <tr><td>日期</td><td>2015 10 21</td></tr>
+            <tr><td>作者</td><td>jennifer、martym、agoogler</td></tr>
+            <tr><td>状态</td><td>已经终稿，待办事项正在进行中</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>template identity</span><span>02 / 14</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Incident Summary" data-source="p502 摘要 66分钟 用户流量暴涨">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="big-number">66 分钟</div>
+      <p class="lead-zh muted" style="margin-top:2vh">莎士比亚搜索服务故障，由新发现的一篇韵文引发用户流量暴涨。</p>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>03 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Impact" data-source="p502 事故影响 12.1亿个请求丢失 没有损失任何收入">
+  <div class="chrome"><span>impact</span><span>p502</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">影响写得很硬，预计 12.1 亿个请求丢失，没有损失任何收入。</div>
+      <p class="body-zh muted" style="margin-top:2vh">脚注说明，事故影响指向用户以及收入等外部结果。</p>
+    </div>
+  </div>
+  <div class="foot"><span>user and revenue impact</span><span>04 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Root Cause" data-source="p502 根源问题 高负载 不存在词语 资源泄露 连锁故障">
+  <div class="chrome"><span>root cause</span><span>p502</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">根因不是单点错误，而是一条环境链</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh">触发环境</h3><p class="body-zh">异常高负载，且用户大量搜索的关键词不在 Shakespeare Corpus 中。</p></div>
+        <div class="soft-box"><h3 class="h2-zh">潜伏缺陷</h3><p class="body-zh">搜索词不存在时出现资源泄露，日常频率太低，任务崩溃没有被注意到。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>latent leak under load</span><span>05 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Trigger And Fix" data-source="p502 触发条件 解决方案 泄洪集群 10倍容量 更新索引 修复上线">
+  <div class="chrome"><span>trigger and remediation</span><span>p502</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">触发条件一句话，解决方案写成动作链</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>部分</th><th>原文顺序里的动作</th></tr></thead>
+          <tbody>
+            <tr><td>触发</td><td>潜伏性的 Bug 被大量上涨流量所触发。</td></tr>
+            <tr><td>缓解</td><td>流量导向泄洪集群，增加 10 倍容量应对连锁故障。</td></tr>
+            <tr><td>绕过</td><td>部署更新过的索引，绕过潜在 Bug。</td></tr>
+            <tr><td>修复</td><td>保持额外容量直到公众兴趣消退，资源泄露修复已经上线。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>mitigate bypass fix</span><span>06 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Detection And Actions" data-source="p503 检测 Borgmon 大量HTTP 500 紧急警报 待办事项">
+  <div class="chrome"><span>detection and actions</span><span>p503</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">检测来自 Borgmon，待办事项保留为空字段</h2>
+      <p class="lead-zh">Borgmon 检测到大量 HTTP 500，向值班人员发送紧急警报。</p>
+      <p class="body-zh muted">原文随后给出待办事项字段，但本页扫描文本中没有展开具体条目。脚注把待办事项限定为需要更高范围决策的改进，不鼓励过度具体的监控和警报。</p>
+    </div>
+  </div>
+  <div class="foot"><span>alert and action items</span><span>07 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="What Went Well" data-source="p503 经验教训 做得好的地方 监控 快速更新">
+  <div class="chrome"><span>lessons good</span><span>p503</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">做得好的地方只列两项，监控快，语料更新快</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">监控</h3><p class="body-zh">大量 HTTP 500 接近 100% 时，监控系统快速发出紧急警报。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">更新</h3><p class="body-zh">Shakespeare Corpus 在所有集群中快速完成更新。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>two positives</span><span>08 / 14</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="What Went Badly" data-source="p503 做得不好的地方 连锁故障 错误预算 数个数量级">
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">不熟练处理连锁故障，几乎全部请求失败，错误预算被超过数个数量级。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这一页把操作短板和 SLO 后果放在同一个失败记录里。</p>
+    </div>
+  </div>
+  <div class="foot"><span>badly handled cascade</span><span>09 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lucky Factors" data-source="p504 幸运的因素 邮件列表 栈跟踪 致死请求 新索引关键词">
+  <div class="chrome"><span>lucky factors</span><span>p504</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">幸运因素写的是差点出事的保护条件</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>幸运点</th><th>实际作用</th></tr></thead>
+          <tbody>
+            <tr><td>邮件列表</td><td>莎士比亚迷的邮件列表里刚好有新的韵文文本。</td></tr>
+            <tr><td>服务器日志</td><td>日志包含指出文件描述符耗尽导致崩溃的栈跟踪。</td></tr>
+            <tr><td>致死请求</td><td>通过推送新的索引关键词就解决了。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>near miss context</span><span>10 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Timeline Start" data-source="p504 时间线 14:51 15:01 事故开始 应急故障管理">
+  <div class="chrome"><span>timeline start</span><span>p504</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">时间线先把外部流量、故障、指挥链串起来</h2>
+      <div class="timeline">
+        <div class="timeline-row"><div class="time">14:51</div><p class="body-zh">新闻报道新莎士比亚韵文被发现。</p></div>
+        <div class="timeline-row"><div class="time">14:53</div><p class="body-zh">Reddit 文章带来 88 倍流量，此时搜索引擎还没有收录该文章。</p></div>
+        <div class="timeline-row"><div class="time">14:54</div><p class="body-zh">事故开始，搜索后端在高负载情况下崩溃。</p></div>
+        <div class="timeline-row"><div class="time">15:01</div><p class="body-zh">应急故障管理开始，宣布事故 #465，jennifer 成为事故总负责人。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>external spike to command</span><span>11 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Timeline Diagnosis" data-source="p505 时间线 15:03 15:21 新韵文 文件描述符 2倍容量">
+  <div class="chrome"><span>timeline diagnosis</span><span>p505</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">诊断阶段同时推进两条线，更新索引和定位泄露</h2>
+      <div class="timeline">
+        <div class="timeline-row"><div class="time">15:03</div><p class="body-zh">jennifer 注意到事故中的 Shakespeare discuss 邮件列表。</p></div>
+        <div class="timeline-row"><div class="time">15:10</div><p class="body-zh">martym 将新的韵文加入，开始索引任务。</p></div>
+        <div class="timeline-row"><div class="time">15:18</div><p class="body-zh">clarac 在日志中发现文件描述符耗尽，确认搜索词不存在会导致文件描述符泄露。</p></div>
+        <div class="timeline-row"><div class="time">15:21</div><p class="body-zh">jennifer 和 docbrown 决定大幅提升实例数量，降低每个实例负载。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>index and leak</span><span>12 / 14</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Timeline Recovery" data-source="p505 p506 时间线 15:23 16:30 10倍容量 故障结束">
+  <div class="chrome"><span>timeline recovery</span><span>p505 to p506</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">恢复过程不是一次切回，而是按比例试探</h2>
+      <div class="timeline">
+        <div class="timeline-row"><div class="time">15:23</div><p class="body-zh">所有流量导向 USA 2 集群，其他集群增加副本数量。</p></div>
+        <div class="timeline-row"><div class="time">15:36</div><p class="body-zh">重新调整负载均衡到 USA 2，准备把全球容量提升到总计 10 倍。</p></div>
+        <div class="timeline-row"><div class="time">15:41</div><p class="body-zh">先把 1% 流量重新分布到所有集群，随后逐步提高到 10%、30%、50%。</p></div>
+        <div class="timeline-row"><div class="time">16:00</div><p class="body-zh">故障结束，所有流量重新分布于所有集群中。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>gradual redistribution</span><span>13 / 14</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Reusable Points" data-source="p506 p507 其他支持信息 脚注 5 Whys 时间线 文档 日志 截图 图表 记录">
+  <div class="slide-body">
+    <div class="w-note stack">
+      <div class="summary-num">D</div>
+      <h2 class="h1-zh">这个示范最后落回可复用证据</h2>
+      <p class="lead-zh">根源问题可以用 5 Whys 理解相关因素。时间线来自应急事故管理文档，再加入相关记录。支持信息包括监控页面、文档链接、日志、截图、图表、IRC 记录和 IM 记录。</p>
+    </div>
+  </div>
+  <div class="foot"><span>evidence bundle</span><span>14 / 14</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-appendix-d-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-appendix-d-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

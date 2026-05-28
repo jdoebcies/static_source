@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第28章 迅速培养SRE加入on-call note slides</title>
+<style>
+:root {
+  /* palette thesis: SRE training is apprenticeship under production pressure, so the deck uses graphite for operational gravity, warm paper for learning notes, and amber green for readiness checkpoints. */
+  --ink: #1f2826;
+  --ink-rgb: 31,40,38;
+  --paper: #f5efe3;
+  --paper-rgb: 245,239,227;
+  --accent: #8a7a2b;
+  --muted: #68746f;
+  --warm: #7a5f4b;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #d1c87f; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p406 章节标题 作者">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 28</div>
+      <h1 class="display-zh">迅速培养SRE加入on-call</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Andrew Widdowson</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Shylaja Nukala</p>
+    </div>
+  </div>
+  <div class="foot"><span>p406</span><span>01 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Training Starts" data-source="p406 新的SRE已经招聘到了 接下来怎么办">
+  <div class="chrome"><span>training starts</span><span>p406</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">新 SRE 招到以后，真正的问题是如何在工作中把他们训练成可靠工程师。</div>
+      <p class="body-zh muted" style="margin-top:2vh">早期教育和技术培训投入足够，能让新成员更快进入状态，并让工程技能更平衡。</p>
+    </div>
+  </div>
+  <div class="foot"><span>education and technical training</span><span>02 / 36</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Trust Requirement" data-source="p406 成功的SRE团队离不开信任">
+  <div class="chrome"><span>trust requirement</span><span>p406</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">on-call 培训的底层要求是团队能信任新人</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">懂系统</h3><p class="small-zh">了解系统如何运行。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">会诊断</h3><p class="small-zh">能判断系统的异常情况。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">会求助</h3><p class="small-zh">善于利用资源和寻求帮助。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">能镇静</h3><p class="small-zh">在压力下保持镇静。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">能解决</h3><p class="small-zh">快速处理问题。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>global services</span><span>03 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Three Training Questions" data-source="p406 三个培训问题 评估 几情 活动">
+  <div class="chrome"><span>training questions</span><span>p406</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">新手需要学什么之外，还要回答三个团队问题</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">评估</h3><p class="body-zh">现有 on-call 工程师如何判断新人准备好了。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">互利</h3><p class="body-zh">如何利用新员工的激情和好奇心，让老员工也受益。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">活动</h3><p class="body-zh">哪些活动既丰富团队知识，也能让大家喜欢。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>readiness and learning culture</span><span>04 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="No Single Method" data-source="p407 没有一种教育方式适用于所有SRE团队">
+  <div class="chrome"><span>learning styles</span><span>p407</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">培训不能押注一种学习习惯</h2>
+      <p class="lead-zh">新招聘到的学员学习习惯各不相同，没有一种教育方式最优，也没有一种方式适用于所有 SRE 团队。</p>
+      <p class="body-zh muted">本章后续列出的课程，是 Google SRE 内部多种培训方式的代表，用来保障知识拥有和知识传递。</p>
+    </div>
+  </div>
+  <div class="foot"><span>representative practices</span><span>05 / 36</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Training Map" data-source="p408 p409 图28-1 两个轴 工作类型 时间">
+  <div class="chrome"><span>training map</span><span>p408 p409</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">培养计划要同时安排工作类型和时间节奏</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>图中的轴</th><th>材料里的含义</th><th>培训安排</th></tr></thead>
+          <tbody>
+            <tr><td>X 轴</td><td>工作类型从抽象到具体。</td><td>同时容纳被动、主动和混合活动。</td></tr>
+            <tr><td>Y 轴</td><td>新 SRE 从很少了解系统开始。</td><td>先读事后总结，再反向工程系统，再见习 on-call。</td></tr>
+            <tr><td>虚线</td><td>正式 on-call 后学习基本靠自己主导。</td><td>培训仍持续，但边界更开放。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>pace and variety</span><span>06 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Early Training Principle" data-source="p409 培训初期 重体系 而非混乱">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">培训初期要重体系，而不是把新人丢进混乱。</div>
+      <p class="body-zh muted" style="margin-top:2vh">SRE 团队本来就要用主动办法减少被动性工作，培训过程也应该体现这一点。</p>
+    </div>
+  </div>
+  <div class="foot"><span>system over chaos</span><span>07 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="John Example" data-source="p409 John 刚加入 FooServer SRE团队 工单全部指派">
+  <div class="chrome"><span>bad onboarding example</span><span>p409</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">反面例子里，新人第一天就接收所有新工单</h2>
+      <p class="lead-zh">主管让 John 自己找老员工问背景，期待他有一天突然掌握全部工具、流程和系统知识。</p>
+      <p class="body-zh muted">材料里老成员补了一句：团队都是摸着石头过河。</p>
+    </div>
+  </div>
+  <div class="foot"><span>tickets as training</span><span>08 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Fire Training Problem" data-source="p410 浴火重生式学习方式 关注于运维 被动性教育">
+  <div class="chrome"><span>why it fails</span><span>p410</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">浴火重生式培训通常反映团队自己已经被运维琐事牵着走。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它假设大部分知识能靠动手实践获得。如果职位只需要处理工单，那其实不是 SRE 职位。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reactive education</span><span>09 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Trainee Questions" data-source="p410 SRE 学员肯定会存在以下问题">
+  <div class="chrome"><span>trainee questions</span><span>p410</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">混乱会放大新人最关心的三个不确定性</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">任务</h3><p class="body-zh">我现在正在做的是什么工作。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">进度</h3><p class="body-zh">我现在的进度如何。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">门槛</h3><p class="body-zh">什么时候我能积累到足够经验参加 on-call。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>confidence and uncertainty</span><span>10 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cumulative Learning" data-source="p410 系统性 累积型的学习方式">
+  <div class="chrome"><span>cumulative path</span><span>p410</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">更好的训练方式，是为新人建立有顺序的学习路径</h2>
+      <p class="lead-zh">任何系统性培训都比直接处理随机工单和琐事好。</p>
+      <p class="body-zh muted">材料要求有选择地组合理论和实践：常用的系统抽象概念要优先，真实操作也要尽早出现。</p>
+    </div>
+  </div>
+  <div class="foot"><span>ordered learning path</span><span>11 / 36</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Curriculum Sequence" data-source="p410 p411 实时直接面向用户的服务系统 课程顺序">
+  <div class="chrome"><span>example curriculum</span><span>p410 p411</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">面向用户的服务，可以按请求路径组织课程</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">入口</h3><p class="small-zh">网络、数据中心、前端负载均衡、代理。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">前端</h3><p class="small-zh">应用程序前端、日志记录、用户体验 SLO。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">中层</h3><p class="small-zh">缓存和后端负载均衡系统。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">基础设施</h3><p class="small-zh">后端、基础设施、计算资源管理。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">整体</h3><p class="small-zh">调试技巧、问题升级流程、紧急演练。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>request path curriculum</span><span>12 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Checklist Shape" data-source="p412 检查列表 专家联系方式 文档资源 基本知识 自检问题">
+  <div class="chrome"><span>on-call checklist</span><span>p412</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">on-call 学习检查列表不是把手册塞进文档</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>列表提供</th><th>材料里的作用</th></tr></thead>
+          <tbody>
+            <tr><td>专家联系方式</td><td>指出每块知识可以向谁确认。</td></tr>
+            <tr><td>文档资源</td><td>把最有用的资料摆到新人面前。</td></tr>
+            <tr><td>服务基本知识</td><td>让新人理解每一节能学到什么。</td></tr>
+            <tr><td>简单自检问题</td><td>帮助新人和讲师判断学习进度。</td></tr>
+            <tr><td>实际操作环节</td><td>把知识转成可练习的技能。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>resources and self check</span><span>13 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Homework Feedback" data-source="p412 问答形式的家庭作业 学习进度 下一阶段">
+  <div class="chrome"><span>feedback loop</span><span>p412</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">培训反馈不一定是正式考试，但最好有问答作业</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">关键路径</h3><p class="body-zh">哪些后端服务器在关键路径中，为什么。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">简化空间</h3><p class="body-zh">服务的哪些方面可以简化或自动化。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">瓶颈判断</h3><p class="body-zh">第一个瓶颈在哪里，出现后怎样缓解。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>homework as signal</span><span>14 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Access Upgrade" data-source="p412 分层访问权限 升级 最高权限">
+  <div class="chrome"><span>access ladder</span><span>p412</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">访问权限也可以分层授予，让学习进度和生产权限一起升级。</div>
+      <p class="body-zh muted" style="margin-top:2vh">第一层允许只读访问组件内部信息，之后允许修改生产状态。搜索 SRE 团队把这个过程称为升级。</p>
+    </div>
+  </div>
+  <div class="foot"><span>graduated permissions</span><span>15 / 36</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Project Work" data-source="p412 p413 目标性强的项目工作 而非琐事">
+  <div class="chrome"><span>project work</span><span>p412 p413</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">新手项目要小而有意义，不能只是分担琐事</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">可见修改</h3><p class="body-zh">在技术栈中加入小的用户可见功能，并跟到生产发布。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">监控盲点</h3><p class="body-zh">为现有服务监控盲点增加新的监控。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">自动化痛点</h3><p class="body-zh">选择尚未自动化的痛点，减轻团队日常负担。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>meaningful contribution</span><span>16 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Engineer Traits" data-source="p413 培养反向工程能力和随机应变能力">
+  <div class="chrome"><span>what to cultivate</span><span>p413</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">SRE 培训要培养三种能力，而不是传统系统管理员模式</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>能力</th><th>材料里的原因</th></tr></thead>
+          <tbody>
+            <tr><td>反向工程</td><td>日常会遇到从未见过的系统。</td></tr>
+            <tr><td>统计学思维</td><td>海量规模下很多异常很难检测。</td></tr>
+            <tr><td>随机应变</td><td>标准流程不工作时仍然要解决问题。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>beyond sysadmin mode</span><span>17 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Reverse Engineering" data-source="p414 反向工程 弄明白系统如何工作">
+  <div class="chrome"><span>reverse engineering</span><span>p414</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">反向工程训练，是让 SRE 在陌生环境里处理额外难题</h2>
+      <p class="lead-zh">工程师要愿意深入调试工具、RPC 框架和系统二进制文件，理解数据如何流动。</p>
+      <p class="body-zh muted">培训要让成员练习用调试和诊断信息做推断，使这种方式成为日后工作习惯。</p>
+    </div>
+  </div>
+  <div class="foot"><span>how systems work</span><span>18 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Scientific Method" data-source="p414 统计学和比较性思维 在压力下坚持科学方法论">
+  <div class="chrome"><span>scientific method</span><span>p414</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">大规模故障处理像实时决策树，SRE 只能在有限时间里选少数动作。</div>
+      <p class="body-zh muted" style="margin-top:2vh">经验要和精心构造的假设结合，通过证实或证伪减少决策空间。</p>
+    </div>
+  </div>
+  <div class="foot"><span>hypotheses under pressure</span><span>19 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Find Difference" data-source="p414 下列哪一个东西与其他不同 内核版本 CPU架构 二进制文件版本">
+  <div class="chrome"><span>comparative thinking</span><span>p414</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">系统故障调试常常是在找哪个因素与其他不同</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">版本差异</h3><p class="body-zh">内核版本、CPU 架构、二进制文件版本。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">流量差异</h3><p class="body-zh">地区性的流量区别，或其他几百种因素。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">架构要求</h3><p class="body-zh">因子必须可控，并能独立分析和比较。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>controlled factors</span><span>20 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Improvisation" data-source="p414 随机应变 当意料之外的事情发生时怎么办">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">手册失效、开发团队联系不上时，SRE 必须能临场发挥。</div>
+      <p class="body-zh muted" style="margin-top:2vh">培训初期要讲决策陷阱，也要训练及时抽身，从更高层面换角度看问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>when the runbook fails</span><span>21 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Production Service Course" data-source="p415 如何反向工程某个生产环境服务 Google 新闻团队 百慕大三角区">
+  <div class="chrome"><span>course scenario</span><span>p415</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">反向工程课程把学员放进一个完整生产服务失联场景</h2>
+      <p class="lead-zh">Google 新闻团队全员去百慕大三角区团建，30 天没有消息。</p>
+      <p class="body-zh muted">新组建的 Google 新闻 SRE 团队需要自行搞清楚端到端服务原理，保障它继续运行。</p>
+    </div>
+  </div>
+  <div class="foot"><span>google news exercise</span><span>22 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Request Tracing" data-source="p415 跟踪浏览器请求 RPC连接关系 白盒与黑盒监控">
+  <div class="chrome"><span>request tracing</span><span>p415</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">课程核心动作，是沿着真实请求构建组件图</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">浏览器请求</h3><p class="small-zh">在 Google 基础设施中跟踪一个请求。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">多种发现</h3><p class="small-zh">用多种方式发现生产服务之间的连接。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">换来源</h3><p class="small-zh">再跟踪另一个来源请求，暴露过窄假设。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">调试信息</h3><p class="small-zh">用 RPC 连接、白盒和黑盒监控判断数据路径。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">组件图</h3><p class="small-zh">构造系统组件图，讨论共享基础设施服务。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>component map</span><span>23 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Senior Review" data-source="p415 p416 学员自行构建技术栈组件图 资深SRE共同讨论">
+  <div class="chrome"><span>senior review</span><span>p415 p416</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">课程末尾，学员要独立画出未来 on-call 系统的一部分，再和资深 SRE 讨论。</div>
+      <p class="body-zh muted" style="margin-top:2vh">学员遗漏的小而关键的细节，是最好的讨论话题。资深成员也可能学到系统新变化。</p>
+    </div>
+  </div>
+  <div class="foot"><span>newest member as teacher</span><span>24 / 36</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Oncall Readiness" data-source="p416 有抱负的on-call工程师的5个特点">
+  <div class="chrome"><span>readiness meaning</span><span>p416</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">能够参与 on-call，意味着了解足够多，也能随时自学剩下的知识</h2>
+      <p class="lead-zh">on-call 轮值一般不是 SRE 的主要目标，但生产环境运维经常需要响应紧急事故。</p>
+      <p class="body-zh muted">负责任地进行 on-call，需要对运维系统有一定程度的了解和熟悉。</p>
+    </div>
+  </div>
+  <div class="foot"><span>responsible on-call</span><span>25 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Postmortem Study" data-source="p416 p417 事后总结的阅读和书写">
+  <div class="chrome"><span>postmortem study</span><span>p416 p417</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">事后总结要被整理成未来新手的教育材料</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>做法</th><th>材料里的理由</th></tr></thead>
+          <tbody>
+            <tr><td>写作时考虑未来新人</td><td>最佳受众可能是还没有入职的工程师。</td></tr>
+            <tr><td>收集有价值文档</td><td>束之高阁的事后总结没有用。</td></tr>
+            <tr><td>区分死记和课程</td><td>有些需要记住，有些适合讲授大型系统弱点和新奇故障方式。</td></tr>
+            <tr><td>公开最佳文档</td><td>可提供给相关团队、上下游团队阅读。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>blameless learning material</span><span>26 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Postmortem Groups" data-source="p416 p417 事后总结团体学习 故障沙龙">
+  <div class="chrome"><span>incident salons</span><span>p416 p417</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">定期阅读故障文档，会潜移默化构建生产环境知识库</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">团体学习</h3><p class="body-zh">分发、阅读有价值的事后总结，并组织集体讨论。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">故障沙龙</h3><p class="body-zh">请原始作者非正式出席，描述故障过程并组织讨论。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>shared incident memory</span><span>27 / 36</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Role Playing Exercise" data-source="p417 故障处理分角色演习 命运之轮 走木板">
+  <div class="chrome"><span>role playing exercise</span><span>p417</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">故障处理分角色演习，是把全队拉进同一个问题现场。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这个传统也被称为命运之轮或走木板。做得最好时，它会成为每周共同学习的机会。</p>
+    </div>
+  </div>
+  <div class="foot"><span>wheel of misfortune</span><span>28 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="GM Mechanics" data-source="p417 p418 GM 主on-call 副on-call 30到60分钟">
+  <div class="chrome"><span>game mechanics</span><span>p417 p418</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">演习像桌上 RPG，GM 控制故障信息的展开</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">选人</h3><p class="small-zh">GM 选择主 on-call 和副 on-call。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">报警</h3><p class="small-zh">主持人宣布某个警报发生。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">调查</h3><p class="small-zh">on-call 团队调查并现场处理。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">信息</h3><p class="small-zh">GM 提供图表走势，或假扮其他团队。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">时长</h3><p class="small-zh">主副 on-call 在 30 到 60 分钟内寻找根因。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>controlled incident scene</span><span>29 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Exercise Payoff" data-source="p418 每个人都会从中学到一点东西">
+  <div class="chrome"><span>exercise payoff</span><span>p418</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">成功的灾难演习让每个人学到一点东西</h2>
+      <p class="lead-zh">可能是新工具、新技巧、解决问题的另一个角度，或新员工对成功解决问题的认可。</p>
+      <p class="body-zh muted">材料还指出，这项练习可能鼓励团队成员面对下周挑战，甚至成为下一周的 GM。</p>
+    </div>
+  </div>
+  <div class="foot"><span>practice and confidence</span><span>30 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Break Real Things" data-source="p418 破坏真的东西 并且修复它们">
+  <div class="chrome"><span>hands on failure</span><span>p418</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">最好的经验来自动手破坏或修复真实生产环境。</div>
+      <p class="body-zh muted" style="margin-top:2vh">真正学习应该在加入 on-call 之前开始，让学员更好使用内部工具和监控系统处理故障。</p>
+    </div>
+  </div>
+  <div class="foot"><span>realistic practice</span><span>31 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Safe Realism" data-source="p418 p419 多数据中心 QA实例 人工负载 配置问题 内存泄露">
+  <div class="chrome"><span>safe realism</span><span>p418 p419</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">真实性靠低风险环境承载，而不是靠纸面模拟</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>训练环境</th><th>能训练的问题</th></tr></thead>
+          <tbody>
+            <tr><td>多数据中心部署系统</td><td>把流量从至少一个实例切走，将该实例作为练习使用。</td></tr>
+            <tr><td>功能齐全的 QA 实例</td><td>加入人工负载，模拟真实用户流量和资源消耗。</td></tr>
+            <tr><td>逼真的虚拟负载</td><td>配置问题、内存泄露、性能下降、请求崩溃、存储瓶颈。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>training instance</span><span>32 / 36</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Destroy Search Cluster" data-source="p419 一起来摧毁一个搜索集群">
+  <div class="chrome"><span>destroy a cluster</span><span>p419</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">搜索团队每季度做一次团体活动，慢慢把组件逼近瓶颈</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">讨论</h3><p class="body-zh">哪些性能特点可能会受到影响。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">假设</h3><p class="body-zh">每个参与者提出系统行为变化的假想和逻辑。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">验证</h3><p class="body-zh">执行操作，验证假设，并解释系统现象。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>quarterly degradation exercise</span><span>33 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Docs Apprenticeship" data-source="p419 p420 维护文档是学徒任务的一部分">
+  <div class="chrome"><span>docs apprenticeship</span><span>p419 p420</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">on-call 学习检查列表同时服务三类人</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>对象</th><th>检查列表的作用</th></tr></thead>
+          <tbody>
+            <tr><td>学员</td><td>理解运维系统边界，掌握重要组件和原因。</td></tr>
+            <tr><td>导师和管理者</td><td>反映学习进度，回答今天学哪一节、哪一节最困惑。</td></tr>
+            <tr><td>其他团队成员</td><td>成为社会契约和知识标准，只有掌握文档的人才能加入 on-call。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>social contract</span><span>34 / 36</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Shadow Oncall" data-source="p420 p421 尽早 尽快见习on-call">
+  <div class="chrome"><span>shadow on-call</span><span>p420 p421</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">见习 on-call 应该在第一条真实报警之前发生</h2>
+      <p class="lead-zh">掌握系统基础知识后，可以把报警系统的警报复制一份给学员，先从工作时间内报警开始。</p>
+      <p class="body-zh muted">学员不是问题解决负责人，可以在没有压力的情况下观察故障发展，和主 on-call 共享终端或坐在一起讨论。</p>
+    </div>
+  </div>
+  <div class="foot"><span>real alerts without ownership</span><span>35 / 36</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p421 p422 on-call之后 小结 以比扩张机器更快的速度扩张团队">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">核心总结</div>
+      <div class="callout" style="margin-top:2vh">加入 on-call 是里程碑，学习不能在这里停止。</div>
+      <p class="body-zh muted" style="margin-top:2vh">团队要用仪式确认通过培训，再用常规学习时间讨论新的和即将发生的改动。目标很明确：SRE 必须以比扩张机器更快的速度扩张团队。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p421 p422</span><span>36 / 36</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-28-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-28-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

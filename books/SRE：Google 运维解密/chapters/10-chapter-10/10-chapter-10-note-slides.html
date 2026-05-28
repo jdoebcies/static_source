@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第10章 基于时间序列数据进行有效报警 note slides</title>
+<style>
+:root {
+  /* palette thesis: monitoring should feel like a quiet operations console, with ink for incident gravity, paper for rule reasoning, and teal for measured signals. */
+  --ink: #17202b;
+  --ink-rgb: 23,32,43;
+  --paper: #fbfaf6;
+  --paper-rgb: 251,250,246;
+  --accent: #2d6f7c;
+  --muted: #65707f;
+  --warm: #b46b45;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7bb8c1; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p142 章节标题" style="text-align:center;align-items:center">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 10</div>
+      <h1 class="display-zh">基于时间序列数据<br>进行有效报警</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">让查询来得更猛烈些吧，让寻呼机永远保持沉默</p>
+    </div>
+  </div>
+  <div class="foot"><span>p142</span><span>01 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Monitoring Base" data-source="p142 需求金字塔">
+  <div class="chrome"><span>monitoring base</span><span>p142</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">监控处在生产环境需求金字塔的最底层。</div>
+      <p class="body-zh muted" style="margin-top:2vh">服务运维人员依靠监控数据做出理性判断，用科学方法应对紧急情况，也用它确保服务质量与产品目标保持一致。</p>
+    </div>
+  </div>
+  <div class="foot"><span>reliable operations start here</span><span>02 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Large System Burden" data-source="p142 大型系统挑战">
+  <div class="chrome"><span>large system burden</span><span>p142</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">大型系统让监控本身变成挑战</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">组件太多</h3><p class="body-zh">分析工作会变得繁杂繁重。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">维护要低</h3><p class="body-zh">监控系统自身不能消耗大量运维精力。</p></div>
+      </div>
+      <p class="body-zh muted">Google 不只看简单系统指标，也看欧洲地区 Web 服务器响应时间分布这类更高抽象指标。</p>
+    </div>
+  </div>
+  <div class="foot"><span>scale changes the monitor</span><span>03 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Alert Level" data-source="p142 单机问题 报警">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">单机问题报警没有可操作性，报警应主要来自高级服务质量目标。</div>
+      <p class="body-zh muted" style="margin-top:2vh">监控系统仍要保留足够粒度，方便追踪到具体组件。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p142</span><span>04 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Borgmon Shift" data-source="p142 p143 Borgmon 起源">
+  <div class="chrome"><span>borgmon shift</span><span>p142 p143</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Borgmon 把监控重心移到时间序列</h2>
+      <p class="lead-zh">Google 的监控系统从探针脚本和趋势图模型，演变为先收集时间序列，再用操作语言把数据转成图表和报警。</p>
+      <p class="body-zh muted">Borgmon 在 Borg 面世后不久出现，成为这个模型的承载系统。</p>
+    </div>
+  </div>
+  <div class="foot"><span>from probes to rules</span><span>05 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Open Source Relatives" data-source="p143 外部时间序列系统">
+  <div class="chrome"><span>open source relatives</span><span>p143</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">这套理念在 Google 外部也有对应系统</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">Riemann</h3><p class="small-zh">开源软件中的类似系统。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">Heka</h3><p class="small-zh">同属时间序列报警理念。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">Bosun</h3><p class="small-zh">可用于试验相关想法。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">Prometheus</h3><p class="small-zh">与 Borgmon 很相似，尤其是规则计算语法。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">规则计算</h3><p class="small-zh">变量收集和规则计算理念相近。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>try the model outside google</span><span>06 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Standard Model" data-source="p143 白盒监控">
+  <div class="chrome"><span>standard model</span><span>p143</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Borgmon 依靠标准数据分析模型报警</h2>
+      <p class="lead-zh">它不使用特定脚本判断系统是否正常，而是批量、大规模、低成本地收集数据，并用简单数学表达式定义报警规则。</p>
+      <p class="body-zh muted">同一份数据同时服务图表和报警，历史数据也能进入报警规则计算。</p>
+    </div>
+  </div>
+  <div class="foot"><span>white box monitoring</span><span>07 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Varz Interface" data-source="p143 p144 varz 接口">
+  <div class="chrome"><span>varz interface</span><span>p143 p144</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">标准文本接口降低了埋点门槛</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">文本</h3><p class="body-zh">每行一个监控变量，空格分隔键值对。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">标签</h3><p class="body-zh">Map 格式允许在键值对上增加 label。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">一行代码</h3><p class="body-zh">增加监控指标只需要在服务程序中声明。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>cheap instrumentation</span><span>08 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Maintenance Tradeoff" data-source="p144 可维护性妥协">
+  <div class="chrome"><span>maintenance tradeoff</span><span>p144</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">埋点很容易，规则维护就需要工具守住一致性。</div>
+      <p class="body-zh muted" style="margin-top:2vh">指标定义和 Borgmon 规则使用分离后，应用删除指标或改变含义时，需要维护规则。Google 为此开发了自动校验规则正确性的工具。</p>
+    </div>
+  </div>
+  <div class="foot"><span>easy to add hard to keep aligned</span><span>09 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Scrape Cycle" data-source="p144 监控指标收集">
+  <div class="chrome"><span>scrape cycle</span><span>p144</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">收集流程围绕动态目标和合成指标展开</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>环节</th><th>材料里的动作</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td>目标列表</td><td>配置文件声明目标，地址可以来自服务发现</td><td>降低配置维护难度，允许自动扩展</td></tr>
+            <tr><td>周期抓取</td><td>Borgmon 定时抓取 varz URI 并存入内存</td><td>把每个目标均匀分散在周期内</td></tr>
+            <tr><td>合成指标</td><td>记录解析、收集、健康检查和结束时间</td><td>用于检测被监控任务不可用状态</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>dynamic targets synthetic signals</span><span>10 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Memory Store" data-source="p144 p145 时间序列存储">
+  <div class="chrome"><span>memory store</span><span>p144 p145</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Borgmon 把时间序列先放在内存数据库</h2>
+      <p class="lead-zh">数据以时间戳和值的格式进入按时间排序的链表，每条时间序列用一组唯一标签命名。</p>
+      <p class="body-zh muted">内存存放区满后，垃圾回收器清除过期数据。最老和最新数据的间隔称为数据地平线距离。</p>
+    </div>
+  </div>
+  <div class="foot"><span>arena and horizon</span><span>11 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Storage Cost" data-source="p145 十二小时 一百万条">
+  <div class="chrome"><span>storage cost</span><span>p145</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">内存模型的容量账很具体</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>参数</th><th>材料里的数量</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td>历史窗口</td><td>数据中心和全局 Borgmon 至少保存 12 小时左右</td><td>用于图表渲染和近期查询</td></tr>
+            <tr><td>单点成本</td><td>每一个数据点大约 24 字节</td><td>时间序列有清晰内存预算</td></tr>
+            <tr><td>示例规模</td><td>100 万条时间序列，每分钟一个点，保存 12 小时约 17GB</td><td>大规模收集仍可接受</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>concrete memory budget</span><span>12 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Labels And Vectors" data-source="p145 p146 标签与向量">
+  <div class="chrome"><span>labels and vectors</span><span>p145 p146</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">标签把单维矩阵扩展为多维矩阵</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">向量</h3><p class="body-zh">时间序列按时间戳和值的序列存放，查询返回符合标签集合的向量。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">标签集合</h3><p class="body-zh">变量名、任务类型、服务组和区域等标签共同标识一条时间序列。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>labelset as identity</span><span>13 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Rule Calculator" data-source="p147 Borg 规则计算">
+  <div class="chrome"><span>rule calculator</span><span>p147</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Borgmon 本质上是可编程计算器，报警只是它加入的语法能力。</div>
+      <p class="body-zh muted" style="margin-top:2vh">收集和存储部分都为规则计算服务。规则用时间序列作为输入，计算出新的时间序列。</p>
+    </div>
+  </div>
+  <div class="foot"><span>programmable calculator</span><span>14 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Time And Space" data-source="p147 时间维度 空间维度">
+  <div class="chrome"><span>time and space</span><span>p147</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">规则强大在于同时处理时间和空间</h2>
+      <p class="lead-zh">同一套计算可以应用在单条时间序列的历史数据上，也可以同时应用在很多不同时间序列上。</p>
+      <p class="body-zh muted">集中计算避免了把同类逻辑分散到多个子进程中，也让配置文件更小、更少重复。</p>
+    </div>
+  </div>
+  <div class="foot"><span>one rule many targets</span><span>15 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Aggregation Rate" data-source="p147 p148 汇总计算">
+  <div class="chrome"><span>aggregation rate</span><span>p147 p148</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">汇总计算把实例数据变成服务速率</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>概念</th><th>材料里的说明</th><th>例子</th></tr></thead>
+          <tbody>
+            <tr><td>汇总</td><td>把一个任务所有实例中的某个时间序列相加</td><td>得到数据中心级别请求总量</td></tr>
+            <tr><td>速率</td><td>总数变化率可以计算整体速率</td><td>任务在数据中心中的整体 QPS</td></tr>
+            <tr><td>计数器</td><td>值应永远上涨，采集间隔之间不丢失信息</td><td>请求数、行驶公里数</td></tr>
+            <tr><td>测量器</td><td>不同时刻可能有任意值</td><td>剩余油量、当前速度</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>counter preferred</span><span>16 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Error Ratio Steps" data-source="p148 错误回复比例">
+  <div class="chrome"><span>error ratio steps</span><span>p148</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">Web 错误报警先被拆成三步计算</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">一</h3><p class="body-zh">按回复代码汇总所有实例的 HTTP 回复速率。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">二</h3><p class="body-zh">排除状态值 200，计算集群错误回复速率总和。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">三</h3><p class="body-zh">用错误速率除以所有请求速率，得到错误速率比例。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>make slo computable</span><span>17 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Time Window" data-source="p149 时间窗口">
+  <div class="chrome"><span>time window</span><span>p149</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">时间窗口让离散采样可以计算速率，也让最近几次采集失败不至于毁掉判断。</div>
+      <p class="body-zh muted" style="margin-top:2vh">示例中使用 10 分钟区间，既避免微积分运算，也为准确速率保留足够数据点。</p>
+    </div>
+  </div>
+  <div class="foot"><span>window protects the rate</span><span>18 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Alert Rule" data-source="p150 p151 报警规则">
+  <div class="chrome"><span>alert rule</span><span>p150 p151</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">报警规则最终只输出真或假</h2>
+      <p class="lead-zh">经验显示报警经常快速切换状态，所以每条报警规则都有最小持续时间值，通常至少设置为两个计算周期。</p>
+      <p class="body-zh muted">示例中 10 分钟错误比例超过 1%，且整体错误速率超过每秒 1 次时，报警才进入等待状态，超过 2 分钟后触发。</p>
+    </div>
+  </div>
+  <div class="foot"><span>pending before firing</span><span>19 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Alertmanager" data-source="p151 Alertmanager">
+  <div class="chrome"><span>alertmanager</span><span>p151</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Alertmanager 负责把报警送到正确渠道</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>能力</th><th>材料里的职责</th><th>结果</th></tr></thead>
+          <tbody>
+            <tr><td>抑制</td><td>当有其他报警触发时，抑制某些报警</td><td>减少无效噪声</td></tr>
+            <tr><td>合并排重</td><td>将多个 Borgmon 发来的报警信息合并</td><td>避免重复通知</td></tr>
+            <tr><td>标签处理</td><td>根据标签展开或者合并报警信息</td><td>把严重情况送给 on call，把重要但不紧急的送到工单系统</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>route suppress dedupe</span><span>20 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Sharding Hierarchy" data-source="p151 p152 分片机制">
+  <div class="chrome"><span>sharding hierarchy</span><span>p151 p152</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Borgmon 通过层级部署降低单点和性能压力</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">收集层</h3><p class="small-zh">在更复杂模型中承担采集和部分规则运算。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">数据中心</h3><p class="small-zh">汇总该数据中心内运行的任务实例。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">过滤</h3><p class="small-zh">上游可以过滤下游信息，避免保存全部实例级数据。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">全局层</h3><p class="small-zh">两个或更多全局 Borgmon 负责全局汇总。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">展示层</h3><p class="small-zh">有时单独承接动态查询，因为它很消耗内存。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>aggregate upward drill downward</span><span>21 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Black Box Gap" data-source="p152 黑盒监控">
+  <div class="chrome"><span>black box gap</span><span>p152</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">白盒监控能定位根源，却不能完整代表最终用户看到的状态。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它看不到 DNS 故障导致没发出的请求，也看不到服务器崩溃后没有返回的错误。</p>
+    </div>
+  </div>
+  <div class="foot"><span>internal truth has blind spots</span><span>22 / 25</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Prober Role" data-source="p152 探针程序">
+  <div class="chrome"><span>prober role</span><span>p152</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">探针程序补上用户可见视角</h2>
+      <p class="lead-zh">探针使用应用级自动请求检测目标是否成功返回，也可以检查 HTTP 回复中的 HTML 结果。</p>
+      <p class="body-zh muted">它既可以直接发送 Alert RPC，也可以把响应速度直方图、回复大小和值暴露给 Borgmon 使用。</p>
+    </div>
+  </div>
+  <div class="foot"><span>application level checks</span><span>23 / 25</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Config Maintenance" data-source="p153 配置文件维护">
+  <div class="chrome"><span>config maintenance</span><span>p153</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">配置维护靠目标分离、模板和测试</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>机制</th><th>材料里的作用</th><th>降低的成本</th></tr></thead>
+          <tbody>
+            <tr><td>规则和目标分离</td><td>同一套规则可以应用到许多收集目标</td><td>减少配置重复</td></tr>
+            <tr><td>语言模板</td><td>可重用规则库进一步压缩重复程度</td><td>减少出错可能性</td></tr>
+            <tr><td>测试体系</td><td>用合成时间序列做单元测试和回归测试</td><td>新配置分发前先校验</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>separate template test</span><span>24 / 25</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p154 十年之后">
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">核心总结</h2>
+      <div class="grid-2">
+        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">Borgmon 把测试和报警模型推进到海量信息收集、中央化规则计算、统一分析和报警。</p></div>
+        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">被监控系统可以独立扩展，报警规则基于抽象时间序列模型后更易维护。</p></div>
+        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">模板化汇总规则和监控台模板，让新应用上线时更容易获得监控能力。</p></div>
+        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">监控系统维护成本必须低于服务部署规模增长，这是 SRE 工作中反复出现的模式。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>summary</span><span>25 / 25</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-10-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-10-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

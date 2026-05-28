@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第29章 处理中断性任务 note slides</title>
+<style>
+:root {
+  /* palette thesis: interrupt work is about operational pressure and protected focus, so the deck uses deep graphite for interruption gravity, warm paper for human judgment, and amber for load signals. */
+  --ink: #1f2524;
+  --ink-rgb: 31,37,36;
+  --paper: #f5efe3;
+  --paper-rgb: 245,239,227;
+  --accent: #b46f2a;
+  --muted: #6f7772;
+  --warm: #7b6550;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #e8a85a; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p423 章节标题 作者 编辑">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 29</div>
+      <h1 class="display-zh">处理中断性任务</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">Dave O'Connor</p>
+      <p class="meta" style="margin-top:1.2vh">编辑 Diane Bates</p>
+    </div>
+  </div>
+  <div class="foot"><span>p423</span><span>01 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Operational Load" data-source="p423 运维负载是维持系统正常运转必须进行的工作">
+  <div class="chrome"><span>operational load</span><span>p423</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">运维负载，是复杂系统为了继续正常运转必须承担的工作。</div>
+      <p class="body-zh muted" style="margin-top:2vh">本章从汽车维护的类比开始，再提醒读者：复杂系统和创造它的人一样，都不是完美的。</p>
+    </div>
+  </div>
+  <div class="foot"><span>maintenance work</span><span>02 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Three Classes" data-source="p423 三大类 紧急警报 工单 持续性运维活动">
+  <div class="chrome"><span>load classes</span><span>p423</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">运维负载先被分成三类，再分别管理</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">紧急警报</h3><p class="body-zh">生产环境问题发出的通知，通常要求几分钟响应。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">工单</h3><p class="body-zh">客户需求触发的操作请求，响应时间可能是数小时、数天或数月。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">持续运维</h3><p class="body-zh">发布、配置修改和临时客户需求，会打断日常工作。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>alerts tickets chores</span><span>03 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Emergency Alerts" data-source="p423 紧急警报 关于生产环境中出现的问题 预期响应时间一般是几分钟">
+  <div class="chrome"><span>urgent alerts</span><span>p423</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">紧急警报的共同点是响应时间短，处理难度却可能差异很大</h2>
+      <p class="lead-zh">有些警报单调重复，不需要太多思考。</p>
+      <p class="body-zh muted">另一些警报需要在线调查才能解决，材料把它们都放在生产问题的紧急响应框架里。</p>
+    </div>
+  </div>
+  <div class="foot"><span>minutes slo</span><span>04 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Tickets" data-source="p423 工单 应对客户需求 简单配置评审 复杂设计评审 容量规划方案评审">
+  <div class="chrome"><span>tickets</span><span>p423</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">工单也是客户需求驱动，但它的节奏比警报慢得多</h2>
+      <p class="lead-zh">简单工单可能只是评审一个配置文件。</p>
+      <p class="body-zh muted">复杂工单可能是设计评审或容量规划评审，响应窗口从小时扩展到天，甚至月。</p>
+    </div>
+  </div>
+  <div class="foot"><span>hours days months</span><span>05 / 28</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Daily Tasks" data-source="p424 日常运维任务 接力棒任务 琐事 代码或者配置文件发布 临时紧急客户需求">
+  <div class="chrome"><span>daily operations</span><span>p424</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">日常运维任务不一定有 SLO，但它们照样打断工作。</div>
+      <p class="body-zh muted" style="margin-top:2vh">代码发布、配置文件发布、临时且紧急的客户需求，都属于本章讨论的中断来源。</p>
+    </div>
+  </div>
+  <div class="foot"><span>no explicit slo</span><span>06 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Google Management" data-source="p424 Google有几种方式管理团队中每种类型的运维负载">
+  <div class="chrome"><span>management patterns</span><span>p424 p425</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google 把不同负载交给不同角色，避免全队同时被打断</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>负载类型</th><th>材料里的常见安排</th><th>目的</th></tr></thead>
+          <tbody>
+            <tr><td>紧急警报</td><td>专门的主值班工程师独立接收和响应。</td><td>减少对整个团队的打断，避免事故无人负责。</td></tr>
+            <tr><td>工单</td><td>主值班、副值班、非值班指定人员，或团队主动领取。</td><td>适配各团队的工单量和人员结构。</td></tr>
+            <tr><td>日常运维</td><td>值班人员、临时指定成员，或轮值结束后继续执行。</td><td>处理发布、配置修改和持续多周任务。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>role assignment</span><span>07 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Decision Metrics" data-source="p425 制定策略必须考虑 SLO 排队数量 严重程度 频率 可处理人数">
+  <div class="chrome"><span>strategy inputs</span><span>p425</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">选择处理策略时，指标都指向同一个问题：用多少人满足响应时间</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">SLO</h3><p class="small-zh">中断任务预期的响应时间。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">队列</h3><p class="small-zh">排队的中断性任务数量。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">严重度</h3><p class="small-zh">任务本身对服务和客户的影响。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">频率</h3><p class="small-zh">中断性任务发生得有多频繁。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">人数</h3><p class="small-zh">能够处理某类任务的人有多少。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>cost and response</span><span>08 / 28</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Imperfect Machines" data-source="p425 不完美的机器 人会感觉无聊 处理器工作原理不清楚 用户界面不太友好">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">人类是不完美的机器，工作安排要承认这种不完美。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料把无聊、思维方式不透明、沟通界面不友好和低效率放在同一组约束里讨论。</p>
+    </div>
+  </div>
+  <div class="foot"><span>human constraints</span><span>09 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Flow State" data-source="p425 流状态 在状态里 提升生产力 创造性 掌握和优化任务">
+  <div class="chrome"><span>flow state</span><span>p425 p426</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">流状态是本章分析中断成本的核心概念</h2>
+      <p class="lead-zh">在状态里可以提升生产力和创造性，也让员工真正掌握并优化自己的任务。</p>
+      <p class="body-zh muted">中断会让人失去这个状态，所以目标是尽可能让员工在状态下工作。</p>
+    </div>
+  </div>
+  <div class="foot"><span>protected focus</span><span>10 / 28</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Creative Flow" data-source="p426 认知流状态 富有创造性和参与感 充分了解起因和现状 隐约感觉可以解决">
+  <div class="chrome"><span>creative flow</span><span>p426</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">最值得保护的状态，是工程师充分理解问题，并感觉自己可以解决它。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料把这种状态描述为主观能动性驱动、忘记时间、尽可能忽略其他中断性任务。</p>
+    </div>
+  </div>
+  <div class="foot"><span>engagement</span><span>11 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Interruptions As Work" data-source="p426 如果某个人可以全职处理中断性任务 中断性任务就不再是中断性的了">
+  <div class="chrome"><span>mode shift</span><span>p426 p427</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">当一个人全职处理中断性任务，任务本身就不再中断他</h2>
+      <p class="lead-zh">修复问题、处理工单、渐进改进系统，会重新获得明确目标、边界和反馈。</p>
+      <p class="body-zh muted">剩下的分心来源反而变成项目工作。材料提醒，每个工程师对平衡点的要求并不一样。</p>
+    </div>
+  </div>
+  <div class="foot"><span>full time interrupt work</span><span>12 / 28</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Team Focus" data-source="p427 关注焦点是整个团队如何管理中断性任务 使团队成员都能成功">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">本章不讨论个人时间习惯，焦点是团队如何管理中断性任务。</div>
+      <p class="body-zh muted" style="margin-top:2vh">作者把建议明确面向团队管理层，目标是保证整个团队可以正常工作。</p>
+    </div>
+  </div>
+  <div class="foot"><span>management scope</span><span>13 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Fred Example" data-source="p427 Fred 今天不是值班 也不负责处理中断性事务 希望进行自己的项目工作">
+  <div class="chrome"><span>fred example</span><span>p427</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">Fred 明明有一整天做项目，仍然可能被团队政策和责任切碎。</div>
+      <p class="body-zh muted" style="margin-top:2vh">他不是值班人员，也不负责中断性事务，但随机工单、同事咨询、旧工单升级、发布问题和用户咨询都可能找上他。</p>
+    </div>
+  </div>
+  <div class="foot"><span>distraction index</span><span>14 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Fred Interruptions" data-source="p427 Fred可能被随机工单 同事警报咨询 旧工单升级 长发布问题 用户咨询打断">
+  <div class="chrome"><span>distraction sources</span><span>p427 p428</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">不是所有打断都能靠关掉通信工具解决</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">随机工单</h3><p class="small-zh">需要今天处理的请求直接分配给 Fred。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">警报咨询</h3><p class="small-zh">同事值班，但组件知识在 Fred 身上。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">旧工单</h3><p class="small-zh">上周值班时处理的工单被用户提高优先级。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">长发布</h3><p class="small-zh">持续三四周的发布突然需要检查和回滚。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">用户咨询</h3><p class="small-zh">用户因为他愿意帮忙而直接找他。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>policy and responsibility</span><span>15 / 28</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Polarized Time" data-source="p428 极化时间 减少上下文切换 延长每种工作模式的时间">
+  <div class="chrome"><span>polarized time</span><span>p428</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">一次 20 分钟的中断性任务，可能让项目工作损失数小时生产力。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料建议给上下文切换计入成本，并把同一种工作模式延长到一天或半天。</p>
+    </div>
+  </div>
+  <div class="foot"><span>context switch cost</span><span>16 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Daily Clarity" data-source="p428 极化时间意味着每个人来上班时清晰知道今天只是做项目工作还是只是做中断性工作">
+  <div class="chrome"><span>daily clarity</span><span>p428</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">极化时间的实践目标，是让工程师每天知道自己处在哪种模式</h2>
+      <p class="lead-zh">今天只做项目工作，或者今天只做中断性工作。</p>
+      <p class="body-zh muted">这种清晰边界让工程师更长时间专注于手上的工作，不被本不该负责的事情打扰。</p>
+    </div>
+  </div>
+  <div class="foot"><span>work mode boundary</span><span>17 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Add One Person" data-source="p428 如果中断性任务的量对一个人来说太高 应该增加一个人负责">
+  <div class="chrome"><span>general advice</span><span>p428</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">如果中断性任务对一个人来说太高，先增加一个人负责。</div>
+      <p class="body-zh muted" style="margin-top:2vh">这个建议适用于工单，也适用于紧急警报。值班工程师可以把警报降级为工单，也可以找副值班一起处理。</p>
+    </div>
+  </div>
+  <div class="foot"><span>load too high</span><span>18 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Primary On Call" data-source="p429 主on-call工程师应该专注于on-call工作 排除在项目进度之外">
+  <div class="chrome"><span>primary duty</span><span>p429</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">主值班工程师应该专注于值班工作，不该同时背项目进度</h2>
+      <p class="lead-zh">如果值班一周，这一周就应该完全排除在项目进度之外。</p>
+      <p class="body-zh muted">如果某个项目重要到不能等一周，管理层应该安排别人替代值班，而不是期待同一个人两边都有进展。</p>
+    </div>
+  </div>
+  <div class="foot"><span>no project pressure</span><span>19 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Secondary On Call" data-source="p429 副on-call工程师的责任取决于这些责任的繁重程度">
+  <div class="chrome"><span>secondary duty</span><span>p429</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">副值班能不能继续做项目，取决于副值班职责到底有多重</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>职责形态</th><th>材料里的判断</th><th>安排含义</th></tr></thead>
+          <tbody>
+            <tr><td>只做后备</td><td>可以认为他还能在项目上取得一些进展。</td><td>中断负担较轻。</td></tr>
+            <tr><td>同时处理工单</td><td>如果工单角色无人承担，可以考虑合并角色。</td><td>需要看总负载是否合理。</td></tr>
+            <tr><td>实际协助排障</td><td>如果警报数量要求副值班解决问题，他也应该专注中断性任务。</td><td>项目工作应退出当天预期。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>backup role</span><span>20 / 28</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Stop Random Tickets" data-source="p429 如果目前你是随机分配工单给团队成员 请立刻停止">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">如果团队还在随机分配工单给成员，材料的建议是立刻停止。</div>
+      <p class="body-zh muted" style="margin-top:2vh">作者认为这种方式不尊重团队时间，也违背让成员尽可能不被打扰的目标。</p>
+    </div>
+  </div>
+  <div class="foot"><span>ticket policy</span><span>21 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Ticket Staffing" data-source="p429 工单处理应该由全职人员负责 如果主oncall和副on-call都处理不完 重新架构流程">
+  <div class="chrome"><span>ticket staffing</span><span>p429</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">工单处理应该由全职人员负责，并保持占用时间合理</h2>
+      <p class="lead-zh">如果主值班和副值班都处理不完，应该重构工单流程。</p>
+      <p class="body-zh muted">材料给出的方向是任何时间都有两个全职员工处理工单，不要把复杂性分散到整个团队。</p>
+    </div>
+  </div>
+  <div class="foot"><span>full time ticket work</span><span>22 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Ongoing Ops" data-source="p429 持续性的运维工作 尽可能让整个团队共同负责 发布管理者 正式化交接过程">
+  <div class="chrome"><span>ongoing operations</span><span>p429</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">流程清晰的持续运维工作，应尽可能由全队共同负责</h2>
+      <p class="lead-zh">发布、配置文件修改这类任务，不必固定压在某一个人身上。</p>
+      <p class="body-zh muted">材料建议定义发布管理者角色，由值班和其他中断性任务处理者承担，并通过正式交接保护下一位工程师不受打扰。</p>
+    </div>
+  </div>
+  <div class="foot"><span>handoff cost</span><span>23 / 28</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Do Or Do Not" data-source="p430 负责中断性事务 或者不负责 非值班时间处理工单是错误的">
+  <div class="chrome"><span>role boundary</span><span>p430</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">处理中断性事务，就明确负责。不负责，就不要用额外帮忙掩盖真实负载。</div>
+      <p class="body-zh muted" style="margin-top:2vh">非值班时间处理工单会扭曲工单数量统计，让管理层无法判断当前负载是否可行。</p>
+    </div>
+  </div>
+  <div class="foot"><span>measurement integrity</span><span>24 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Analyze Tickets" data-source="p430 实际分析工单 每隔几个月才值班一次 根源问题没有人去修复">
+  <div class="chrome"><span>ticket analysis</span><span>p430</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">如果每个人只是轮到时补救一下，同样的问题会一直回来</h2>
+      <p class="lead-zh">大型团队里，值班间隔可能长到几个月。</p>
+      <p class="body-zh muted">材料指出这种节奏容易让人处理完就回到日常工作，根源问题没人修复，全队也没有进展。</p>
+    </div>
+  </div>
+  <div class="foot"><span>root cause gap</span><span>25 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Ticket Review" data-source="p430 工单处理也应该有交接过程 定期进行工单与紧急警报整理会议 找到根本原因">
+  <div class="chrome"><span>review loop</span><span>p430</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">工单也需要像警报一样交接、评审和追根因</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">交接</h3><p class="small-zh">让不同处理人之间共享状态。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">交流</h3><p class="small-zh">简单交流也可能触发好的解决方案。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">整理</h3><p class="small-zh">定期讨论每一类中断性问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">根因</h3><p class="small-zh">判断是否能在合理时间范围内修复。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">静音</h3><p class="small-zh">先暂停临时处理，给修复根源设置截止期限。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>handoff review mute</span><span>26 / 28</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Respect Users And Team" data-source="p431 团队应该为自己的服务设置合理的服务水平 将某些事务推回给客户解决是可以的">
+  <div class="chrome"><span>respect balance</span><span>p431</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">尊重用户，也要尊重团队自己。</div>
+      <p class="body-zh muted" style="margin-top:2vh">团队应该为自己的服务设置合理服务水平。某些事务推回给客户解决也是可以的。</p>
+    </div>
+  </div>
+  <div class="foot"><span>policy as tool</span><span>27 / 28</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p431 用户请求应该有意义 合理 提供所有材料 团队处理应及时有效">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="summary-num">核心总结</div>
+      <div class="callout" style="margin-top:2vh">中断性任务的管理，本质是在响应责任和工程师注意力之间建立边界。</div>
+      <p class="body-zh muted" style="margin-top:2vh">用户请求应该有意义、合理，并提供所需材料。SRE 的处理也应该及时有效。策略和代码一样，都是降低负载的工具。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p431</span><span>28 / 28</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-29-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-29-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>第26章 数据完整性：读写一致 note slides</title>
+<style>
+:root {
+  /* palette thesis: data integrity in this chapter is about user trust under loss, restore drills, and layered recovery, so the deck uses dark graphite for failure pressure, warm paper for operational notes, and teal for verified recovery signals. */
+  --ink: #20262a;
+  --ink-rgb: 32,38,42;
+  --paper: #f6f0e6;
+  --paper-rgb: 246,240,230;
+  --accent: #2f8f84;
+  --muted: #6f7877;
+  --warm: #7e6857;
+  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --w-quote: min(100%, 48rem);
+  --w-statement: min(100%, 56rem);
+  --w-note: min(100%, 64rem);
+  --w-default: min(100%, 76rem);
+  --w-wide: min(100%, 92rem);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
+#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
+.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.light { background: var(--paper); color: var(--ink); }
+.slide.bare .chrome { display: none; }
+.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
+.chrome { margin-bottom: 2vh; }
+.foot { margin-top: auto; padding-top: 2vh; }
+.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
+.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
+.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
+.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
+.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
+.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
+.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
+.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
+.accent { color: var(--accent); opacity: 1; }
+.slide.dark .accent { color: #7fd0c7; }
+.warm { color: var(--warm); }
+.muted { opacity: .64; }
+.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
+.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
+.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
+.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
+.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
+.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.85rem, 1.5vw, 1.35rem); }
+.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
+.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
+.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
+.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
+.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
+.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
+.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
+.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
+.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
+.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
+.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
+.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
+.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
+.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
+.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
+#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
+.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
+.nav-dot.active { background: var(--accent); }
+@media (max-width: 760px) {
+  .slide { padding: 2rem 1.35rem 1.6rem; }
+  .grid-2, .grid-3, .grid-4, .timeline-row { grid-template-columns: 1fr; }
+  .timeline-row::before { display: none; }
+}
+</style>
+</head>
+<body>
+<main id="deck">
+<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p354 章节标题 作者">
+  <div class="slide-body">
+    <div class="guest-mark w-statement">
+      <div class="kicker accent" style="opacity:1">SRE Book Chapter 26</div>
+      <h1 class="display-zh">数据完整性：读写一致</h1>
+      <p class="lead-zh muted" style="margin-top:2vh">从备份思维转向恢复思维。</p>
+      <p class="meta" style="margin-top:1.2vh">Raymond Blum · Rhandeev Singh</p>
+    </div>
+  </div>
+  <div class="foot"><span>p354</span><span>01 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="User View" data-source="p354 一切要以用户为准">
+  <div class="chrome"><span>user view</span><span>p354</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">讨论数据完整性时，一切要以用户为准。</div>
+      <p class="body-zh muted" style="margin-top:2vh">数据可能没有真正丢失，但只要用户界面让用户长期无法访问，用户就会把它理解为数据丢失。</p>
+    </div>
+  </div>
+  <div class="foot"><span>data integrity</span><span>02 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Access Threshold" data-source="p354 2011年Gmail事故 24小时阈值">
+  <div class="chrome"><span>access threshold</span><span>p354</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">无法访问也会侵蚀云服务可信度</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">Gmail</h3><p class="body-zh">收件箱显示为空，用户会认为数据已经丢失。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">4 天</h3><p class="body-zh">2011 年 Gmail 事故显示这个时间已经太久。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">24 小时</h3><p class="body-zh">材料把它作为 Google App 的合理时间阈值。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>trust window</span><span>03 / 46</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Integrity Demand" data-source="p354 p355 99.99% 数据完整性SLO 200KB损坏">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">99.99% 的数据完整性，可能仍然意味着灾难。</div>
+      <p class="body-zh muted" style="margin-top:2vh">2GB 用户数据中 200KB 损坏，文档、可执行文件和数据库都可能被彻底破坏。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p354 p355</span><span>04 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Detect Repair" data-source="p355 主动探测 快速修复 30分钟">
+  <div class="chrome"><span>detection and repair</span><span>p355</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">超高完整性靠主动探测和快速修复</h2>
+      <p class="lead-zh">如果损坏能在用户受影响前发现，自动删除或修复，并在 30 分钟内恢复访问，用户可见生命周期里的完整性仍然接近 100%。</p>
+    </div>
+  </div>
+  <div class="foot"><span>restore before visible</span><span>05 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Optimization Axes" data-source="p355 p356 在线时间 延迟 规模 创新速度 隐私">
+  <div class="chrome"><span>service priorities</span><span>p355 p356</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">云应用通常在五个目标之间取舍</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">在线时间</h3><p class="small-zh">服务可以被用户使用的时间比率。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">延迟</h3><p class="small-zh">服务对用户的响应时间。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">规模</h3><p class="small-zh">用户数量和可承受负载。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">创新速度</h3><p class="small-zh">以合理成本持续改进服务。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">隐私</h3><p class="small-zh">用户删除后在合理时间内真正摧毁数据。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>five axes</span><span>06 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Api Mix" data-source="p356 Blobstore Megastore Bigtable 引用完整性">
+  <div class="chrome"><span>api mix</span><span>p356</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">创新速度压过其他目标时，数据关系会变复杂</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>选择</th><th>材料里的动机</th><th>完整性压力</th></tr></thead>
+          <tbody>
+            <tr><td>Blobstore</td><td>高负载、扩展性、在线率、低延迟和低成本。</td><td>忽略分布式一致性，需要外部补救。</td></tr>
+            <tr><td>Megastore</td><td>保存一小块权威元数据。</td><td>延迟较高，在线率稍低，成本更高。</td></tr>
+            <tr><td>客户端缓存</td><td>降低用户可见延迟。</td><td>与对象和元数据之间产生引用完整性问题。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>referential integrity</span><span>07 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Recovery Complexity" data-source="p356 Blobstore Megastore 备份独立进行">
+  <div class="chrome"><span>restore complexity</span><span>p356</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">独立备份让恢复变成跨存储对账</h2>
+      <p class="lead-zh">如果 Blobstore 和 Megastore 分别备份，恢复时必须比较恢复后的对象、线上元数据、恢复后的元数据和客户端缓存。</p>
+      <p class="body-zh muted">复杂交互越多，越需要带外系统检查和平衡不同数据存储。</p>
+    </div>
+  </div>
+  <div class="foot"><span>cross store restore</span><span>08 / 46</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Backup Archive" data-source="p356 p357 备份与存档 没有人真的想要备份数据">
+  <div class="chrome"><span>backup vs archive</span><span>p356 p357</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">没有人真的想要备份数据，他们只想恢复数据。</div>
+      <p class="body-zh muted" style="margin-top:2vh">备份可以被应用重新加载，并服务灾难恢复。存档用于审核、取证和合规，恢复时间可以更长。</p>
+    </div>
+  </div>
+  <div class="foot"><span>restore first</span><span>09 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cloud Requirements" data-source="p357 云计算环境下的需求 API必须可靠">
+  <div class="chrome"><span>cloud requirements</span><span>p357</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">云 API 必须同时简单、可靠、能覆盖数据现实</h2>
+      <div class="grid-4">
+        <div class="line-box"><h3 class="h2-zh accent">本地性</h3><p class="small-zh">数据本地性和缓存。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">分布</h3><p class="small-zh">本地和全局的数据分布。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">一致性</h3><p class="small-zh">强一致性与最终一致性。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">持久性</h3><p class="small-zh">备份与灾难恢复。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>api surface</span><span>10 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Sre Goal" data-source="p358 保障持久性数据的完整性 SRE目标">
+  <div class="chrome"><span>sre goal</span><span>p358</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">SRE 要把大方向变成可衡量能力边界</h2>
+      <p class="lead-zh">保障持久性数据的完整性还不够，SRE 会定义关键指标和测试，衡量系统与流程在真实事故中的表现。</p>
+    </div>
+  </div>
+  <div class="foot"><span>measurable boundary</span><span>11 / 46</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Availability Is Goal" data-source="p358 数据完整性是手段 数据可用性是目标">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">数据完整性是手段，数据可用性是目标。</div>
+      <p class="body-zh muted" style="margin-top:2vh">长达 10 天无法访问后，即使个人信息最终恢复，对用户来说数据已经失去了很多意义。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p358</span><span>12 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Restore System" data-source="p358 交付一个恢复系统 而非备份系统">
+  <div class="chrome"><span>restore system</span><span>p358</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">团队不该只被要求备份，要被要求证明恢复能力</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">定义</h3><p class="body-zh">为不同失败场景定义一系列数据可用性 SLO。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">演练</h3><p class="body-zh">定期演练，确认团队有能力满足这些 SLO。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>backup tax</span><span>13 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Incident Taxonomy" data-source="p359 根源问题 影响范围 发生速度">
+  <div class="chrome"><span>loss taxonomy</span><span>p359</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">数据丢失事故由三个因子组合出来</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">根源问题</h3><p class="body-zh">用户行为、管理员错误、应用 Bug、基础设施问题、硬件故障和部署区事故。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">影响范围</h3><p class="body-zh">大规模影响很多实体，或只影响一小部分用户。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">发生速度</h3><p class="body-zh">一次操作瞬间破坏，或每分钟少量丢失并持续一周。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>24 combinations</span><span>14 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Point In Time" data-source="p359 p360 时间点恢复 时间旅行">
+  <div class="chrome"><span>point in time</span><span>p359 p360</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">最难的是数周或数月后才发现的数据损坏。</div>
+      <p class="body-zh muted" style="margin-top:2vh">大型应用可能要为数百万用户恢复多天、数周甚至数月的数据，并把每块数据恢复到特定时间点。</p>
+    </div>
+  </div>
+  <div class="foot"><span>time travel</span><span>15 / 46</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Replication Is Not Recovery" data-source="p360 复制机制和冗余并不意味着可恢复性">
+  <div class="chrome"><span>replication trap</span><span>p360</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">复制机制和冗余并不意味着可恢复性</h2>
+      <p class="lead-zh">自动同步多个副本的数据存储，可能在你发现问题前把损坏记录和错误删除复制到所有副本。</p>
+      <p class="body-zh muted">复制提高本地性和部署点容错，但不能替代恢复机制。</p>
+    </div>
+  </div>
+  <div class="foot"><span>replica spreads loss</span><span>16 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Diversity" data-source="p360 多样性是关键 黏土板">
+  <div class="chrome"><span>diversity</span><span>p360</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">恢复副本要和故障层保持多样性</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">同层风险</h3><p class="body-zh">数据库导出成本地文件，会引入格式转换、本地文件存储和语义差异。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">媒介隔离</h3><p class="body-zh">设备驱动中的 Bug 不太可能影响磁带备份，关键数据甚至可以想象保存在黏土板上。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>media isolation</span><span>17 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Freshness Tradeoff" data-source="p360 快照40分钟 文件系统备份几个小时">
+  <div class="chrome"><span>freshness tradeoff</span><span>p360</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">越往底层做快照，备份和恢复越慢</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>方式</th><th>材料里的时间</th><th>恢复代价</th></tr></thead>
+          <tbody>
+            <tr><td>数据库交易复制</td><td>可能只需要几秒。</td><td>数据新鲜，但保护范围有限。</td></tr>
+            <tr><td>数据库快照导出</td><td>可能需要 40 分钟。</td><td>还原最后快照时可能丢失最近 40 分钟。</td></tr>
+            <tr><td>文件系统镜像</td><td>可能需要几个小时。</td><td>备份和还原都慢，可能损失数小时信息。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>backup depth</span><span>18 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Retention" data-source="p360 保留期 缓慢发生的数据丢失">
+  <div class="chrome"><span>retention</span><span>p360</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">保留期要覆盖缓慢发生、晚被发现的数据丢失。</div>
+      <p class="body-zh muted" style="margin-top:2vh">恢复这类数据通常需要向前追溯一段时间，并把恢复数据与现有数据合并，复杂度随之上升。</p>
+    </div>
+  </div>
+  <div class="foot"><span>retention window</span><span>19 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Three Layers" data-source="p361 图26-2 软删除 备份 早期预警">
+  <div class="chrome"><span>layered defense</span><span>p361</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google 用分层机制覆盖不同事故组合</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">软删除</h3><p class="small-zh">对象先标记为删除，延迟彻底摧毁。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">备份恢复</h3><p class="small-zh">在软删除之后处理更广泛的恢复场景。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">早期预警</h3><p class="small-zh">主动发现低级损坏，避免恢复窗口恶化。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">复制机制</h3><p class="small-zh">有帮助，但恢复计划不能依赖它。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">分级覆盖</h3><p class="small-zh">越往后越覆盖罕见事故类型。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>defense in depth</span><span>20 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Soft Delete" data-source="p361 p362 第一层 软删除 Gmail垃圾箱30天">
+  <div class="chrome"><span>layer one</span><span>p361 p362</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">软删除是永久数据丢失的第一道防线</h2>
+      <p class="lead-zh">删除后数据立刻对普通代码不可见，但管理后台、账号恢复、企业管理、用户支持和排错工具仍可恢复。</p>
+      <p class="body-zh muted">Gmail 垃圾箱允许用户恢复 30 天内删除的信息，常见软删除时间是 15、30、45 或 60 天。</p>
+    </div>
+  </div>
+  <div class="foot"><span>trash and restore</span><span>21 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Lazy Delete" data-source="p362 懒删除 历史记录功能">
+  <div class="chrome"><span>lazy delete</span><span>p362</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">面向开发者的服务还可能需要懒删除</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">懒删除</h3><p class="body-zh">应用删除后立刻不可用，但云服务提供商保留几周再彻底销毁。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">历史记录</h3><p class="body-zh">如果删除被作为特例处理，历史记录也要配合软删除或懒删除。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>developer protection</span><span>22 / 46</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Backups Matter Less" data-source="p362 第二层 备份不重要 最重要的是恢复">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">备份不重要，最重要的是恢复。</div>
+      <p class="body-zh muted" style="margin-top:2vh">备份和还原系统的设计，要从恢复点频率、存储位置、保留时间和可接受近期损失反推。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p362 p363</span><span>23 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Backup Design" data-source="p363 旧版Gmail准实时流式备份 快照 本地化">
+  <div class="chrome"><span>backup design</span><span>p363</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">恢复时间越短，备份位置越要靠近生产数据</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>问题</th><th>材料里的取舍</th><th>Google 经验</th></tr></thead>
+          <tbody>
+            <tr><td>近期数据能丢多少</td><td>越少越依赖增量备份。</td><td>旧版 Gmail 使用准实时流式备份。</td></tr>
+            <tr><td>全量备份频率</td><td>频繁全量备份会压垮线上存储。</td><td>全量放非峰值，繁忙时段做增量。</td></tr>
+            <tr><td>恢复时间</td><td>越短越需要本地化。</td><td>快速但昂贵的快照只短期保存。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>rpo and rto</span><span>24 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Tiered Backup" data-source="p363 分级备份 30到90天">
+  <div class="chrome"><span>tiered backup</span><span>p363</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">合理成本下覆盖广泛场景，需要分级备份</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">第一级</h3><p class="small-zh">高频、快速恢复、靠近线上数据，保留数小时到 10 天内。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">第二级</h3><p class="small-zh">低频，保留一位数或两位数天数，恢复可能需要数小时。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">冷存储</h3><p class="small-zh">固定磁带库和异地设施，保护部署点级别事故。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">周期</h3><p class="small-zh">多数服务备份周期定为 30 到 90 天。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">预警</h3><p class="small-zh">早期预警减少复杂恢复场景需求。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>layered backup</span><span>25 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Backup Replication" data-source="p363 p364 额外一层 复制机制 RAID Reed-Solomon GFS">
+  <div class="chrome"><span>backup replica</span><span>p363 p364</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">备份自身也要防丢失</h2>
+      <p class="lead-zh">理想情况下，保存备份的存储系统也有复制机制。否则可能在恢复时才发现备份文件丢了，或备份所在数据中心正在维护。</p>
+      <p class="body-zh muted">材料建议选择常见且被持续使用的冗余系统，例如 RAID、Reed Solomon 纠错码或 GFS 类型复制机制。</p>
+    </div>
+  </div>
+  <div class="foot"><span>backup durability</span><span>26 / 46</span></div>
+</section>
+
+<section class="slide dark" data-theme="dark" data-screen-label="Exabyte Scale" data-source="p364 700 Petabytes 遍历需要80年">
+  <div class="chrome"><span>exabyte scale</span><span>p364</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">T 级别流程不能直接搬到 E 级别。</div>
+      <p class="body-zh muted" style="margin-top:2vh">用理想化 SATA 2.0 接口遍历 700PB 做基础校验，也需要 80 年。</p>
+    </div>
+  </div>
+  <div class="foot"><span>scale breaks process</span><span>27 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Trusted Point" data-source="p364 可信点 增量备份 分布式计算">
+  <div class="chrome"><span>trusted point</span><span>p364</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">海量数据需要可信点、增量和并行分片</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">可信点</h3><p class="body-zh">已校验且不会再变的数据，可以校验并复制以便未来恢复。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">增量</h3><p class="body-zh">只包含上次备份后新增或更改的数据。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">分片</h3><p class="body-zh">N 个任务并行复制和校验各自负责的 1/N 数据。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>horizontal split</span><span>28 / 46</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Dirty Data Spreads" data-source="p365 脏数据传播 越早检测越容易恢复">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">脏数据会传播，越早发现越容易恢复。</div>
+      <p class="body-zh muted" style="margin-top:2vh">每次更新都会降低数据整体质量，关联交易和格式变化会让从指定备份恢复的能力大幅下降。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p365</span><span>29 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Cloud Challenges" data-source="p365 云计算开发者面临的挑战">
+  <div class="chrome"><span>developer challenges</span><span>p365</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">高速创新环境会持续制造完整性挑战</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">关系</h3><p class="body-zh">不同数据存储之间的引用完整性。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">演进</h3><p class="body-zh">数据结构改变、旧代码和无停机迁移。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">接口</h3><p class="body-zh">与其他服务接口不断变化。</p></div>
+      </div>
+      <p class="body-zh muted">不主动管理数据关系，任何不断增长的服务，数据质量都会持续下降。</p>
+    </div>
+  </div>
+  <div class="foot"><span>changing service</span><span>30 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Trust Verify" data-source="p365 Paxos Bigtable 相信存储系统 还是要校验">
+  <div class="chrome"><span>trust and verify</span><span>p365</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">理论正确的存储 API 也需要应用侧校验</h2>
+      <p class="lead-zh">Paxos 理论上可以忽略故障节点，但实现里仍然有超时、重试、灾难处理、优化、Bug 和猜测。</p>
+      <p class="body-zh muted">材料给出的判断很直接：我们相信存储系统的实现，但是还是要校验。</p>
+    </div>
+  </div>
+  <div class="foot"><span>implementation reality</span><span>31 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Out Of Band" data-source="p365 p366 带外数据校验 MapReduce Hadoop">
+  <div class="chrome"><span>out of band</span><span>p365 p366</span></div>
+  <div class="slide-body">
+    <div class="w-statement callout-mark">
+      <div class="callout">带外数据校验是第三层防线的主体。</div>
+      <p class="body-zh muted" style="margin-top:2vh">它通常由一系列 MapReduce 或 Hadoop 任务实现，用来处理数据存储内部和相互之间的数据问题。</p>
+    </div>
+  </div>
+  <div class="foot"><span>validator pipeline</span><span>32 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Validator Culture" data-source="p366 Gmail 24小时检测到 多次修改生产存储">
+  <div class="chrome"><span>validator culture</span><span>p366</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">校验器让高频变更更敢上线</h2>
+      <p class="lead-zh">Gmail 的每个校验器都曾在生产环境检测到真实的数据完整性问题。</p>
+      <p class="body-zh muted">开发者知道新引入的数据一致性问题可在 24 小时内被发现，因此有勇气每周多次修改生产存储系统实现。</p>
+    </div>
+  </div>
+  <div class="foot"><span>confidence to change</span><span>33 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Verifier Balance" data-source="p366 Drive 校验文件内容与文件夹列表 自动修复">
+  <div class="chrome"><span>verifier balance</span><span>p366</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">校验规则只该盯住对用户毁灭性的问题</h2>
+      <div class="grid-2">
+        <div class="soft-box"><h3 class="h2-zh accent">太严格</h3><p class="body-zh">合理修改触发失败，工程师会抛弃校验逻辑。</p></div>
+        <div class="soft-box"><h3 class="h2-zh accent">不够严格</h3><p class="body-zh">会漏过用户可见的数据问题。</p></div>
+      </div>
+      <p class="body-zh muted">Google Drive 周期性校验文件内容与文件夹列表是否一致，并把校验器增强为可自动修复。</p>
+    </div>
+  </div>
+  <div class="foot"><span>catastrophic only</span><span>34 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Checker Cost" data-source="p366 Gmail 磁盘磁头使用率降低60% 10到14个分片">
+  <div class="chrome"><span>checker cost</span><span>p366</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">大规模带外检测也会消耗生产资源</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>压力</th><th>材料里的做法</th><th>结果</th></tr></thead>
+          <tbody>
+            <tr><td>计算资源</td><td>Gmail 很大一部分计算资源支持每日检测。</td><td>需要限速和重构。</td></tr>
+            <tr><td>缓存命中</td><td>校验器可能降低服务器缓存命中率。</td><td>可能造成用户可见延迟。</td></tr>
+            <tr><td>磁盘压力</td><td>一次重构降低 60% 磁盘磁头使用率。</td><td>没有显著降低覆盖范围。</td></tr>
+            <tr><td>超重校验器</td><td>分成 10 到 14 个分片。</td><td>每天只运行一个分片。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>operational cost</span><span>35 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Checker System" data-source="p366 p367 校验任务管理 监控 报警 限速 Playbook">
+  <div class="chrome"><span>checker system</span><span>p366 p367</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">有效校验系统需要平台化，而不该让小团队临时拼</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">运行面</h3><p class="body-zh">任务管理、限速、监控、报警和监控台页面。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">排障面</h3><p class="body-zh">调试工具、查询工具、日志定位和生产应急手册。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">组织面</h3><p class="body-zh">中央基础设施组维护框架，产品组维护业务校验逻辑。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>shared framework</span><span>36 / 46</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Restore Test" data-source="p367 只有真正进行恢复操作之后 才能确定能否恢复最新数据">
+  <div class="slide-body">
+    <div class="w-quote guest-mark">
+      <div class="callout">只有真正进行恢复操作，才能确定能否恢复最新数据。</div>
+      <p class="body-zh muted" style="margin-top:2vh">备份数据可能早已损坏，拨动开关时才发现灯泡坏了，已经太晚。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p367</span><span>37 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Recovery Checklist" data-source="p367 p368 数据恢复计划覆盖点">
+  <div class="chrome"><span>recovery checklist</span><span>p367 p368</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">恢复演练必须覆盖端到端流程</h2>
+      <div class="grid-4">
+        <div class="line-box"><h3 class="h2-zh accent">数据</h3><p class="small-zh">备份是否完整、正确，还是空的。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">资源</h3><p class="small-zh">是否有足够机器跑恢复、恢复数据和后处理。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">时间</h3><p class="small-zh">整个过程能否在合理时间内完成。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">依赖</h3><p class="small-zh">是否依赖非全天候可用的异地媒介。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>end to end drill</span><span>38 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Gmail Case" data-source="p368 p369 Gmail 2011年2月 GTape">
+  <div class="chrome"><span>case gmail</span><span>p368 p369</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Gmail 2011：GTape 成为最后一道防线</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">报警</h3><p class="small-zh">Gmail 丢失大量用户数据。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">匹配</h3><p class="small-zh">恢复原因与此前测试相符。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">建模</h3><p class="small-zh">很快计算绝大部分用户数据恢复预计时间。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">目标</h3><p class="small-zh">预计完成前恢复超过 99% 数据。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">协作</h3><p class="small-zh">全球分布式工作由中央计划协调。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>tape recovery</span><span>39 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Gmail Lesson" data-source="p368 p369 深度多层防御 内部工具不能正常运行">
+  <div class="chrome"><span>gmail lesson</span><span>p368 p369</span></div>
+  <div class="slide-body">
+    <div class="w-note stack">
+      <h2 class="h1-zh">Gmail 案例证明，多层防御不是装饰</h2>
+      <p class="lead-zh">本次丢失数据太多，Gmail 内部恢复工具已经不能正常运行，离线磁带备份系统接管恢复。</p>
+      <p class="body-zh muted">公众以为大量磁盘和快速网络就够了，材料强调在线系统仍需要能抵抗单个防护失效和底层媒介问题的多层防御。</p>
+    </div>
+  </div>
+  <div class="foot"><span>last line works</span><span>40 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Music Discovery" data-source="p369 p370 Google Music 2012年3月6日 发现问题">
+  <div class="chrome"><span>case music discovery</span><span>p369 p370</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google Music 事故从一个无法播放的歌曲开始</h2>
+      <div class="timeline-row">
+        <div class="timeline-item"><h3 class="h2-zh accent">3 月 6 日</h3><p class="small-zh">用户报告之前能播放的歌曲现在无法播放。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">3 月 7 日</h3><p class="small-zh">工程师发现元数据缺少音频文件指针。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">继续深究</h3><p class="small-zh">工程师继续查找系统中可能存在的问题。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">真正原因</h3><p class="small-zh">隐私删除流水线删掉了数据。</p></div>
+        <div class="timeline-item"><h3 class="h2-zh accent">止血</h3><p class="small-zh">最高级别警报发出，删除流水线暂停。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>one song symptom</span><span>41 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Music Scope" data-source="p369 p370 60万条音频文件 2.1万用户 436223条有备份">
+  <div class="chrome"><span>case music scope</span><span>p369 p370</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <h2 class="h1-zh">临时 MapReduce 把事故规模量出来了</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">60 万</h3><p class="body-zh">删除流水线大概误删的音频文件数量。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">2.1 万</h3><p class="body-zh">大概受影响的用户数量。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">436,223</h3><p class="body-zh">第一批恢复中存在备份的文件数量。</p></div>
+      </div>
+      <p class="body-zh muted">由于检测程序简化了一些步骤，实际问题只会更严重。</p>
+    </div>
+  </div>
+  <div class="foot"><span>impact sizing</span><span>42 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Music Restore" data-source="p370 p371 5000盘磁带 1.5PB 5475个小任务 7天">
+  <div class="chrome"><span>case music restore</span><span>p370 p371</span></div>
+  <div class="slide-body">
+    <div class="w-wide stack">
+      <h2 class="h1-zh">Google Music 恢复同时暴露了离线媒介的后勤压力</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>环节</th><th>材料里的数字</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td>请求规模</td><td>超过 1.5PB 数据。</td><td>定制磁带软件没有为这种规模设计。</td></tr>
+            <tr><td>任务切分</td><td>5,475 个小任务。</td><td>手工输入命令需要超过三天，必须写代码。</td></tr>
+            <tr><td>磁带运输</td><td>5,337 盘磁带，另有 1,862 盘首次漏掉。</td><td>恢复过程依赖异地设施、卡车、场地和人工装载。</td></tr>
+            <tr><td>完成进度</td><td>7 天恢复 1.5PB，5 天用于真正恢复。</td><td>演习经验降低了不可控风险。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>logistics matter</span><span>43 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary One" data-source="p354 p358 p367 用户可访问性 恢复系统 真正恢复操作">
+  <div class="chrome"><span>core notes</span><span>p354 p358 p367</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结 1</div>
+      <h2 class="h1-zh">目标始终是用户可访问的数据</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">定义</h3><p class="body-zh">数据是否完整，要从用户能否访问云服务来判断。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">系统</h3><p class="body-zh">团队交付的是恢复系统，备份只是恢复的输入。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">证明</h3><p class="body-zh">只有实际恢复过，才能确定最新数据真的可恢复。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>restore as product</span><span>44 / 46</span></div>
+</section>
+
+<section class="slide light" data-theme="light" data-screen-label="Core Summary Two" data-source="p361 p365 p372 软删除 早期预警 纵深防御">
+  <div class="chrome"><span>core notes</span><span>p361 p365 p372</span></div>
+  <div class="slide-body">
+    <div class="w-default stack">
+      <div class="summary-num">核心总结 2</div>
+      <h2 class="h1-zh">完整性保障要用多层机制覆盖失败组合</h2>
+      <div class="grid-3">
+        <div class="line-box"><h3 class="h2-zh accent">第一层</h3><p class="body-zh">软删除和懒删除先拦住误删与开发者错误。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">第二层</h3><p class="body-zh">分级备份按恢复时间、保留期和事故范围组织。</p></div>
+        <div class="line-box"><h3 class="h2-zh accent">第三层</h3><p class="body-zh">带外校验尽早发现脏数据，降低需要恢复的 N。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>layered protection</span><span>45 / 46</span></div>
+</section>
+
+<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p372 p373 SRE基本理念 小结 N趋近于0">
+  <div class="slide-body">
+    <div class="w-statement guest-mark">
+      <div class="callout">当能在 N 时间内恢复数据后，下一步是把 N 降低到接近 0。</div>
+      <p class="body-zh muted" style="margin-top:2vh">材料最后回到 SRE 基本理念：保持初学者心态，信任但要验证，不要一厢情愿，纵深防御，定期重新检查和重新审核。</p>
+    </div>
+  </div>
+  <div class="foot"><span>p372 p373</span><span>46 / 46</span></div>
+</section>
+</main>
+<div id="nav"></div>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const deck = document.getElementById("deck");
+const nav = document.getElementById("nav");
+let current = Math.min(Number(localStorage.getItem("sre-chapter-26-slide") || 0), slides.length - 1);
+slides.forEach((_, index) => {
+  const item = document.createElement("button");
+  item.className = "nav-dot";
+  item.type = "button";
+  item.addEventListener("click", () => go(index));
+  nav.appendChild(item);
+});
+function go(index) {
+  current = Math.max(0, Math.min(index, slides.length - 1));
+  deck.style.transform = `translateX(${-current * 100}vw)`;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
+  localStorage.setItem("sre-chapter-26-slide", String(current));
+}
+window.addEventListener("keydown", event => {
+  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
+  if (event.key === "ArrowLeft") go(current - 1);
+});
+let touchStart = null;
+window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
+window.addEventListener("touchend", event => {
+  if (touchStart === null) return;
+  const delta = event.changedTouches[0].clientX - touchStart;
+  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive: true});
+go(current);
+</script>
+</body>
+</html>
