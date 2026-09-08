@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>15-01</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 776" role="img"><title>先说明接口，再让实现检验说明</title>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">先说明接口，再让实现检验说明</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">类说明 → 重要公有方法 → 重要状态 → 方法体；发现问题时返回修改</text>
+<path d="M 560 248 L 560 320" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 560 432 L 560 504" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 840 568 L 1024 568 L 1024 212 L 840 212" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="984" y="364" width="80" height="32" fill="#f5f5f5"/>
+<text x="1024" y="388" font-size="20" fill="#4f5d75" text-anchor="middle">回改</text>
+<rect x="280" y="144" width="560" height="104" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="304" y="184" font-size="24" fill="#2d3142" text-anchor="start">类的抽象与重要方法接口</text>
+<text x="304" y="220" font-size="20" fill="#4f5d75" text-anchor="start">先写含义、签名和使用条件</text>
+<rect x="280" y="320" width="560" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="304" y="360" font-size="24" fill="#2d3142" text-anchor="start">调整基本结构，声明重要状态</text>
+<text x="304" y="396" font-size="20" fill="#4f5d75" text-anchor="start">变量声明与含义同时写下</text>
+<rect x="280" y="504" width="560" height="128" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="304" y="544" font-size="24" fill="#2d3142" text-anchor="start">填写方法体，编码与测试</text>
+<text x="304" y="580" font-size="20" fill="#4f5d75" text-anchor="start">新增方法仍先写接口说明</text>
+<text x="304" y="616" font-size="20" fill="#4f5d75" text-anchor="start">根据实际行为同步修正</text>
+<text x="40" y="680" font-size="20" fill="#4f5d75" text-anchor="start">回改路径：发现问题 → 重新检查接口说明与设计。</text>
+<line x1="40" y1="700" x2="1080" y2="700" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="740" font-size="20" fill="#4f5d75" text-anchor="start">箭头表示工作顺序及反馈，不代表程序运行调用；注释必须完整清楚，短本身不证明设计好。</text>
+</g></svg></main></html>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" width="1120" height="700" role="img" aria-label="一个程序，同时约束流程、调用与赋值">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="700" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" fill="#2d3142" text-anchor="start">一个程序，同时约束流程、调用与赋值</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">假设案例：订单试算，不包含扣款或订单写入</text>
+<polyline points="328,216 512,216" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="372.0" y="182" width="96" height="28" fill="#f5f5f5"/>
+<text x="420" y="204" font-size="20" fill="#4f5d75" text-anchor="middle">读取输入</text>
+<polyline points="768,296 768,408" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="796.0" y="338" width="96" height="28" fill="#f5f5f5"/>
+<text x="844" y="360" font-size="20" fill="#4f5d75" text-anchor="middle">传递结果</text>
+<rect x="40" y="152" width="288" height="144" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="64" y="192" font-size="24" fill="#2d3142" text-anchor="start">固定的订单快照</text>
+<text x="64" y="228" font-size="20" fill="#4f5d75" text-anchor="start">计算不修改输入</text>
+<rect x="512" y="152" width="568" height="144" rx="8" fill="#fff0e9" stroke="#eb6c36" stroke-width="2"/>
+<text x="536" y="192" font-size="24" fill="#2d3142" text-anchor="start">按条件计算金额</text>
+<text x="536" y="228" font-size="20" fill="#4f5d75" text-anchor="start">用顺序、分支、循环组织步骤</text>
+<rect x="512" y="408" width="568" height="144" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="536" y="448" font-size="24" fill="#2d3142" text-anchor="start">通过共同操作输出结果</text>
+<text x="536" y="484" font-size="20" fill="#4f5d75" text-anchor="start">由选定对象执行具体呈现方法</text>
+<text x="40" y="452" font-size="24" fill="#2d3142" text-anchor="start">三种纪律可以共存</text>
+<text x="40" y="492" font-size="20" fill="#4f5d75" text-anchor="start">不必三选一</text>
+<line x1="40" y1="632" x2="1080" y2="632" stroke="#bfc0c0"/>
+<text x="40" y="668" font-size="20" fill="#4f5d75" text-anchor="start">箭头：输入与结果的传递。这里没有绘制源代码依赖。</text>
+</g></svg>

@@ -1,0 +1,80 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第12章｜为什么要写注释？4个借口 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：注释怎样帮助读者忽略实现细节</a><a class="sub" href="#section-2">12.1 好的代码自己就是文档</a><a class="sub" href="#section-3">12.2 我没有时间写注释</a><a class="sub" href="#section-4">12.3 注释会过时，会产生误导</a><a class="sub" href="#section-5">12.4 我见过的注释都没有价值</a><a class="sub" href="#section-6">12.5 写好注释的好处</a><a class="sub" href="#section-7">12.6 不同观点：注释就是失败</a><a class="" href="#section-8">二、主题讲解：读代码能找到答案，为什么还需要说明</a><a class="sub" href="#section-9">一行声明可以允许多种合理解释</a><a class="sub" href="#section-10">再区分可见结果和内部办法</a><a class="sub" href="#section-11">好注释也可能暴露接口本身需要修改</a><a class="sub" href="#section-12">用一次变更判断文档有没有价值</a><a class="" href="#section-13">自测：两条注释哪条值得留下</a><a class="" href="#section-14">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第12章</p><h1>为什么要写注释？4个借口</h1>
+<p>前一章要求比较设计方案，但接口的名称和类型往往不足以表达它们真正的差别。本章解释注释为什么属于设计本身：调用者需要知道结果的含义、使用前提和限制，维护者还需要知道某些决定为什么存在。这些信息不一定能从代码中直接看见。</p>
+<h2 id="section-1">一、原书回顾：注释怎样帮助读者忽略实现细节</h2>
+<p>章首先提出三项期待：好的注释能改善软件质量，写好注释有可学习的方法，注释也可以成为设计中的有趣工作。作者承认现实中有大量没有文档或文档平庸的代码，然后逐一回应四种不写注释的理由。后续章节才展开怎么写、如何命名和何时写，本章主要说明其必要性。</p>
+<h3 id="section-2">12.1 好的代码自己就是文档</h3>
+<p>好的名称和清楚的代码能减少解释需求，但不能自动说明全部接口含义。例如，方法签名可以写出参数 <code>start</code>、<code>end</code> 和返回类型，却没有回答：结束位置是否包含在结果中，开始大于结束时怎样处理。方法适合在什么条件下调用、设计为什么选这个办法，也常常没有体现在声明里。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 596" role="img" aria-label="调用者需要完整接口，不必重建全部实现">
+<defs><marker id="12-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#4f5d75"/></marker><marker id="12-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#eb6c36"/></marker><marker id="12-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="596" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" text-anchor="start" fill="#2d3142">调用者需要完整接口，不必重建全部实现</text>
+<text x="40" y="104" font-size="20" text-anchor="start" fill="#4f5d75">例：知道范围是否包含末端，应当在使用前就能确认</text>
+<path d="M344,232 L440,232" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#12-0-arrow)"/>
+<rect x="364.0" y="196.0" width="56" height="32" fill="#f5f5f5"/>
+<text x="392.0" y="220.0" font-size="20" text-anchor="middle" fill="#4f5d75">阅读</text>
+<path d="M344,416 L440,416" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#12-0-arrow)"/>
+<rect x="364.0" y="380.0" width="56" height="32" fill="#f5f5f5"/>
+<text x="392.0" y="404.0" font-size="20" text-anchor="middle" fill="#4f5d75">阅读</text>
+<path d="M744,416 L824,416" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#12-0-arrow)"/>
+<rect x="746.0" y="380.0" width="76" height="32" fill="#f5f5f5"/>
+<text x="784.0" y="404.0" font-size="20" text-anchor="middle" fill="#4f5d75">再追读</text>
+<rect x="48" y="164" width="296" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="72" y="204" font-size="24" text-anchor="start" fill="#2d3142">说明完整</text>
+<text x="72" y="240" font-size="20" text-anchor="start" fill="#4f5d75">调用者</text>
+<rect x="440" y="164" width="624" height="140" rx="8" fill="#fff4ee" stroke="#eb6c36" stroke-width="2"/>
+<text x="464" y="204" font-size="24" text-anchor="start" fill="#2d3142">声明＋接口注释</text>
+<text x="464" y="240" font-size="20" text-anchor="start" fill="#4f5d75">取得行为、边界、返回值和使用前提</text>
+<rect x="48" y="356" width="296" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="72" y="396" font-size="24" text-anchor="start" fill="#2d3142">说明缺失</text>
+<text x="72" y="432" font-size="20" text-anchor="start" fill="#4f5d75">调用者</text>
+<rect x="440" y="356" width="304" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="464" y="396" font-size="24" text-anchor="start" fill="#2d3142">实现细节</text>
+<text x="464" y="432" font-size="20" text-anchor="start" fill="#4f5d75">寻找实际行为</text>
+<rect x="824" y="356" width="248" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="848" y="396" font-size="24" text-anchor="start" fill="#2d3142">嵌套方法</text>
+<text x="848" y="432" font-size="20" text-anchor="start" fill="#4f5d75">推断隐含条件</text>
+<line x1="40" y1="532" x2="1080" y2="532" stroke="#bfc0c0"/>
+<text x="40" y="568" font-size="20" text-anchor="start" fill="#4f5d75">依据：12.1；箭头表示查找信息的阅读路径。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图12-1｜注释补全调用者所需的信息，使实现细节可以留在模块内部。根据12.1重画；箭头表示阅读时获取信息的路径，不表示程序调用。</p>
+<p>一种反对意见是，让使用者直接读实现最准确。作者指出，这样做可能得到答案，却费时，而且让全部实现细节进入使用者的理解范围。若为方便这种阅读而把方法不断拆短，调用者还可能需要沿调用链阅读更多浅方法，整体负担未必下降。</p>
+<p>抽象是一个便于使用的简化视图：保留必要信息，省去可以安全忽略的细节。如果必须读完整个实现才敢调用，简化视图就没有承担工作。注释可以补全声明缺少的行为约定，让调用者知道怎样使用而不必重建内部算法。自然语言不如程序执行规则精确，却能更直观地解释意图与概念；作者因此把注释视为抽象的重要组成部分。</p>
+<h3 id="section-3">12.2 我没有时间写注释</h3>
+<p>如果总把文档排在新功能之后，时间压力会使它一直被推迟。作者用第3章的投资心态回应：前期花时间让系统容易理解，后面维护和改动时才能少付成本。</p>
+<p>他做了一个粗略估算：假设输入代码占总开发时间不超过10%，再假设输入注释与输入代码一样费时，新增注释的时间也不会超过原开发时间的约10%。这里的两个比例都是作者的假设与估计，不是对所有团队的测量；它用来反驳“文字很多，所以必然耗费大部分工期”的直觉。</p>
+<p>更直接的收益来自接口注释。若在设计时就尝试把类和方法说明白，可能当场发现接口不合理，减少之后修改代码的代价。第15章会进一步讲这种工作方式。本节的主张因此不只依赖未来回报，也包含当前设计过程中的帮助。</p>
+<h3 id="section-4">12.3 注释会过时，会产生误导</h3>
+<p>作者承认注释会陈旧，但认为这可以管理，不应成为整体放弃文档的理由。他建议避免相同信息散布多处，使说明尽量靠近相应代码，并在代码评审中检查同步修改。大的行为改变往往本就需要较多实现工作，同步更新说明是其中的一部分。</p>
+<p>“维护注释的工作量通常不大”是作者的经验判断。它有条件：说明组织得当，且代码变更时确实把文档纳入检查。该观点不能保证任何一份注释天然可靠；读者发现代码与说明冲突时，仍要核查。</p>
+<h3 id="section-5">12.4 我见过的注释都没有价值</h3>
+<p>作者认为这是四种理由中最有依据的一种，因为很多注释只复述旁边的代码，确实不增加信息。他接受对坏注释的批评，但没有从中推出所有注释都无价值。后面的写法要解决的，正是如何补上读者真正需要、却不能轻易从代码看出的内容。</p>
+<p>这也给本章的观点加上质量条件：增加注释数量并不能自动降低复杂性。重复一句方法名，或者描述明显的赋值动作，不会让读者多理解设计。</p>
+<h3 id="section-6">12.5 写好注释的好处</h3>
+<p>好注释保存设计者脑中尚未进入代码的信息，范围可以很低层，例如某段奇怪代码是为绕过硬件行为；也可以很高层，例如一个类为什么存在。不记录这些信息，后来修改的人就要重新调查或猜测，原作者过几周再回来也可能忘记。</p>
+<p>作者把这种收益放回第2章的复杂性概念中。变更放大指一次改动牵动很多地方；认知负担指开发者必须积累很多信息才能工作；不知道未知指开发者甚至不清楚还有哪些代码和条件需要注意。好文档主要帮助后两项：给出必需信息，使无关实现可以暂时忽略；指出系统结构与依赖，使开发者知道应该到哪里继续看。</p>
+<p>复杂性的主要原因是依赖关系和模糊性。文档可以澄清依赖、填补缺失含义，减少模糊性；但把依赖写清楚，不等于依赖本身消失。需要改动许多位置的问题，仍可能需要调整设计解决。</p>
+<h3 id="section-7">12.6 不同观点：注释就是失败</h3>
+<p>本节再次讨论与 Robert Martin 的分歧。按本书引述，Martin 把注释视为代码未能表达意图时的补救，并主张尽可能通过代码表达。Ousterhout 同意清楚的设计可以减少解释内部实现的注释，但反对把所有注释都理解成失败。</p>
+<p>分歧与第9章相连：把代码块提取为一个方法，再用很长的方法名替代说明，可能产生浅方法与难懂的名称。原书举出的名字是 <code>isLeastRelevantMultipleOfNextLargerPrimeFactor</code>。这些词描述了质因数相关判断，但读者仍要知道“相关”如何判定、这个判断在什么情形下使用。每个调用点都要重复这个长名称，却未必得到一段好注释能提供的理解。名称按PDF第148页连接排版换行后的两部分，未把行末连字符当作标识符内容。</p>
+<p>作者认为代码与注释适合表达不同的信息。接口说明的价值之一，恰好是让使用者不必阅读实现。即使某些信息勉强能被编码成名字或结构，也要比较这种表达是否更容易理解。本节保留了真实分歧，没有把“尽量减少注释”与“用注释定义抽象”揉成一条无条件规则。</p>
+<h2 id="section-8">二、主题讲解：读代码能找到答案，为什么还需要说明</h2>
+<h3 id="section-9">一行声明可以允许多种合理解释</h3>
+<p>下面使用一个假设的查询方法：<code>findOrders(start, end)</code> 返回一段时间内的订单。只看名字与类型，你可能猜它包括开始时刻，却不确定结束时刻是否包括在内。如果上一页查询截至12点，下一页从12点开始，边界定义不清就可能重复或漏掉恰好12点的记录。</p>
+<p>代码里也许能看到 <code>time &lt; end</code>。但对每一个调用者，要求他们找到最终比较语句、确认没有其他转换、再猜这是否为稳定承诺，都会增加阅读成本。接口注释直接说明“开始包含、结束不包含”，可以把这项必要信息放在每个使用者自然会查看的位置。比较语句保证程序按条件执行，说明告诉人们应当依赖什么行为。</p>
+<h3 id="section-10">再区分可见结果和内部办法</h3>
+<p>继续看这个方法。调用者可能需要知道结果排序、空结果含义、是否只读、是否会阻塞等；具体需要哪些项目，要依据这个接口实际提供的行为。调用者一般不必知道内部使用哪张临时表、循环分几轮，除非这些安排已经形成可观察的限制。</p>
+<p>假设注释写成“创建查询对象，设置两个参数，调用数据库，再把结果装入列表”，它虽然比名称长，却没有回答边界、排序和结果含义。读者仍得查看实现。更好的说明先给完整行为，再补足必须遵守的细节；内部维护者需要的步骤解释放在实现附近。</p>
+<p>这就是“减少认知负担”的具体含义：少读不相关的内部细节，并完整得到需要的信息。它不要求注释越短越好；少写了必要前提，读者只是暂时没有意识到还缺信息，反而增加了不知道未知。</p>
+<h3 id="section-11">好注释也可能暴露接口本身需要修改</h3>
+<p>若说明必须写“查询前先设置当前租户，调用后把线程中的状态清空，某个返回值还取决于上一次调用”，你可能已经发现一个设计问题。首先要确认这些依赖是否必要；能够从接口消除的，就修改设计；确实保留的，再完整写明。</p>
+<p>这样，注释既帮助当前调用，也会促使设计者检查模块有没有把太多状态管理交给使用者。第15章讨论的“先编写注释”，正利用了这种效果。只删除注释或把方法名拉长，不会让那些使用前提自行消失。</p>
+<h3 id="section-12">用一次变更判断文档有没有价值</h3>
+<p>假设后来支持用户选择时区。维护者应该能从接口说明看到起止参数究竟表示绝对时刻还是某地的日历时间，再定位转换代码。若说明还指出边界处理规则的归属，就能减少漏看的位置。文档在这里降低了模糊性，但如果转换逻辑已经复制在五处，仍然需要改五处；注释不能代替去除重复知识。</p>
+<p>维护时也不必把每个实现调整都重写成接口变化。换了一种内部查询方法，只要公开行为保持不变，接口说明可以不动；结束边界含义改变，即使代码只改一个字符，说明和调用者检查都需要同步。更新成本与行为影响有关，不能只看代码改了多少行。</p>
+<h2 id="section-13">自测：两条注释哪条值得留下</h2>
+<p>假设 <code>close()</code> 的第一条注释是“关闭资源”，第二条注释是“释放本对象拥有的资源；调用后对象不能再用于读取；重复调用无额外效果”。如果第二条确实符合实现，它补充了哪些声明没有表达的信息？是否能因此取消测试？</p>
+<p>核对思路：第二条说明所有权、对象后续状态与重复调用行为，可以帮助使用者正确安排生命周期。测试仍需检查实现是否兑现这些行为；注释负责说明应当依赖什么，不能证明实现正确。第一条如果只是复述方法名，就没有提供同等价值。</p>
+<h2 id="section-14">来源、范围与阅读连接</h2>
+<p>依据 John Ousterhout《软件设计的哲学》第12章，PDF物理第142–149页，原小节12.1–12.6及章首引入。实际查看第144、145、148页图，核对范围边界例子、10%估算前提及与 Martin 的分歧。图12-1为论证关系重画；订单查询和资源关闭均为假设例子。成本估算与注释维护难度保留作者归属，未当作实测结果。第13章继续讨论注释具体应该写什么。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../11/index.html">上一篇 · 设计两次</a><a href="../13/index.html">下一篇 · 注释应描述代码中不明显的内容</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

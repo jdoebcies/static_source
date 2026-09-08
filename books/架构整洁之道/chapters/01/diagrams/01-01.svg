@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 624" width="1120" height="624" role="img" aria-label="忙于交付，为什么可能越来越慢">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="624" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" fill="#2d3142" text-anchor="start">忙于交付，为什么可能越来越慢</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">影响链：本章对乱麻系统的解释</text>
+<polyline points="400,208 704,208" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="484.0" y="174" width="136" height="28" fill="#f5f5f5"/>
+<text x="552" y="196" font-size="20" fill="#4f5d75" text-anchor="middle">留下更多混乱</text>
+<polyline points="884,272 884,368" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="894.0" y="302" width="116" height="28" fill="#f5f5f5"/>
+<text x="952" y="324" font-size="20" fill="#4f5d75" text-anchor="middle">修改更费力</text>
+<polyline points="704,432 400,432" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="484.0" y="398" width="136" height="28" fill="#f5f5f5"/>
+<text x="552" y="420" font-size="20" fill="#4f5d75" text-anchor="middle">交付能力下降</text>
+<polyline points="220,368 220,272" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="68.0" y="302" width="136" height="28" fill="#f5f5f5"/>
+<text x="136" y="324" font-size="20" fill="#4f5d75" text-anchor="middle">继续推迟整理</text>
+<rect x="40" y="144" width="360" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="64" y="184" font-size="24" fill="#2d3142" text-anchor="start">先堆功能，推迟整理</text>
+<text x="64" y="220" font-size="20" fill="#4f5d75" text-anchor="start">结构问题持续累积</text>
+<rect x="704" y="144" width="376" height="128" rx="8" fill="#fff0e9" stroke="#eb6c36" stroke-width="2"/>
+<text x="728" y="184" font-size="24" fill="#2d3142" text-anchor="start">后续改动牵连更多代码</text>
+<text x="728" y="220" font-size="20" fill="#4f5d75" text-anchor="start">查找、修补、回归增加</text>
+<rect x="704" y="368" width="376" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="728" y="408" font-size="24" fill="#2d3142" text-anchor="start">更多时间花在旧系统上</text>
+<text x="728" y="444" font-size="20" fill="#4f5d75" text-anchor="start">新功能进展放缓</text>
+<rect x="40" y="368" width="360" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="64" y="408" font-size="24" fill="#2d3142" text-anchor="start">交付压力继续增加</text>
+<text x="64" y="444" font-size="20" fill="#4f5d75" text-anchor="start">靠加班、加人追赶</text>
+<line x1="40" y1="556" x2="1080" y2="556" stroke="#bfc0c0"/>
+<text x="40" y="592" font-size="20" fill="#4f5d75" text-anchor="start">限定：图示说明机制；不等于匿名数据排除了其他原因。</text>
+</g></svg>

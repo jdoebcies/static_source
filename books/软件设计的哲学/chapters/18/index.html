@@ -1,0 +1,93 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第18章｜代码应显而易见 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：把理解代码所需的信息交到读者手中</a><a class="sub" href="#section-2">18.1 让代码更显而易见</a><a class="sub" href="#section-3">18.2 让代码不显而易见的因素</a><a class="sub" href="#section-4">事件驱动编程：找到调用处，也未必知道会运行谁</a><a class="sub" href="#section-5">通用容器：拿到两个值，却不知道各自代表什么</a><a class="sub" href="#section-6">声明类型与实际类型不同：必要的实现特性藏在别处</a><a class="sub" href="#section-7">不符合阅读者期望：构造之后程序仍在运行</a><a class="sub" href="#section-8">18.3 结论</a><a class="" href="#section-9">二、主题讲解：别人看错这几行，究竟缺了什么</a><a class="sub" href="#section-10">返回值的名字要承载它自己的含义</a><a class="sub" href="#section-11">找出控制过程里没有写出来的那一步</a><a class="sub" href="#section-12">用读者的第一次判断验证改进</a><a class="" href="#section-13">用一个新情形检验理解</a><a class="" href="#section-14">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第18章</p><h1>代码应显而易见</h1>
+<p>代码读起来顺不顺，要看读者能否迅速形成正确判断。作者把“第一次猜测通常就是对的”作为显而易见的表现：读者不必来回寻找隐藏信息，才能弄懂眼前几行。本章接续命名与一致性，进一步说明怎样让结构可见、哪些做法会遮住信息，以及什么时候应当补上注释。</p>
+<h2 id="section-1">一、原书回顾：把理解代码所需的信息交到读者手中</h2>
+<h3 id="section-2">18.1 让代码更显而易见</h3>
+<p>本章从第2章的模糊性出发：系统中的重要信息没有明显呈现给读者，就会增加理解和修改的困难。代码是否明显，不能由作者独自决定。写代码的人已经知道背景，容易把自己脑中的信息误当成代码已经表达出来。代码评审因此很有价值：若阅读者提出困惑，就应查明他缺了什么信息，而不是用“这很简单”结束讨论。</p>
+<p>前两种办法来自前面章节。精确、有意义的名称让人直接知道对象或动作的含义；一致性则让人安全沿用以前学过的模式。名字含糊，就得通读实现才能反推含义；形式相同而行为不同，则会让经验失效。</p>
+<p>作者接着用三个层次展示<strong>留白如何显露结构</strong>。第一层是参数文档：原例介绍 <code>numThreads</code> 和 <code>handler</code>。前者控制管理连接的线程数，说明中还讨论了预计同时连接数和短时间大量消息；后者是接收消息的回调，并指向消息处理接口的说明。这些只是示例类的约定。把两段文字紧密挤在一起时，读者不易辨认参数数目和边界；让参数名独占起始行、说明缩进，并把两组分开后，结构便能直接看见。改变的是呈现方式，参数要求本身没有变化。</p>
+<p>第二层是方法内部的代码块。原书 <code>Buffer::allocAux</code> 先把请求长度向上调整到8字节的倍数，以满足对齐；然后尝试使用已有的可用空间。这里从高地址一端向下分配，是因为低地址一端可能已用于变长块，高端仍能保证对齐。若第一处空间不够，再检查最后一个块末尾的额外空间；两处都不够才申请新的空间。作者用空行分开这些步骤，并把解释下一步骤的注释放在空行之后。读者因此能先辨认处理阶段，再进入指针与长度计算，不必把整段代码当成一团符号读。</p>
+<p>第三层是语句内部。原书以同一个 <code>for</code> 条件展示，加入适当空格后，初始化、继续条件和递减操作之间的关系更容易识别：</p>
+<pre><code class="language-cpp">for (int pass = 1; pass &gt;= 0 &amp;&amp; !empty; pass--) {
+</code></pre>
+<p>这个片段用于展示留白，不是完整循环实现。当结构、名称仍无法表达必要信息时，作者建议使用注释补足。注释该写什么，要从读者会在哪里困惑出发，而不是照着代码再叙述一遍。</p>
+<h3 id="section-3">18.2 让代码不显而易见的因素</h3>
+<p>作者讨论的几个做法并非都应该禁用。例如，事件驱动在某些场景中很有价值；使用它时，要意识到阅读者会多出哪些困难。</p>
+<h3 id="section-4">事件驱动编程：找到调用处，也未必知道会运行谁</h3>
+<p>事件驱动程序响应网络包到达、鼠标按下等外部事件。应用先向事件模块注册处理函数，事件发生后由模块间接调用函数。阅读者若沿普通的显式调用关系寻找入口，可能找不到；即使找到事件模块的调用代码，实际执行哪个函数也取决于运行时登记的处理程序。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 656" width="1120" height="656" role="img" aria-labelledby="title desc">
+<title id="18-0-title">读懂回调，需要把注册与执行接起来</title><desc id="18-0-desc">同一个事件模块，在两个时刻承担不同动作。；原书18.2节的关系整理；回调注释应补充触发条件、调用方和执行线程。</desc>
+<defs>
+<marker id="18-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker>
+<marker id="18-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker>
+<marker id="18-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" font-weight="600">读懂回调，需要把注册与执行接起来</text>
+<text x="40" y="104" font-size="20" fill="#4f5d75">同一个事件模块，在两个时刻承担不同动作。</text>
+<path d="M296 240 H432" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-0-arrow)"/>
+<rect x="332.0" y="196" width="64" height="32" fill="#f5f5f5"/>
+<text x="364" y="220" text-anchor="middle" font-size="20" fill="#4f5d75">注册</text>
+<path d="M572 296 V440" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-0-arrow)"/>
+<rect x="532.0" y="348" width="104" height="32" fill="#f5f5f5"/>
+<text x="584" y="372" text-anchor="middle" font-size="20" fill="#4f5d75">后续使用</text>
+<path d="M296 496 H432" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-0-arrow)"/>
+<rect x="312.0" y="452" width="104" height="32" fill="#f5f5f5"/>
+<text x="364" y="476" text-anchor="middle" font-size="20" fill="#4f5d75">报告事件</text>
+<path d="M712 496 H848" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-0-arrow)"/>
+<rect x="718.0" y="452" width="124" height="32" fill="#f5f5f5"/>
+<text x="780" y="476" text-anchor="middle" font-size="20" fill="#4f5d75">运行时调用</text>
+<rect x="40" y="184" width="256" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="168.0" y="230.0" text-anchor="middle" font-size="24">应用初始化</text>
+<text x="168.0" y="266.0" text-anchor="middle" font-size="24">选择处理函数</text>
+<rect x="432" y="184" width="280" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="572.0" y="230.0" text-anchor="middle" font-size="24">事件模块</text>
+<text x="572.0" y="266.0" text-anchor="middle" font-size="24">保存注册关系</text>
+<rect x="40" y="440" width="256" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="168.0" y="486.0" text-anchor="middle" font-size="24">外部事件</text>
+<text x="168.0" y="522.0" text-anchor="middle" font-size="24">例如传输层出错</text>
+<rect x="432" y="440" width="280" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="572.0" y="486.0" text-anchor="middle" font-size="24">事件模块</text>
+<text x="572.0" y="522.0" text-anchor="middle" font-size="24">按注册关系分派</text>
+<rect x="848" y="440" width="232" height="112" rx="8" fill="#fce8de" stroke="#eb6c36" stroke-width="2"/>
+<text x="964.0" y="486.0" text-anchor="middle" font-size="24">处理函数</text>
+<text x="964.0" y="522.0" text-anchor="middle" font-size="24">执行响应逻辑</text>
+<line x1="40" y1="580" x2="1080" y2="580" stroke="#bfc0c0"/>
+<text x="40" y="616" font-size="20" fill="#4f5d75">原书18.2节的关系整理；回调注释应补充触发条件、调用方和执行线程。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图18-1｜事件处理的入口藏在注册信息里。依据18.2节整理；上排表示注册时的动作，下排表示事件发生后的运行调用，图中分派器是对事件模块的概括称呼。</p>
+<p>这使“什么时候会执行”“在哪个线程执行”等事实不容易从函数体里看到。原书的 <code>Transport::RpcNotifier::failed()</code> 注释就补了这些信息：当传输层错误使 RPC 无法完成时，由传输层在分派线程中调用该方法。它交代触发条件、调用方和执行线程；读者无需从许多间接调用中独自重建这些背景。</p>
+<p>原书此处插入“警示信号：不显而易见的代码”：如果快速阅读仍无法理解含义或行为，应怀疑有重要信息没有呈现给阅读者。这是在提示调查缺口，不是给代码行数或语法形式设硬指标。</p>
+<h3 id="section-5">通用容器：拿到两个值，却不知道各自代表什么</h3>
+<p><code>Pair</code> 或 <code>std::pair</code> 能让编写者快速打包多个值。原例返回 <code>new Pair&lt;Integer, Boolean&gt;(currentTerm, false)</code>；调用者却只能通过 <code>getKey()</code> 和 <code>getValue()</code> 访问。两个通用名称没有解释业务含义，特别是布尔值究竟否定了什么，单看返回语句无从确认。</p>
+<p>作者建议为这类结果定义专用的类或结构，为每个组成部分取有意义的名字，并在声明处写必要说明。多花一点编写时间，能减少以后每位阅读者的猜测。原例没有完整给出布尔值的语义，本文也不替作者补一个成功、投票或错误含义；这里需要理解的正是这种缺口。</p>
+<h3 id="section-6">声明类型与实际类型不同：必要的实现特性藏在别处</h3>
+<p>原书用 <code>List&lt;Message&gt;</code> 字段实际赋值为 <code>ArrayList&lt;Message&gt;</code> 的情况说明另一种信息距离：只看到声明的人未必知道具体实现，而具体实现的性能或线程安全属性可能影响使用。作者因此建议使声明与分配类型相匹配。</p>
+<p>这一建议应保留作者归属。中文页图把 <code>List</code> 写成 <code>ArrayList</code> 的“超类”；准确区分应为接口与实现类。作者要指出的是必要特性不应被遮住，不能据此推导为所有变量都应暴露具体实现。若调用者只需要接口所承诺的行为，隐藏实现本来就有价值；如果正确使用确实依赖某个实现特性，就应明确表达这个要求。这一适用性说明是本文对原例的分析。</p>
+<h3 id="section-7">不符合阅读者期望：构造之后程序仍在运行</h3>
+<p>原例的 <code>main</code> 创建一个 <code>RaftClient</code> 就结束。读者可能据此以为程序也会结束；实际上，构造函数创建了继续运行的其他线程。因此，作者建议在构造函数的接口注释中记录该行为，也在 <code>main</code> 末尾加一句简短提醒，让读者知道工作将由其他线程继续执行。</p>
+<p>本例讨论的是未被代码表面表达出来的行为。主线程返回不能被简单等同于整个进程退出；作者是在描述读者可能产生的预期，并用具体反例提醒维护者。完整说明放在构造函数处，入口留简短提醒，也与第16章“完整文档集中、在容易误解处给指引”的做法相容。</p>
+<h3 id="section-8">18.3 结论</h3>
+<p>作者最后从信息角度归纳：不明显的代码通常缺少阅读者需要的重要信息。<code>RaftClient</code> 没有显露线程继续工作的事实，<code>Pair</code> 没有让返回分量的含义直接可见。减少这类困难有三条路径。</p>
+<p>首先，用抽象、消除特殊情况等设计方法，减少阅读者必须知道的东西。其次，遵守约定、符合合理期望，使读者能利用已经掌握的知识。最后，用明确名称和必要注释，把仍需知道的信息呈现出来。顺序有意义：先检查能否让问题变简单，再考虑怎样把保留下来的复杂部分解释清楚。</p>
+<h2 id="section-9">二、主题讲解：别人看错这几行，究竟缺了什么</h2>
+<p>下面是一个<strong>假设的报表导出服务</strong>。调用方传入查询条件后，会得到两个值：任务编号和“是否已完成”。导出可能稍后由工作线程完成。我们沿这个例子检查数据含义与执行过程怎样变得明显。</p>
+<h3 id="section-10">返回值的名字要承载它自己的含义</h3>
+<p>假设接口返回一个数字和一个布尔值，用通用容器装起来。写接口的人知道数字是任务编号，布尔值代表“已完成”；但调用方看到 <code>getValue()</code> 时，可能把它理解成“提交成功”。这两种判断会导致不同操作：提交成功只能显示已受理，完成之后才可能读取文件。</p>
+<p>专用结果类型可以把两者称为 <code>taskId</code> 与 <code>completed</code>，并说明 <code>completed</code> 为否时任务仍可能正常等待或执行。名称承担普通含义，说明补足容易混淆的条件。这里不必为了体现面向对象而制造复杂类层次；一个含义清楚的数据结果就够了。</p>
+<p>如果实际服务还可能失败，那么“未完成”与“已失败”也不能一直挤进同一个布尔值。是否需要增加状态，要由已确认的行为决定。本例先揭示一个判断原则：一个字段看似简单，但如果读者必须另记多套解释，它并没有减少复杂性。</p>
+<h3 id="section-11">找出控制过程里没有写出来的那一步</h3>
+<p>继续读调用处。若代码只写“创建导出对象”，对象却在构造过程中启动线程、注册回调并接收任务，阅读者就很难看出何时开始工作。可以比较另一种设计：构造负责建立对象，明确的启动动作负责开始处理。是否值得这样拆分，要看项目原有约定和接口代价；不能为了改名反而增加许多无用步骤。</p>
+<p>如果框架规定必须通过回调通知结果，间接调用可能无法消除。此时要在回调说明中写清触发时机、执行线程，以及回调收到的对象表示哪个阶段的结果。只写“处理导出回调”仍然没有补足信息，因为读者原本就能看出这是个处理函数。</p>
+<p>运行方式没有必要在每个调用点重复一整遍。把完整说明留在负责运行或回调约定的位置，在入口容易误读的地方给一句提示即可。这样既照顾眼前的阅读者，也减少以后要同步修改的文字。</p>
+<h3 id="section-12">用读者的第一次判断验证改进</h3>
+<p>把接口和调用片段交给一位没参与实现的同事，让他回答三个具体问题：调用返回时文件一定存在吗？哪个字段能判断是否完成？完成通知在什么条件、什么线程中到达？先听他仅凭代码和附近说明作答，再指出事实。</p>
+<p>如果他把“受理”读成“完成”，就检查结果含义；如果不知道谁触发回调，就检查运行信息；如果每次都要打开许多实现类，才知道返回值是什么，可能应该缩小接口要求他理解的范围。不能把所有困惑都归因于读者不认真，也不能一律靠增加注释解决。</p>
+<h2 id="section-13">用一个新情形检验理解</h2>
+<p>有人把 <code>completed</code> 改成 <code>status</code>，但仍保留布尔类型，认为名字更通用了。另有人建议在每一处调用后复制十行线程说明。</p>
+<p>两种修改都没有直接解决缺口。<code>status</code> 比“是否完成”更难判断真假含义；多处复制则增加文档失效的风险。先确认服务实际有哪些结果，再给结果明确名称；把线程约定放在接口与回调说明处，必要入口给简短提醒。验收时仍看读者能否正确判断文件是否就绪、之后由谁继续工作，而不是只数新增了多少文字。</p>
+<h2 id="section-14">来源、范围与阅读连接</h2>
+<p>本章依据 John Ousterhout《软件设计的哲学》第18章，PDF物理页208—215（书内页183—190）。已实际查看第209—215页，核对参数文档排版、<code>Buffer::allocAux</code>、循环语句、失败回调、<code>Pair</code>、类型声明与线程示例。</p>
+<p>源书章末将 <code>currentTerm</code> 对应的返回值解释成“当前数据项的编号”，与前文标识符的具体含义对应不明；本文保留标识符并聚焦命名缺口，不据此定义算法概念。源书未指定 <code>Pair</code> 的具体库。报表导出案例、接口适用性分析及读者检查方法为讲解补充，不是作者项目事实。</p>
+<p>第17章说明怎样复用一致的规则，本章补充如何处理剩余的信息缺口；第19章将用复杂性这把尺度审视常见开发方法。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../17/index.html">上一篇 · 一致性</a><a href="../19/index.html">下一篇 · 软件发展趋势</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

@@ -363,35 +363,33 @@ html, body {
 }
 
 
-/* mobile-reading-fallback: make generated SRE decks readable on phones and touch tablets. */
+/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
 @media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
   html,
   body {
-    height: auto !important;
-    min-height: 100% !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
 
   #deck {
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 100svh !important;
-    display: block !important;
-    transform: none !important;
-    transition: none !important;
+    position: fixed !important;
+    width: 10000vw !important;
+    height: 100dvh !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
   }
 
   .slide {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 100svh !important;
-    height: auto !important;
-    flex: none !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3rem !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 0 !important;
+    height: 100dvh !important;
+    flex: 0 0 100vw !important;
+    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
     overflow-x: hidden !important;
-    overflow-y: visible !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   .slide *,
@@ -559,8 +557,23 @@ html, body {
     transition: none !important;
   }
 
-  #nav {
-    display: none !important;
+  #nav,
+  #dots {
+    display: flex !important;
+    max-width: calc(100vw - 1.5rem);
+    overflow-x: auto;
+    gap: 6px;
+    padding: 6px 10px;
+    bottom: .75rem;
+  }
+
+  #nav > button,
+  #dots > .dot {
+    flex-shrink: 0;
+  }
+
+  #dots > .dot:not(.active) {
+    background: var(--muted);
   }
 }
 
@@ -916,6 +929,20 @@ window.addEventListener("wheel", event => {
   if (event.deltaX > 0 || event.deltaY > 0) go(current + 1);
   if (event.deltaX < 0 || event.deltaY < 0) go(current - 1);
 }, { passive: true });
+let touchStart = null;
+window.addEventListener("touchstart", event => {
+  touchStart = event.touches.length === 1 && !event.target.closest("#dots")
+    ? { x: event.touches[0].clientX, y: event.touches[0].clientY }
+    : null;
+}, { passive: true });
+window.addEventListener("touchend", event => {
+  if (!touchStart) return;
+  const dx = event.changedTouches[0].clientX - touchStart.x;
+  const dy = event.changedTouches[0].clientY - touchStart.y;
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(current + (dx < 0 ? 1 : -1));
+  touchStart = null;
+}, { passive: true });
+window.addEventListener("touchcancel", () => { touchStart = null; }, { passive: true });
 go(current);
 </script>
 </body>

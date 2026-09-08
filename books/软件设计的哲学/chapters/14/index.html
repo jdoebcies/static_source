@@ -1,0 +1,84 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第14章｜选择名称 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：让读者的第一猜测接近真实含义</a><a class="sub" href="#section-2">14.1 示例：糟糕的名称会导致缺陷</a><a class="sub" href="#section-3">14.2 塑造形象</a><a class="sub" href="#section-4">14.3 名称应精确</a><a class="sub" href="#section-5">14.4 一致地使用名称</a><a class="sub" href="#section-6">14.5 避免多余的词</a><a class="sub" href="#section-7">14.6 不同意见：Go风格指南</a><a class="sub" href="#section-8">14.7 结论</a><a class="" href="#section-9">二、主题讲解：先决定要区分什么，再决定名字多长</a><a class="sub" href="#section-10">让同一数字的不同含义显出来</a><a class="sub" href="#section-11">简短与一致，要在明确的范围内成立</a><a class="sub" href="#section-12">好名称仍需要注释补足边界</a><a class="" href="#section-13">检验理解：删掉前缀会不会更清楚</a><a class="" href="#section-14">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第14章</p><h1>选择名称</h1>
+<p>名称会在读者打开文档之前，先让他对对象形成一个猜测。猜对了，理解代码就省一步；猜错了，错误可能顺着这个猜测进入实现。本章要求选择足够精确、使用一致的名称，也保留短名称和省略冗词的适用条件。</p>
+<h2 id="section-1">一、原书回顾：让读者的第一猜测接近真实含义</h2>
+<p>章首把名称看作一种文档，也接回“复杂性是增量的”：一个普通名字似乎影响不大，成千上万个名字积累起来，就会影响理解、维护和发现错误。作者因此主张把命名当成设计工作，而非写代码时随手填空。</p>
+<h3 id="section-2">14.1 示例：糟糕的名称会导致缺陷</h3>
+<p>作者回忆，20 世纪 80 年代末至 90 年代初，他和研究生开发 Sprite 分布式操作系统时遇到间歇性数据损坏：文件没有被用户修改，一个数据块却偶尔变成全零。几名学生追查无果，作者后来花了六个月才定位并修复。这里的时长是作者对该项目的叙述，不是一般调试工作的统计。</p>
+<p>根因是 <code>block</code> 被用于两种含义：文件内部的逻辑块编号，以及磁盘上的物理块编号。一处代码把实际保存逻辑编号的变量，交给了需要物理编号的位置，导致无关磁盘块被零覆盖。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 656" role="img"><title>名称相同，掩盖了两种不能互换的编号</title>
+<defs><marker id="14-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="14-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="14-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">名称相同，掩盖了两种不能互换的编号</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">原书 Sprite 缺陷机制；此图不复原原项目源码与地址转换算法</text>
+<text x="40" y="148" font-size="24" fill="#2d3142" text-anchor="start">原问题：读者看见 block，误以为它是物理块号</text>
+<path d="M 328 248 L 416 248" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#14-0-arrow)"/>
+<path d="M 712 248 L 800 248" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#14-0-arrow)"/>
+<rect x="40" y="188" width="288" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="228" font-size="24" fill="#2d3142" text-anchor="start">block</text>
+<text x="64" y="264" font-size="20" fill="#4f5d75" text-anchor="start">实际来自文件逻辑编号</text>
+<rect x="416" y="188" width="296" height="144" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="440" y="228" font-size="24" fill="#2d3142" text-anchor="start">按物理编号写盘</text>
+<text x="440" y="264" font-size="20" fill="#4f5d75" text-anchor="start">把逻辑值用于错误位置</text>
+<rect x="800" y="188" width="280" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="824" y="228" font-size="24" fill="#2d3142" text-anchor="start">无关磁盘块</text>
+<text x="824" y="264" font-size="20" fill="#4f5d75" text-anchor="start">被零覆盖</text>
+<line x1="40" y1="368" x2="1080" y2="368" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="416" font-size="24" fill="#2d3142" text-anchor="start">改进含义：区分 fileBlock 与 diskBlock，再约束转换</text>
+<path d="M 328 500 L 416 500" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#14-0-arrow)"/>
+<path d="M 712 500 L 800 500" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#14-0-arrow)"/>
+<rect x="40" y="448" width="288" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="488" font-size="24" fill="#2d3142" text-anchor="start">fileBlock</text>
+<text x="64" y="524" font-size="20" fill="#4f5d75" text-anchor="start">文件内的逻辑位置</text>
+<rect x="416" y="448" width="296" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="440" y="488" font-size="24" fill="#2d3142" text-anchor="start">取得 diskBlock</text>
+<text x="440" y="524" font-size="20" fill="#4f5d75" text-anchor="start">明确两类编号的对应</text>
+<rect x="800" y="448" width="280" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="824" y="488" font-size="24" fill="#2d3142" text-anchor="start">使用 diskBlock</text>
+<text x="824" y="524" font-size="20" fill="#4f5d75" text-anchor="start">按物理编号操作</text>
+<line x1="40" y1="580" x2="1080" y2="580" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="620" font-size="20" fill="#4f5d75" text-anchor="start">箭头表示操作中值的使用。不同名称提示区别；作者还建议使用不同类型限制互换。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图14-1｜依据 Sprite 案例的错误机制重绘。箭头表示值在操作过程中的使用；下方仅说明需要区分含义，不复原原系统的地址转换算法。</p>
+<p>多名开发者曾读过相关代码，但看到 <code>block</code> 用在物理编号的位置，就自然把它当成物理编号。直到证据把问题缩小到具体语句，作者才追查它真正来自哪里。使用 <code>fileBlock</code> 和 <code>diskBlock</code> 能让这种混用更容易被看见；作者进一步建议用不同类型表达二者，使它们不能被直接互换。</p>
+<p><code>block</code> 与两种对象都“差不多相关”，恰恰不足以保证正确。命名应保留会改变合法用法的区别。作者也提到自己不愿留下未解缺陷的强烈态度；这解释他继续追查的经历，不作为要求开发者采用同样工作心态的原则。</p>
+<h3 id="section-3">14.2 塑造形象</h3>
+<p>好名称应让读者知道实体大致是什么，以及哪些相近含义不适用。作者建议把名称从声明和代码中单独拿出来，问陌生读者能否猜出它指什么，还有没有更清楚的表达。</p>
+<p>名称能承载的信息有限，两三个词以上容易变得笨重。它也是一种抽象：选择最重要的性质，省去次要细节。因此命名不追求完整句子，也不追求最短字符串，而是让有限的词表达最有用的区别。</p>
+<h3 id="section-4">14.3 名称应精确</h3>
+<p>原书 <code>IndexletManager::getCount()</code> 返回管理的 indexlet 数量，但在调用处只见 <code>getCount</code>，读者不知道数的是什么。这里的 indexlet 是本例被管理对象的名称，本章不要求读者掌握其内部实现。作者建议用 <code>numActiveIndexlets</code> 这样的名称，把计数对象说出来，并提出“警示信号：含糊的名称”：一个名字若能指许多不同东西，就很难防止误用。</p>
+<p>几个学生案例分别补足不同信息。文本位置用 <code>x</code>、<code>y</code>，容易让人想到屏幕像素坐标；<code>charIndex</code>、<code>lineIndex</code> 更能指向文件字符和行的位置。布尔值 <code>blinkStatus</code> 既没说谁在闪烁，也没说明 true 的含义；<code>cursorVisible</code> 让读者先知道它是否可见，闪烁这一用途可以留给注释。作者因此建议布尔名称采用能够判断真假的表达。</p>
+<p><code>VOTED_FOR_SENTINEL_VALUE</code> 只说明它是特殊值，<code>NOT_YET_VOTED</code> 才说明特殊状态是“本轮尚未投票”。一个没有返回值的方法使用 <code>result</code>，又会让人以为它准备被返回；可按实际内容改为 <code>mergedLine</code>、<code>totalChars</code> 等。若变量确实是返回结果，<code>result</code> 可以合理使用，因为方法文档能进一步限定含义。</p>
+<p>作者还用 Linux 的 <code>struct socket</code> 与 <code>struct sock</code> 批评近似到难分辨的名称。原书把二者叙述为带有嵌入、类似基类与派生结构的关系，因而提出 <code>sock_base</code>、<code>inet_sock</code> 一类更能区分角色的名字。此处保留作者用例与建议，不据此断言某一 Linux 版本的结构布局；书中没有给出足以核验布局的版本和源码定位。</p>
+<p>精确也有范围。只有几行、全部用途一眼可见的循环，<code>i</code>、<code>j</code> 通常已经够用；若循环太长或变量含义不易看出，应增加说明性。另一个相反问题是过度具体：<code>delete(Range selection)</code> 暗示只能删除当前选区，但该方法其实可删除任意文本范围，因此参数应叫 <code>range</code>。</p>
+<p>若一个变量很难用简短、准确的名字描述，可能是定义本身混合了多个东西，应考虑拆开或重新组织。原书把这称为“警示信号：难以取名”。继续堆词未必能解决设计不清的问题。</p>
+<h3 id="section-5">14.4 一致地使用名称</h3>
+<p>一致名称让读者把一次学到的含义用于其他位置，例如始终用 <code>fileBlock</code> 表示文件内块索引。原书给出三项要求：指定含义始终使用同一通用名称；这个名称不用来表示其他含义；规定的含义要足够窄，保证各处变量有相同的行为。Sprite 把两种行为不同的编号都归入 <code>block</code>，正是第三项失败。</p>
+<p>同一类对象同时出现多个时，可以保留共同名称，再加角色前缀，例如复制操作中的 <code>srcFileBlock</code>、<code>dstFileBlock</code>。短循环变量也应稳定使用，如外层 <code>i</code>、内层 <code>j</code>。目的在于让读者形成的假设可靠，而非追求每个变量都独一无二。</p>
+<h3 id="section-6">14.5 避免多余的词</h3>
+<p>每个词都要提供信息。<code>fileObject</code> 中的 object、变量名里泛泛的 field 等后缀，常常只增加长度和换行。原书也回顾在名字中编码类型的做法：如 <code>filePtr</code>，以及用 <code>arru8NumberList</code> 表达无符号 8 位整数数组的匈牙利命名示例。作者曾采用类型前缀，后来认为在容易查看类型声明的开发环境中，这类重复通常不值得。</p>
+<p>上下文也能提供信息。File 类里的 <code>fileBlock</code>，如果读者已明确它是文件的块，file 可能冗余，可以叫 <code>block</code>；但若该类同时包含不同种类的块，区别仍需保留。这个限定把本节与 Sprite 案例连在一起：删词不能删掉防止误用所需的区分。</p>
+<h3 id="section-7">14.6 不同意见：Go风格指南</h3>
+<p>作者保留了不同意见。Andrew Gerrand 的演讲认为过长名称会掩盖代码作用，并比较 <code>RuneCount</code> 的两个版本：短版使用 <code>b</code>、<code>i</code>、<code>n</code>，长版使用 <code>buffer</code>、<code>index</code>、<code>count</code>。两版都遍历字节缓冲区，简单情况前进一个字节，否则按解码得到的大小前进；每处理一个 rune（本例中被逐个解码计数的字符）增加计数，最后返回计数。改变的是名称，算法相同。</p>
+<p>Gerrand 更喜欢短版，Ousterhout 不认为长版更难读，尤其觉得 <code>count</code> 比 <code>n</code> 更直接。他也承认，如果一个系统始终用 <code>n</code> 表示计数，熟悉此约定的人可能没有困难。作者批评的是同一简称被用于许多含义，例如 <code>ch</code> 同时表示字符或通道、<code>d</code> 表示数据或差异或距离；这种歧义可能重现 <code>block</code> 的问题。这些都是书中争论的立场，不代表本文调查过今天整个 Go 社区。</p>
+<p>双方共同认可一条判断：声明与使用相距越远，名称越需要提供充分信息。短名若使实际读者容易理解，就可以采用；长名若被读者指出笨重，也应考虑缩短。原文建议通过网络搜索查看短名争议，那是书中阅读建议，本稿没有把它当作需要执行的检索任务。</p>
+<h3 id="section-8">14.7 结论</h3>
+<p>精心选择名称，使读者第一次看到实体时就较容易猜对用途。作者把这看作长期投资：开始时找好名字可能费力，练习后会更熟练，理解与修改代码也更轻松。这是经验性的学习建议，不是每次命名都能避免缺陷的保证。</p>
+<h2 id="section-9">二、主题讲解：先决定要区分什么，再决定名字多长</h2>
+<h3 id="section-10">让同一数字的不同含义显出来</h3>
+<p>下面是本文假设的文件导入流程。<code>position</code> 有时表示原文件行号，有时表示解析后列表中的下标。遇到被过滤的空行后，两者不再相同。如果日志需要报告原文件第几行，却拿列表下标去显示，即使两者都是整数，也会给出错误位置。</p>
+<p>先说明两个含义：<code>sourceLineNumber</code> 用于定位原始文件，<code>recordIndex</code> 用于访问解析结果。名字中的区别直接对应合法用法，不能因为它们都是“位置”就统一叫 <code>position</code>。若系统反复把两者传来传去，还可以像作者建议的那样，用不同类型限制互换。名称给读者提示，类型提供进一步约束，两者的作用不同。</p>
+<h3 id="section-11">简短与一致，要在明确的范围内成立</h3>
+<p>在几行内遍历记录时，用 <code>i</code> 可以由整个循环补足含义；一旦要把值传到错误报告方法，读者未必看得到原循环，就需要 <code>sourceLineNumber</code> 这样的名字。相同对象在日志、校验和异常里沿用相同名称，才不会每到一处都重新猜测。</p>
+<p>如果同时有源文件与目标文件的行号，可以加源、目标等角色信息。若类的上下文已经唯一限定它是源文件行号，部分前缀也可能省略，但要检查省略之后是否会与列表下标混淆。命名长度随失去的上下文补偿，而非按统一字符上限决定。</p>
+<h3 id="section-12">好名称仍需要注释补足边界</h3>
+<p><code>sourceLineNumber</code> 提示了计数对象，却未必说明从 0 还是 1 起算、表头是否计入、空行是否计入。第 13 章的精确注释负责这些规则。若为容纳它们，把名字延长成一整句话，调用处会变得很难读。</p>
+<p>如果发现“有时包含表头，有时不包含”，首先要检查是否混用了不同含义。可以统一规则，也可以分开表示，之后再给名称与注释。名字找不准时，它是在提醒定义尚未稳定；单纯替换英语单词不会使行为自动一致。</p>
+<h2 id="section-13">检验理解：删掉前缀会不会更清楚</h2>
+<p>在 File 类中同时存在逻辑文件块号和物理磁盘块号，开发者认为 <code>fileBlock</code> 的 file 重复类名，准备把所有相关变量统一改叫 <code>block</code>。这符合 14.5 节吗？</p>
+<p>核对思路：该节允许省略前缀的前提，是类内没有需要区分的多种块。当前两类编号有不同用法，统一名称会重现 14.1 节的混淆。先保留含义差别，再检查是否还有不承担区别作用的冗词。</p>
+<p>再看一个只有三行的循环：若 <code>i</code> 的全部用途清楚可见，不必为了精确原则强行起长名；若它被交给含义不同的接口，则应重新检查作用范围、命名和类型。</p>
+<h2 id="section-14">来源、范围与阅读连接</h2>
+<p>依据 John Ousterhout《软件设计的哲学》第 14 章，PDF 物理页 176—187。完整读取解析文本，并实际查看第 177、181、182、184、185、186 页，核对 Sprite 的六个月叙述、范围删除声明、14.6 标题及 RuneCount 的两版变量名。解析缺失的声明恢复为 <code>void delete(Range selection) {...}</code>，正文讨论其参数名而不补造实现。</p>
+<p>Linux 结构关系仅按原书命名批评保留作者归属，本章未给出可核验版本，不把它作为当前内核布局资料。图14-1重绘原书错误机制，导入行号案例为本文假设。未引用外部材料。第 15 章将继续用“能否把含义说明白”检查早期设计。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../13/index.html">上一篇 · 注释应描述代码中不明显的内容</a><a href="../15/index.html">下一篇 · 先编写注释</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

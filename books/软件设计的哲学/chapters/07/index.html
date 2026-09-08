@@ -1,0 +1,78 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第7章｜不同层，不同抽象 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：检查每一层增加了什么功能</a><a class="sub" href="#section-2">7.1 直通方法</a><a class="sub" href="#section-3">7.2 接口重复何时可行？</a><a class="sub" href="#section-4">7.3 装饰器</a><a class="sub" href="#section-5">7.4 接口与实现</a><a class="sub" href="#section-6">7.5 直通变量</a><a class="sub" href="#section-7">7.6 结论</a><a class="" href="#section-8">二、主题讲解：沿一次调用，问每层替你解决了什么</a><a class="sub" href="#section-9">先写出每层增加的可观察行为</a><a class="sub" href="#section-10">选择删层、移功能还是保留，需要检查使用者</a><a class="sub" href="#section-11">参数变少之后，还要检查依赖是否更难看见</a><a class="" href="#section-12">检验理解：相同签名是否一定是浅层</a><a class="" href="#section-13">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第7章</p><h1>不同层，不同抽象</h1>
+<p>第 6 章用通用操作隔开具体用途。本章检查另一种问题：代码虽然分了层，调用者却在每层遇到几乎相同的方法和参数。一个新层要有存在的理由，就应承担能让其他部分更简单的工作。</p>
+<h2 id="section-1">一、原书回顾：检查每一层增加了什么功能</h2>
+<p>作者在章首用两个系统说明“不同抽象”。文件系统上层处理可变长度文件的字节范围，中间层缓存固定大小的磁盘块，设备驱动再负责块在内存和二级存储之间的移动。网络协议的上层提供可靠字节流，下层尽力传送大小受限、可能丢失或乱序的数据包。每向下一层走，处理对象和承诺都有变化。</p>
+<p>当相邻层提供相似抽象时，作者把它视为需要检查的分解问题。后文分别检查方法、装饰器、内部表示和跨层参数，而不是按层数多少直接评价系统。</p>
+<h3 id="section-2">7.1 直通方法</h3>
+<p><strong>直通方法</strong>几乎只把参数交给另一个签名相同或相似的方法。原书编辑器的 <code>TextDocument</code> 有 15 个公有方法，其中 13 个属于这一类。例如 <code>getLastTypedCharacter</code>、<code>getCursorOffset</code> 和 <code>insertString</code> 都转到 <code>TextArea</code>；展示的第四个方法 <code>willInsertString</code> 只比转发多做了监听器是否为空的检查。</p>
+<p>多出这一层，调用者要理解更多接口，但系统功能几乎没有增加。若 <code>TextArea.insertString</code> 的签名改变，<code>TextDocument</code> 也要跟着改。接口放在一个类、主要功能放在另一个类，还让开发者难以回答两个类各负责什么。原书把这列为“警示信号：直通方法”。</p>
+<p>作者给出三种重新分工的可能：让调用者直接访问真正提供功能的低层类，移除高层对该功能的责任；在两类之间重新分配功能，使职责不再重叠；如果确实无法清楚分开，就合并类。原书图7.1依次展示原状态及这三种变化。</p>
+<p>实际学生项目涉及 <code>TextDocument</code>、<code>TextArea</code>、<code>TextDocumentListener</code> 三个职责交织的类，后来通过移动方法合成两个类，消除了直通方法。这个结果说明需要检查整组职责，不能机械删除某一层后就宣称完成设计。</p>
+<h3 id="section-3">7.2 接口重复何时可行？</h3>
+<p>相同签名本身没有问题，重要的是各方法是否贡献有用的功能。<strong>调度器</strong>接收参数，依据它们从多个处理方法中选择一个，再把参数转交过去。它的价值在选择过程。Web 服务器可以根据 URL 匹配一组规则，决定读取静态文件，还是调用 PHP、JavaScript 等处理过程；转交的请求参数相同，不会抹掉这项职责。</p>
+<p>另一情形是同一接口的不同实现，例如不同磁盘设备的驱动。它们提供相同操作，但各自解决不同设备的问题。这些实现通常处于同一层，并不相互转发；统一接口反而减少学习成本。判断接口重复时，要区分相邻层空转、具有选择职责的调度，以及同层的替代实现。</p>
+<h3 id="section-4">7.3 装饰器</h3>
+<p>装饰器，又称包装器，接收现有对象，提供相似或相同的 API，并扩展其功能。原书用 <code>BufferedInputStream</code> 说明：上层请求少量数据，缓冲对象从底层一次读取较大块，保存剩余内容供之后读取。另一个例子是为普通 <code>Window</code> 加水平、垂直滚动条的 <code>ScrollableWindow</code>。</p>
+<p>装饰器有助于把特殊扩展与通用核心分开，但也容易为了很小的新功能引入一个类，并重复转发底层的大量接口。作者担心的是浅类不断增加，而不是否认缓冲本身的功能。合并 InputStream 与缓冲是作者针对书中设计的主张，不作为当前 Java API 的修改建议或使用规范。</p>
+<p>创建装饰器前，作者要求考虑四条出路。较通用、与基类关系紧密、或大多数使用者都需要的功能，可以直接进入基类；仅服务某个场景的功能，可以留在该场景；多个相关的小扩展可以合进一个较深的装饰器；有的功能根本不必包住整个对象，例如滚动条也许能独立于窗口实现。</p>
+<p>原书也保留适用情形：外部类的接口不能修改，而应用需要另一接口时，可以用包装类转换。本文沿用原书“装饰器”这一称呼，不借此扩展讨论其他模式分类。是否采用包装，仍要比较它真正提供的功能与增加的接口负担。</p>
+<h3 id="section-5">7.4 接口与实现</h3>
+<p>“不同抽象”也适用于一个类的内外。学生文本类内部按行存储，如果接口也只提供 <code>getLine</code>、<code>putLine</code>，上层插入字符或删除跨行范围时，就必须自己拆行、拼行。这些复杂代码散在不同界面操作里，文本类却只暴露了内部表示。</p>
+<p>改成面向字符范围的接口后，<code>insert</code> 可以在任意位置插入包含换行符的字符串，<code>delete</code> 可以删除两个位置之间的文本；类内部仍可按行存储。拆分和拼接由文本类完成，外部才真正获得“修改文本范围”这一层抽象。内外的差异对应具体价值：调用者不必按存储方式组织操作。</p>
+<h3 id="section-6">7.5 直通变量</h3>
+<p><strong>直通变量</strong>沿一长串调用传递，中间方法却不用它。原书例子中，命令行提供证书 <code>cert</code>，只有底层 <code>m3</code> 打开套接字需要它，<code>main</code> 到 <code>m3</code> 之间的 <code>m1</code>、<code>m2</code> 仍要在签名中带上它。以后增加证书等配置，沿途很多接口都要改。</p>
+<p>作者依次比较三种替代方式。第一，把信息放进上下层已经共享的对象，省去逐层传值；但要继续追问这个共享对象如何到达底层，它本身可能也是直通变量。第二，用进程全局变量；这省掉参数，却可能使同一进程中两个独立系统实例互相冲突，而这种多实例情形在测试中很有用。</p>
+<p>第三是作者常用的<strong>上下文对象</strong>：把某个系统实例的配置、共享子系统、性能计数器等共同状态集中起来，每个实例一个上下文。为了不让上下文再沿每次调用传递，主要对象在构造时取得并保存其引用。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 764" role="img"><title>上下文把实例配置留在需要它的对象旁</title>
+<defs><marker id="07-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="07-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="07-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">上下文把实例配置留在需要它的对象旁</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">左：正常业务调用　　右：构造时保存上下文引用，运行时由使用者访问</text>
+<path d="M 240 232 L 240 284" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#07-0-arrow)"/>
+<path d="M 240 364 L 240 416" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#07-0-arrow)"/>
+<path d="M 240 496 L 240 548" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#07-0-arrow)"/>
+<path d="M 440 600 L 808 600 L 808 496" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#07-0-arrow)"/>
+<rect x="548.0" y="556" width="104" height="32" fill="#f5f5f5"/>
+<text x="600" y="580" font-size="20" fill="#4f5d75" text-anchor="middle">访问配置</text>
+<rect x="40" y="152" width="400" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="192" font-size="24" fill="#2d3142" text-anchor="start">main：启动业务</text>
+<rect x="40" y="284" width="400" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="324" font-size="24" fill="#2d3142" text-anchor="start">m1：不使用 cert</text>
+<rect x="40" y="416" width="400" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="456" font-size="24" fill="#2d3142" text-anchor="start">m2：不使用 cert</text>
+<rect x="40" y="548" width="400" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="588" font-size="24" fill="#2d3142" text-anchor="start">对象中的 m3</text>
+<text x="64" y="624" font-size="20" fill="#4f5d75" text-anchor="start">打开连接，需要 cert</text>
+<text x="640" y="188" font-size="24" fill="#2d3142" text-anchor="start">每个系统实例一个上下文</text>
+<text x="640" y="228" font-size="20" fill="#4f5d75" text-anchor="start">主要对象在构造时取得引用</text>
+<rect x="640" y="352" width="440" height="144" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="664" y="392" font-size="24" fill="#2d3142" text-anchor="start">实例上下文</text>
+<text x="664" y="428" font-size="20" fill="#4f5d75" text-anchor="start">cert / timeout / metrics</text>
+<text x="664" y="464" font-size="20" fill="#4f5d75" text-anchor="start">优先保持配置不可变</text>
+<line x1="40" y1="688" x2="1080" y2="688" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="728" font-size="20" fill="#4f5d75" text-anchor="start">左侧箭头：运行调用；右侧箭头：访问保存的上下文。实例级共享状态仍可能形成隐蔽依赖。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图7-1｜依据原书图7.2的上下文方案重绘。左侧箭头表示运行调用，右侧箭头表示对象访问已保存的上下文；构造时的注入另行说明，不画成业务调用路径。</p>
+<p>这样，新增一个配置通常不需要改动不使用它的中间方法签名；初始化和真正使用配置的地方仍需相应处理。全局状态集中后，也更容易识别、管理和在测试中调整。这里的“全局”是系统实例范围，一个进程可以拥有多个互不相同的上下文。</p>
+<p>作者明确说这远非理想方案。上下文仍继承了全局变量的许多问题：字段为什么存在、在哪里使用可能不清楚，不加约束会形成巨大的数据杂物袋和隐蔽依赖；可变共享状态还可能引入线程安全问题。作者建议尽量使用不可变的上下文变量，并承认尚未找到更好的通用解法。这一保留必须与方案一起阅读，不能把上下文当作无条件的最佳实践。</p>
+<h3 id="section-7">7.6 结论</h3>
+<p>接口、参数、函数和类都需要开发者学习，因此每增加一个设计元素，就增加一份理解成本。它应消除至少足以抵偿这份成本的其他复杂性。相邻层重复抽象、直通方法和直通变量，都是收益可能不够的信号，需要回到具体功能判断。</p>
+<h2 id="section-8">二、主题讲解：沿一次调用，问每层替你解决了什么</h2>
+<h3 id="section-9">先写出每层增加的可观察行为</h3>
+<p>下面是本文假设的文档服务。入口收到“删除一段文本”，经过 <code>DocumentService</code> 再调用 <code>TextStore</code>。如果两者都叫 <code>delete(start, end)</code>，而前者逐字转发，修改参数就得同时改两处，调用者没有获得额外保证。</p>
+<p>换一种实现：DocumentService 检查文档是否可编辑，并把本次修改与其他相关操作组合成一个用户动作；TextStore 负责修改字符范围，即使底层按行存储也处理跨行拼接。两层现在承担不同工作。名称可以相似，差别要在真实行为中看见。不能为了让现有层显得有价值，临时想象尚未存在的校验、事务或日志。</p>
+<h3 id="section-10">选择删层、移功能还是保留，需要检查使用者</h3>
+<p>如果高层确实没有自己的工作，调用者直接使用 TextStore 可能最清楚。若高层有少量独立职责、部分功能又散在低层，应先把相同责任集中起来。若两个类始终一起变化、无法提供各自清楚的抽象，合并值得考虑。</p>
+<p>若这个中间层按文档类型选择不同存储实现，它就和原书调度器相近：即使参数原样传递，也完成了选择。再比如两个 TextStore 实现分别处理不同存储方式，统一签名帮助替换它们。这些都说明，“一行调用”是线索，单靠行数还不能决定删除。</p>
+<h3 id="section-11">参数变少之后，还要检查依赖是否更难看见</h3>
+<p>继续这个假设：底层连接需要证书，若每个业务方法都带上 <code>cert</code>，接口显得与业务无关。构造连接对象时交给它一个系统实例的上下文，可以避免证书经过每次文本修改调用。</p>
+<p>但若顺手把当前文档、用户选择、临时结果也塞进这个共享对象，对象就可能读到不属于本次操作的数据。原书方案针对实例级共同状态；每次请求都不同的数据有不同的生命周期，不能仅为减少参数而混入长期共享状态。这是依据本章风险作出的分析边界。</p>
+<p>检查结果可以很具体：两套实例能否持有不同证书；中间业务方法是否仍需知道证书；真正使用证书的代码能否清楚找到其来源；字段是否可能在多线程间被修改。前三项避免传递或全局冲突，最后一项提醒上下文并未自动解决并发。</p>
+<h2 id="section-12">检验理解：相同签名是否一定是浅层</h2>
+<p>三个中间对象都提供 <code>read(request)</code>：甲只原样转发给固定对象；乙根据请求类型选择不同处理器；丙从底层批量取数据并缓存，满足后续小读取。应该优先检查哪个，另两个还需比较什么？</p>
+<p>核对思路：甲最接近直通方法，检查有无真实职责及能否去掉或合并。乙有选择职责，丙有缓冲职责；它们的签名重复不意味着没有价值。但仍要检查规则是否集中、缓冲是否多数用途都需要，以及是否为少量扩展增加了过多包装方法。原书支持这种逐项比较，并未给出“包装层都删掉”的结论。</p>
+<h2 id="section-13">来源、范围与阅读连接</h2>
+<p>依据 John Ousterhout《软件设计的哲学》第 7 章，PDF 物理页 88—99，主要正文至 98 页。完整读取解析文本，并实际查看第 89、91、97 页，核对方法名、图7.1的三条重构路径、遗漏的 7.2 标题和图7.2四种证书传递方式。7.2 的真实标题为“接口重复何时可行？”。</p>
+<p>图7-1由原书上下文方案重绘，构造注入与运行调用分开说明。文档服务及生命周期分析为本文假设和推论；未引用外部资料，也未把书中的 Java 包装建议当作当前版本规范。下一章会进一步比较模块内部与调用者承担复杂性的代价。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../06/index.html">上一篇 · 通用模块更深</a><a href="../08/index.html">下一篇 · 降低复杂性</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

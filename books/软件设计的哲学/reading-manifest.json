@@ -1,0 +1,267 @@
+{
+  "book_title": "软件设计的哲学（第2版）",
+  "generator_skill_version": "8.2.1",
+  "source_sha256": "c751f0fc575096584dcdb5a365ae558a71b32a6aa241d90d7bc248f21fbdbbf7",
+  "units": [
+    {
+      "id": "00-translator",
+      "title": "译者序",
+      "pdf_pages": [
+        9,
+        13
+      ],
+      "html": "chapters/00-translator/index.html",
+      "markdown": "chapters/00-translator/chapter.md"
+    },
+    {
+      "id": "00-preface",
+      "title": "前言",
+      "pdf_pages": [
+        14,
+        17
+      ],
+      "html": "chapters/00-preface/index.html",
+      "markdown": "chapters/00-preface/chapter.md"
+    },
+    {
+      "id": "01",
+      "title": "导言",
+      "pdf_pages": [
+        26,
+        31
+      ],
+      "html": "chapters/01/index.html",
+      "markdown": "chapters/01/chapter.md"
+    },
+    {
+      "id": "02",
+      "title": "复杂性的本质",
+      "pdf_pages": [
+        32,
+        41
+      ],
+      "html": "chapters/02/index.html",
+      "markdown": "chapters/02/chapter.md"
+    },
+    {
+      "id": "03",
+      "title": "能工作的代码是不够的",
+      "pdf_pages": [
+        42,
+        49
+      ],
+      "html": "chapters/03/index.html",
+      "markdown": "chapters/03/chapter.md"
+    },
+    {
+      "id": "04",
+      "title": "模块应该深",
+      "pdf_pages": [
+        50,
+        61
+      ],
+      "html": "chapters/04/index.html",
+      "markdown": "chapters/04/chapter.md"
+    },
+    {
+      "id": "05",
+      "title": "信息隐藏（和泄露）",
+      "pdf_pages": [
+        62,
+        73
+      ],
+      "html": "chapters/05/index.html",
+      "markdown": "chapters/05/chapter.md"
+    },
+    {
+      "id": "06",
+      "title": "通用模块更深",
+      "pdf_pages": [
+        74,
+        87
+      ],
+      "html": "chapters/06/index.html",
+      "markdown": "chapters/06/chapter.md"
+    },
+    {
+      "id": "07",
+      "title": "不同层，不同抽象",
+      "pdf_pages": [
+        88,
+        99
+      ],
+      "html": "chapters/07/index.html",
+      "markdown": "chapters/07/chapter.md"
+    },
+    {
+      "id": "08",
+      "title": "降低复杂性",
+      "pdf_pages": [
+        100,
+        103
+      ],
+      "html": "chapters/08/index.html",
+      "markdown": "chapters/08/chapter.md"
+    },
+    {
+      "id": "09",
+      "title": "合并好，还是分开好？",
+      "pdf_pages": [
+        104,
+        119
+      ],
+      "html": "chapters/09/index.html",
+      "markdown": "chapters/09/chapter.md"
+    },
+    {
+      "id": "10",
+      "title": "避免处理异常",
+      "pdf_pages": [
+        120,
+        137
+      ],
+      "html": "chapters/10/index.html",
+      "markdown": "chapters/10/chapter.md"
+    },
+    {
+      "id": "11",
+      "title": "设计两次",
+      "pdf_pages": [
+        138,
+        141
+      ],
+      "html": "chapters/11/index.html",
+      "markdown": "chapters/11/chapter.md"
+    },
+    {
+      "id": "12",
+      "title": "为什么要写注释？4个借口",
+      "pdf_pages": [
+        142,
+        149
+      ],
+      "html": "chapters/12/index.html",
+      "markdown": "chapters/12/chapter.md"
+    },
+    {
+      "id": "13",
+      "title": "注释应描述代码中不明显的内容",
+      "pdf_pages": [
+        150,
+        175
+      ],
+      "html": "chapters/13/index.html",
+      "markdown": "chapters/13/chapter.md"
+    },
+    {
+      "id": "14",
+      "title": "选择名称",
+      "pdf_pages": [
+        176,
+        187
+      ],
+      "html": "chapters/14/index.html",
+      "markdown": "chapters/14/chapter.md"
+    },
+    {
+      "id": "15",
+      "title": "先编写注释",
+      "pdf_pages": [
+        188,
+        193
+      ],
+      "html": "chapters/15/index.html",
+      "markdown": "chapters/15/chapter.md"
+    },
+    {
+      "id": "16",
+      "title": "修改现有代码",
+      "pdf_pages": [
+        194,
+        201
+      ],
+      "html": "chapters/16/index.html",
+      "markdown": "chapters/16/chapter.md"
+    },
+    {
+      "id": "17",
+      "title": "一致性",
+      "pdf_pages": [
+        202,
+        207
+      ],
+      "html": "chapters/17/index.html",
+      "markdown": "chapters/17/chapter.md"
+    },
+    {
+      "id": "18",
+      "title": "代码应显而易见",
+      "pdf_pages": [
+        208,
+        215
+      ],
+      "html": "chapters/18/index.html",
+      "markdown": "chapters/18/chapter.md"
+    },
+    {
+      "id": "19",
+      "title": "软件发展趋势",
+      "pdf_pages": [
+        216,
+        223
+      ],
+      "html": "chapters/19/index.html",
+      "markdown": "chapters/19/chapter.md"
+    },
+    {
+      "id": "20",
+      "title": "性能设计",
+      "pdf_pages": [
+        224,
+        235
+      ],
+      "html": "chapters/20/index.html",
+      "markdown": "chapters/20/chapter.md"
+    },
+    {
+      "id": "21",
+      "title": "确定什么是重要的",
+      "pdf_pages": [
+        236,
+        239
+      ],
+      "html": "chapters/21/index.html",
+      "markdown": "chapters/21/chapter.md"
+    },
+    {
+      "id": "22",
+      "title": "结论",
+      "pdf_pages": [
+        240,
+        241
+      ],
+      "html": "chapters/22/index.html",
+      "markdown": "chapters/22/chapter.md"
+    },
+    {
+      "id": "23-principles",
+      "title": "设计原则总结",
+      "pdf_pages": [
+        242,
+        243
+      ],
+      "html": "chapters/23-principles/index.html",
+      "markdown": "chapters/23-principles/chapter.md"
+    },
+    {
+      "id": "24-warnings",
+      "title": "警示信号总结",
+      "pdf_pages": [
+        244,
+        245
+      ],
+      "html": "chapters/24-warnings/index.html",
+      "markdown": "chapters/24-warnings/chapter.md"
+    }
+  ]
+}

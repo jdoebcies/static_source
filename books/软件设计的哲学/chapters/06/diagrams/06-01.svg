@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 788" role="img"><title>一次撤销，涉及三种不同的决定</title>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">一次撤销，涉及三种不同的决定</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">高层决定一组包含什么；History 维护历史；具体 Action 恢复状态</text>
+<path d="M 560 264 L 560 368" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="310.0" y="300" width="500" height="32" fill="#f5f5f5"/>
+<text x="560" y="324" font-size="20" fill="#4f5d75" text-anchor="middle">addFence / undo / redo</text>
+<path d="M 424 492 L 424 544 L 240 544 L 240 584" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="136" y="500" width="208" height="32" fill="#f5f5f5"/>
+<text x="240" y="524" font-size="20" fill="#4f5d75" text-anchor="middle">调用 Action</text>
+<path d="M 696 492 L 696 544 L 880 544 L 880 584" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="776" y="500" width="208" height="32" fill="#f5f5f5"/>
+<text x="880" y="524" font-size="20" fill="#4f5d75" text-anchor="middle">调用 Action</text>
+<rect x="256" y="144" width="608" height="120" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="280" y="184" font-size="24" fill="#2d3142" text-anchor="start">高层界面：分组策略</text>
+<text x="280" y="220" font-size="20" fill="#4f5d75" text-anchor="start">相关文本、选区、光标变化归为一次用户操作</text>
+<rect x="320" y="368" width="480" height="124" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="344" y="408" font-size="24" fill="#2d3142" text-anchor="start">History：通用撤销机制</text>
+<text x="344" y="444" font-size="20" fill="#4f5d75" text-anchor="start">维护历史与栅栏，不识别具体动作</text>
+<rect x="40" y="584" width="448" height="84" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="624" font-size="24" fill="#2d3142" text-anchor="start">文本 Action：插入 / 删除</text>
+<rect x="632" y="584" width="448" height="84" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="656" y="624" font-size="24" fill="#2d3142" text-anchor="start">界面 Action：选区 / 光标</text>
+<line x1="40" y1="712" x2="1080" y2="712" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="752" font-size="20" fill="#4f5d75" text-anchor="start">箭头仅表示运行时调用，未画登记动作的调用；专用 Action 由理解该状态的模块实现。</text>
+</g></svg>

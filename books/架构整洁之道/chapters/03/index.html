@@ -1,0 +1,68 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《架构整洁之道》第3章｜编程范式总览 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>架构整洁之道 · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：三种范式分别限制了什么</a><a class="sub" href="#section-2">结构化编程</a><a class="sub" href="#section-3">面向对象编程</a><a class="sub" href="#section-4">函数式编程</a><a class="sub" href="#section-5">仅供思考</a><a class="sub" href="#section-6">本章小结</a><a class="" href="#section-7">二、主题讲解：在同一个小程序里看见三种限制</a><a class="sub" href="#section-8">先把计算过程看清</a><a class="sub" href="#section-9">直接控制转移关心下一步怎么走</a><a class="sub" href="#section-10">间接控制转移关心由谁完成同一种操作</a><a class="sub" href="#section-11">赋值限制关心旧值会不会被改掉</a><a class="" href="#section-12">用一个新情形检查理解</a><a class="" href="#section-13">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第3章</p><h1>编程范式总览</h1>
+<p>上一部分确定了架构要保护软件持续修改的能力。本章先提供一张理解后续内容的地图：结构化编程、面向对象编程、函数式编程分别约束控制怎样转移，以及数据怎样改变。它们可以同时出现在一个程序里。</p>
+<h2 id="section-1">一、原书回顾：三种范式分别限制了什么</h2>
+<h3 id="section-2">结构化编程</h3>
+<p>作者把结构化编程列为最先普遍采用的一种范式，并把它的提出与Dijkstra在1968年的工作联系起来。这里“先被广泛采用”不等于“最早出现思想”。它针对的是不受限制的goto：程序可以突然跳到另一处，原本应当连在一起推理的步骤被打断。</p>
+<p>使用顺序、条件分支和循环，可以明确地表达接下来执行哪段代码、何时重复、何时退出。作者把这种约束概括为对“程序控制权的直接转移”作限制和规范。所谓直接转移，就是代码直接规定下一处执行位置；本节还不展开正确性推导，下一章会说明为何限制跳转有利于拆分和验证程序。</p>
+<h3 id="section-3">面向对象编程</h3>
+<p>按本章叙述，Dahl和Nygaard在1966年总结的工作比结构化编程的提出更早。作者从ALGOL的调用栈帧讲起：一次函数调用所需的局部数据，通常跟着调用结束而结束；如果把保存这些数据的区域移到堆上，数据就能在函数返回后继续存在。原来的函数可被看作构造函数，留下来的局部变量成为成员变量，内部定义的函数成为成员方法。</p>
+<p>这段历史线索解释了怎样得到有状态、能继续接收操作的对象。随后作者把架构上的注意力放到多态：调用者通过共同操作发出调用，具体执行哪个实现，由所用对象决定。与直接操作函数指针相比，语言可以提供更受约束的调用方式。</p>
+<p>因此作者强调面向对象编程对“程序控制权的间接转移”作限制和规范。“间接”指调用点不直接写死最终实现地址，需要经对象或其他间接机制选定执行目标。本章把对象的形成与调用纪律连在一起，并未把堆内存这一实现线索当成所有面向对象语言的统一定义。</p>
+<h3 id="section-4">函数式编程</h3>
+<p>作者指出，尽管函数式编程在本书写作语境中较晚受到广泛关注，其思想基础更早：Church在1936年的λ演算，以及McCarthy在1958年以此为基础发展LISP的工作。</p>
+<p>本书此处选择“不可变性”作为通往架构的重点。某个符号已经对应一个值，就不再把这个值覆盖成别的值；计算可以产生新值，但不依赖到处改写原值。作者因此把函数式编程概括为对赋值作限制和规范，也承认实际语言可能在严格条件下允许变量改变。</p>
+<p>这个小节只建立方向，还没有说明一个要保存余额、订单等状态的系统如何做到这一点。第6章会把计算与状态修改分开讨论。</p>
+<h3 id="section-5">仅供思考</h3>
+<p>三个小节使用相同句式，是作者有意突出它们的共同点：范式使某些原本可以随意做的事情受到纪律约束。结构化编程限制无约束跳转，面向对象编程规范间接调用，函数式编程规范赋值。</p>
+<p>“没有增加新能力”在这段讨论中，指这些范式的价值不依赖发明一种以前绝对算不出来的计算。它们改变了程序员组织已有计算能力的方式，使某些容易失控的写法不再那么自由。</p>
+<p>作者进而猜测，若只讨论通过去除能力建立纪律的范式，这三种也许已经足够。他还以1958—1968年间的集中出现、此后未再出现同类范式作为支持。应保留“仅供思考”和这个分类范围：这是一项作者判断，不是本章证明了所有编程思想只能分成三类。前文1936年说的是数学基础，1958年说的是语言实现层面的时间线；不宜把两者压成同一个“诞生日期”。</p>
+<h3 id="section-6">本章小结</h3>
+<p>三种限制各自连接架构问题。结构化编程让模块中的算法能够按步骤拆解；多态为跨越架构边界提供手段；函数式编程帮助限制数据存放和访问方式。这分别关联功能性、组件独立性和数据管理。</p>
+<p>作者在这里给出后续三章的入口，没有声称选用某一种语言就自动获得这些架构结果。需要继续看具体限制如何起作用。</p>
+<h2 id="section-7">二、主题讲解：在同一个小程序里看见三种限制</h2>
+<h3 id="section-8">先把计算过程看清</h3>
+<p>以下是假设的订单试算程序：接收订单内容，判断是否满足优惠条件，算出应付金额，再把结果交给一种输出实现。为了隔离本章问题，先假定输入完整且计算规则固定，暂不处理下单扣款。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" width="1120" height="700" role="img" aria-label="一个程序，同时约束流程、调用与赋值">
+<defs><marker id="03-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="03-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="03-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="700" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" fill="#2d3142" text-anchor="start">一个程序，同时约束流程、调用与赋值</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">假设案例：订单试算，不包含扣款或订单写入</text>
+<polyline points="328,216 512,216" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#03-0-arrow)"/>
+<rect x="372.0" y="182" width="96" height="28" fill="#f5f5f5"/>
+<text x="420" y="204" font-size="20" fill="#4f5d75" text-anchor="middle">读取输入</text>
+<polyline points="768,296 768,408" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#03-0-arrow)"/>
+<rect x="796.0" y="338" width="96" height="28" fill="#f5f5f5"/>
+<text x="844" y="360" font-size="20" fill="#4f5d75" text-anchor="middle">传递结果</text>
+<rect x="40" y="152" width="288" height="144" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="64" y="192" font-size="24" fill="#2d3142" text-anchor="start">固定的订单快照</text>
+<text x="64" y="228" font-size="20" fill="#4f5d75" text-anchor="start">计算不修改输入</text>
+<rect x="512" y="152" width="568" height="144" rx="8" fill="#fff0e9" stroke="#eb6c36" stroke-width="2"/>
+<text x="536" y="192" font-size="24" fill="#2d3142" text-anchor="start">按条件计算金额</text>
+<text x="536" y="228" font-size="20" fill="#4f5d75" text-anchor="start">用顺序、分支、循环组织步骤</text>
+<rect x="512" y="408" width="568" height="144" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="536" y="448" font-size="24" fill="#2d3142" text-anchor="start">通过共同操作输出结果</text>
+<text x="536" y="484" font-size="20" fill="#4f5d75" text-anchor="start">由选定对象执行具体呈现方法</text>
+<text x="40" y="452" font-size="24" fill="#2d3142" text-anchor="start">三种纪律可以共存</text>
+<text x="40" y="492" font-size="20" fill="#4f5d75" text-anchor="start">不必三选一</text>
+<line x1="40" y1="632" x2="1080" y2="632" stroke="#bfc0c0"/>
+<text x="40" y="668" font-size="20" fill="#4f5d75" text-anchor="start">箭头：输入与结果的传递。这里没有绘制源代码依赖。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图3-1｜本文假设案例。箭头表示数据或计算结果的传递；图不表示源代码依赖，也没有声称一次试算已经保存订单。</p>
+<p>输入是一份固定的订单快照；计算过程有明确的条件分支；输出通过一项共同操作交给所选实现。这三处安排可以同时存在，不需要把整个程序贴上唯一的范式标签。</p>
+<h3 id="section-9">直接控制转移关心下一步怎么走</h3>
+<p>假设订单金额达到门槛才减免运费。用条件分支表达后，读者能看到达到门槛和未达到门槛各做什么，之后两条路径又在哪里汇合。循环处理商品时，也能找到循环入口、每轮处理以及退出条件。</p>
+<p>如果允许从任意位置跳进优惠计算中间，一段代码开始执行时是否已经算过总额，就不再容易判断。结构化编程限制这类自由，是为了让局部代码的前后条件能被跟踪。它没有替你保证门槛条件写对，只是让检查这件事更有着落。</p>
+<h3 id="section-10">间接控制转移关心由谁完成同一种操作</h3>
+<p>计算结果可能显示在页面，也可能输出到一份文件。调用者发出“呈现试算结果”的请求，由当前选定的对象执行对应实现。同一个调用动作可以到达不同方法，这就是这里需要理解的多态。</p>
+<p>它带来的纪律是：通过约定的操作来调用，调用者不必手工保存、转换和使用任意函数地址。此时仍然要保证不同实现遵守相同输入输出约定。只有调用形式相同，却在一个实现中悄悄扣款，另一个实现只显示金额，就没有形成可靠的可替换行为。本章提供调用边界的出发点，第5章会进一步讨论依赖方向。</p>
+<h3 id="section-11">赋值限制关心旧值会不会被改掉</h3>
+<p>试算时可以读取订单快照，生成一个新的金额结果，而不把优惠后的价格写回输入订单。这样，再用同一份订单做另一种试算时，就不会因为上次计算留下的修改而得到不同结果。</p>
+<p>这不是说结果没有变化。两次输入可以不同，因而结果不同；限制的是计算期间不任意改写原来共享的值。真正要持久化订单状态时，系统仍需要执行写入，因此还要为写入确定位置和规则。把这里的计算纪律与后续状态保存分开，才能理解函数式思路如何进入一个有业务状态的后端系统。</p>
+<p>三种范式各解决一类问题：流程能否追踪、实现如何被调用、旧数据能否被改写。约束做法会减少一些写法选择，也使读者和工具更容易判断程序的行为；收益需要靠具体实现兑现。</p>
+<h2 id="section-12">用一个新情形检查理解</h2>
+<p>一个Java类中的方法使用清楚的循环，通过接口调用输出实现，却把所有请求都写入同一个可变金额列表。它遵循了几种纪律？</p>
+<p>核对思路：它可能采用了结构化控制，也利用了面向对象的间接调用，但共享列表仍可随请求改变。是否妥善管理赋值与共享状态，需要单独检查。拥有类、接口或循环中的任意一种，都不能替其他方面的设计作担保。</p>
+<h2 id="section-13">来源、范围与阅读连接</h2>
+<p>依据《架构整洁之道》第3章，同版PDF第51—54页，书内页21—24。五个原小节按原顺序保留，已视觉核对第52—53页的标题、λ符号与时间线。历史年代和人物线索按本书转述，未进行编程语言史的外部研究；“只有三种”的说法保留为作者限定下的判断。订单试算为本文假设案例。第4—6章将依次展开三种范式，解释本章尚未给出的机制与限制。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../02/index.html">上一篇 · 两个价值维度</a><a href="../04/index.html">下一篇 · 结构化编程</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

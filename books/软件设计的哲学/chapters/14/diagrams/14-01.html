@@ -1,0 +1,34 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>14-01</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 656" role="img"><title>名称相同，掩盖了两种不能互换的编号</title>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">名称相同，掩盖了两种不能互换的编号</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">原书 Sprite 缺陷机制；此图不复原原项目源码与地址转换算法</text>
+<text x="40" y="148" font-size="24" fill="#2d3142" text-anchor="start">原问题：读者看见 block，误以为它是物理块号</text>
+<path d="M 328 248 L 416 248" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 712 248 L 800 248" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="40" y="188" width="288" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="228" font-size="24" fill="#2d3142" text-anchor="start">block</text>
+<text x="64" y="264" font-size="20" fill="#4f5d75" text-anchor="start">实际来自文件逻辑编号</text>
+<rect x="416" y="188" width="296" height="144" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="440" y="228" font-size="24" fill="#2d3142" text-anchor="start">按物理编号写盘</text>
+<text x="440" y="264" font-size="20" fill="#4f5d75" text-anchor="start">把逻辑值用于错误位置</text>
+<rect x="800" y="188" width="280" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="824" y="228" font-size="24" fill="#2d3142" text-anchor="start">无关磁盘块</text>
+<text x="824" y="264" font-size="20" fill="#4f5d75" text-anchor="start">被零覆盖</text>
+<line x1="40" y1="368" x2="1080" y2="368" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="416" font-size="24" fill="#2d3142" text-anchor="start">改进含义：区分 fileBlock 与 diskBlock，再约束转换</text>
+<path d="M 328 500 L 416 500" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 712 500 L 800 500" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="40" y="448" width="288" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="488" font-size="24" fill="#2d3142" text-anchor="start">fileBlock</text>
+<text x="64" y="524" font-size="20" fill="#4f5d75" text-anchor="start">文件内的逻辑位置</text>
+<rect x="416" y="448" width="296" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="440" y="488" font-size="24" fill="#2d3142" text-anchor="start">取得 diskBlock</text>
+<text x="440" y="524" font-size="20" fill="#4f5d75" text-anchor="start">明确两类编号的对应</text>
+<rect x="800" y="448" width="280" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="824" y="488" font-size="24" fill="#2d3142" text-anchor="start">使用 diskBlock</text>
+<text x="824" y="524" font-size="20" fill="#4f5d75" text-anchor="start">按物理编号操作</text>
+<line x1="40" y1="580" x2="1080" y2="580" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="620" font-size="20" fill="#4f5d75" text-anchor="start">箭头表示操作中值的使用。不同名称提示区别；作者还建议使用不同类型限制互换。</text>
+</g></svg></main></html>

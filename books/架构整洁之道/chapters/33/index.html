@@ -1,0 +1,90 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《架构整洁之道》第33章｜案例分析：视频销售网站 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>架构整洁之道 · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：从角色和用例走到组件与部署选择</a><a class="sub" href="#section-2">产品</a><a class="sub" href="#section-3">用例分析</a><a class="sub" href="#section-4">组件架构</a><a class="sub" href="#section-5">依赖关系管理</a><a class="sub" href="#section-6">本章小结</a><a class="" href="#section-7">二、主题讲解：让购买者的需求有明确的修改位置</a><a class="sub" href="#section-8">先找不同的人在要求什么</a><a class="sub" href="#section-9">用例把结果交出去，源码仍可以依赖高层定义</a><a class="sub" href="#section-10">组件边界和交付文件回答不同的问题</a><a class="sub" href="#section-11">用一次变化验证划分是否有帮助</a><a class="" href="#section-12">自测：共享目录应当保留到哪一层</a><a class="" href="#section-13">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第33章</p><h1>案例分析：视频销售网站</h1>
+<p>前面几章解释了哪些技术应留在边界之外。这一章把原则放进一个收费视频网站：先识别谁要完成什么事，再安排组件及其依赖，最后决定怎样组合部署。读者需要看清的是这个设计过程，不必把图中的每个方块立即变成一个服务。</p>
+<h2 id="section-1">一、原书回顾：从角色和用例走到组件与部署选择</h2>
+<p>原章开篇说明，这是一次简短的案例分析，目的是示范架构师如何思考和作决定，范围不足以覆盖一个实际网站的全部需求。</p>
+<h3 id="section-2">产品</h3>
+<p>作者以自己熟悉的教学视频销售业务为背景。个人用户可以购买在线播放许可，也可以支付更高费用下载视频并永久拥有它。企业用户只能在线播放，但可以批量购买并获得折扣。个人购买者通常自己观看；企业采购则常为其他人购买，购买和观看由不同的人承担。</p>
+<p>视频作者负责上传文件、撰写简介，并提供习题、作业、答案、源代码等配套资料。管理员负责创建播放列表、增删其中的视频，并设置不同许可类型的价格。</p>
+<p>这些差异决定了分析的起点。支付接入方式尚未展开，数据库也尚未选定，系统已出现几种不同的责任：制作内容、组织销售、购买许可和消费内容。作者因此先识别角色与用例。</p>
+<h3 id="section-3">用例分析</h3>
+<p>原图33.1按四个角色列出业务操作，下面保留图中的具体项目及章内产品约束。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>原图中的用例</th>
+<th>需要保留的区别</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作者</td>
+<td>提交 MP4、提交考题、提交视频简介</td>
+<td>产品文字还包括其他配套资料，图只示范部分操作</td>
+</tr>
+<tr>
+<td>管理员</td>
+<td>添加新列表、向列表添加视频、从列表中删除视频、设置许可价格</td>
+<td>管理内容组织与许可价格</td>
+</tr>
+<tr>
+<td>购买者</td>
+<td>购买下载许可、购买在线播放许可、购买企业许可、购买者查看目录</td>
+<td>企业购买者与实际观看者可分离；企业许可不提供下载</td>
+</tr>
+<tr>
+<td>观看者</td>
+<td>观看者查看目录、在线播放视频、下载视频</td>
+<td>图中的下载能力仍受已购买的许可约束</td>
+</tr>
+</tbody></table></div>
+<p>依据单一职责原则，作者把这四种角色视为主要的变更驱动力。目标是当一类角色提出新需要时，尽量不影响其他角色对应的代码。这里的角色是责任划分；同一个个人用户可以同时作为购买者和观看者，不能据此把两类责任混成一类。</p>
+<p>图中还用虚线椭圆标出“购买许可”和“查看目录”。前者联系几种具体购买方式，后者联系购买者与观看者各自的查看目录。作者称其为抽象用例，用来分析可共享的一般策略。他明确承认这种抽象不是产品运行的必要条件，只是相近用例值得共同分析。脚注也说明，这里的图示是作者自己的简化表达，不能当作严格的 UML 记法教程。</p>
+<p>用例清单刻意省略了登录、注销等内容以控制篇幅。省略并不表示这些能力不重要；这张图更不能直接作为完整需求验收清单。</p>
+<h3 id="section-4">组件架构</h3>
+<p>原图33.2同时沿两条方向分隔代码。一条按管理员、作者、购买者和观看者分组，另一条按视图、展示器、交互器和控制器分开。交互器是执行具体用例的代码，展示器把用例结果整理成适合视图使用的形式，控制器接受输入，视图负责呈现。</p>
+<p>图中的双实线代表架构边界。底部还有 <code>Revenue Gateways</code>、<code>Data Gateways</code> 和标为 Datomic 的数据库。它们显示收入相关和数据访问相关的外围能力如何与用例相接；本章没有展开收入网关的具体协议或收费处理过程，也没有论证 Datomic 是唯一合适的数据库。</p>
+<p>查看目录的共享部分体现为 <code>Catalog View</code> 和 <code>Catalog Presenter</code>。作者假设将它们写成抽象类，再在购买者、观看者相应组件中放置派生类。这里是本案例采用的一种实现设想，不应扩大为“所有共享 UI 都必须通过继承实现”。</p>
+<p>每个方块都可以成为独立构建的潜在 <code>.jar</code> 或 <code>.dll</code> 单元，但这不要求上线时一定交付那么多文件。作者提出几种组合方式：</p>
+<ul>
+<li>按技术职责组合成五个交付文件：视图、展示器、交互器、控制器及工具类。</li>
+<li>把视图和展示器合并，交互器、控制器与工具类各自独立。</li>
+<li>再进一步，只保留“视图与展示器”和“其他组件”两个交付文件。</li>
+</ul>
+<p>他仍要求构建环境体现组件划分，使对应组件可以单独构建；部署时则可以组合它们，并随变化调整组合。构建边界与部署组合在这里有联系，也有各自的选择空间。</p>
+<h3 id="section-5">依赖关系管理</h3>
+<p>原图的运行控制流从右向左：控制器接收输入，交互器处理，展示器格式化结果，视图最终展示。下面改用从左向右的阅读方向，只表达同一条运行路径。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" width="1120" height="420" viewBox="0 0 1120 420" role="img" aria-labelledby="title"><title id="33-0-title">视频用例的运行处理顺序</title><defs><marker id="33-0-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 12 6 L 0 12 Z" fill="#4f5d75"/></marker><marker id="33-0-accent" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 12 6 L 0 12 Z" fill="#eb6c36"/></marker></defs><rect width="1120" height="420" fill="#f5f5f5"/><g font-family="PingFang SC, Noto Sans CJK SC, sans-serif"><text x="40" y="64" font-size="32" text-anchor="start" fill="#2d3142">视频用例的运行处理顺序</text><path d="M 240 228 H 320" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#33-0-arrow)"/><path d="M 520 228 H 600" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#33-0-arrow)"/><path d="M 800 228 H 880" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#33-0-arrow)"/><rect x="244.0" y="172" width="72" height="32" fill="#f5f5f5"/><text x="280" y="196" font-size="20" text-anchor="middle" fill="#4f5d75">输入</text><rect x="524.0" y="172" width="72" height="32" fill="#f5f5f5"/><text x="560" y="196" font-size="20" text-anchor="middle" fill="#4f5d75">结果</text><rect x="804.0" y="172" width="72" height="32" fill="#f5f5f5"/><text x="840" y="196" font-size="20" text-anchor="middle" fill="#4f5d75">呈现</text><rect x="40" y="212" width="200" height="96" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/><text x="140.0" y="252" font-size="24" text-anchor="middle" fill="#2d3142">控制器</text><text x="140.0" y="284" font-size="20" text-anchor="middle" fill="#4f5d75">接收请求</text><rect x="320" y="212" width="200" height="96" rx="8" fill="#fff4ed" stroke="#eb6c36" stroke-width="2"/><text x="420.0" y="252" font-size="24" text-anchor="middle" fill="#2d3142">交互器</text><text x="420.0" y="284" font-size="20" text-anchor="middle" fill="#4f5d75">执行业务用例</text><rect x="600" y="212" width="200" height="96" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/><text x="700.0" y="252" font-size="24" text-anchor="middle" fill="#2d3142">展示器</text><text x="700.0" y="284" font-size="20" text-anchor="middle" fill="#4f5d75">整理显示数据</text><rect x="880" y="212" width="200" height="96" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/><text x="980.0" y="252" font-size="24" text-anchor="middle" fill="#2d3142">视图</text><text x="980.0" y="284" font-size="20" text-anchor="middle" fill="#4f5d75">展示内容</text><text x="40" y="132" font-size="24" text-anchor="start" fill="#4f5d75">沿一次请求观察：谁先处理，谁接着处理</text><line x1="40" x2="1080" y1="348" y2="348" stroke="#bfc0c0"/><text x="40" y="384" font-size="20" text-anchor="start" fill="#4f5d75">箭头：运行时处理顺序　｜　根据原图33.2控制流重排，省略外围网关</text></g></svg>
+</button><small>点击放大配图</small></figure>
+<p class="caption">图33-1｜箭头表示运行时的处理顺序，按原图33.2的控制流重新排布。此图未画源代码依赖，也未展开数据库与收入网关的调用。</p>
+<p>原图中的源码依赖却不全沿控制流前进。作者要求跨越架构边界的依赖指向包含更高层策略的组件。有些关系是使用关系，有些关系通过继承或实现接口建立；后者使低层实现依赖高层定义，即使运行时由高层把工作交给低层完成。</p>
+<p>这段讨论把开闭原则落实到组件关系上：高层定义所需能力，低层通过实现这些能力接入。于是更换展示或存储细节时，不必仅因控制流要经过那里，就修改核心用例。原图对开放箭头和闭合箭头作了说明：使用关系与继承关系承担不同的作用，控制流本身不足以说明源码应该依赖哪个组件。</p>
+<h3 id="section-6">本章小结</h3>
+<p>作者把本案例概括为两个维度的隔离：角色对应不同的变更原因，架构层次对应不同的变更速率。沿这两个维度组织代码，有助于把可能因不同原因、在不同时刻变化的部分分开。</p>
+<p>这种组织保留了组合部署的余地。原书没有测量每层实际的变化频率，也没有承诺划分后任何修改都只影响一个组件；这是一种安排变化边界的设计判断。</p>
+<h2 id="section-7">二、主题讲解：让购买者的需求有明确的修改位置</h2>
+<h3 id="section-8">先找不同的人在要求什么</h3>
+<p>以下是延续原产品的假设变更。企业购买者希望在批量采购时查看折扣，而观看者希望打开目录后快速找到已获许可的视频。</p>
+<p>两个人都在“查看目录”，但面对的问题不同。购买者要比较价格与采购数量，观看者要确认自己可以播放什么。如果一开始只建立一个包含所有条件的目录方法，它可能逐渐需要分辨购买身份、观看身份、折扣、许可和页面样式。随后任何一个角色的变化都可能影响同一段代码。</p>
+<p>可以先分别定义购买者查看目录与观看者查看目录的结果含义，再观察哪些部分相同。例如视频标题和简介的基本展示可以共享，企业折扣与观看资格则各自保留。这个顺序与原书先区分角色、再讨论抽象用例一致。把相同外观当作全部策略相同的证据，会过早合并责任。</p>
+<h3 id="section-9">用例把结果交出去，源码仍可以依赖高层定义</h3>
+<p>假设购买目录的展示方式要从网页改成另一种客户端。先看清用例与展示器之间的关系。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" width="1120" height="632" viewBox="0 0 1120 632" role="img" aria-labelledby="title"><title id="33-1-title">运行调用向外，源码依赖可以指向用例</title><defs><marker id="33-1-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 12 6 L 0 12 Z" fill="#4f5d75"/></marker><marker id="33-1-accent" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 12 6 L 0 12 Z" fill="#eb6c36"/></marker></defs><rect width="1120" height="632" fill="#f5f5f5"/><g font-family="PingFang SC, Noto Sans CJK SC, sans-serif"><text x="40" y="64" font-size="32" text-anchor="start" fill="#2d3142">运行调用向外，源码依赖可以指向用例</text><path d="M 280 204 H 400" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#33-1-arrow)"/><path d="M 540 252 V 360" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#33-1-arrow)"/><path d="M 800 408 H 680" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#33-1-arrow)"/><path d="M 940 252 V 360" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#33-1-arrow)"/><rect x="292.0" y="168" width="96" height="32" fill="#f5f5f5"/><text x="340" y="192" font-size="20" text-anchor="middle" fill="#4f5d75">使用</text><rect x="492.0" y="288" width="96" height="32" fill="#f5f5f5"/><text x="540" y="312" font-size="20" text-anchor="middle" fill="#4f5d75">使用</text><rect x="692.0" y="368" width="96" height="32" fill="#f5f5f5"/><text x="740" y="392" font-size="20" text-anchor="middle" fill="#4f5d75">实现</text><rect x="892.0" y="288" width="96" height="32" fill="#f5f5f5"/><text x="940" y="312" font-size="20" text-anchor="middle" fill="#4f5d75">依赖</text><rect x="40" y="156" width="240" height="96" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/><text x="160.0" y="196" font-size="24" text-anchor="middle" fill="#2d3142">购买者控制器</text><text x="160.0" y="228" font-size="20" text-anchor="middle" fill="#4f5d75">组织用例输入</text><rect x="400" y="156" width="280" height="96" rx="8" fill="#fff4ed" stroke="#eb6c36" stroke-width="2"/><text x="540.0" y="196" font-size="24" text-anchor="middle" fill="#2d3142">购买目录交互器</text><text x="540.0" y="228" font-size="20" text-anchor="middle" fill="#4f5d75">处理采购所需策略</text><rect x="400" y="360" width="280" height="96" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/><text x="540.0" y="400" font-size="24" text-anchor="middle" fill="#2d3142">用例输出接口</text><text x="540.0" y="432" font-size="20" text-anchor="middle" fill="#4f5d75">由用例一侧定义</text><rect x="800" y="360" width="280" height="96" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/><text x="940.0" y="400" font-size="24" text-anchor="middle" fill="#2d3142">购买目录展示器</text><text x="940.0" y="432" font-size="20" text-anchor="middle" fill="#4f5d75">实现输出接口</text><rect x="800" y="156" width="280" height="96" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/><text x="940.0" y="196" font-size="24" text-anchor="middle" fill="#2d3142">购买者视图</text><text x="940.0" y="228" font-size="20" text-anchor="middle" fill="#4f5d75">依赖展示侧定义</text><text x="40" y="528" font-size="24" text-anchor="start" fill="#2d3142">运行时：交互器可通过接口调用展示器；源码依赖仍指向用例侧。</text><line x1="40" x2="1080" y1="560" y2="560" stroke="#bfc0c0"/><text x="40" y="596" font-size="20" text-anchor="start" fill="#4f5d75">箭头：源代码依赖　｜　原章关系的讲解性展开；省略视图侧的接口节点</text></g></svg>
+</button><small>点击放大配图</small></figure>
+<p class="caption">图33-2｜所有箭头均表示源代码依赖；“实现”箭头指向接口所属处。此图按原章依赖关系原则展开一个用例的输出边界，增加接口节点用于讲解，并非逐类复制原图33.2。</p>
+<p>交互器处理一次目录请求，形成用例结果，然后通过输出接口交给展示器。输出接口由用例一侧定义，展示器实现它。因而运行时可以由交互器调用展示器，而编译时展示器却依赖用例定义的接口。两种方向同时成立，没有矛盾。</p>
+<p>视图与展示器之间也可以用类似安排保护格式化策略。图中只保留该侧组件之间的依赖，没有展开所有接口。检查实际代码时，应继续查看接口究竟放在哪个组件，参数和返回值是否偷偷引用了视图或框架类型。</p>
+<p>目录结果若已被用例拼成某个页面的 HTML，即使图上依赖箭头正确，用例仍知道了特定显示形式。这说明依赖不仅出现在导入和继承处，也可能通过数据结构的含义进入核心。</p>
+<h3 id="section-10">组件边界和交付文件回答不同的问题</h3>
+<p>假设目前团队很小，所有网站代码一起部署最方便。仍然可以让购买、观看、内容管理等组件保持独立职责，并让构建关系反映允许的依赖。把它们放进同一次发布，不必把代码重新合并成任意互相访问的结构。</p>
+<p>等到页面经常调整、购买策略较稳定时，可以评估是否把视图与展示器作为单独交付组。若部署分开却要求每次同步升级，或一处接口变化总让全部组件重编译，预期收益可能并未出现。应先查清真实变更依赖，再决定拆出多少交付单元。</p>
+<p>反过来，把每个方块立刻变成独立网络服务，会新增通信失败、部署协调和运行管理问题。原书图描述的是组件及潜在构建单元，没有要求这种进程拆分。图本身也不足以确定收费流程需要哪种事务或跨服务方案。</p>
+<h3 id="section-11">用一次变化验证划分是否有帮助</h3>
+<p>还是企业折扣这个变更。先追踪它真正改变什么：采购数量怎样影响价格、购买者目录要看到哪些价格信息、管理员需要怎样设置价格。即使按角色划分，这次变更也可能合理地涉及多个角色组件，因为一条业务政策确实连接着它们。</p>
+<p>需要避免的是不相关的影响。例如只调整企业采购价格，不应因为共用一个含大量条件的展示器，就改变个人观看者的播放资格。组件隔离的价值，要通过这种具体传播路径判断。</p>
+<p>可以在设计评审时走两次路径：一次跟着运行过程确认输入如何到达结果，一次跟着类型依赖确认哪些组件在编译时必须认识哪些定义。再用真实变更检查角色划分是否稳定。三者能相互补充，单独一张组件图不能证明系统已经符合设计。</p>
+<h2 id="section-12">自测：共享目录应当保留到哪一层</h2>
+<p>企业购买者新增“按采购数量显示折扣”，观看者目录仍只需要显示自己获准播放的视频。有人建议在共同的 <code>Catalog Presenter</code> 中增加一个企业判断分支，并让观看者也提供采购数量，统一接口。这个方案有什么问题？</p>
+<p>核对思路：观看者被迫提供与其任务无关的信息，共同抽象已经吸收了购买者特有的策略。可以保留确实相同的目录展示部分，把采购折扣及其结果留在购买者用例与展示路径。若两种目录以后差异很大，减少共享也合理，因为原书已经明确抽象用例不是产品正确运行的必要条件。</p>
+<h2 id="section-13">来源、范围与阅读连接</h2>
+<p>依据《架构整洁之道》第33章，同版 PDF 物理页287—292，书内页258—262；物理页287为章首页。五个原小节与原图33.1、33.2对应的角色、用例、网关、共享目录、构建和部署选择均已回顾。原图已按同版页图核对。折扣改版、目录结果和交付评估是基于原产品的假设推演；本章不是该网站的完整设计，也没有补写登录、支付或许可执行的生产方案。下一章将进一步检查：这些边界能否真正落实到包、可见性和构建关系中。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../32/index.html">上一篇 · 应用程序框架是实现细节</a><a href="../34/index.html">下一篇 · 拾遗</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

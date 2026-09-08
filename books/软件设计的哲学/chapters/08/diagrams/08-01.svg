@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 608" role="img"><title>谁掌握判断所需的信息，谁更适合作决定</title>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">谁掌握判断所需的信息，谁更适合作决定</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">两种配置需要不同信息；不能仅按参数数量判断接口是否简单</text>
+<path d="M 468 232 L 660 232" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="512.0" y="188" width="104" height="32" fill="#f5f5f5"/>
+<text x="564" y="212" font-size="20" fill="#4f5d75" text-anchor="middle">据此决定</text>
+<path d="M 468 428 L 660 428" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="512.0" y="384" width="104" height="32" fill="#f5f5f5"/>
+<text x="564" y="408" font-size="20" fill="#4f5d75" text-anchor="middle">据此决定</text>
+<rect x="40" y="152" width="428" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="192" font-size="24" fill="#2d3142" text-anchor="start">协议实现观察到</text>
+<text x="64" y="228" font-size="20" fill="#4f5d75" text-anchor="start">成功请求的响应时间</text>
+<text x="64" y="264" font-size="20" fill="#4f5d75" text-anchor="start">运行条件的变化</text>
+<rect x="660" y="152" width="420" height="144" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="684" y="192" font-size="24" fill="#2d3142" text-anchor="start">重试间隔</text>
+<text x="684" y="228" font-size="20" fill="#4f5d75" text-anchor="start">由模块依据观测自动调整</text>
+<rect x="40" y="352" width="428" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="392" font-size="24" fill="#2d3142" text-anchor="start">上层用户知道</text>
+<text x="64" y="428" font-size="20" fill="#4f5d75" text-anchor="start">哪些请求更紧迫</text>
+<text x="64" y="464" font-size="20" fill="#4f5d75" text-anchor="start">业务用途和等待要求</text>
+<rect x="660" y="352" width="420" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="684" y="392" font-size="24" fill="#2d3142" text-anchor="start">请求优先级</text>
+<text x="684" y="428" font-size="20" fill="#4f5d75" text-anchor="start">由外部提供必要信息</text>
+<line x1="40" y1="532" x2="1080" y2="532" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="572" font-size="20" fill="#4f5d75" text-anchor="start">箭头表示决策证据的来源。原书给出机制示例，未提供完整重试算法或数值。</text>
+</g></svg>

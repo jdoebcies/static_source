@@ -1,0 +1,407 @@
+{
+  "book_title": "架构整洁之道",
+  "generator_skill_version": "8.2.1",
+  "source_sha256": "64400d05a5e1fe23dedbc41526c9227f74b3647fce36eda738a11c325074f2c3",
+  "units": [
+    {
+      "id": "rec-01",
+      "title": "推荐序一",
+      "pdf_pages": [
+        5,
+        7
+      ],
+      "html": "chapters/rec-01/index.html",
+      "markdown": "chapters/rec-01/chapter.md"
+    },
+    {
+      "id": "rec-02",
+      "title": "推荐序二",
+      "pdf_pages": [
+        8,
+        11
+      ],
+      "html": "chapters/rec-02/index.html",
+      "markdown": "chapters/rec-02/chapter.md"
+    },
+    {
+      "id": "00-foreword",
+      "title": "序言",
+      "pdf_pages": [
+        12,
+        15
+      ],
+      "html": "chapters/00-foreword/index.html",
+      "markdown": "chapters/00-foreword/chapter.md"
+    },
+    {
+      "id": "00-preface",
+      "title": "前言",
+      "pdf_pages": [
+        16,
+        18
+      ],
+      "html": "chapters/00-preface/index.html",
+      "markdown": "chapters/00-preface/chapter.md"
+    },
+    {
+      "id": "01",
+      "title": "设计与架构究竟是什么",
+      "pdf_pages": [
+        33,
+        41
+      ],
+      "html": "chapters/01/index.html",
+      "markdown": "chapters/01/chapter.md"
+    },
+    {
+      "id": "02",
+      "title": "两个价值维度",
+      "pdf_pages": [
+        42,
+        48
+      ],
+      "html": "chapters/02/index.html",
+      "markdown": "chapters/02/chapter.md"
+    },
+    {
+      "id": "03",
+      "title": "编程范式总览",
+      "pdf_pages": [
+        51,
+        54
+      ],
+      "html": "chapters/03/index.html",
+      "markdown": "chapters/03/chapter.md"
+    },
+    {
+      "id": "04",
+      "title": "结构化编程",
+      "pdf_pages": [
+        55,
+        61
+      ],
+      "html": "chapters/04/index.html",
+      "markdown": "chapters/04/chapter.md"
+    },
+    {
+      "id": "05",
+      "title": "面向对象编程",
+      "pdf_pages": [
+        62,
+        74
+      ],
+      "html": "chapters/05/index.html",
+      "markdown": "chapters/05/chapter.md"
+    },
+    {
+      "id": "06",
+      "title": "函数式编程",
+      "pdf_pages": [
+        75,
+        82
+      ],
+      "html": "chapters/06/index.html",
+      "markdown": "chapters/06/chapter.md"
+    },
+    {
+      "id": "07",
+      "title": "SRP：单一职责原则",
+      "pdf_pages": [
+        86,
+        91
+      ],
+      "html": "chapters/07/index.html",
+      "markdown": "chapters/07/chapter.md"
+    },
+    {
+      "id": "08",
+      "title": "OCP：开闭原则",
+      "pdf_pages": [
+        92,
+        97
+      ],
+      "html": "chapters/08/index.html",
+      "markdown": "chapters/08/chapter.md"
+    },
+    {
+      "id": "09",
+      "title": "LSP：里氏替换原则",
+      "pdf_pages": [
+        98,
+        103
+      ],
+      "html": "chapters/09/index.html",
+      "markdown": "chapters/09/chapter.md"
+    },
+    {
+      "id": "10",
+      "title": "ISP：接口隔离原则",
+      "pdf_pages": [
+        104,
+        107
+      ],
+      "html": "chapters/10/index.html",
+      "markdown": "chapters/10/chapter.md"
+    },
+    {
+      "id": "11",
+      "title": "DIP：依赖反转原则",
+      "pdf_pages": [
+        108,
+        112
+      ],
+      "html": "chapters/11/index.html",
+      "markdown": "chapters/11/chapter.md"
+    },
+    {
+      "id": "12",
+      "title": "组件",
+      "pdf_pages": [
+        114,
+        120
+      ],
+      "html": "chapters/12/index.html",
+      "markdown": "chapters/12/chapter.md"
+    },
+    {
+      "id": "13",
+      "title": "组件聚合",
+      "pdf_pages": [
+        121,
+        127
+      ],
+      "html": "chapters/13/index.html",
+      "markdown": "chapters/13/chapter.md"
+    },
+    {
+      "id": "14",
+      "title": "组件耦合",
+      "pdf_pages": [
+        128,
+        148
+      ],
+      "html": "chapters/14/index.html",
+      "markdown": "chapters/14/chapter.md"
+    },
+    {
+      "id": "15",
+      "title": "什么是软件架构",
+      "pdf_pages": [
+        150,
+        160
+      ],
+      "html": "chapters/15/index.html",
+      "markdown": "chapters/15/chapter.md"
+    },
+    {
+      "id": "16",
+      "title": "独立性",
+      "pdf_pages": [
+        161,
+        171
+      ],
+      "html": "chapters/16/index.html",
+      "markdown": "chapters/16/chapter.md"
+    },
+    {
+      "id": "17",
+      "title": "划分边界",
+      "pdf_pages": [
+        172,
+        184
+      ],
+      "html": "chapters/17/index.html",
+      "markdown": "chapters/17/chapter.md"
+    },
+    {
+      "id": "18",
+      "title": "边界剖析",
+      "pdf_pages": [
+        185,
+        191
+      ],
+      "html": "chapters/18/index.html",
+      "markdown": "chapters/18/chapter.md"
+    },
+    {
+      "id": "19",
+      "title": "策略与层次",
+      "pdf_pages": [
+        192,
+        196
+      ],
+      "html": "chapters/19/index.html",
+      "markdown": "chapters/19/chapter.md"
+    },
+    {
+      "id": "20",
+      "title": "业务逻辑",
+      "pdf_pages": [
+        197,
+        202
+      ],
+      "html": "chapters/20/index.html",
+      "markdown": "chapters/20/chapter.md"
+    },
+    {
+      "id": "21",
+      "title": "尖叫的软件架构",
+      "pdf_pages": [
+        203,
+        206
+      ],
+      "html": "chapters/21/index.html",
+      "markdown": "chapters/21/chapter.md"
+    },
+    {
+      "id": "22",
+      "title": "整洁架构",
+      "pdf_pages": [
+        207,
+        214
+      ],
+      "html": "chapters/22/index.html",
+      "markdown": "chapters/22/chapter.md"
+    },
+    {
+      "id": "23",
+      "title": "展示器和谦卑对象",
+      "pdf_pages": [
+        215,
+        219
+      ],
+      "html": "chapters/23/index.html",
+      "markdown": "chapters/23/chapter.md"
+    },
+    {
+      "id": "24",
+      "title": "不完全边界",
+      "pdf_pages": [
+        220,
+        223
+      ],
+      "html": "chapters/24/index.html",
+      "markdown": "chapters/24/chapter.md"
+    },
+    {
+      "id": "25",
+      "title": "层次与边界",
+      "pdf_pages": [
+        224,
+        232
+      ],
+      "html": "chapters/25/index.html",
+      "markdown": "chapters/25/chapter.md"
+    },
+    {
+      "id": "26",
+      "title": "Main 组件",
+      "pdf_pages": [
+        233,
+        238
+      ],
+      "html": "chapters/26/index.html",
+      "markdown": "chapters/26/chapter.md"
+    },
+    {
+      "id": "27",
+      "title": "服务：宏观与微观",
+      "pdf_pages": [
+        239,
+        246
+      ],
+      "html": "chapters/27/index.html",
+      "markdown": "chapters/27/chapter.md"
+    },
+    {
+      "id": "28",
+      "title": "测试边界",
+      "pdf_pages": [
+        247,
+        251
+      ],
+      "html": "chapters/28/index.html",
+      "markdown": "chapters/28/chapter.md"
+    },
+    {
+      "id": "29",
+      "title": "整洁的嵌入式架构",
+      "pdf_pages": [
+        252,
+        268
+      ],
+      "html": "chapters/29/index.html",
+      "markdown": "chapters/29/chapter.md"
+    },
+    {
+      "id": "30",
+      "title": "数据库只是实现细节",
+      "pdf_pages": [
+        270,
+        276
+      ],
+      "html": "chapters/30/index.html",
+      "markdown": "chapters/30/chapter.md"
+    },
+    {
+      "id": "31",
+      "title": "Web 是实现细节",
+      "pdf_pages": [
+        277,
+        281
+      ],
+      "html": "chapters/31/index.html",
+      "markdown": "chapters/31/chapter.md"
+    },
+    {
+      "id": "32",
+      "title": "应用程序框架是实现细节",
+      "pdf_pages": [
+        282,
+        286
+      ],
+      "html": "chapters/32/index.html",
+      "markdown": "chapters/32/chapter.md"
+    },
+    {
+      "id": "33",
+      "title": "案例分析：视频销售网站",
+      "pdf_pages": [
+        287,
+        292
+      ],
+      "html": "chapters/33/index.html",
+      "markdown": "chapters/33/chapter.md"
+    },
+    {
+      "id": "34",
+      "title": "拾遗",
+      "pdf_pages": [
+        293,
+        309
+      ],
+      "html": "chapters/34/index.html",
+      "markdown": "chapters/34/chapter.md"
+    },
+    {
+      "id": "35-postscript",
+      "title": "后序",
+      "pdf_pages": [
+        310,
+        312
+      ],
+      "html": "chapters/35-postscript/index.html",
+      "markdown": "chapters/35-postscript/chapter.md"
+    },
+    {
+      "id": "36-appendix-a",
+      "title": "附录A 架构设计考古",
+      "pdf_pages": [
+        313,
+        354
+      ],
+      "html": "chapters/36-appendix-a/index.html",
+      "markdown": "chapters/36-appendix-a/chapter.md"
+    }
+  ]
+}

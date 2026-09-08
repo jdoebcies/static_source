@@ -1,0 +1,58 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>软件设计的哲学（第2版）｜书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回书架</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a href="#section-1">先知道全书怎样推进</a><a href="#section-2">怎样读一章</a><a href="#section-3">按原书顺序阅读</a><a href="#section-4">进入本书</a><a href="#section-5">复杂性与设计投入</a><a href="#section-6">模块、接口与设计取舍</a><a href="#section-7">让代码与说明容易理解</a><a href="#section-8">趋势、性能与长期判断</a><a href="#section-9">书末回查</a><a href="#section-10">读完后怎样用</a></details></aside><main><h1>《软件设计的哲学》｜书镜8.2 全书导航</h1>
+<p>一个功能已经能运行，为什么下一次修改仍然很费力？这本书从理解和修改软件时的困难出发，讨论模块、接口、注释、命名与设计取舍。判断始终围绕同一件事：使用这段代码的人，能否少了解一些无关细节，仍然正确完成工作。</p>
+<p>本版依据人民邮电出版社2024年中文第2版，作者John Ousterhout，茹炳晟、王海鹏译。保留22章正文、译者序、前言和书末两张总结表，共26个阅读单元。每章先按原小节回顾，再用连贯解释、具体例子与新情形判断帮助理解。</p>
+<h2 id="section-1">先知道全书怎样推进</h2>
+<p>第1—3章先说明复杂性表现为什么困难，以及为什么仅完成眼前功能还不够。第4—11章接着研究如何组织代码：一个模块要承担什么、向使用者暴露什么、不同模块怎样合作，以及怎样比较方案。第12—18章转向阅读代码所需的信息：注释、命名、一致性与修改时的维护。第19—22章讨论趋势、性能、重要信息和长期练习，再用书末原则与警示表帮助回查。</p>
+<p>这些阶段互相联系。例如，信息隐藏决定哪些细节应该留在模块内部；接口注释则负责清楚说明使用者仍然需要知道的部分。无法只靠把注释写长，补救一个要求使用者掌握过多细节的接口。</p>
+<h2 id="section-2">怎样读一章</h2>
+<p>原书回顾回答作者讲了什么、怎样推导、案例如何变化。主题讲解按理解顺序补足背景与机制，假设案例会明确标注。原文中的历史实践和个人判断保留归属；本篇的解释不会被包装成作者原话。</p>
+<p>读完后，拿一个不同但相近的情形判断：哪些条件相同，哪些条件已经改变，建议还是否适用。能说出理由和边界，比只记住原则名称更有用。</p>
+<h2 id="section-3">按原书顺序阅读</h2>
+<h3 id="section-4">进入本书</h3>
+<ul>
+<li><a href="chapters/00-translator/index.html">译者序</a> · PDF 9—13页</li>
+<li><a href="chapters/00-preface/index.html">前言</a> · PDF 14—17页</li>
+</ul>
+<h3 id="section-5">复杂性与设计投入</h3>
+<ul>
+<li><a href="chapters/01/index.html">第1章 · 导言</a> · PDF 26—31页</li>
+<li><a href="chapters/02/index.html">第2章 · 复杂性的本质</a> · PDF 32—41页</li>
+<li><a href="chapters/03/index.html">第3章 · 能工作的代码是不够的</a> · PDF 42—49页</li>
+</ul>
+<h3 id="section-6">模块、接口与设计取舍</h3>
+<ul>
+<li><a href="chapters/04/index.html">第4章 · 模块应该深</a> · PDF 50—61页</li>
+<li><a href="chapters/05/index.html">第5章 · 信息隐藏（和泄露）</a> · PDF 62—73页</li>
+<li><a href="chapters/06/index.html">第6章 · 通用模块更深</a> · PDF 74—87页</li>
+<li><a href="chapters/07/index.html">第7章 · 不同层，不同抽象</a> · PDF 88—99页</li>
+<li><a href="chapters/08/index.html">第8章 · 降低复杂性</a> · PDF 100—103页</li>
+<li><a href="chapters/09/index.html">第9章 · 合并好，还是分开好？</a> · PDF 104—119页</li>
+<li><a href="chapters/10/index.html">第10章 · 避免处理异常</a> · PDF 120—137页</li>
+<li><a href="chapters/11/index.html">第11章 · 设计两次</a> · PDF 138—141页</li>
+</ul>
+<h3 id="section-7">让代码与说明容易理解</h3>
+<ul>
+<li><a href="chapters/12/index.html">第12章 · 为什么要写注释？4个借口</a> · PDF 142—149页</li>
+<li><a href="chapters/13/index.html">第13章 · 注释应描述代码中不明显的内容</a> · PDF 150—175页</li>
+<li><a href="chapters/14/index.html">第14章 · 选择名称</a> · PDF 176—187页</li>
+<li><a href="chapters/15/index.html">第15章 · 先编写注释</a> · PDF 188—193页</li>
+<li><a href="chapters/16/index.html">第16章 · 修改现有代码</a> · PDF 194—201页</li>
+<li><a href="chapters/17/index.html">第17章 · 一致性</a> · PDF 202—207页</li>
+<li><a href="chapters/18/index.html">第18章 · 代码应显而易见</a> · PDF 208—215页</li>
+</ul>
+<h3 id="section-8">趋势、性能与长期判断</h3>
+<ul>
+<li><a href="chapters/19/index.html">第19章 · 软件发展趋势</a> · PDF 216—223页</li>
+<li><a href="chapters/20/index.html">第20章 · 性能设计</a> · PDF 224—235页</li>
+<li><a href="chapters/21/index.html">第21章 · 确定什么是重要的</a> · PDF 236—239页</li>
+<li><a href="chapters/22/index.html">第22章 · 结论</a> · PDF 240—241页</li>
+</ul>
+<h3 id="section-9">书末回查</h3>
+<ul>
+<li><a href="chapters/23-principles/index.html">设计原则总结</a> · PDF 242—243页</li>
+<li><a href="chapters/24-warnings/index.html">警示信号总结</a> · PDF 244—245页</li>
+</ul>
+<h2 id="section-10">读完后怎样用</h2>
+<p>选择一次真实修改，写清原先必须知道哪些信息、修改涉及哪些位置、采用建议后怎样变化，再用测试或另一位读者的解释核对。保留不适用的条件，下次比较时才不会只剩一个原则名称。</p>
+<p>这套阅读稿服务于理解与回查，保留的页码均为PDF物理页。封面、版权、目录、致谢等出版信息列入来源记录，不另设学习卡。</p>
+<p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

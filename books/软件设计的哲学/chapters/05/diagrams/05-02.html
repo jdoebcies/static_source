@@ -1,0 +1,31 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>05-02</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 612" role="img"><title>返回一个参数，减少调用者必须知道的细节</title>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">返回一个参数，减少调用者必须知道的细节</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">箭头表示：使用这一接口时，调用者必须了解右侧哪些信息</text>
+<path d="M 484 244 L 640 244" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="508.0" y="200" width="104" height="32" fill="#f5f5f5"/>
+<text x="560" y="224" font-size="20" fill="#4f5d75" text-anchor="middle">必须了解</text>
+<path d="M 484 448 L 640 448" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="508.0" y="404" width="104" height="32" fill="#f5f5f5"/>
+<text x="560" y="428" font-size="20" fill="#4f5d75" text-anchor="middle">必须了解</text>
+<rect x="40" y="152" width="444" height="168" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="192" font-size="24" fill="#2d3142" text-anchor="start">调用 getParams()</text>
+<text x="64" y="228" font-size="20" fill="#4f5d75" text-anchor="start">再从 Map 取值</text>
+<text x="64" y="264" font-size="20" fill="#4f5d75" text-anchor="start">整数转换由调用者完成</text>
+<rect x="640" y="152" width="440" height="168" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="664" y="192" font-size="24" fill="#2d3142" text-anchor="start">内部容器与取值规则</text>
+<text x="664" y="228" font-size="20" fill="#4f5d75" text-anchor="start">Map 的使用方式</text>
+<text x="664" y="264" font-size="20" fill="#4f5d75" text-anchor="start">不能修改内部状态的约束</text>
+<line x1="40" y1="352" x2="1080" y2="352" stroke="#bfc0c0" stroke-width="2"/>
+<rect x="40" y="376" width="444" height="144" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="64" y="416" font-size="24" fill="#2d3142" text-anchor="start">调用 getIntParameter(name)</text>
+<text x="64" y="452" font-size="20" fill="#4f5d75" text-anchor="start">取值与转换在模块内完成</text>
+<rect x="640" y="376" width="440" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="664" y="416" font-size="24" fill="#2d3142" text-anchor="start">参数的业务含义</text>
+<text x="664" y="452" font-size="20" fill="#4f5d75" text-anchor="start">缺失或转换失败时会抛异常</text>
+<text x="664" y="488" font-size="20" fill="#4f5d75" text-anchor="start">无需了解内部容器</text>
+<line x1="40" y1="536" x2="1080" y2="536" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="576" font-size="20" fill="#4f5d75" text-anchor="start">依据原书 5.6 节。图中关系为知识依赖；失败行为仍属于接口需要说明的内容。</text>
+</g></svg></main></html>

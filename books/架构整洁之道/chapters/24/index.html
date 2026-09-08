@@ -1,0 +1,96 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《架构整洁之道》第24章｜不完全边界 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>架构整洁之道 · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：先留下边界，再决定做到多完整</a><a class="sub" href="#section-2">省掉最后一步</a><a class="sub" href="#section-3">单向边界</a><a class="sub" href="#section-4">门户模式</a><a class="sub" href="#section-5">本章小结</a><a class="" href="#section-6">二、主题讲解：为一个尚未独立发布的计费组件保留什么</a><a class="sub" href="#section-7">先说清楚希望挡住哪一种变化</a><a class="sub" href="#section-8">三种选择省下的是不同的工作</a><a class="sub" href="#section-9">一次“方便的回调”怎样破坏预留边界</a><a class="sub" href="#section-10">预留边界也需要退出条件</a><a class="" href="#section-11">用一个新情形检验理解</a><a class="" href="#section-12">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第24章</p><h1>不完全边界</h1>
+<p>一条完整的架构边界，既要隔开代码依赖，也要支撑组件分别编译、部署和演进。这些工作都有成本。本章讨论一种中间选择：当分离的理由已经出现，但还不足以承担全部成本时，先保留哪些隔离，暂缓哪些工作。</p>
+<h2 id="section-1">一、原书回顾：先留下边界，再决定做到多完整</h2>
+<p>本章开头列出了完整边界的支出：双向的多态接口、输入输出数据结构、依赖关系管理，以及让组件能够独立编译和部署的工作。它们既需要前期设计，也需要后续维护。架构师可能认为眼下不值得全部实现，却又担心以后无法低成本地拆开。作者把这种预见与 YAGNI 的提醒放在一起：不要为臆想的需求过度设计，但也不能完全放弃对变化的判断。不完全边界就是在这组矛盾中提出的做法。</p>
+<h3 id="section-2">省掉最后一步</h3>
+<p>第一种方式，把接口、输入输出格式和代码依赖都按可分离组件设计好，最后仍统一编译、统一部署。它没有省掉设计完整接口所需的代码和思考，省下的是多组件的版本管理与发布管理。边界在代码组织上保留，发布单元暂时合并。</p>
+<p>FitNesse 早期就是这样处理 Web 服务器的。作者预想，未来或许会在别的应用中复用这个 Web 组件，因此先把它与 wiki、测试部分隔离。但 FitNesse 又希望用户下载一个 JAR 就能运行，不必寻找第二个 JAR 或处理版本兼容问题，于是保留了单一交付包。</p>
+<p>这段经历也有后半程。随着独立复用 Web 组件的需求变少，wiki 与 Web 之间的隔离逐渐弱化。按作者写作时的回顾，后来如果真要分离，还得补做不少工作。这个反例提醒读者：设计时预留过边界，不等于多年后仍然能够随时拆开；省掉独立构建和发布，也少了持续检验隔离是否完好的机会。</p>
+<h3 id="section-3">单向边界</h3>
+<p>第二种方式连接口工作也少做一部分。作者用策略模式说明：<code>Client</code> 使用 <code>ServiceBoundary</code> 接口，<code>ServiceImpl</code> 实现它。客户端不必直接引用具体服务实现，未来隔离二者所需的一次依赖反转已经完成。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 640" role="img" aria-labelledby="title desc">
+<title id="24-0-title">单向边界：接口挡住一侧依赖</title><desc id="24-0-desc">Client 和 ServiceImpl 都依赖 ServiceBoundary。ServiceImpl 指向 Client 的虚线是可能出现的违规源码依赖。</desc>
+<defs>
+<marker id="24-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker>
+<marker id="24-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker>
+<marker id="24-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker>
+</defs>
+<rect width="1120" height="640" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="68" font-size="32">单向边界：接口挡住一侧依赖</text>
+<text x="40" y="108" font-size="20" fill="#4f5d75">依据原书图24.1重绘 · 所有箭头均表示源码依赖</text>
+<path d="M360 248 H700" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#24-0-arrow)"/>
+<path d="M840 432 V308" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#24-0-arrow)"/>
+<path d="M704 480 H220 V308" fill="none" stroke="#eb6c36" stroke-width="2" stroke-dasharray="8 8" marker-end="url(#24-0-arrow-accent)"/>
+<rect x="80" y="192" width="280" height="112" rx="8" fill="#fff" stroke="#2d3142"/>
+<text x="220" y="240" text-anchor="middle" font-size="24">Client</text><text x="220" y="276" text-anchor="middle" font-size="20" fill="#4f5d75">使用服务的代码</text>
+<rect x="704" y="192" width="336" height="112" rx="8" fill="#fff" stroke="#2d3142"/>
+<text x="872" y="240" text-anchor="middle" font-size="24">ServiceBoundary</text><text x="872" y="276" text-anchor="middle" font-size="20" fill="#4f5d75">服务接口</text>
+<rect x="704" y="432" width="336" height="96" rx="8" fill="#fff" stroke="#2d3142"/>
+<text x="872" y="472" text-anchor="middle" font-size="24">ServiceImpl</text><text x="872" y="508" text-anchor="middle" font-size="20" fill="#4f5d75">具体实现</text>
+<rect x="448" y="208" width="160" height="32" fill="#f5f5f5"/><text x="528" y="232" text-anchor="middle" font-size="20">使用接口</text>
+<rect x="808" y="352" width="104" height="36" fill="#f5f5f5"/><text x="860" y="376" text-anchor="middle" font-size="20">实现接口</text>
+<rect x="288" y="436" width="336" height="32" fill="#f5f5f5"/><text x="456" y="460" text-anchor="middle" font-size="20" fill="#eb6c36">风险：实现直接认识 Client</text>
+<line x1="40" y1="568" x2="1080" y2="568" stroke="#bfc0c0"/>
+<text x="40" y="604" font-size="20" fill="#4f5d75">实线：已建立的依赖　　虚线：需要持续防止的依赖泄漏</text>
+</g></svg>
+</button><small>点击放大配图</small></figure>
+<p class="caption">图24-1｜单向边界保留了一侧的隔离。依据原书图24.1重绘；箭头表示源码依赖，虚线是可能出现的违规依赖，不是运行时消息。</p>
+<p>图中的接口给客户端提供了稳定的使用方式，但实现类仍有机会反过来直接依赖客户端。假如服务为了通知处理结果，直接认识某个具体 <code>Client</code> 类，另一侧的隔离就被破坏了。完整边界需要继续为这类交互安排接口和数据，且长期维护。单向边界把这部分工作暂缓，依赖开发者与架构师自律来阻止泄漏。</p>
+<p>因此，“单向”描述的是目前做到了哪一侧的隔离，不能理解成运行时只允许单向传递信息。调用返回值当然可以存在；关键是返回过程是否让底层代码认识了本应隔离的具体对象。</p>
+<h3 id="section-4">门户模式</h3>
+<p>第三种方式更轻：使用门户模式，也就是 facade pattern。客户端只调用 <code>Facade</code>，由它把请求转交给背后的多个服务函数。服务细节不必直接暴露给客户端，调用入口也因此集中起来。</p>
+<p>但这里没有依赖反转。依赖仍沿 <code>Client → Facade → Service</code> 传递，所以客户端在整体依赖关系上仍被服务实现牵动。原书以静态类型语言中的重新编译说明这种传递性影响，并提醒读者，直接建立反向通道也很容易。这个例子所能保证的是入口收拢，不能据此断定两侧已经独立演进。</p>
+<p>关于“服务源码的任何修改都会导致客户端重新编译”的表述，应放在作者描述的静态编译依赖情境中阅读。本章没有区分各种语言、二进制兼容方式和构建系统，不能把这句话扩大为所有工程的构建定律。</p>
+<h3 id="section-5">本章小结</h3>
+<p>这三种做法是示例，并非不完全边界的全部种类。它们分别暂缓了不同的投入，也承担不同的隔离风险。边界后来确有必要，可以继续补全；如果始终没有必要，也可能逐渐降解。架构师需要判断哪里值得预留，以及采用完整还是不完全的形式，不能用某一种模式替代这个判断。</p>
+<h2 id="section-6">二、主题讲解：为一个尚未独立发布的计费组件保留什么</h2>
+<h3 id="section-7">先说清楚希望挡住哪一种变化</h3>
+<p>以下是帮助理解的假设案例。一个 Java 订单应用计算服务费，当前只有一种计费规则。团队预计可能接入另一家渠道，但还没有确定需求。眼下希望做到的事情是：修改渠道的计费实现时，不必改订单的处理流程。是否需要把计费组件独立发布，是另一个问题。</p>
+<p>如果订单代码直接创建渠道计算器，并在多处读取渠道专用字段，未来换渠道时，这些位置都要重新检查。边界的价值来自挡住这条变更路径。先明确这条路径，才能判断“留一个接口”究竟解决了什么；接口数量本身不能证明设计有用。</p>
+<h3 id="section-8">三种选择省下的是不同的工作</h3>
+<p>假设订单只需要“根据订单资料计算费用”，我们可以让它使用一个计费接口，由渠道实现来完成计算。接口与参数用订单能够理解的名称，返回结果也不携带渠道 SDK 对象。双方暂时放在一个 JAR 中，这是单向边界的一种应用。它为更换计费实现留下了位置，同时避免现在就承担独立发布。</p>
+<p>如果计费还需要主动通知订单，而我们也为通知设计了接口、数据，并清理了全部跨边界依赖，代码已经具备分离条件，只是最终一起打包，那就更接近“省掉最后一步”。这时设计成本已经花掉，节省的主要是版本与发布管理，不能再把它当成几乎免费的占位。</p>
+<p>如果当前连计费接口也不值得引入，可以先用一个门户集中计费入口，避免订单的多个位置分别访问各个渠道函数。这有助于将来找到需要改动的地方，但调用方仍可能通过门户传递性地依赖实现。选择门户，就应接受这份较弱的隔离。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>已经保留的东西</th>
+<th>暂缓的工作</th>
+<th>需要继续观察的风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>省掉最后一步</td>
+<td>按独立组件准备的接口、数据和依赖关系</td>
+<td>分别编译部署及其管理</td>
+<td>同包开发使边界逐渐弱化</td>
+</tr>
+<tr>
+<td>单向边界</td>
+<td>一侧使用接口，具体实现依赖该接口</td>
+<td>另一侧的完整隔离</td>
+<td>实现反过来认识具体客户端</td>
+</tr>
+<tr>
+<td>门户模式</td>
+<td>集中的调用入口</td>
+<td>依赖反转和完整隔离</td>
+<td>实现变化仍沿依赖链传递</td>
+</tr>
+</tbody></table></div>
+<p>这张表比较的是作者的三个示例。实际项目可以结合使用，不需要把每个模块强行归到唯一一种模式。</p>
+<h3 id="section-9">一次“方便的回调”怎样破坏预留边界</h3>
+<p>继续看计费案例。渠道实现计算完费用后，需要记录订单状态。开发者为了方便，直接传入 <code>OrderService</code>，让渠道实现调用它的内部方法。虽然订单仍使用计费接口，另一边却已经认识了订单的具体实现。以后拆出计费组件，就必须把这段反向依赖一起拆掉。</p>
+<p>修正时先确认通知是否确有必要。结果能随普通返回值交回订单，就不必增加另一条回调通道；若确实需要独立通知，再为该交互明确接口及其数据。这里的选择取决于真实交互，不能为了补成“完整模式”而制造本来没有的机制。</p>
+<p>可以用一个小检查检验隔离：只保留订单需要的计费接口和数据，去掉渠道实现后，订单处理逻辑还能否编译或接受替代实现？如果不能，检查泄漏的是具体类、参数类型，还是回调路径。这是在观察边界承受了什么，不能代替真实的发布验证。</p>
+<h3 id="section-10">预留边界也需要退出条件</h3>
+<p>如果第二家渠道迟迟没有出现，而每次变更都在为闲置接口支付维护成本，可以重新评估这条边界。FitNesse 的经历说明，预留结构可能自然退化。团队需要知道这种退化是否已经发生，不能仍把“随时可拆”当成事实。</p>
+<p>反过来，如果多个调用方开始依赖计费、独立发布已经有明确价值，继续只靠同包开发的自律，风险也会增加。这时应补足阻止反向依赖的约束，并实际验证分离构建和部署。作者没有给一个通用的时间表；本章提供的是成本选项，下一章继续讨论怎样在系统演进中选择实现边界的时机。</p>
+<h2 id="section-11">用一个新情形检验理解</h2>
+<p>团队说：“数据库访问已经藏在 <code>StorageFacade</code> 后面，以后换存储引擎肯定不影响上层。”检查发现，门户的方法返回数据库驱动专用对象，而且门户与所有调用方一起构建。你会怎样修正这个判断？</p>
+<p>核对思路：先承认入口已经集中，这是现有收益。再检查返回类型造成的直接依赖，以及门户到存储实现的传递依赖。若上层仍认识驱动对象，换引擎就可能要求上层跟着修改。是否进一步引入接口和独立数据，取决于替换需求及成本；仅仅出现了 <code>Facade</code> 这个名字，不能证明隔离已经完成。</p>
+<h2 id="section-12">来源、范围与阅读连接</h2>
+<p>原书范围为《架构整洁之道》第24章，PDF物理页220–223，正文书内页191–193。回顾保留原书四个小节及章首的成本与 YAGNI 讨论。图24-1依据原书图24.1；计费和存储门户情形是本文假设案例。关于编译传播的说明保留了原书语境，未引入外部版本事实。本章的选择将在第25章的层次、数据流与边界时机讨论中继续展开。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../23/index.html">上一篇 · 展示器和谦卑对象</a><a href="../25/index.html">下一篇 · 层次与边界</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

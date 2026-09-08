@@ -1,0 +1,29 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>09-01</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 640" role="img" aria-label="读取请求与解析请求为何难以独立">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="640" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" text-anchor="start" fill="#2d3142">读取请求与解析请求为何难以独立</text>
+<text x="40" y="104" font-size="20" text-anchor="start" fill="#4f5d75">要判断请求是否读完，读取代码已经需要理解报文格式</text>
+<path d="M472,224 L632,224" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="494.0" y="180" width="116" height="32" fill="#f5f5f5"/>
+<text x="552" y="204" font-size="20" text-anchor="middle" fill="#4f5d75">原始字符串</text>
+<path d="M300,388 L300,296" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="252.0" y="324" width="96" height="32" fill="#f5f5f5"/>
+<text x="300" y="348" font-size="20" text-anchor="middle" fill="#4f5d75">格式知识</text>
+<path d="M820,388 L820,296" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="772.0" y="324" width="96" height="32" fill="#f5f5f5"/>
+<text x="820" y="348" font-size="20" text-anchor="middle" fill="#4f5d75">格式知识</text>
+<rect x="48" y="156" width="424" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="72" y="196" font-size="24" text-anchor="start" fill="#2d3142">读取类</text>
+<text x="72" y="232" font-size="20" text-anchor="start" fill="#4f5d75">从套接字读取请求</text>
+<text x="72" y="264" font-size="20" text-anchor="start" fill="#4f5d75">解析长度信息，识别结尾</text>
+<rect x="632" y="156" width="440" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="656" y="196" font-size="24" text-anchor="start" fill="#2d3142">解析类</text>
+<text x="656" y="232" font-size="20" text-anchor="start" fill="#4f5d75">拆解报头和请求内容</text>
+<text x="656" y="264" font-size="20" text-anchor="start" fill="#4f5d75">再次理解请求格式</text>
+<rect x="48" y="388" width="1024" height="128" rx="8" fill="#fff4ee" stroke="#eb6c36" stroke-width="2"/>
+<text x="72" y="428" font-size="24" text-anchor="start" fill="#2d3142">共同依赖：HTTP 请求格式</text>
+<text x="72" y="464" font-size="20" text-anchor="start" fill="#4f5d75">合并后在一处识别边界和提取内容，对外直接返回请求</text>
+<line x1="40" y1="576" x2="1080" y2="576" stroke="#bfc0c0"/>
+<text x="40" y="612" font-size="20" text-anchor="start" fill="#4f5d75">依据：第9章 HTTP 案例；箭头表示信息或结果传递。</text>
+</g></svg></main></html>

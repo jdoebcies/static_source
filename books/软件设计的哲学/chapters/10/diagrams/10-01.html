@@ -1,0 +1,29 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>10-01</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 600" role="img" aria-label="删除名字与释放内容，可以分时完成">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="600" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" text-anchor="start" fill="#2d3142">删除名字与释放内容，可以分时完成</text>
+<text x="40" y="104" font-size="20" text-anchor="start" fill="#4f5d75">假设：操作成功、这是最后一个硬链接；已有打开引用仍然存在</text>
+<path d="M344,280 L424,280" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="336.0" y="228" width="96" height="32" fill="#f5f5f5"/>
+<text x="384" y="252" font-size="20" text-anchor="middle" fill="#4f5d75">删除名字</text>
+<path d="M704,280 L784,280" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="696.0" y="228" width="96" height="32" fill="#f5f5f5"/>
+<text x="744" y="252" font-size="20" text-anchor="middle" fill="#4f5d75">关闭引用</text>
+<rect x="40" y="168" width="304" height="240" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="208" font-size="24" text-anchor="start" fill="#2d3142">删除前</text>
+<text x="64" y="244" font-size="20" text-anchor="start" fill="#4f5d75">目录中有名字</text>
+<text x="64" y="276" font-size="20" text-anchor="start" fill="#4f5d75">进程已经打开</text>
+<text x="64" y="308" font-size="20" text-anchor="start" fill="#4f5d75">内容仍在</text>
+<rect x="424" y="168" width="280" height="240" rx="8" fill="#fff4ee" stroke="#eb6c36" stroke-width="2"/>
+<text x="448" y="208" font-size="24" text-anchor="start" fill="#2d3142">目录项已移除</text>
+<text x="448" y="244" font-size="20" text-anchor="start" fill="#4f5d75">旧引用继续读写</text>
+<text x="448" y="276" font-size="20" text-anchor="start" fill="#4f5d75">新打开找不到旧项</text>
+<rect x="784" y="168" width="296" height="240" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="808" y="208" font-size="24" text-anchor="start" fill="#2d3142">最后引用关闭</text>
+<text x="808" y="244" font-size="20" text-anchor="start" fill="#4f5d75">不再有链接或引用</text>
+<text x="808" y="276" font-size="20" text-anchor="start" fill="#4f5d75">内容空间可释放</text>
+<text x="40" y="476" font-size="24" text-anchor="start" fill="#2d3142">同名的新文件与旧的打开引用是不同对象；不会因重名自动替换旧引用。</text>
+<line x1="40" y1="536" x2="1080" y2="536" stroke="#bfc0c0"/>
+<text x="40" y="572" font-size="20" text-anchor="start" fill="#4f5d75">依据：10.4与POSIX校正；箭头表示状态随时间变化。</text>
+</g></svg></main></html>

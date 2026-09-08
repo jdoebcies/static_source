@@ -1,0 +1,27 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>04-01</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 636" width="1120" height="636" role="img" aria-label="循环中，每次都能检查同一句话">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="636" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" fill="#2d3142" text-anchor="start">循环中，每次都能检查同一句话</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">累计值等于已处理商品的行金额之和</text>
+<polyline points="320,224 448,224" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="319.5" y="158" width="129" height="28" fill="#f5f5f5"/>
+<text x="384" y="180" font-size="20" fill="#4f5d75" text-anchor="middle">处理到 k 项</text>
+<polyline points="716,288 716,368" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="792.5" y="314" width="151" height="28" fill="#f5f5f5"/>
+<text x="868" y="336" font-size="20" fill="#4f5d75" text-anchor="middle">再加第 k+1 项</text>
+<polyline points="716,464 716,528" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="837.5" y="490" width="149" height="28" fill="#f5f5f5"/>
+<text x="912" y="512" font-size="20" fill="#4f5d75" text-anchor="middle">重复直到 n 项</text>
+<rect x="40" y="160" width="280" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="64" y="200" font-size="24" fill="#2d3142" text-anchor="start">开始：处理了 0 项</text>
+<text x="64" y="236" font-size="20" fill="#4f5d75" text-anchor="start">累计值为 0</text>
+<rect x="448" y="160" width="600" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="472" y="200" font-size="24" fill="#2d3142" text-anchor="start">处理完前 k 项</text>
+<text x="472" y="236" font-size="20" fill="#4f5d75" text-anchor="start">累计值等于前 k 项之和</text>
+<rect x="448" y="368" width="600" height="96" rx="8" fill="#fff0e9" stroke="#eb6c36" stroke-width="2"/>
+<text x="472" y="408" font-size="24" fill="#2d3142" text-anchor="start">处理完前 k+1 项，关系仍成立</text>
+<text x="40" y="536" font-size="24" fill="#2d3142" text-anchor="start">结束时：已处理 n 项，累计值就是全部商品之和。</text>
+<line x1="40" y1="568" x2="1080" y2="568" stroke="#bfc0c0"/>
+<text x="40" y="604" font-size="20" fill="#4f5d75" text-anchor="start">前提：输入有效、运算不溢出；还须检查步进与终止条件。</text>
+</g></svg></main></html>

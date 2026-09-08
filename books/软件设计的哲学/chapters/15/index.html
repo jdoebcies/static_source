@@ -1,0 +1,70 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第15章｜先编写注释 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：在实现之前检查能否说清接口</a><a class="sub" href="#section-2">15.1 拖延的注释是糟糕的注释</a><a class="sub" href="#section-3">15.2 先编写注释</a><a class="sub" href="#section-4">15.3 注释是一种设计工具</a><a class="sub" href="#section-5">15.4 早期注释是有趣的注释</a><a class="sub" href="#section-6">15.5 早期注释是否昂贵？</a><a class="sub" href="#section-7">15.6 结论</a><a class="" href="#section-8">二、主题讲解：用一段尚未实现的接口说明发现问题</a><a class="sub" href="#section-9">先把调用者会遇到的结果写出来</a><a class="sub" href="#section-10">让实现去检验说明中的承诺</a><a class="sub" href="#section-11">注释很长时，分清哪一种原因</a><a class="sub" href="#section-12">用一次有限尝试看它是否有帮助</a><a class="" href="#section-13">检验理解：更短的注释为什么反而更差</a><a class="" href="#section-14">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第15章</p><h1>先编写注释</h1>
+<p>原章副题是“将注释作为设计过程的一部分”。第 13、14 章分别讨论注释与名称应提供什么信息，本章把时间提前：在方法实现尚未写出时，先说明接口要承诺什么，再用编码和测试检验这些说明。</p>
+<h2 id="section-1">一、原书回顾：在实现之前检查能否说清接口</h2>
+<p>作者反对把文档完全留到编码和单元测试之后，认为这样容易漏掉设计时尚清楚、后来却难以回忆的理由。他建议在设计和编码过程中持续编写，而不是等整个系统完成后集中补课。</p>
+<h3 id="section-2">15.1 拖延的注释是糟糕的注释</h3>
+<p>开发者常说代码还在变，晚写可以少改文档。作者还猜测，有人把注释看成苦差事，因此一再推迟；这是他对动机的推测，不能当作每个人拖延的真实原因。</p>
+<p>实际风险有两条。一条是任务积累：再等几周似乎更稳定，等到代码很多，集中补注释更困难，修缺陷和下一项功能又更容易排在前面，最终可能一直没写。另一条是信息丢失：即使回头补，设计过程已不那么清晰，人也急于进入下一任务，于是盯着代码重述可见语句，反而漏掉代码里看不出的取舍与理由。</p>
+<p>作者用较强烈的措辞表达对这种做法的担忧。本章要保留的机制，是积压和设计记忆消退如何影响文档质量，不是对开发者心理状态作普遍判断。</p>
+<h3 id="section-3">15.2 先编写注释</h3>
+<p>作者的顺序从类的接口说明开始，再写最重要公有方法的接口注释与签名，暂时把方法体留空。反复调整这些说明，直到基本结构清楚，再声明并注释重要实例变量，最后填入方法体和必要的实现注释。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 776" role="img"><title>先说明接口，再让实现检验说明</title>
+<defs><marker id="15-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="15-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="15-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">先说明接口，再让实现检验说明</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">类说明 → 重要公有方法 → 重要状态 → 方法体；发现问题时返回修改</text>
+<path d="M 560 248 L 560 320" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#15-0-arrow)"/>
+<path d="M 560 432 L 560 504" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#15-0-arrow)"/>
+<path d="M 840 568 L 1024 568 L 1024 212 L 840 212" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#15-0-arrow)"/>
+<rect x="984" y="364" width="80" height="32" fill="#f5f5f5"/>
+<text x="1024" y="388" font-size="20" fill="#4f5d75" text-anchor="middle">回改</text>
+<rect x="280" y="144" width="560" height="104" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="304" y="184" font-size="24" fill="#2d3142" text-anchor="start">类的抽象与重要方法接口</text>
+<text x="304" y="220" font-size="20" fill="#4f5d75" text-anchor="start">先写含义、签名和使用条件</text>
+<rect x="280" y="320" width="560" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="304" y="360" font-size="24" fill="#2d3142" text-anchor="start">调整基本结构，声明重要状态</text>
+<text x="304" y="396" font-size="20" fill="#4f5d75" text-anchor="start">变量声明与含义同时写下</text>
+<rect x="280" y="504" width="560" height="128" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="304" y="544" font-size="24" fill="#2d3142" text-anchor="start">填写方法体，编码与测试</text>
+<text x="304" y="580" font-size="20" fill="#4f5d75" text-anchor="start">新增方法仍先写接口说明</text>
+<text x="304" y="616" font-size="20" fill="#4f5d75" text-anchor="start">根据实际行为同步修正</text>
+<text x="40" y="680" font-size="20" fill="#4f5d75" text-anchor="start">回改路径：发现问题 → 重新检查接口说明与设计。</text>
+<line x1="40" y1="700" x2="1080" y2="700" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="740" font-size="20" fill="#4f5d75" text-anchor="start">箭头表示工作顺序及反馈，不代表程序运行调用；注释必须完整清楚，短本身不证明设计好。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图15-1｜依据 15.2—15.3 节绘制。箭头表示设计工作的推进与回改。先写接口说明仍然允许反复修订，不是一次冻结所有细节。</p>
+<p>实现中发现新方法，就在写方法体前说明其接口；发现新实例变量，就在声明时同时说明含义。这样代码完成时，注释也随之完成，不额外形成一批待补文档。</p>
+<p>本节给出的第一个收益是注释质量：关键设计问题还在思考中，容易记录；尚未写实现时，又较容易专注调用者所见的抽象，避免把内部细节带进接口说明。编码与测试继续发现、修正说明的问题，因此“先写”只是顺序选择，注释仍随开发改进。</p>
+<h3 id="section-4">15.3 注释是一种设计工具</h3>
+<p>第二个收益是更早审查抽象。若一个方法在还没有实现时，就需要很长、很复杂的说明才能用，可能已经暴露出过多调用条件。若变量要靠一大段说明才能说清，也可能混合了本应分开的含义。</p>
+<p>作者把注释比作复杂性矿坑里的“金丝雀”：它是早期警报。完整而简短的接口说明，通常意味着调用者需要掌握的东西较少；如果接口说明必须讲遍实现的主要特性，方法可能是浅的。比较说明与实现，可以帮助评价深度。</p>
+<p>“警示信号：难以描述”要求的是<strong>简单而完整</strong>。省掉异常、先决条件或特殊状态，当然可以让文字变短，却不能据此证明接口简单。只有先把使用所需信息写清，注释复杂度才有诊断价值。出现警报后应检查设计，不能把删文档当作消除复杂性的办法。</p>
+<h3 id="section-5">15.4 早期注释是有趣的注释</h3>
+<p>第三个收益是作者的工作体验。新类早期设计本来就是他觉得有趣的阶段；注释用来记录、比较和检验抽象，他会寻找能以较少文字完整表达的设计。写注释由此参与了作决定，而不只是给已经结束的工作补材料。</p>
+<p>这一感受与作者提倡的战略性编程相连：重视长期设计质量，注释就成为形成设计的方法。它不是对所有人都同样有效的情绪保证，结尾仍邀请读者亲自尝试并比较体验。</p>
+<h3 id="section-6">15.5 早期注释是否昂贵？</h3>
+<p>作者重新检查“晚写少返工”的理由，并给出粗略估算：输入及修改代码和注释的时间，不太可能超过总开发时间的 10%；即使代码行的一半是注释，他估计注释输入时间也不超过总开发时间的 5%。晚写只可能省去其中一部分修改时间，并不能省掉全部文档工作。</p>
+<p>这是一组用于说明量级的估算，原书没有给出测量样本。由“一半行数”推到“一半输入时间”也包含粗略近似，不能据此给团队设定效率指标。作者随后提出另一侧的成本：先写说明可能使抽象较早稳定，减少后来因接口变化而重写实现的工作。因此他得出“总体可能更快”，没有给出普遍适用的速度保证。</p>
+<h3 id="section-7">15.6 结论</h3>
+<p>作者建议尝试足够长的时间，适应这一顺序，再比较注释质量、设计质量和开发乐趣，并检视自己的经验是否与他一致及原因。判断重点是它是否改善实际工作，不是是否按固定模板写够文字。</p>
+<h2 id="section-8">二、主题讲解：用一段尚未实现的接口说明发现问题</h2>
+<h3 id="section-9">先把调用者会遇到的结果写出来</h3>
+<p>以下是本文假设的批量文本替换模块。最初想提供一个 <code>replace</code> 方法，说明写成“替换匹配内容并返回结果”。这几乎没有给出比名称更多的信息。开始写实现之前，可以先确定匹配是否区分大小写、一次替换所有匹配还是一处、结果是否包含替换次数，以及调用是否改变原内容。</p>
+<p>这些问题不是为了强行给接口加选项。它们要求把现有需求中的行为决定下来：有的可以固定为一种规则，有的确实需要调用者提供。若两种完全不同的用途挤在一个方法中，说明越写越难懂，就应比较拆分用途或缩小接口，而不是继续添加标志参数。</p>
+<h3 id="section-10">让实现去检验说明中的承诺</h3>
+<p>假设初步说明承诺“替换全部匹配；没有匹配时内容不变；返回替换次数”。写代码时发现，“新文本本身再次包含待查字符串”可能造成反复处理，原说明还没说清匹配基于哪一版文本。</p>
+<p>这时应返回接口说明，确认当前需求究竟要求按原文本一次定位，还是允许递归替换，再选择实现。假设本例选定前者，就要使算法和测试都检验这一规则。这里展示的是作者所说的回改：较早写下的承诺可以被修正，但修正要明确，不能让实现悄悄改变接口含义。</p>
+<h3 id="section-11">注释很长时，分清哪一种原因</h3>
+<p>如果说明里充满内部数组布局、循环过程，就应把实现信息移到内部，接口可能并没有那么复杂。如果说明必须列出许多调用顺序和彼此关联的参数，则应检查是否把本可由模块处理的工作交给了调用者。还有些长度来自确实必要的失败条件和业务限制，这些不能因追求短文档而删除。</p>
+<p>因此先核对说明是否完整、准确、属于接口，再把“难以描述”当作设计信号。重写一句文案与简化一个接口是两种不同工作；二者可能同时需要，却不能互相替代。</p>
+<h3 id="section-12">用一次有限尝试看它是否有帮助</h3>
+<p>可以在一个新类上按原书顺序工作：先写整体抽象和几个重要接口；记录写说明时发现的含糊决定；再编码、测试，并同步修正。完成后看哪些修改发生在实现前，哪些承诺仍然需要读代码才能弄懂。若要比较成本，也应记录自己的实际投入，不能直接拿书中的 10% 或 5% 代替测量。</p>
+<p>这一尝试不需要先写完未来所有功能，也不表示注释可以代替测试。正文说明行为，代码实现行为，测试检查具体情形，三者需要互相核对。</p>
+<h2 id="section-13">检验理解：更短的注释为什么反而更差</h2>
+<p>一个方法有五种必须由调用者区分的失败结果，编写者为了让接口说明更短，只写“失败时返回 false”，认为它已经成为深模块。另一个实现把能统一处理的失败放入内部，仍把需要调用者采取不同动作的结果明确暴露。如何判断？</p>
+<p>核对思路：先查文档是否如实说明行为。只删失败信息，会让调用者失去正确使用的依据，也使注释失去衡量接口复杂性的资格；真正减少外部需要处理的情形，才可能使接口更简单。还要检查剩余结果是否足以支持调用者决策，不能用一个笼统返回值掩盖不同后果。</p>
+<h2 id="section-14">来源、范围与阅读连接</h2>
+<p>依据 John Ousterhout《软件设计的哲学》第 15 章，PDF 物理页 188—193。完整读取原文，并实际查看第 189—192 页，核对注释先行的步骤、完整清晰的前提，以及 10% 和 5% 的原始估算关系。</p>
+<p>第 190 页一句“在方法正文主体写上接口注释”存在语句残缺；同页后文明确要求在方法主体之前编写，本文据同页上下文说明先后顺序，不补造其他流程。批量替换案例与有限尝试为本文假设及操作化讲解；未声称已有实测效果。图15-1重绘原书流程。后续第 16 章讨论修改已有代码时，怎样继续维护设计与注释。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../14/index.html">上一篇 · 选择名称</a><a href="../16/index.html">下一篇 · 修改现有代码</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 648" role="img"><title>isReady 的 true，表示下一次读取无需等待</title>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">isReady 的 true，表示下一次读取无需等待</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">就绪与还有数据是两回事；isReady 同时会推进索引读取工作</text>
+<path d="M 440 272 L 560 272 L 560 216 L 640 216" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="484.0" y="160" width="104" height="32" fill="#f5f5f5"/>
+<text x="536" y="184" font-size="20" fill="#4f5d75" text-anchor="middle">true</text>
+<path d="M 440 352 L 560 352 L 560 440 L 640 440" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="497.0" y="392" width="126" height="32" fill="#f5f5f5"/>
+<text x="560" y="416" font-size="20" fill="#4f5d75" text-anchor="middle">false</text>
+<rect x="40" y="244" width="400" height="136" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="284" font-size="24" fill="#2d3142" text-anchor="start">调用 isReady()</text>
+<text x="64" y="320" font-size="20" fill="#4f5d75" text-anchor="start">检查就绪，并推进读取</text>
+<rect x="640" y="144" width="440" height="168" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="664" y="184" font-size="24" fill="#2d3142" text-anchor="start">getNext 不阻塞</text>
+<text x="664" y="220" font-size="20" fill="#4f5d75" text-anchor="start">已有至少一个对象可返回</text>
+<text x="664" y="256" font-size="20" fill="#4f5d75" text-anchor="start">或者：查询已经结束</text>
+<rect x="640" y="364" width="440" height="144" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="664" y="404" font-size="24" fill="#2d3142" text-anchor="start">getNext 可能阻塞</text>
+<text x="664" y="440" font-size="20" fill="#4f5d75" text-anchor="start">false 不保证一定阻塞</text>
+<text x="664" y="476" font-size="20" fill="#4f5d75" text-anchor="start">尚未保证能立即返回</text>
+<text x="40" y="552" font-size="20" fill="#4f5d75" text-anchor="start">必须直接调用 isReady，或通过 getNext 间接调用，读取才会取得进展。</text>
+<line x1="40" y1="572" x2="1080" y2="572" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="612" font-size="20" fill="#4f5d75" text-anchor="start">依据原书 13.5 节接口说明。箭头标注返回值；没有把内部 RESULT_READY 当作使用规则。</text>
+</g></svg>

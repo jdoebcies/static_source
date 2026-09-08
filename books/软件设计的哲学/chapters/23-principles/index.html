@@ -1,0 +1,96 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》设计原则总结｜把原则用在一次修改上 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者留下的十六条原则</a><a class="" href="#section-2">二、主题讲解：不要一次套上十六条规则</a><a class="sub" href="#section-3">从一个确实存在的困难开始</a><a class="sub" href="#section-4">比较方案时同时看接口和内部</a><a class="sub" href="#section-5">把结果连回原则，而不是用原则名字当证明</a><a class="" href="#section-6">用一个变化检查理解</a><a class="" href="#section-7">来源与范围</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">设计原则总结</p><h1>把原则用在一次修改上</h1>
+<p>书末的原则表适合在读完正文后回查。它保留作者的判断方向，但每条原则成立的理由、例外和代价仍在对应章节中。不要仅凭表里的短句决定一次重构。</p>
+<h2 id="section-1">一、原书回顾：作者留下的十六条原则</h2>
+<p>这一部分是原书的总结单元，没有编号小节。下表依原顺序重述，括号内保留回查位置。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>原则</th>
+<th>用来提醒我们什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. 复杂性逐步累积（2.4）</td>
+<td>不断放过的小问题会影响越来越多的修改，日常细节也需要关注。</td>
+</tr>
+<tr>
+<td>2. 能工作的代码还不够（3.2）</td>
+<td>完成当前功能时，也要考虑下一次理解和修改是否困难。</td>
+</tr>
+<tr>
+<td>3. 持续作小额设计投入（3.3）</td>
+<td>随开发过程修正设计，避免把所有改进推迟到未来的大重构。</td>
+</tr>
+<tr>
+<td>4. 模块应该深（4.4）</td>
+<td>用相对简单的接口承担有价值的复杂工作。</td>
+</tr>
+<tr>
+<td>5. 让常见用法尽量简单（4.7）</td>
+<td>默认路径服务常见需求，特殊选项由需要它的人了解。</td>
+</tr>
+<tr>
+<td>6. 重视接口的简单（第8章、9.7）</td>
+<td>不要只为实现者省一点事，让所有调用者承担更大的负担。</td>
+</tr>
+<tr>
+<td>7. 通用模块往往更深（第6章）</td>
+<td>合适的通用操作可以覆盖多种用途，减少零散特例。</td>
+</tr>
+<tr>
+<td>8. 分开通用代码和专用代码（6.6、9.4）</td>
+<td>不让某个用途的规则混进所有使用者都要面对的机制。</td>
+</tr>
+<tr>
+<td>9. 不同层提供不同抽象（第7章）</td>
+<td>每一层都应有清楚的作用，避免只是原样转发另一层。</td>
+</tr>
+<tr>
+<td>10. 把复杂性向下承担（第8章）</td>
+<td>能由下层可靠完成的工作，尽量不要反复交给上层使用者。</td>
+</tr>
+<tr>
+<td>11. 通过定义减少不必要的错误情况（10.3）</td>
+<td>某些异常可以从接口语义上取消，而不是让每个调用者处理。</td>
+</tr>
+<tr>
+<td>12. 设计两次（第11章）</td>
+<td>比较实质不同的方案，避免把第一个想到的方案当成唯一答案。</td>
+</tr>
+<tr>
+<td>13. 注释说明代码中不明显的内容（第13章）</td>
+<td>写出必要的含义、原因和约定，不重复已经看得见的操作。</td>
+</tr>
+<tr>
+<td>14. 为阅读者设计软件（18.2）</td>
+<td>写代码的人知道上下文，后来的人仍需要从代码获得足够信息。</td>
+</tr>
+<tr>
+<td>15. 让开发推进抽象，而不只是堆功能（19.2）</td>
+<td>加特性时继续改善表达这些特性的结构。</td>
+</tr>
+<tr>
+<td>16. 区分并强调重要信息（第21章）</td>
+<td>让关键概念容易被看到，让无关细节少占据使用者的注意力。</td>
+</tr>
+</tbody></table></div>
+<p>这些原则共同服务于减少复杂性。它们不是互不相关的十六项得分，也不是无条件的规定。原书前言已经要求读者用实际效果检验建议；第22章则回到长期投入和设计判断的成长。</p>
+<h2 id="section-2">二、主题讲解：不要一次套上十六条规则</h2>
+<h3 id="section-3">从一个确实存在的困难开始</h3>
+<p>假设要给导出文件增加一个字段，现在需要同步修改五处拼接规则。先问五处是否表达同一项决定。如果是，就考虑集中这项决定；如果其中几处承担不同业务含义，就不能只因代码相似而合并。这个例子用于讲解，并非原书项目。</p>
+<p>此时最相关的是信息隐藏、通用与专用的分离，以及模块职责。没有必要同时更换所有命名、设计异常框架和重新划分全部层次。原则帮助判断当前困难，不要求把每次修改扩成全面整改。</p>
+<h3 id="section-4">比较方案时同时看接口和内部</h3>
+<p>一种方案把五处规则收进一个方法，但要求调用者提供很多模式参数。另一种方案根据真实用途提供几个清楚的入口，并在内部共享相同的生成机制。</p>
+<p>前者可能少了重复代码，却增加使用者需要记住的组合。后者可能保留更多方法，却更容易正确使用。应让两种方案处理同一个实际需求，比较必须知道的信息、修改位置和容易遗漏的条件。不能只按文件数或方法数选答案。</p>
+<h3 id="section-5">把结果连回原则，而不是用原则名字当证明</h3>
+<p>如果新方案让调用者少记一条清理规则，就能具体说明封装接走了什么。如果“简化”后必须读更长的参数说明，就需要检查复杂性是否只是转移到接口。</p>
+<p>同样，定义某种错误不存在，前提是新的语义仍满足真实需求；通用化也要有真实的共同操作，不能为了想象中的未来增加大量选项。书中的“过犹不及”小节，就是防止原则被推到失去原意的位置。</p>
+<h2 id="section-6">用一个变化检查理解</h2>
+<p>重构后代码减少了，但新增一个选项需要修改统一处理器里的十个分支。这个模块是否因为“通用”就更好？</p>
+<p>不能只看名称。需要判断它是否提供了稳定、清楚的通用操作，还是把许多不同用途压进同一个分支集合。真正减少的困难和新增的困难都要说明。</p>
+<h2 id="section-7">来源与范围</h2>
+<ul>
+<li>依据：John Ousterhout，《软件设计的哲学》中文版，设计原则总结，PDF242–243页；章节位置依原表保留。</li>
+<li>表格为解释性重述。导出字段例子属于假设，不能代替对应章节中的论证与限制。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../22/index.html">上一篇 · 结论</a><a href="../24-warnings/index.html">下一篇 · 警示信号总结</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

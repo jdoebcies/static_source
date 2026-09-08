@@ -1,0 +1,41 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>18-01</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 656" width="1120" height="656" role="img" aria-labelledby="title desc">
+<title id="title">读懂回调，需要把注册与执行接起来</title><desc id="desc">同一个事件模块，在两个时刻承担不同动作。；原书18.2节的关系整理；回调注释应补充触发条件、调用方和执行线程。</desc>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker>
+<marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker>
+<marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" font-weight="600">读懂回调，需要把注册与执行接起来</text>
+<text x="40" y="104" font-size="20" fill="#4f5d75">同一个事件模块，在两个时刻承担不同动作。</text>
+<path d="M296 240 H432" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="332.0" y="196" width="64" height="32" fill="#f5f5f5"/>
+<text x="364" y="220" text-anchor="middle" font-size="20" fill="#4f5d75">注册</text>
+<path d="M572 296 V440" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="532.0" y="348" width="104" height="32" fill="#f5f5f5"/>
+<text x="584" y="372" text-anchor="middle" font-size="20" fill="#4f5d75">后续使用</text>
+<path d="M296 496 H432" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="312.0" y="452" width="104" height="32" fill="#f5f5f5"/>
+<text x="364" y="476" text-anchor="middle" font-size="20" fill="#4f5d75">报告事件</text>
+<path d="M712 496 H848" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="718.0" y="452" width="124" height="32" fill="#f5f5f5"/>
+<text x="780" y="476" text-anchor="middle" font-size="20" fill="#4f5d75">运行时调用</text>
+<rect x="40" y="184" width="256" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="168.0" y="230.0" text-anchor="middle" font-size="24">应用初始化</text>
+<text x="168.0" y="266.0" text-anchor="middle" font-size="24">选择处理函数</text>
+<rect x="432" y="184" width="280" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="572.0" y="230.0" text-anchor="middle" font-size="24">事件模块</text>
+<text x="572.0" y="266.0" text-anchor="middle" font-size="24">保存注册关系</text>
+<rect x="40" y="440" width="256" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="168.0" y="486.0" text-anchor="middle" font-size="24">外部事件</text>
+<text x="168.0" y="522.0" text-anchor="middle" font-size="24">例如传输层出错</text>
+<rect x="432" y="440" width="280" height="112" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="572.0" y="486.0" text-anchor="middle" font-size="24">事件模块</text>
+<text x="572.0" y="522.0" text-anchor="middle" font-size="24">按注册关系分派</text>
+<rect x="848" y="440" width="232" height="112" rx="8" fill="#fce8de" stroke="#eb6c36" stroke-width="2"/>
+<text x="964.0" y="486.0" text-anchor="middle" font-size="24">处理函数</text>
+<text x="964.0" y="522.0" text-anchor="middle" font-size="24">执行响应逻辑</text>
+<line x1="40" y1="580" x2="1080" y2="580" stroke="#bfc0c0"/>
+<text x="40" y="616" font-size="20" fill="#4f5d75">原书18.2节的关系整理；回调注释应补充触发条件、调用方和执行线程。</text>
+</g></svg></main></html>

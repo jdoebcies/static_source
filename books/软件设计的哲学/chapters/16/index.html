@@ -1,0 +1,118 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第16章｜修改现有代码 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：在演进中维持设计与注释</a><a class="sub" href="#section-2">16.1 持续使用战略性编程</a><a class="sub" href="#section-3">16.2 维护注释：让注释靠近代码</a><a class="sub" href="#section-4">16.3 注释属于代码，而非提交日志</a><a class="sub" href="#section-5">16.4 维护注释：避免重复</a><a class="sub" href="#section-6">16.5 维护注释：检查差异</a><a class="sub" href="#section-7">16.6 更高层次的注释更容易维护</a><a class="" href="#section-8">二、主题讲解：给旧系统加一个规则，怎样同时照顾下一次修改</a><a class="sub" href="#section-9">先判断规则应该在哪里成立</a><a class="sub" href="#section-10">给每一种说明安排会被看到的位置</a><a class="sub" href="#section-11">把“还正确吗”与“还说得对吗”一起检查</a><a class="" href="#section-12">用一个新情形检验理解</a><a class="" href="#section-13">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第16章</p><h1>修改现有代码</h1>
+<p>软件的设计会在一次次修改中定型。最初的方案再整洁，后续若总在原处补一个判断、再记一个例外，维护者最终面对的仍会是难懂的系统。本章把前面关于设计与注释的要求带到日常修改中：既要重新判断现有结构是否合适，也要让解释代码的文字继续可信。</p>
+<h2 id="section-1">一、原书回顾：在演进中维持设计与注释</h2>
+<h3 id="section-2">16.1 持续使用战略性编程</h3>
+<p>作者先回到战略性编程与战术性编程的区别。战术性编程以尽快完成眼前功能为主，即使为此增加特殊情况和依赖关系；战略性编程会把系统能否持续保持良好设计放在优先位置。这个区别同样适用于修缺陷和加功能，并非只在创建新模块时才成立。</p>
+<p>面对旧代码，人很容易问“怎样改得最少”。常见理由是对旧实现没有把握，怕改动越大越容易出错。作者批评的是把“最少改动”固定成设计标准：每次补丁单看都不大，积累起来却可能让多个规则互相牵制，系统的结构越来越偏离它现在承担的工作。</p>
+<p>作者提出一个更高的目标：假如从一开始就知道这次新增的需求，今天还会选择这样的结构吗？如果不会，就应该考虑重构，使修改后的系统接近重新设计时会采用的结构。即使本次需求没有强制要求重构，也可以寻找能够顺手改善的设计缺陷。这延续了第3章的投资心态：眼前多花的设计时间，有望由今后的理解和修改成本降低来补偿。</p>
+<p>这一建议有现实边界。作者明确比较了“正确重构要3个月”和“临时修复只要两个小时”的情况：赶截止日期时可能只能先修复；若重构会造成不兼容并影响多个团队，也可能不切实际。但两种极端之间仍值得寻找折中，例如几天能完成、结构已经接近理想方案的改法。确实需要延期的清理，应争取在截止日期后安排时间；组织也应给清理和重构留出一小部分工作量。作者没有给出所有项目通用的投入比例。</p>
+<h3 id="section-3">16.2 维护注释：让注释靠近代码</h3>
+<p>过时注释的损害会扩散。一条注释错误，读者会误解相关代码；错误多了，读者会开始怀疑所有注释。作者因此先处理一个很实际的问题：修改代码的人能不能顺便看到必须更新的说明？</p>
+<p>接口级注释最好靠近方法主体。对于声明与实现分开的 C、C++，作者倾向于把这类注释放在实现附近，而不是仅放在另一个头文件中。他知道头文件方便调用者查接口的理由，但指出 Doxygen、Javadoc 和 IDE 可以把注释提取出来给调用者阅读。因而在作者讨论的工具条件下，源文件中注释的放置应优先照顾维护者。这是一项带有工具前提的建议，不能只剩“头文件不许写注释”。</p>
+<p>方法内部的说明也要按范围摆放。假设方法先找可行候选项，再评分，最后选出最佳候选项并移除它：顶部可以用短注释交代这三个阶段；每阶段如何工作、有什么细节，则放在该阶段第一行代码上方。把所有细节集中在方法顶部，会让修改第二阶段的人离相关说明很远。这里有一条相互配合的规则：注释离代码越远，内容越应该概括；描述具体行为的文字则应尽量贴近那个行为。</p>
+<h3 id="section-4">16.3 注释属于代码，而非提交日志</h3>
+<p>提交日志能解释“当时改了什么”，但维护者阅读现有代码时通常不会逐条搜索历史。如果一个修复针对很微妙的问题，而理由只保存在提交日志里，后来的维护者可能会把那段看似多余的代码删除，重新引入缺陷。</p>
+<p>作者的判断方法是：未来理解或修改这段代码的人是否仍需要这条信息？如果需要，就把它写进代码附近。提交日志可以保留副本，便于回顾历史；维护所需的理由不能只依赖人想到去查日志。这里强调的是读者找得到信息，并不否定版本历史的价值。</p>
+<h3 id="section-5">16.4 维护注释：避免重复</h3>
+<p>注释靠近代码之后，还要减少必须同步修改的副本。一个设计决定若被抄在四处，修改者就得记住四个位置；漏改一处，那里仍会呈现一段看起来合理的旧解释。</p>
+<p>作者建议为一个决定找一个最明显的位置。如果某个变量有容易令人误解的行为，而且许多地方都受影响，变量声明旁就是很自然的说明位置。没有这样的地方时，可以使用第13章提到的 <code>designNotes</code> 文件，或挑一个最合适的位置；其余位置只写简短指引。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 680" width="1120" height="680" role="img" aria-labelledby="title desc">
+<title id="16-0-title">把完整说明放在读者会去找的地方</title><desc id="16-0-desc">同一变量影响多个使用点时，让查阅路径汇合。；依据原书16.4节；没有自然归属时，可集中在 designNotes。</desc>
+<defs>
+<marker id="16-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker>
+<marker id="16-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker>
+<marker id="16-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" font-weight="600">把完整说明放在读者会去找的地方</text>
+<text x="40" y="104" font-size="20" fill="#4f5d75">同一变量影响多个使用点时，让查阅路径汇合。</text>
+<path d="M336 224 H472 V344 H620" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#16-0-arrow)"/>
+<rect x="440.0" y="180" width="64" height="32" fill="#f5f5f5"/>
+<text x="472" y="204" text-anchor="middle" font-size="20" fill="#4f5d75">查阅</text>
+<path d="M336 368 H620" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#16-0-arrow)"/>
+<rect x="440.0" y="328" width="64" height="32" fill="#f5f5f5"/>
+<text x="472" y="352" text-anchor="middle" font-size="20" fill="#4f5d75">查阅</text>
+<path d="M336 512 H472 V392 H620" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#16-0-arrow)"/>
+<rect x="440.0" y="520" width="64" height="32" fill="#f5f5f5"/>
+<text x="472" y="544" text-anchor="middle" font-size="20" fill="#4f5d75">查阅</text>
+<rect x="40" y="176" width="296" height="96" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="188.0" y="214.0" text-anchor="middle" font-size="24">使用点 A</text>
+<text x="188.0" y="250.0" text-anchor="middle" font-size="24">只留查阅指引</text>
+<rect x="40" y="320" width="296" height="96" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="188.0" y="358.0" text-anchor="middle" font-size="24">使用点 B</text>
+<text x="188.0" y="394.0" text-anchor="middle" font-size="24">只留查阅指引</text>
+<rect x="40" y="464" width="296" height="96" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="188.0" y="502.0" text-anchor="middle" font-size="24">使用点 C</text>
+<text x="188.0" y="538.0" text-anchor="middle" font-size="24">只留查阅指引</text>
+<rect x="620" y="296" width="440" height="144" rx="8" fill="#fce8de" stroke="#eb6c36" stroke-width="2"/>
+<text x="840.0" y="340.0" text-anchor="middle" font-size="24">变量声明旁</text>
+<text x="840.0" y="376.0" text-anchor="middle" font-size="24">完整解释共同约束</text>
+<text x="840.0" y="412.0" text-anchor="middle" font-size="24">修改时只更新这一份</text>
+<line x1="40" y1="604" x2="1080" y2="604" stroke="#bfc0c0"/>
+<text x="40" y="640" font-size="20" fill="#4f5d75">依据原书16.4节；没有自然归属时，可集中在 designNotes。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图16-1｜说明可以被多处找到，完整内容只维护一份。依据16.4节重绘；箭头表示查阅指引，不表示代码调用。</p>
+<p>引用也会失效，但它与重复文字的失效方式不同：找不到引用目标，读者会立刻知道有问题，可以借助版本历史追查；读到一份已经过时但仍通顺的副本，读者往往意识不到错误。因此，引用把问题变得更容易察觉，而不是保证文档永不失效。</p>
+<p>同样，不要在调用前重复解释被调用方法内部做了什么，应让读者找到该方法的接口级注释。已经由外部文档说明的知识也不必重新抄写：实现 HTTP 的类可以引用协议资料；实现命令的方法可以指向用户手册。原书的简短示例只是说明该方法实现 Foo 命令，细节参阅用户手册。方法本身特有的实现理由仍要在合适的位置记录，不能把外链当成省略一切说明的借口。</p>
+<h3 id="section-6">16.5 维护注释：检查差异</h3>
+<p>在提交前扫描本次所有修改，把代码变更与文档逐项对应，是防止漏改说明的一次补查。检查行为、参数含义或约束变化时，也要看附近注释有没有一起变化。作者还指出，这一步常能顺带发现残留调试代码和未处理的待办标记。它的价值在于看整次修改，而不只盯最后编辑过的几行。</p>
+<h3 id="section-7">16.6 更高层次的注释更容易维护</h3>
+<p>复述每一步实现的注释，会随着小幅代码调整频繁失效；说明目的、整体策略或行为约束的注释，通常只有相应行为变化时才需要改。因而最有用的注释往往也比较容易维护。</p>
+<p>这里的“更高层次”不等于含糊。第13章所要求的精确细节仍然必要。比如边界是否包含、允许什么输入，不能用“合理处理数据”替代。作者主张减少随实现偶然变化的描述，同时保留调用者或维护者必须准确知道的信息。</p>
+<h2 id="section-8">二、主题讲解：给旧系统加一个规则，怎样同时照顾下一次修改</h2>
+<p>下面用一个<strong>假设的 Java 后端例子</strong>连贯说明本章的方法，不代表作者做过的项目。现有候选服务按“筛选可用节点—评分—选出一个节点”工作。新增需求要求排除处于维护状态的节点。三个入口各写一段 <code>if</code>，看起来很快；把规则纳入已有的筛选步骤，则可能需要多读一些代码。</p>
+<h3 id="section-9">先判断规则应该在哪里成立</h3>
+<p>判断两种方案之前，先查清三个入口是否都应该排除维护节点。如果答案是肯定的，三个分支保存的是同一条规则。以后维护状态增加一种取值，修改者必须找到三个位置，容易造成变更放大；若某处没有说明这条规则与其他入口相同，还会出现模糊性。</p>
+<p>把规则放进已经负责“节点可用性”的筛选步骤，可以让三个入口继续依赖同一判断。重要的设计改善是：下一次修改这条规则时，范围变得清楚。不能只用新增行数衡量它。反过来，如果某个入口专门用于管理员诊断，允许查看维护节点，把所有入口强塞进同一筛选也会错误。先辨明业务要求是否相同，再决定是否集中。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 560" width="1120" height="560" role="img" aria-labelledby="title desc">
+<title id="16-1-title">一次修改，要同时检查结构、行为和说明</title><desc id="16-1-desc">假设案例：为候选服务增加“排除维护节点”的要求。；箭头表示本例的执行顺序；行为测试为讲解补充，不是原书原例。</desc>
+<defs>
+<marker id="16-1-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker>
+<marker id="16-1-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker>
+<marker id="16-1-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" font-weight="600">一次修改，要同时检查结构、行为和说明</text>
+<text x="40" y="104" font-size="20" fill="#4f5d75">假设案例：为候选服务增加“排除维护节点”的要求。</text>
+<path d="M480 216 H640" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#16-1-arrow)"/>
+<rect x="518.0" y="172" width="84" height="32" fill="#f5f5f5"/>
+<text x="560" y="196" text-anchor="middle" font-size="20" fill="#4f5d75">再比较</text>
+<path d="M860 264 V352" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#16-1-arrow)"/>
+<rect x="890.0" y="292" width="84" height="32" fill="#f5f5f5"/>
+<text x="932" y="316" text-anchor="middle" font-size="20" fill="#4f5d75">选择后</text>
+<path d="M640 400 H480" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#16-1-arrow)"/>
+<rect x="518.0" y="356" width="84" height="32" fill="#f5f5f5"/>
+<text x="560" y="380" text-anchor="middle" font-size="20" fill="#4f5d75">完成后</text>
+<rect x="40" y="168" width="440" height="96" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="260.0" y="206.0" text-anchor="middle" font-size="24">确认哪些入口</text>
+<text x="260.0" y="242.0" text-anchor="middle" font-size="24">适用同一条排除规则</text>
+<rect x="640" y="168" width="440" height="96" rx="8" fill="#fce8de" stroke="#eb6c36" stroke-width="2"/>
+<text x="860.0" y="206.0" text-anchor="middle" font-size="24">比较现有结构与候选改法</text>
+<text x="860.0" y="242.0" text-anchor="middle" font-size="24">包括期限和兼容性代价</text>
+<rect x="640" y="352" width="440" height="96" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="860.0" y="390.0" text-anchor="middle" font-size="24">在负责可用性的步骤修改</text>
+<text x="860.0" y="426.0" text-anchor="middle" font-size="24">更新附近说明与集中规则</text>
+<rect x="40" y="352" width="440" height="96" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="260.0" y="390.0" text-anchor="middle" font-size="24">核对各类输入与注释</text>
+<text x="260.0" y="426.0" text-anchor="middle" font-size="24">检查整次差异</text>
+<line x1="40" y1="484" x2="1080" y2="484" stroke="#bfc0c0"/>
+<text x="40" y="520" font-size="20" fill="#4f5d75">箭头表示本例的执行顺序；行为测试为讲解补充，不是原书原例。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图16-2｜把一次需求修改走完整。依据16.1—16.6节整理的讲解流程；箭头表示检查与修改的顺序，测试是本例的验证补充。</p>
+<p>这条路径不会自动得出“大改更好”。假设公共接口已经被多个团队使用，修改返回内容会破坏兼容性，那么可考虑先在内部筛选步骤改实现、保持外部接口；如果仍不能安全完成，就说明暂时采用哪种局部修复、留下什么重复以及何时评估清理。战略性思考要求比较方案和后果，并不要求无视已知约束。</p>
+<h3 id="section-10">给每一种说明安排会被看到的位置</h3>
+<p>继续沿用候选服务。筛选方法的接口说明可以写清“返回符合业务可用条件的节点；维护状态的节点不在结果中”。这告诉调用者得到什么。筛选实现旁可以解释“维护状态排除在评分之前，以免占用候选名额”，前提是本例确实存在名额限制；它回答维护者为什么不能随意交换步骤。</p>
+<p>若维护状态的定义由一个集中规则负责，就在那里完整说明各状态含义，其他位置引用它。方法顶部只概述筛选、评分和选择的整体策略，不复制各状态说明。这样，读者从总体读到局部时能不断找到需要的解释，修改规则时又不必搜索许多全文副本。</p>
+<p>提交日志则记录这次变更的起因、迁移过程或讨论背景。凡是未来重构时必须继续遵守的理由，要留在代码或明确关联的设计说明中。不能要求每个维护者先知道历史上有一次修复，才有机会发现这条约束。</p>
+<h3 id="section-11">把“还正确吗”与“还说得对吗”一起检查</h3>
+<p>完成实现后，本例可以用三种输入核对行为：普通可用节点、维护节点，以及没有任何可用节点。再看接口注释是否解释了对应结果。测试能发现行为不符，却通常不能发现一段中文注释已经过时；差异检查正好补上这个缺口。</p>
+<p>检查注释时，尝试改变一个实现细节。如果把评分循环换成另一种等价写法，接口说明也必须大改，说明它可能混入了过多实现细节。如果排除条件已经变了，注释仍然完全不用更新，则要检查它是否过于空泛。好的说明既能承受无关的实现调整，也会对真正的行为变化作出反应。</p>
+<h2 id="section-12">用一个新情形检验理解</h2>
+<p>另一个团队新增“预览模式”，允许看到维护节点，但不能把这些节点真正分配出去。有人建议给原筛选方法增加一个布尔参数，并在三个调用点复制整段规则说明。</p>
+<p>先判断预览与分配是否要求同一种结果。若预览只是展示全部节点及其状态，它可以有不同的接口，避免把“可展示”和“可分配”混成同一含义。是否共用底层状态读取，要看共享的是哪些实际知识。完整规则应保留在负责该判断的位置，调用点说明自己的用途即可。选择参数还是独立方法，需要比较调用时是否明显、实现是否重复，以及兼容代价，不能仅凭“一致”或“改得少”决定。</p>
+<h2 id="section-13">来源、范围与阅读连接</h2>
+<p>本章依据 John Ousterhout《软件设计的哲学》中文源文第16章，PDF物理页194—201，正文到第200页（书内页169—175）。已回看第197、199、200页，确认三阶段注释、Foo命令手册引用示例及最后两个小节。候选服务、维护状态和验证输入均为本文假设案例；未引入外部工程数据。</p>
+<p>第15章把注释带入最初的设计过程，本章继续讨论修改时怎样维持设计与说明；第17章进一步讨论多人长期修改时的一致性。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../15/index.html">上一篇 · 先编写注释</a><a href="../17/index.html">下一篇 · 一致性</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

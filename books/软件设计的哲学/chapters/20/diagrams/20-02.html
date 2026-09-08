@@ -1,0 +1,40 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>20-02</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 840" width="1120" height="840" role="img" aria-labelledby="title desc">
+  <title id="title">用一次容量比较选择Buffer追加路径</title>
+  <desc id="desc">有效正长度请求中，可追加字节数足够时直接扩展内部末块并维护长度；不足时进入创建新块等特殊处理。原书省略了特殊分支的完整代码。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+  </defs>
+  <rect width="1120" height="840" fill="#f5f5f5"/>
+  <g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+    <text x="40" y="68" font-size="32">一次比较，分开常见追加与特殊处理</text>
+    <text x="40" y="112" font-size="20" fill="#4f5d75">依据原书图20.3重绘｜前提：请求有效，且请求字节数大于零</text>
+    <g fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M 848 272 H 936 V 412"/>
+      <path d="M 544 384 V 432 H 264 V 484"/>
+    </g>
+    <polygon points="544,160 848,272 544,384 240,272" fill="#ffffff" stroke="#4f5d75" stroke-width="1.2"/>
+    <text x="544" y="260" font-size="24" text-anchor="middle">availableAppendBytes</text>
+    <text x="544" y="296" font-size="24" text-anchor="middle">≥ 本次请求字节数？</text>
+    <rect x="864" y="240" width="60" height="28" fill="#f5f5f5"/>
+    <text x="892" y="260" font-size="20" text-anchor="middle">是</text>
+    <rect x="464" y="400" width="60" height="28" fill="#f5f5f5"/>
+    <text x="492" y="420" font-size="20" text-anchor="middle">否</text>
+    <rect x="40" y="488" width="448" height="184" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="1.2"/>
+    <text x="64" y="532" font-size="24">进入创建新数据块等处理</text>
+    <text x="64" y="576" font-size="20">可能为空、末块为外部块，</text>
+    <text x="64" y="608" font-size="20">或可直接追加的空间不足。</text>
+    <text x="64" y="644" font-size="20">原书未展示完整实现。</text>
+    <rect x="608" y="416" width="472" height="288" rx="8" fill="#fff3ec" stroke="#eb6c36" stroke-width="1.2"/>
+    <text x="632" y="460" font-size="24">直接扩展最后一个内部块</text>
+    <text x="632" y="504" font-size="20">① 取得原末尾地址，作为返回值</text>
+    <text x="632" y="544" font-size="20">② 块长度增加本次字节数</text>
+    <text x="632" y="584" font-size="20">③ 可追加空间减少本次字节数</text>
+    <text x="632" y="624" font-size="20">④ totalLength 增加本次字节数</text>
+    <text x="632" y="664" font-size="20">⑤ 返回新区域地址</text>
+    <line x1="40" y1="752" x2="1080" y2="752" stroke="#bfc0c0"/>
+    <text x="40" y="788" font-size="20" fill="#4f5d75">箭头表示控制流；少做检查的前提是可追加字节数始终准确。</text>
+  </g>
+</svg>
+</main></html>

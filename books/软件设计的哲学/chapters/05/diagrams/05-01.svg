@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 680" role="img"><title>执行先后与模块边界，可以分开表达</title>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">执行先后与模块边界，可以分开表达</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">左：按时序拆分类　　右：把共同的文件格式集中到一个模块</text>
+<text x="40" y="152" font-size="24" fill="#2d3142" text-anchor="start">读取 → 修改 → 写回</text>
+<path d="M 264 276 L 264 320" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="224.0" y="280" width="80" height="32" fill="#f5f5f5"/>
+<text x="264" y="304" font-size="20" fill="#4f5d75" text-anchor="middle">然后</text>
+<path d="M 264 424 L 264 468" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="224.0" y="428" width="80" height="32" fill="#f5f5f5"/>
+<text x="264" y="452" font-size="20" fill="#4f5d75" text-anchor="middle">然后</text>
+<rect x="64" y="172" width="400" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="88" y="212" font-size="24" fill="#2d3142" text-anchor="start">读取类</text>
+<text x="88" y="248" font-size="20" fill="#4f5d75" text-anchor="start">了解文件格式</text>
+<rect x="64" y="320" width="400" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="88" y="360" font-size="24" fill="#2d3142" text-anchor="start">内容修改</text>
+<text x="88" y="396" font-size="20" fill="#4f5d75" text-anchor="start">处理读出的记录</text>
+<rect x="64" y="468" width="400" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="88" y="508" font-size="24" fill="#2d3142" text-anchor="start">写入类</text>
+<text x="88" y="544" font-size="20" fill="#4f5d75" text-anchor="start">再次了解同一文件格式</text>
+<line x1="536" y1="140" x2="536" y2="580" stroke="#bfc0c0" stroke-width="2"/>
+<path d="M 744 276 L 744 416" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="661.0" y="316" width="126" height="32" fill="#f5f5f5"/>
+<text x="724" y="340" font-size="20" fill="#4f5d75" text-anchor="middle">读阶段调用</text>
+<path d="M 972 276 L 972 416" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="913.0" y="356" width="126" height="32" fill="#f5f5f5"/>
+<text x="976" y="380" font-size="20" fill="#4f5d75" text-anchor="middle">写阶段调用</text>
+<rect x="616" y="172" width="464" height="104" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="640" y="212" font-size="24" fill="#2d3142" text-anchor="start">应用流程：读 → 改 → 写</text>
+<text x="640" y="248" font-size="20" fill="#4f5d75" text-anchor="start">保留执行顺序</text>
+<rect x="616" y="416" width="464" height="144" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="640" y="456" font-size="24" fill="#2d3142" text-anchor="start">文件格式模块</text>
+<text x="640" y="492" font-size="20" fill="#4f5d75" text-anchor="start">read / write 共用格式决定</text>
+<text x="640" y="528" font-size="20" fill="#4f5d75" text-anchor="start">格式变化集中在此处</text>
+<line x1="40" y1="604" x2="1080" y2="604" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="644" font-size="20" fill="#4f5d75" text-anchor="start">左侧箭头表示执行顺序；右侧箭头表示调用。两侧采用不同布局，分别标明语义。</text>
+</g></svg>

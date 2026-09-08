@@ -1,0 +1,26 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>rec-02-01</title><style>html,body{margin:0;background:#f5f5f5}main{max-width:1120px;margin:auto}svg{display:block;width:100%;height:auto}</style><main><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 640" width="1120" height="640">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="640" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" font-weight="600">先让核心与外围采用不同发布节奏</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75">原序的应急安排：两组仍有共同程序与共享状态，隔离并不完整</text>
+<g fill="none" stroke="#4f5d75" stroke-width="3" marker-end="url(#arrow)">
+<path d="M220 320 H300"/><path d="M460 320 H500 V216 H540"/><path d="M460 320 H500 V440 H540"/><path d="M780 216 H840 V292 H900"/><path d="M780 440 H840 V348 H900"/>
+</g>
+<rect x="40" y="264" width="180" height="112" rx="8" fill="#e8ebef" stroke="#4f5d75"/>
+<text x="130" y="312" font-size="24" text-anchor="middle">用户请求</text><text x="130" y="348" font-size="20" text-anchor="middle" fill="#4f5d75">核心 / 外围</text>
+<rect x="300" y="264" width="160" height="112" rx="8" fill="white" stroke="#2d3142"/>
+<text x="380" y="312" font-size="24" text-anchor="middle">代理</text><text x="380" y="348" font-size="20" text-anchor="middle" fill="#4f5d75">按请求分流</text>
+<rect x="540" y="152" width="240" height="128" rx="8" fill="white" stroke="#2d3142"/>
+<text x="660" y="196" font-size="24" text-anchor="middle">A组：核心功能</text><text x="660" y="236" font-size="20" text-anchor="middle" fill="#4f5d75">程序基本不更新</text>
+<rect x="540" y="376" width="240" height="128" rx="8" fill="#fff0e9" stroke="#eb6c36" stroke-width="2"/>
+<text x="660" y="420" font-size="24" text-anchor="middle">B组：外围功能</text><text x="660" y="460" font-size="20" text-anchor="middle" fill="#4f5d75">随业务需求更新</text>
+<rect x="900" y="264" width="180" height="112" rx="8" fill="#e8ebef" stroke="#4f5d75"/>
+<text x="990" y="308" font-size="24" text-anchor="middle">Redis</text><text x="990" y="348" font-size="20" text-anchor="middle" fill="#4f5d75">共享状态</text>
+<rect x="812" y="192" width="56" height="28" fill="#f5f5f5"/><text x="840" y="212" text-anchor="middle" font-size="20" fill="#4f5d75">读写</text>
+<rect x="812" y="444" width="56" height="28" fill="#f5f5f5"/><text x="840" y="464" text-anchor="middle" font-size="20" fill="#4f5d75">读写</text>
+<line x1="40" y1="548" x2="1080" y2="548" stroke="#bfc0c0"/>
+<text x="40" y="584" font-size="20" fill="#4f5d75">箭头均表示运行时调用；两组消除本地状态副本，改为访问共享存储。</text>
+<text x="40" y="616" font-size="20" fill="#4f5d75">共享数据约定或公共存储故障，仍可能同时影响两组。</text>
+</g></svg>
+</main></html>

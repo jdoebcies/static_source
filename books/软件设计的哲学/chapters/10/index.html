@@ -1,0 +1,134 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第10章｜避免处理异常 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：减少需要各自处理异常的地方</a><a class="sub" href="#section-2">10.1 为何异常会增加复杂性</a><a class="sub" href="#section-3">10.2 异常太多</a><a class="sub" href="#section-4">10.3 定义错误不存在</a><a class="sub" href="#section-5">10.4 示例：Windows中的文件删除</a><a class="sub" href="#section-6">10.5 示例：Java的substring方法</a><a class="sub" href="#section-7">10.6 异常屏蔽</a><a class="sub" href="#section-8">10.7 异常聚合</a><a class="sub" href="#section-9">10.8 就让它崩溃</a><a class="sub" href="#section-10">10.9 过犹不及</a><a class="sub" href="#section-11">10.10 结论</a><a class="" href="#section-12">二、主题讲解：从一次报表生成看异常应在哪里结束</a><a class="sub" href="#section-13">先把成功条件写成可判断的结果</a><a class="sub" href="#section-14">能恢复的地方承担恢复，不能恢复的地方保留失败</a><a class="sub" href="#section-15">在请求边界聚合，仍要区分失败的影响范围</a><a class="sub" href="#section-16">“少处理”不能减少必要的责任</a><a class="" href="#section-17">自测：删除已过期的下载链接</a><a class="" href="#section-18">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第10章</p><h1>避免处理异常</h1>
+<p>一个接口除了说明成功时返回什么，还让调用者承担失败时的选择。前一章讨论正常功能怎样划分，本章把同样的问题用于错误处理：能否让更少的地方负责处理特殊情况，同时保留调用者作出正确决定所需的信息？章名中的“避免”指重新设计操作和处理位置，不能理解为把所有错误吞掉。</p>
+<h2 id="section-1">一、原书回顾：减少需要各自处理异常的地方</h2>
+<h3 id="section-2">10.1 为何异常会增加复杂性</h3>
+<p>作者这里使用广义的“异常”：任何打断正常控制流程的不常见情况都算，包括抛出异常对象，也包括返回一个表示操作没有完成的特殊值。错误参数、无效配置、I/O 失败、资源不足、网络丢包、响应延迟和内部状态不一致，都可能产生这种额外路径。只把 <code>throw</code> 改成错误码，不会自动减少复杂性。</p>
+<p>遇到异常后，程序通常要选择继续完成工作，或者中止操作并报告失败。继续可能需要重传或从副本恢复；中止也不只是返回，因为数据结构可能只初始化了一半，已经发生的修改需要撤销，状态需要重新一致。恢复动作还可能引出第二层问题：重传的包与延迟到达的原包重复，备用副本也可能不可用。异常处理若不断制造新的异常，最终仍要找到一个能收住处理过程的位置。</p>
+<p>原书以从文件反序列化推文集合的 Java 代码说明阅读成本：正常工作只是逐条读取并加入集合，却配了文件不存在、类型找不到、提前到达文件结尾、I/O 和类型转换等多个捕获分支。将它们集中在一个 <code>try</code> 后面，不易看清每个异常产生在哪一行；拆成许多小 <code>try</code>，又会割裂主流程、重复处理。代码中的 EOF 分支还有特定前提：推文文件未必装满预期数量，所以提前结束在该例中可以接受。</p>
+<p>异常代码也更难验证。某些失败不易在测试环境生成，低频分支长期未执行，等到真实失败时才暴露问题。作者引用 Ding Yuan 等人在2014年 OSDI 发表的分布式数据密集型系统故障研究，转述其中超过90%的灾难性故障与错误处理不当有关。这个比例保留为原书对特定研究的转述；本章不能据此推断所有软件的故障比例。</p>
+<h3 id="section-3">10.2 异常太多</h3>
+<p>过度防御会把所有可疑情况都拒绝掉，甚至把自然的使用方式变成错误。作者以自己设计的 Tcl <code>unset</code> 命令反省这一点：删除不存在的变量会报错，而清理代码往往不知道前面的操作创建了哪些临时变量，最方便的做法是尝试清理所有可能存在的变量。结果，调用者不得不把删除包在 <code>catch</code> 里，再忽略错误。</p>
+<p>抛出异常也可能只是把棘手问题转交调用者。库作者自己都难以提出合理处理方式时，每个调用者未必更有能力。异常属于接口的一部分，还可能越过直接调用者向更高层传播，因此一个异常会扩大多层代码需要掌握的知识。作者把改进目标定为减少处理异常的位置数量，并依次给出四种技巧。</p>
+<h3 id="section-4">10.3 定义错误不存在</h3>
+<p>第一种技巧是重新定义操作，让某个特殊输入也具有自然、完整的结果。对 <code>unset</code>，如果承诺是“删除一个现存变量”，不存在就像失败；如果承诺改成“确保这个变量不再存在”，变量原本不存在时，目标已经达到，可以直接成功返回。</p>
+<p>这种改动发生在操作含义上。调用者仍得到所需的最终状态，无须先查询或捕获一个没有用处的错误。它也不授权把所有删除失败都算成功：权限不足、存储故障等导致目标状态没有实现的情况，并没有被这条定义消除。</p>
+<h3 id="section-5">10.4 示例：Windows中的文件删除</h3>
+<p>作者用“文件仍被进程打开时，删除可能失败”的 Windows 使用经历作对照，讨论 UNIX 的另一种安排：先移除目录中的文件名，已有打开者仍能使用原文件，等最后的引用结束再释放内容。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 600" role="img" aria-label="删除名字与释放内容，可以分时完成">
+<defs><marker id="10-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#4f5d75"/></marker><marker id="10-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#eb6c36"/></marker><marker id="10-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="600" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" text-anchor="start" fill="#2d3142">删除名字与释放内容，可以分时完成</text>
+<text x="40" y="104" font-size="20" text-anchor="start" fill="#4f5d75">假设：操作成功、这是最后一个硬链接；已有打开引用仍然存在</text>
+<path d="M344,280 L424,280" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-0-arrow)"/>
+<rect x="336.0" y="228" width="96" height="32" fill="#f5f5f5"/>
+<text x="384" y="252" font-size="20" text-anchor="middle" fill="#4f5d75">删除名字</text>
+<path d="M704,280 L784,280" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-0-arrow)"/>
+<rect x="696.0" y="228" width="96" height="32" fill="#f5f5f5"/>
+<text x="744" y="252" font-size="20" text-anchor="middle" fill="#4f5d75">关闭引用</text>
+<rect x="40" y="168" width="304" height="240" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="208" font-size="24" text-anchor="start" fill="#2d3142">删除前</text>
+<text x="64" y="244" font-size="20" text-anchor="start" fill="#4f5d75">目录中有名字</text>
+<text x="64" y="276" font-size="20" text-anchor="start" fill="#4f5d75">进程已经打开</text>
+<text x="64" y="308" font-size="20" text-anchor="start" fill="#4f5d75">内容仍在</text>
+<rect x="424" y="168" width="280" height="240" rx="8" fill="#fff4ee" stroke="#eb6c36" stroke-width="2"/>
+<text x="448" y="208" font-size="24" text-anchor="start" fill="#2d3142">目录项已移除</text>
+<text x="448" y="244" font-size="20" text-anchor="start" fill="#4f5d75">旧引用继续读写</text>
+<text x="448" y="276" font-size="20" text-anchor="start" fill="#4f5d75">新打开找不到旧项</text>
+<rect x="784" y="168" width="296" height="240" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="808" y="208" font-size="24" text-anchor="start" fill="#2d3142">最后引用关闭</text>
+<text x="808" y="244" font-size="20" text-anchor="start" fill="#4f5d75">不再有链接或引用</text>
+<text x="808" y="276" font-size="20" text-anchor="start" fill="#4f5d75">内容空间可释放</text>
+<text x="40" y="476" font-size="24" text-anchor="start" fill="#2d3142">同名的新文件与旧的打开引用是不同对象；不会因重名自动替换旧引用。</text>
+<line x1="40" y1="536" x2="1080" y2="536" stroke="#bfc0c0"/>
+<text x="40" y="572" font-size="20" text-anchor="start" fill="#4f5d75">依据：10.4与POSIX校正；箭头表示状态随时间变化。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图10-1｜文件名的消失与数据的释放可以发生在不同时间。根据原书10.4重画，并用 POSIX 的引用条件校正；假设删除的是最后一个硬链接，且操作本身成功。箭头表示先后发生的状态变化。</p>
+<p>这种安排同时减少两边的特殊处理。删除者不用仅因文件正被使用就失败；原有使用者也不会仅因文件名被删除，突然遇到读写失效。若立即销毁内容并让已有句柄全部失效，只是把异常转给了另一批进程。</p>
+<p>**原文校正：**PDF物理第126页确实写了“也无法创建同名的新文件”。这不是 OCR 造成的差异。POSIX 说明删除后原文件不再能通过该名字访问，并明确保留重新创建该名字的情况。因此，这里应区分旧文件和同名的新文件；创建新文件不会让旧的打开引用改指向它。数据释放还要求链接计数归零且不再有打开引用。<a href="https://pubs.opengroup.org/onlinepubs/007904975/functions/remove.html">POSIX remove</a>、<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/unlink.html">POSIX unlink</a></p>
+<p>本例用于解释接口语义的选择，原书对 Windows 的概括不作为所有 Windows 版本、打开方式和共享选项的完整规则。</p>
+<h3 id="section-6">10.5 示例：Java的substring方法</h3>
+<p>作者认为，调用者有时只想取得给定区间与字符串实际范围重叠的字符。按本书描述，Java <code>substring</code> 对越界索引抛出异常，调用者就得先把索引限制在有效范围。原本一次调用变成了额外的条件处理。</p>
+<p>他提出另一种 API 含义：返回索引不小于 <code>beginIndex</code> 且小于 <code>endIndex</code> 的现有字符。这样，区间超出字符串只会减少可返回的字符；区间没有覆盖任何字符，或开始大于结束，就得到空结果。它改变了可接受输入的定义，不能当作 Java 现有方法已经具有的行为。作者还以 Python 切片作类比，说明宽容的边界处理在接口设计中确有先例；这里不展开两种语言完整的索引语义。</p>
+<p>有人担心不报错会漏掉程序缺陷。作者承认异常可能发现一部分错误，但要求同时计算新增复杂性带来的错误：调用者可能漏写检查，也可能把检查写错。作者选择让这个提取任务更容易使用；是否采用这种选择，仍取决于调用者究竟需要“取交集”还是“验证索引必须合法”。</p>
+<h3 id="section-7">10.6 异常屏蔽</h3>
+<p>第二种技巧是在较低层发现并处理问题，使上层继续使用正常接口。原书的 TCP 例子用底层重传说明：一次丢包不必让每个应用都实现一套重传逻辑。理解这个例子时，应把“一次可恢复的丢包被隐藏”与“网络永远能成功”分开。</p>
+<p>NFS 的例子更有争议。作者描述文件服务器不可用时，底层持续重试，应用会挂起，恢复后继续运行；长时间未响应时还会提示用户。反对者认为应该及时报错。作者的回答是：如果应用没有其他恢复办法，向它报告失败往往只会让应用自己重试，或者退出，让上层继续失败。统一等待虽然会阻塞，但省去了重复恢复代码，并保留了原来的工作状态。</p>
+<p>这是带有前提的设计立场：上层确实缺少更好的恢复选择，而且等待对该任务可以接受。作者还保留了退出选择：用户等得不耐烦时，可以手动中止应用程序。屏蔽增加底层实现工作，却减少调用者需要处理的情况，因此可以让模块更深；它不保证所有应用都该无限等待。</p>
+<h3 id="section-8">10.7 异常聚合</h3>
+<p>第三种技巧是让同一段代码处理多个异常。原书 Web 服务器按 URL 分派到不同服务方法，每个方法都调用 <code>getParameter</code> 读取请求参数。初版在每次读取旁边分别捕获 <code>NoSuchParameter</code>，每处却都只是生成错误响应。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 600" role="img" aria-label="异常聚合：统一生成响应，保留具体原因">
+<defs><marker id="10-1-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#4f5d75"/></marker><marker id="10-1-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#eb6c36"/></marker><marker id="10-1-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="600" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" text-anchor="start" fill="#2d3142">异常聚合：统一生成响应，保留具体原因</text>
+<text x="40" y="104" font-size="20" text-anchor="start" fill="#4f5d75">检测位置描述错误；请求边界负责终止、清理与响应</text>
+<path d="M224,308 L448,408" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-1-arrow)"/>
+<rect x="252.0" y="336" width="136" height="32" fill="#f5f5f5"/>
+<text x="320" y="360" font-size="20" text-anchor="middle" fill="#4f5d75">异常向上传播</text>
+<path d="M560,308 L560,408" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-1-arrow)"/>
+<rect x="492.0" y="332" width="136" height="32" fill="#f5f5f5"/>
+<text x="560" y="356" font-size="20" text-anchor="middle" fill="#4f5d75">异常向上传播</text>
+<path d="M896,308 L672,408" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-1-arrow)"/>
+<rect x="740.0" y="336" width="136" height="32" fill="#f5f5f5"/>
+<text x="808" y="360" font-size="20" text-anchor="middle" fill="#4f5d75">异常向上传播</text>
+<rect x="48" y="168" width="304" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="72" y="208" font-size="24" text-anchor="start" fill="#2d3142">参数提取</text>
+<text x="72" y="244" font-size="20" text-anchor="start" fill="#4f5d75">缺少必需参数</text>
+<text x="72" y="276" font-size="20" text-anchor="start" fill="#4f5d75">携带具体原因</text>
+<rect x="408" y="168" width="304" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="432" y="208" font-size="24" text-anchor="start" fill="#2d3142">参数校验</text>
+<text x="432" y="244" font-size="20" text-anchor="start" fill="#4f5d75">格式不符合要求</text>
+<text x="432" y="276" font-size="20" text-anchor="start" fill="#4f5d75">携带具体原因</text>
+<rect x="768" y="168" width="304" height="140" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="792" y="208" font-size="24" text-anchor="start" fill="#2d3142">权限检查</text>
+<text x="792" y="244" font-size="20" text-anchor="start" fill="#4f5d75">不能执行本次操作</text>
+<text x="792" y="276" font-size="20" text-anchor="start" fill="#4f5d75">携带具体原因</text>
+<rect x="248" y="408" width="624" height="104" rx="8" fill="#fff4ee" stroke="#eb6c36" stroke-width="2"/>
+<text x="272" y="448" font-size="24" text-anchor="start" fill="#2d3142">请求处理边界</text>
+<text x="272" y="484" font-size="20" text-anchor="start" fill="#4f5d75">统一结束当前请求并生成错误响应</text>
+<line x1="40" y1="536" x2="1080" y2="536" stroke="#bfc0c0"/>
+<text x="40" y="572" font-size="20" text-anchor="start" fill="#4f5d75">依据：原图10.1、10.2；箭头是异常传播方向，不是正常调用方向。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图10-2｜把“描述具体错误”和“生成错误响应”放在各自合适的位置。根据原图10.1、10.2及10.7重画；箭头表示异常向处理边界传播，方向与正常调用方向相反。</p>
+<p>改进版让异常越过服务方法，由顶层调度器统一捕获。图10.1中的多份处理代码因而合成图10.2中的一份。还能继续聚合：缺参数、参数语法不合法、用户无操作权限，都可能中止当前请求并产生错误响应。检测点知道具体问题，可以构造说明；顶层知道怎样生成响应，无须知道每一种参数如何检查。共享一种可识别的异常上层类型，并让异常携带必要说明，新错误就能接入同一处理机制。</p>
+<p>这里的职责分配也体现信息隐藏：<code>getParameter</code> 了解参数提取及其失败原因，顶层了解响应格式。通用模式是，在请求循环的边界中止当前请求、清理状态，再处理下一请求。只使当前请求失败的异常，需要与整个系统已无法继续运行的异常区分。</p>
+<p>异常屏蔽通常在底层库中更有效，异常聚合通常需要允许错误向上经过几层。两者的共同目的都是在能服务更多调用点的位置集中处理，而不是规定异常总该向上抛，或总该就地捕获。</p>
+<p>RAMCloud 又展示了一种更强的聚合：系统已有服务器崩溃恢复机制，能利用其他服务器上的副本重建数据。若发现单个对象损坏，它也可以让所在服务器退出，沿同一机制恢复，省去一套专门的对象恢复逻辑。已有恢复代码被更频繁地运行，缺陷也更容易暴露。</p>
+<p>代价同样明确：为一个对象恢复整台服务器，工作量更大。作者认为对象损坏罕见，因此在该系统中值得；经常发生的丢包显然不适合升级为服务器崩溃。这里依赖的是已有可靠副本、必需的崩溃恢复能力和错误发生频率，不能单独抽成“出了错就重启”。</p>
+<h3 id="section-9">10.8 就让它崩溃</h3>
+<p>第四种技巧用于难以恢复、很少发生且应用允许终止的错误：打印清楚的诊断，然后中止。作者用 C 内存分配说明重复处理的负担。若每处 <code>malloc</code> 都可能返回空指针，每个调用点就都要检查；漏检又可能在稍后解引用时崩溃，掩盖最初的内存问题。他提出 <code>ckalloc</code> 包装分配、检查和报错终止，让调用者统一使用。</p>
+<p>作者还指出，内存不足的处理程序可能自己也要分配内存，从而继续失败。他对内存不足频率、I/O 失败或套接字创建失败是否值得恢复的判断，属于原书语境下的经验意见，不应读成所有现代服务都适用的可用性策略。</p>
+<p>决定能否终止，要回到应用提供的价值。普通工具可能无法在磁盘故障后继续；复制存储系统却正是为恢复数据而存在，不能因为恢复复杂就放弃。内部数据结构已经不一致时，继续运行也未必有可靠意义。崩溃策略必须与应用的恢复责任一起判断。</p>
+<h3 id="section-10">10.9 过犹不及</h3>
+<p>前面几种技巧成立的共同条件是：被隐藏的信息在模块之外没有必要。一个学生团队把所有网络异常都捕获、丢弃，再像成功一样继续，导致上层不知道消息是否丢失、对端是否失效。应用缺少这些信息，就无法决定重试、报告失败或停止后续动作。</p>
+<p>因此，屏蔽需要真的处理问题，或让操作定义自然涵盖该情况；仅让异常消失，却没有完成承诺，会制造更大的模糊性。调用者需要的信息即使增加接口复杂性，也必须公开。</p>
+<h3 id="section-11">10.10 结论</h3>
+<p>优先考察能否改变操作含义，去掉本来不必算错误的情况；对仍需处理的错误，寻找能够恢复的底层位置，或能统一终止当前任务的上层边界。某些无法合理恢复的失败可以明确终止。每一步都要保留调用者判断结果所需的信息。</p>
+<h2 id="section-12">二、主题讲解：从一次报表生成看异常应在哪里结束</h2>
+<h3 id="section-13">先把成功条件写成可判断的结果</h3>
+<p>下面是一个假设案例：用户请求生成报表，系统读取输入、生成文件、交付下载地址，最后清理临时文件。先单看清理：若目标是“这些临时文件不再存在”，某个文件本来没有创建，就不需要报错。这个选择减少了失败途中清理的分支，却不改变成功条件。</p>
+<p>再看输入文件：如果它是生成报表必需的依据，文件缺失时返回一份空报表就不满足承诺。清理和读取都遇到了“文件不存在”，处理却不同，因为调用者要求的最终结果不同。由错误名称直接决定“都忽略”或“都抛出”，会跳过真正的设计问题。</p>
+<h3 id="section-14">能恢复的地方承担恢复，不能恢复的地方保留失败</h3>
+<p>假设临时读取失败后，输入模块有一个经验证相同的备用副本，而且读备用副本仍能得到本次报表所需数据。恢复可以留在输入模块，报表生成器只看见完整输入。这才是异常屏蔽。</p>
+<p>若读取一直失败，而用户只愿等待到一个明确期限，底层就不能无限等待。这个期限是本例新增的业务前提，它改变了原书 NFS 讨论中的取舍。超过期限后，系统需要暴露失败，让请求结束或让用户决定稍后再试。低层了解怎样恢复，并不意味着它可以替上层决定等多久。</p>
+<p>还有一个容易误判的情况：向外部服务发出生成请求后失去响应。系统可能不知道对方是否已经执行。把它当作“肯定没执行”自动重发，可能造成重复工作。原书在重传引出重复包时已经提示这种次生问题；在本假设中，至少应保留“结果尚不确定”这一事实，再依据外部操作已有的重复处理约定决定下一步。</p>
+<h3 id="section-15">在请求边界聚合，仍要区分失败的影响范围</h3>
+<p>报表参数缺失、日期格式错误、无权访问输入，都可以使当前请求失败。每个检查点保留自己的具体原因；共同的请求边界负责结束当前请求、清理其状态并生成一致的错误响应。这样不用让每个校验器都懂响应格式。</p>
+<p>这里“一个处理器”不等于“所有错误都给同一个结果”。用户可理解的原因、是否允许重试、哪些内容可公开，仍可能不同。该边界也不能把内部状态损坏误归为普通输入错误，再继续接受请求。原书要求区分请求失败和系统致命错误，目的就在于防止这种错误延续。</p>
+<p>对报表系统可以用以下几项检查验证设计，而不以 <code>catch</code> 数量少作为完成证据：</p>
+<ul>
+<li>清理一个从未创建的临时文件，目标状态是否已满足？</li>
+<li>备用副本成功恢复后，报表内容是否仍完整、来源是否符合本次请求？</li>
+<li>输入持续不可用时，调用者能否知道失败，并保留下一步选择？</li>
+<li>不同请求错误是否走同一响应机制，同时保留各自原因？</li>
+<li>请求中途失败时，清理是否完成，系统能否安全处理下一请求？</li>
+</ul>
+<h3 id="section-16">“少处理”不能减少必要的责任</h3>
+<p>四种技巧各自减少不同的工作：重新定义语义去掉无意义分支；屏蔽避免每个调用者重复恢复；聚合复用共同失败处理；明确终止避免伪装成能够继续。它们共同依赖一个问题：处理之后，模块是否兑现了对外承诺，或明确告诉调用者承诺未兑现？只统计异常类型、日志数量和捕获分支，回答不了这个问题。</p>
+<h2 id="section-17">自测：删除已过期的下载链接</h2>
+<p>假设接口用于撤销一个下载链接。链接已过期、链接不存在、当前用户不是链接所有者、存储服务超时，这四种情况能否都算撤销成功？</p>
+<p>核对思路：先定义结果。如果接口承诺“这个链接此后不能使用”，已过期或不存在可能已经满足目标，但还要考虑调用者是否需要审计信息。没有操作权限不能因方便而隐藏；存储超时也未必证明撤销完成。可以统一生成失败响应，却应保留权限与结果不确定的区别。这同时检验了定义错误不存在、异常聚合和不能过度屏蔽的边界。</p>
+<h2 id="section-18">来源、范围与阅读连接</h2>
+<p>依据 John Ousterhout《软件设计的哲学》第10章，PDF物理第120–137页，原小节10.1–10.10。实际查看第122、123、126、130、131、137页图，核对异常代码、研究脚注、UNIX文字疑点及原图10.1、10.2；第137页为空白。研究脚注为 Ding Yuan et al., “Simple Testing Can Prevent Most Critical Failures: An Analysis of Production Failures in Distributed Data-Intensive Systems”, OSDI 2014，本文未重算研究样本。文件删除校正的一手依据就近链接；其余平台例子保持原书语境。报表和下载链接为假设案例。下一章讨论如何用不同候选方案暴露这类设计取舍。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../09/index.html">上一篇 · 合并好，还是分开好？</a><a href="../11/index.html">下一篇 · 设计两次</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

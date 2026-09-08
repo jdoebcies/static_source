@@ -1,0 +1,139 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》第6章｜通用模块更深 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：让通用机制与具体用途各有位置</a><a class="sub" href="#section-2">6.1 让类有点通用</a><a class="sub" href="#section-3">6.2 示例：为编辑器存储文本</a><a class="sub" href="#section-4">6.3 更通用的API</a><a class="sub" href="#section-5">6.4 通用性带来更好的信息隐藏</a><a class="sub" href="#section-6">6.5 要问自己的问题</a><a class="sub" href="#section-7">6.6 将专用性向上推（和向下推）</a><a class="sub" href="#section-8">6.7 示例：编辑器撤销机制</a><a class="sub" href="#section-9">6.8 消除代码中的特例</a><a class="sub" href="#section-10">6.9 结论</a><a class="" href="#section-11">二、主题讲解：怎样判断一个接口“有点通用”</a><a class="sub" href="#section-12">从用户动作里找出重复的文本变化</a><a class="sub" href="#section-13">把调用代码和实现代码一起比较</a><a class="sub" href="#section-14">撤销需要更通用的共同点，但不能丢掉用户意图</a><a class="sub" href="#section-15">空范围可以统一算法，缺失状态未必可以</a><a class="" href="#section-16">检验理解：一个接口够不够通用</a><a class="" href="#section-17">来源、范围与阅读连接</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">第6章</p><h1>通用模块更深</h1>
+<p>第 5 章要求把设计决定留在合适的模块中。本章进一步讨论怎样选接口：用少数适用于多种场景的操作，替代紧贴某个按钮、某次操作的大量专用方法。作者也把同一思路用到方法内部，让正常处理过程自然覆盖边缘情况。</p>
+<h2 id="section-1">一、原书回顾：让通用机制与具体用途各有位置</h2>
+<p>章首的判断来自作者审阅学生项目的经验。他越来越认为，过度的专用性是复杂性的重要来源；通用接口往往更深，消除特例也能简化代码。这不是一项给出统计数据的实验，本章通过编辑器等案例说明其理由。专用性不能全部消除，接下来要解决的是如何减少它，以及把必要的专用代码放在哪里。</p>
+<h3 id="section-2">6.1 让类有点通用</h3>
+<p>作者先比较两种直觉。预先设计广泛适用的机制，可能给未来复用留下空间，却也容易实现永远用不上的功能；只按眼前用途定制，可以避免预测未来，但也可能把接口绑在当前场景上。作者早期倾向后一种，后来在课程中发现，通用类即使没有被再次复用，也常常有更简单的接口、更少的方法和更少的实现代码。</p>
+<p>他因此建议采用“有点通用”的方式：<strong>功能满足当前需要，接口用较一般的概念表达这些功能。</strong> 这既不要求提前补齐未来功能，也不允许为了通用而让当前用法变得困难。评判标准包括现在是否好用，不能只靠“未来也许有人用”支持设计。</p>
+<h3 id="section-3">6.2 示例：为编辑器存储文本</h3>
+<p>课程要求学生实现图形文本编辑器：显示文件，通过指向、点击和输入修改它；同一文件可同时有多个窗口视图，并支持多级撤销和重做。文本类负责载入文件、读取和修改内存文本，以及写回文件。</p>
+<p>一些团队按照界面操作设计文本 API。退格键删除光标左侧字符，于是提供 <code>backspace(Cursor cursor)</code>；删除键删除右侧字符，于是提供 <code>delete(Cursor cursor)</code>；删除选区则另设 <code>deleteSelection(Selection selection)</code>。接口直接出现了 <code>Cursor</code> 和 <code>Selection</code> 这些界面概念。</p>
+<p>这种设计看似方便界面调用，实际产生大量仅适用于一个操作的浅方法。界面开发者要学习很多方法，每添一种操作，往往也要给文本类添方法。文本类开发者又必须理解界面行为。两层因此共享原本应由界面决定的知识，难以独立演进。</p>
+<h3 id="section-4">6.3 更通用的API</h3>
+<p>作者改用基本文本操作：<code>insert(Position position, String newText)</code> 在任意位置插入字符串，<code>delete(Position start, Position end)</code> 删除从 <code>start</code> 开始、到 <code>end</code> 之前的字符，即区间 <code>[start, end)</code>。位置类型叫 <code>Position</code>，使它不必附带“界面光标”的含义。</p>
+<p>接口还提供 <code>changePosition(Position position, int numChars)</code>：沿文本移动指定字符数，正数向后、负数向前，必要时跨行。于是删除键由界面选择区间 <code>[cursor, changePosition(cursor, 1))</code>；退格键选择 <code>[changePosition(cursor, -1), cursor)</code>，再调用同一个 <code>delete</code>。</p>
+<p>每处界面调用可能比原来长一点，但“删左边还是右边”现在直接出现在需要作此决定的位置。以前开发者还得进入文本类，查 <code>backspace</code> 的文档或实现才能确认。文本类的方法总量也减少了，几个通用操作可以替代许多按钮专用方法。</p>
+<p>作者随后换一个用途验证接口：批量把文件中的某个字符串替换成另一个字符串。退格键等专用方法帮助不大，而通用接口已有插入和删除能力，只需再有 <code>findNext(Position start, String string)</code> 查找下一处匹配。交互式编辑器如果已实现查找替换，连这个能力也可能已经存在。复用是此设计的额外收益，前面的界面简化已经有独立价值。</p>
+<h3 id="section-5">6.4 通用性带来更好的信息隐藏</h3>
+<p>改造后，文本类封装文本的表示、修改和位置移动；界面封装按键、选择与操作规则。许多新的界面功能可以组合已有文本操作实现，界面开发者也只需学习较少的方法。</p>
+<p>原来的 <code>backspace</code> 是一个错误抽象，因为它试图隐藏“删除哪些字符”，而界面恰好必须知道并决定这件事。把信息放远了，开发者仍然要追过去确认。信息隐藏需要判断谁真正需要什么信息：实现文本修改的内部细节可以藏，界面自身的行为决定应在界面中清楚可见。</p>
+<h3 id="section-6">6.5 要问自己的问题</h3>
+<p>作者给出三个互相制约的问题。</p>
+<ul>
+<li><strong>满足当前所有需求的最简单接口是什么？</strong> 三个删除方法可以合成一个范围删除方法，但若靠大量额外参数才能减少方法数，接口未必更简单。</li>
+<li><strong>一个方法能用于多少种情形？</strong> 只在单一位置调用的按钮专用方法值得检查，看看它是否能被较一般的操作取代。这是检查线索，并非按调用次数判定好坏。</li>
+<li><strong>当前需求用起来是否方便？</strong> 只提供单字符插入、删除也很通用，却迫使高层到处循环处理范围，大操作的效率也可能较差。文本类需要直接支持范围操作。</li>
+</ul>
+<p>三个问题合起来要求同时查看接口数量、每个接口的负担，以及完成实际任务所需的调用代码，不能只优化其中一个数字。</p>
+<h3 id="section-7">6.6 将专用性向上推（和向下推）</h3>
+<p>用户需要的功能本来就有具体用途，因此应用顶层通常包含专用代码。编辑器把退格键行为放回界面，是把专用性向上推；文本类由此保持通用。</p>
+<p>另一方向是把专用性下推到具体实现。操作系统对存储设备使用“读块”“写块”等通用操作；不同设备有不同命令，由各自的驱动程序负责处理。主操作系统代码无需知道设备细节。新增设备若具备实现通用接口所需的能力，就可以增加驱动而不改主系统。这里的前提是设备确实能实现该接口，不能把能力差异凭空抹平。</p>
+<p>这两个方向都在保护中间的通用机制：用途决定放在使用者一侧，具体实现差异放在实现者一侧。</p>
+<h3 id="section-8">6.7 示例：编辑器撤销机制</h3>
+<p>撤销要求比恢复字符串更广。用户选中文本、删除、滚动到别处后执行撤销，编辑器还要恢复原来的选择，并让恢复的文本在窗口中可见。光标、选区和视图都参与这一行为。</p>
+<p>有团队把整个撤销机制放进文本类。文本变化自动记录，选区等界面变化则通过额外方法登记；执行撤销时，文本类有时修改自身，有时回调界面。这样一来，通用的历史列表管理、文本修改和界面状态恢复混在一起。增加一种可撤销实体，也要修改文本类，并继续增加双方传递信息的方法。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 788" role="img"><title>一次撤销，涉及三种不同的决定</title>
+<defs><marker id="06-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="06-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="06-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">一次撤销，涉及三种不同的决定</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">高层决定一组包含什么；History 维护历史；具体 Action 恢复状态</text>
+<path d="M 560 264 L 560 368" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#06-0-arrow)"/>
+<rect x="310.0" y="300" width="500" height="32" fill="#f5f5f5"/>
+<text x="560" y="324" font-size="20" fill="#4f5d75" text-anchor="middle">addFence / undo / redo</text>
+<path d="M 424 492 L 424 544 L 240 544 L 240 584" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#06-0-arrow)"/>
+<rect x="136" y="500" width="208" height="32" fill="#f5f5f5"/>
+<text x="240" y="524" font-size="20" fill="#4f5d75" text-anchor="middle">调用 Action</text>
+<path d="M 696 492 L 696 544 L 880 544 L 880 584" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#06-0-arrow)"/>
+<rect x="776" y="500" width="208" height="32" fill="#f5f5f5"/>
+<text x="880" y="524" font-size="20" fill="#4f5d75" text-anchor="middle">调用 Action</text>
+<rect x="256" y="144" width="608" height="120" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="280" y="184" font-size="24" fill="#2d3142" text-anchor="start">高层界面：分组策略</text>
+<text x="280" y="220" font-size="20" fill="#4f5d75" text-anchor="start">相关文本、选区、光标变化归为一次用户操作</text>
+<rect x="320" y="368" width="480" height="124" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="344" y="408" font-size="24" fill="#2d3142" text-anchor="start">History：通用撤销机制</text>
+<text x="344" y="444" font-size="20" fill="#4f5d75" text-anchor="start">维护历史与栅栏，不识别具体动作</text>
+<rect x="40" y="584" width="448" height="84" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="64" y="624" font-size="24" fill="#2d3142" text-anchor="start">文本 Action：插入 / 删除</text>
+<rect x="632" y="584" width="448" height="84" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="656" y="624" font-size="24" fill="#2d3142" text-anchor="start">界面 Action：选区 / 光标</text>
+<line x1="40" y1="712" x2="1080" y2="712" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="752" font-size="20" fill="#4f5d75" text-anchor="start">箭头仅表示运行时调用，未画登记动作的调用；专用 Action 由理解该状态的模块实现。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图6-1｜依据 6.7 节重绘。箭头表示运行时调用。History 调用统一的 Action 方法，不了解具体动作；高层决定哪些动作应当一起撤销。</p>
+<p>作者提出独立的 <code>History</code> 类。它维护操作历史，提供 <code>addAction</code>、<code>undo</code>、<code>redo</code> 等操作，并通过 <code>History.Action</code> 的 <code>undo()</code>、<code>redo()</code> 执行具体行为。它知道历史前后如何移动，却不知道某个动作保存了哪些文本或怎样恢复光标。</p>
+<p>具体动作由了解它的模块实现。文本类可实现 <code>UndoableInsert</code> 和 <code>UndoableDelete</code>，发生插入时创建相应对象并交给 <code>History.addAction</code>；界面可实现 <code>UndoableSelection</code> 和 <code>UndoableCursor</code>。专用细节由此下推到具体 Action 中。</p>
+<p>一次用户撤销还可能要恢复多个相关变化。History 用<strong>栅栏</strong>标记历史中的组边界，高层通过 <code>addFence</code> 决定边界放在哪。本文据上下文将其理解为：一次撤销或重做按相应方向处理一组动作，到组边界停止。原页关于栅栏的一句同时写了 <code>History.redo</code> 和“撤销操作”，两者冲突；不能据此把 redo 解释成撤销。这个疑点不改变“高层决定分组，History 执行分组”的设计关系。</p>
+<p>现在可以分别看三件事：History 管历史、分组机制和统一调用；Action 实现某一种恢复行为；高层决定用户认为的“一次操作”包含什么。各部分仍通过明确接口协作，但不必知道另外两部分的内部实现。</p>
+<p>本节最后有一个重要限制：通用或专用是相对于某种机制而言的。文本类对管理文本是通用的，对撤销却只负责文本变化这一种专用操作。因此，把文本的撤销代码放在文本类中合理；把各种无关实体的撤销都塞进文本类才造成问题。不能因为某个类包含专用代码，就断言它违反本章原则。</p>
+<h3 id="section-9">6.8 消除代码中的特例</h3>
+<p>专用性也会出现在方法内部。学生常用一个额外状态变量表示“是否有选区”，于是复制、删除等操作到处先判断这个状态。作者建议让选择区域始终存在，没有可见选区时用起点等于终点的空范围表示。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 588" role="img"><title>空选区是长度为零的范围</title>
+<defs><marker id="06-1-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="06-1-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="06-1-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="100%" fill="#f5f5f5"/>
+<g font-family="PingFang SC,Noto Sans CJK SC,sans-serif" fill="#2d3142">
+<text x="40" y="60" font-size="32" fill="#2d3142" text-anchor="start">空选区是长度为零的范围</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">示意字符串 ABCDE；范围用两端的位置界定，end 所在端不包含字符</text>
+<text x="40" y="164" font-size="24" fill="#2d3142" text-anchor="start">普通选择 [1, 3)：删除 BC</text>
+<rect x="360" y="188" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="384" y="228" font-size="24" fill="#2d3142" text-anchor="start">A</text>
+<text x="360" y="300" font-size="20" fill="#2d3142" text-anchor="start">0</text>
+<rect x="464" y="188" width="96" height="80" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="488" y="228" font-size="24" fill="#2d3142" text-anchor="start">B</text>
+<text x="464" y="300" font-size="20" fill="#2d3142" text-anchor="start">1</text>
+<rect x="568" y="188" width="96" height="80" rx="8" fill="#fff3ed" stroke="#eb6c36" stroke-width="2"/>
+<text x="592" y="228" font-size="24" fill="#2d3142" text-anchor="start">C</text>
+<text x="568" y="300" font-size="20" fill="#2d3142" text-anchor="start">2</text>
+<rect x="672" y="188" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="696" y="228" font-size="24" fill="#2d3142" text-anchor="start">D</text>
+<text x="672" y="300" font-size="20" fill="#2d3142" text-anchor="start">3</text>
+<rect x="776" y="188" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="800" y="228" font-size="24" fill="#2d3142" text-anchor="start">E</text>
+<text x="776" y="300" font-size="20" fill="#2d3142" text-anchor="start">4</text>
+<text x="880" y="300" font-size="20" fill="#2d3142" text-anchor="start">5</text>
+<text x="40" y="244" font-size="24" fill="#2d3142" text-anchor="start">结果：ADE</text>
+<line x1="40" y1="332" x2="1080" y2="332" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="380" font-size="24" fill="#2d3142" text-anchor="start">空选择 [2, 2)：没有字符</text>
+<rect x="360" y="404" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="384" y="444" font-size="24" fill="#2d3142" text-anchor="start">A</text>
+<rect x="464" y="404" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="488" y="444" font-size="24" fill="#2d3142" text-anchor="start">B</text>
+<rect x="568" y="404" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="592" y="444" font-size="24" fill="#2d3142" text-anchor="start">C</text>
+<rect x="672" y="404" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="696" y="444" font-size="24" fill="#2d3142" text-anchor="start">D</text>
+<rect x="776" y="404" width="96" height="80" rx="8" fill="#ffffff" stroke="#bfc0c0" stroke-width="2"/>
+<text x="800" y="444" font-size="24" fill="#2d3142" text-anchor="start">E</text>
+<line x1="568" y1="384" x2="568" y2="504" stroke="#bfc0c0" stroke-width="2"/>
+<text x="588" y="504" font-size="20" fill="#2d3142" text-anchor="start">start = end</text>
+<text x="40" y="460" font-size="24" fill="#2d3142" text-anchor="start">结果：ABCDE</text>
+<line x1="40" y1="512" x2="1080" y2="512" stroke="#bfc0c0" stroke-width="2"/>
+<text x="40" y="552" font-size="20" fill="#4f5d75" text-anchor="start">依据原书 6.8 节，字母与位置为本文示意；适用于零长度与无可见选区含义一致的操作。</text>
+</g></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图6-2｜依据 6.8 节的空选区思路，用字母串作本文示意。两端位置之间的内容被选中；空范围没有字符，执行删除后字符串保持不变。</p>
+<p>复制空选区会插入零字节，设计得当的插入操作无需另设分支；删除空选区也可以沿用正常算法。对于同一行内的选区，删除可理解为连接“选区之前的前缀”和“选区之后的后缀”。当起终点相同时，两部分正好拼回原行。</p>
+<p>这里的目标是让正常规则覆盖边缘条件，前提是零长度确实有同样的语义、底层操作也能正确处理。作者并未要求删除所有 <code>if</code>。第 10 章会继续讨论异常带来的特例。</p>
+<h3 id="section-10">6.9 结论</h3>
+<p>减少不必要的专用方法和特例，可以使类更深、信息隐藏更好。必要的专用性应有清楚的位置，与同一机制的通用部分分开，同时仍然方便当前用途。</p>
+<h2 id="section-11">二、主题讲解：怎样判断一个接口“有点通用”</h2>
+<h3 id="section-12">从用户动作里找出重复的文本变化</h3>
+<p>沿用原书编辑器，假设现在要增加“删除当前单词”。若文本类继续按按钮命名，它会新增 <code>deleteWord</code>，随后还可能有“删除到行尾”等方法。界面在决定用户想删什么，文本类也在重复了解这些规则，修改一个交互行为可能涉及两层。</p>
+<p>先把当前需求展开：退格、删除键、删除选区、删除单词，都先确定起点与终点，再删除该范围。文本类可以承接“给定范围后正确修改文本”，包括跨行拼接；界面负责确定范围。这项改动立即覆盖已有需求，不需要猜测尚未出现的编辑功能。</p>
+<p>如果确定单词边界本身被多种功能反复使用，还可以进一步寻找适合它的文本分析操作；是否加入文本类，应看它是否属于需要共享的文本规则。这里不能仅凭“多加一个参数就万能”继续扩张接口。</p>
+<h3 id="section-13">把调用代码和实现代码一起比较</h3>
+<p>删除键改成“计算右边一个位置，再删除范围”后，调用处确实多了一步。这一步揭示了界面必须知道的行为，因而有价值。相反，若调用者得逐行拆分、搬运和合并字符串，说明本应由文本模块处理的工作仍在外部。</p>
+<p>可以用两个具体变更检查分工。改变退格键的交互规则，应主要影响界面；改变文本内部从按行存储到其他表示，应主要影响文本类。若两种变更都得改两层，就需要继续检查是否泄露了界面规则或存储表示。这个检查说明为何“少方法”只是线索：一个 <code>operate(kind, options, flags)</code> 可能只有一个入口，却让双方了解更多细节。</p>
+<h3 id="section-14">撤销需要更通用的共同点，但不能丢掉用户意图</h3>
+<p>同一判断可以继续用于撤销。文本、选择、光标的恢复方法不同，但它们都能回答“怎样撤销”“怎样重做”。History 只依赖这两个动作以及历史次序，便可以统一管理。</p>
+<p>然而，用户按一次撤销应恢复几个动作，是界面体验的一部分。若为了“全自动”让 History 自行猜测分组，它又必须学习退格、输入、拖选等场景知识。高层设置栅栏保留了这个必要决定，具体 Action 则保留各类状态的恢复细节。通用机制因此有清楚的能力边界。</p>
+<h3 id="section-15">空范围可以统一算法，缺失状态未必可以</h3>
+<p>再看“删除空选区”。原书的范围删除对长度为零给出自然结果，因此无须额外表示“没有”。但在本文假设的输入框中，“用户没有填写”和“用户主动清空内容”如果导致不同业务行为，就不能都用空字符串替代。能合并的条件，是两种表示在当前操作下具有相同含义；语法上看起来都为空并不足够。</p>
+<h2 id="section-16">检验理解：一个接口够不够通用</h2>
+<p>一个文本类只提供 <code>deleteOneCharacter</code>，开发者说它能通过循环实现所有删除，因此已经足够通用。另一个文本类提供 <code>deleteRange</code>，但要求调用者先把跨行选区拆成逐行片段。两种设计分别把什么负担留给了调用者？</p>
+<p>核对思路：前者迫使所有范围操作重复循环，可能给大型操作增加代价；后者虽然名字叫范围删除，仍泄露按行存储和拼接规则。较合适的接口应直接接受所需范围，由文本类完成内部处理。至于该范围为什么被选中，仍由界面确定。</p>
+<p>再加入一种可撤销的窗口缩放：如果必须修改 History 内部的动作类型分支，说明它知道了不必要的具体类型；如果只新增相应 Action，并由高层安排分组，则保留了原书的分工。此处只检验设计关系，不构成完整撤销引擎实现。</p>
+<h2 id="section-17">来源、范围与阅读连接</h2>
+<p>依据 John Ousterhout《软件设计的哲学》第 6 章，PDF 物理页 74—87；主要正文至 86 页。已完整读取该章解析文本，并实际查看第 74、78、82、83、84 页，核对 6.1、6.7 标题、位置范围、接口名称和 History 示例。6.1 为“让类有点通用”，6.7 为“示例：编辑器撤销机制”，解析账中的两处公式乱码不作正文标题。</p>
+<p>第 84 页原书同时出现 <code>History.redo</code> 与“撤销操作”，本文保留疑点，只用周围论述能够支持的分组关系；没有另找版本替作者修订。<code>History.Actions</code> 按第 83 页接口声明统一写作 <code>History.Action</code>。图6-1重绘书中分工，图6-2的字母串、删除单词与输入框对照是本文示意或假设，没有引入外部资料。</p>
+<p>第 7 章将从相邻层的接口出发，检查每一层是否提供了值得存在的不同抽象。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../05/index.html">上一篇 · 信息隐藏（和泄露）</a><a href="../07/index.html">下一篇 · 不同层，不同抽象</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

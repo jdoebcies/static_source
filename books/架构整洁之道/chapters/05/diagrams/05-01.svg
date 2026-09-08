@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 660" width="1120" height="660" role="img" aria-label="同一个 getchar，如何调用不同设备">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2e5aa8"/></marker></defs>
+<rect width="1120" height="660" fill="#f5f5f5"/>
+<g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#2d3142">
+<text x="40" y="64" font-size="32" fill="#2d3142" text-anchor="start">同一个 getchar，如何调用不同设备</text>
+<text x="40" y="100" font-size="20" fill="#4f5d75" text-anchor="start">原书简化模型：read 的地址由所选函数表提供</text>
+<polyline points="368,224 672,224" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="492.0" y="186" width="56" height="28" fill="#f5f5f5"/>
+<text x="520" y="208" font-size="20" fill="#4f5d75" text-anchor="middle">调用</text>
+<polyline points="876,288 876,388" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="883.0" y="322" width="162" height="28" fill="#f5f5f5"/>
+<text x="964" y="344" font-size="20" fill="#4f5d75" text-anchor="middle">查找 read 槽位</text>
+<polyline points="672,452 368,452" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="472.0" y="414" width="96" height="28" fill="#f5f5f5"/>
+<text x="520" y="436" font-size="20" fill="#4f5d75" text-anchor="middle">间接调用</text>
+<rect x="40" y="160" width="328" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="64" y="200" font-size="24" fill="#2d3142" text-anchor="start">copy 复制过程</text>
+<text x="64" y="236" font-size="20" fill="#4f5d75" text-anchor="start">只读取并写出字符</text>
+<rect x="672" y="160" width="408" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="696" y="200" font-size="24" fill="#2d3142" text-anchor="start">getchar</text>
+<text x="696" y="236" font-size="20" fill="#4f5d75" text-anchor="start">执行 STDIN-&gt;read()</text>
+<rect x="672" y="388" width="408" height="128" rx="8" fill="#fff0e9" stroke="#eb6c36" stroke-width="2"/>
+<text x="696" y="428" font-size="24" fill="#2d3142" text-anchor="start">STDIN 所指的函数表</text>
+<text x="696" y="464" font-size="20" fill="#4f5d75" text-anchor="start">read 保存设备函数地址</text>
+<rect x="40" y="388" width="328" height="128" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="2"/>
+<text x="64" y="428" font-size="24" fill="#2d3142" text-anchor="start">当前设备的 read 实现</text>
+<text x="64" y="464" font-size="20" fill="#4f5d75" text-anchor="start">实际执行读取</text>
+<line x1="40" y1="592" x2="1080" y2="592" stroke="#bfc0c0"/>
+<text x="40" y="628" font-size="20" fill="#4f5d75" text-anchor="start">箭头：调用或选择调用目标。FILE 为原书教学示意。</text>
+</g></svg>

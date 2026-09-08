@@ -1,0 +1,88 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>《软件设计的哲学》警示信号总结｜从不顺手的地方找设计问题 · 书镜8.2</title><style>:root{color-scheme:light;--ink:#2d3142;--muted:#4f5d75;--line:#dadddf;--accent:#b9481a;--paper:#f5f5f5}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:5rem}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.95 -apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC',sans-serif;overflow-wrap:anywhere}a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#743214}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #eb6c36;outline-offset:4px}header{max-width:1140px;padding:24px 32px 8px;margin:auto;display:flex;gap:16px;justify-content:space-between;font-size:14px;color:var(--muted)}.shell{max-width:1200px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;margin:12px auto 64px;padding:0 32px}.shell.nav-page{max-width:1080px}aside{font-size:14px;line-height:1.6;position:sticky;top:24px;align-self:start;max-height:90vh;overflow:auto;padding:16px 0}aside a{display:block;color:var(--muted);padding:7px 0;text-decoration:none}aside .sub{padding-left:12px;font-size:13px}aside summary{cursor:pointer;font-weight:650;margin-bottom:16px}main{min-width:0;padding:12px 0 48px}h1{font-size:clamp(28px,3.5vw,44px);line-height:1.4;letter-spacing:-.03em;margin:18px 0 32px;font-weight:720}h2{font-size:26px;line-height:1.5;margin:52px 0 22px;padding-top:18px;border-top:2px solid #2d3142}h3{font-size:21px;line-height:1.55;margin:32px 0 12px}p{margin:0 0 20px}li{margin:8px 0}strong{font-weight:650}blockquote{margin:24px 0;padding:4px 20px;border-left:3px solid #eb6c36;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#e8e9eb;padding:2px 5px;border-radius:3px;overflow-wrap:anywhere}pre{background:#e9ebed;padding:20px;line-height:1.6;border:1px solid #dadddf;border-radius:6px;overflow:auto;tab-size:4}pre code{padding:0;background:none;white-space:pre;overflow-wrap:normal}.table-scroll{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:16px;line-height:1.8}th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line);min-width:120px}th{background:#e9ebed;font-weight:650}tr:last-child td{border:0}.figure{margin:24px 0 12px}button.diagram{border:1px solid #dadddf;border-radius:6px;padding:0;background:#f5f5f5;width:100%;display:block;cursor:zoom-in;overflow:hidden}button.diagram svg{width:100%;height:auto;display:block}.figure small{display:block;color:var(--muted);font-size:12px;text-align:right;margin:4px 0}.caption{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:28px}.pagination{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:32px;font-size:15px}.pagination a{max-width:48%}dialog{border:1px solid var(--line);border-radius:8px;padding:52px 16px 16px;width:96vw;max-width:1500px;max-height:95vh;background:#f5f5f5;overflow:auto}dialog::backdrop{background:#2d3142bb}dialog button{position:sticky;top:0;float:right;margin-top:-40px;cursor:pointer;border:1px solid #bfc0c0;background:white;padding:8px 14px;border-radius:4px}dialog svg{width:100%;height:auto;min-width:700px;display:block}.colophon{font-size:13px;color:var(--muted);margin:36px 0 0}hr{border:0;border-top:1px solid var(--line);margin:28px 0}@media(max-width:850px){body{font-size:17px}.shell,.shell.nav-page{display:block;padding:0 22px;margin:0 auto 40px}header{padding:18px 22px;flex-wrap:wrap;gap:4px;font-size:12px}aside{position:static;max-height:none;margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px}aside summary{margin:0}aside[hidden]{display:none}h1{font-size:29px;margin-top:12px}h2{font-size:23px;margin-top:40px}h3{font-size:20px}.table-scroll{margin-left:0;margin-right:0}th,td{padding:10px 12px;min-width:110px}dialog{padding-left:8px;padding-right:8px}.pagination{gap:16px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,aside,.pagination,dialog,.figure small{display:none}.shell{display:block;max-width:none;padding:0}body{font-size:11pt;background:white}h1{font-size:24pt}h2{font-size:17pt;break-after:avoid}h3{break-after:avoid}button.diagram{border:0}.figure,table{break-inside:avoid}a{color:inherit}}</style></head><body><header><a href="../../index.html">返回全书目录</a><span>软件设计的哲学（第2版） · 书镜 8.2</span></header><div class="shell"><aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：十四种需要留意的表现</a><a class="" href="#section-2">二、主题讲解：把警示转成可检查的问题</a><a class="sub" href="#section-3">先问它造成了什么困难</a><a class="sub" href="#section-4">同一个地方可能同时出现几种信号</a><a class="sub" href="#section-5">保留必要的例外</a><a class="" href="#section-6">用一个变化检查理解</a><a class="" href="#section-7">来源与范围</a></details></aside><main><p style="color:#4f5d75;font-size:14px;margin:16px 0 0">警示信号总结</p><h1>从不顺手的地方找设计问题</h1>
+<p>原则说明设计想达到什么，警示信号帮助我们发现哪里值得检查。看到一种信号，先确认它怎样增加当前任务的困难，再决定是否修改；信号不是自动裁决代码好坏的标签。</p>
+<h2 id="section-1">一、原书回顾：十四种需要留意的表现</h2>
+<p>原书这一总结单元没有编号小节。以下按原顺序保留全部信号及回查位置。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>信号</th>
+<th>具体可能出现什么问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>浅模块（4.5、13.5）</td>
+<td>学习接口的负担与它省下的工作差不多，封装没有隐藏多少细节。</td>
+</tr>
+<tr>
+<td>过度暴露（5.1）</td>
+<td>为了完成普通任务，使用者也得了解很少用到的选项。</td>
+</tr>
+<tr>
+<td>信息泄露（5.2）</td>
+<td>同一个设计决定反映在多个模块里，变化时要一起协调。</td>
+</tr>
+<tr>
+<td>时序分解（5.3）</td>
+<td>只按执行先后划分代码，把需要共同维护的信息拆散。</td>
+</tr>
+<tr>
+<td>直通方法（7.1）</td>
+<td>一个方法几乎只是把参数交给签名相似的另一个方法。</td>
+</tr>
+<tr>
+<td>重复（9.3）</td>
+<td>相同代码片段散在多处，修改时容易遗漏或产生差异。</td>
+</tr>
+<tr>
+<td>专用与通用混合（9.4）</td>
+<td>特定用途的要求进入通用机制，让其他使用者也必须面对。</td>
+</tr>
+<tr>
+<td>连体方法（9.7）</td>
+<td>不理解另一个方法的实现，就难以理解或修改当前方法。</td>
+</tr>
+<tr>
+<td>注释重复代码（13.2）</td>
+<td>注释只把可见操作再说一遍，没有补足需要了解的信息。</td>
+</tr>
+<tr>
+<td>实现文档污染接口（13.5）</td>
+<td>接口说明堆满使用者并不需要知道的内部做法。</td>
+</tr>
+<tr>
+<td>含糊的名称（14.3）</td>
+<td>名字没有精确说明变量、方法或对象表示什么。</td>
+</tr>
+<tr>
+<td>难以取名（14.3）</td>
+<td>很难找到一个清楚名字，可能说明概念本身还没分清。</td>
+</tr>
+<tr>
+<td>难以描述（15.3）</td>
+<td>必须用很长说明才能讲完整，可能有过多职责或条件。</td>
+</tr>
+<tr>
+<td>不显而易见的代码（18.2）</td>
+<td>后来的人难以看出代码的行为、含义或需要遵守的规则。</td>
+</tr>
+</tbody></table></div>
+<p>这些信号与第2章的三种困难相连：要改很多地方、要了解很多事情，以及没有意识到还有事情需要知道。相同症状也可能有不同原因，需要回到具体代码中检查。</p>
+<h2 id="section-2">二、主题讲解：把警示转成可检查的问题</h2>
+<h3 id="section-3">先问它造成了什么困难</h3>
+<p>假设一个方法名叫<code>handleData</code>。名字含糊是一个信号，但直接把它改成更长的名字，不一定解决问题。应先确认：它处理什么数据，做什么动作，会产生什么结果？若这几个问题无法用同一个职责解释，可能需要先理清方法的工作，再命名。</p>
+<p>这个假设例子展示了警示的用法：从表面的名称问题，走到读者实际缺少的信息。不能只为了避开词表里的“含糊名称”，造一个更抽象、更长的名字。</p>
+<h3 id="section-4">同一个地方可能同时出现几种信号</h3>
+<p>一个保存接口要求十几个参数，还必须按隐藏顺序调用另外两个方法。它可能同时存在过度暴露、不显而易见和连体方法问题。可以先列出正确完成保存必须知道的事情，再看哪些能够由模块统一负责。</p>
+<p>如果只是补上一份长文档，隐藏规则可能变得可见，但使用者仍需要记住很多步骤。文档和结构可以一起改；两者改善的是相关但不同的困难。</p>
+<h3 id="section-5">保留必要的例外</h3>
+<p>直通方法有时为了适配不同接口，或者维持一个有意义的边界而存在；浅模块也可能封装本来就简单的操作。读到信号后，应检查这层代码是否提供了必要的隔离或清楚的用法。</p>
+<p>同样，两段代码看起来相似，不代表它们必须一起变化。贸然合并可能把不同业务要求绑在一起。应保留原书对应章节给出的条件，避免把警示表变成机械删除规则。</p>
+<h2 id="section-6">用一个变化检查理解</h2>
+<p>两个方法的实现几乎相同，一个用于普通订单，一个用于受监管订单。目前结果一样，但后者有独立的审核要求。是否应立即消除重复？</p>
+<p>先判断它们是否表达同一规则、是否需要一起变化。可以共享确实相同的机制，同时保留各自的规则和入口。代码表面重复与业务决定重复，需要分开判断。</p>
+<h2 id="section-7">来源与范围</h2>
+<ul>
+<li>依据：《软件设计的哲学》中文版，警示信号总结，PDF244–245页；十四项均保留。</li>
+<li>本稿的命名、保存接口和订单例子属于讲解假设。关于例外的判断需要结合对应章节，不能仅凭这张表自动重构。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../23-principles/index.html">上一篇 · 设计原则总结</a><span></span></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main></div><dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog><script>const menu=document.querySelector('aside details');if(menu)menu.open=innerWidth>850;const dialog=document.querySelector('dialog');document.querySelectorAll('button.diagram').forEach(b=>b.addEventListener('click',()=>{dialog.querySelector('.zoom-content').innerHTML=b.innerHTML;dialog.showModal()}));dialog?.querySelector('button').addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>
