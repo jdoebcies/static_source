@@ -2,622 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>附录B 生产环境运维过程中的最佳实践 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》附录B 生产环境运维过程中的最佳实践 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: this appendix is a production operations checklist, so the deck uses graphite for operational severity, warm paper for runbook readability, and teal blue for controls that reduce incident risk. */
-  --ink: #202526;
-  --ink-rgb: 32,37,38;
-  --paper: #f4efe3;
-  --paper-rgb: 244,239,227;
-  --accent: #2f7184;
-  --muted: #667073;
-  --warm: #756653;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(2.8rem, 6.2vw, 6rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(1.9rem, 3.6vw, 3.45rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.38rem, 2.35vw, 2.25rem); line-height: 1.3; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.38rem, 1.85vw, 1.9rem); line-height: 1.52; }
-.body-zh { font-size: clamp(1.16rem, 1.34vw, 1.52rem); line-height: 1.58; }
-.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #86c6d5; }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.1rem, 2.4vh, 2.1rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); align-items: stretch; }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(1.9rem, 3vw, 3.1rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-.slide.dark .summary-num { color: #86c6d5; }
-.timeline { display: flex; flex-direction: column; gap: clamp(.9rem, 1.6vh, 1.4rem); }
-.timeline-row { display: grid; grid-template-columns: minmax(8rem, 14rem) 1fr; gap: clamp(1rem, 2vw, 2rem); align-items: start; padding-top: clamp(.85rem, 1.35vh, 1.15rem); border-top: 1px solid rgba(var(--ink-rgb), .15); }
-.slide.dark .timeline-row { border-top-color: rgba(var(--paper-rgb), .18); }
-.label { font-family: var(--mono); color: var(--accent); font-size: clamp(.92rem, 1vw, 1.12rem); letter-spacing: .08em; text-transform: uppercase; }
-.slide.dark .label { color: #86c6d5; }
-.big-number { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(4rem, 9vw, 8.4rem); line-height: .98; color: var(--accent); }
-.slide.dark .big-number { color: #86c6d5; }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p493 附录B 生产环境运维过程中的最佳实践">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Appendix B</div>
-      <h1 class="display-zh">生产环境运维过程中的最佳实践</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">作者 Ben Treynor Sloss，编辑 Betsy Beyer</p>
-    </div>
-  </div>
-  <div class="foot"><span>p493</span><span>01 / 23</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Controlled Failure Modes" data-source="p493 可控的故障模式 配置文件 服务输入 正确性和准确性检查">
-  <div class="chrome"><span>controlled failure modes</span><span>p493</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">配置文件和服务输入，在进入服务之前先检查正确性和准确性。</div>
-      <p class="body-zh muted" style="margin-top:2vh">收到不合理输入时，服务继续保持之前状态正常工作，同时发出错误输入警报。</p>
-    </div>
-  </div>
-  <div class="foot"><span>validate before apply</span><span>02 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Incorrect Data" data-source="p493 不正确的数据 语法 语义 空数据 部分数据 截断数据">
-  <div class="chrome"><span>bad data</span><span>p493</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">不正确的数据，要在处理前拦住</h2>
-      <div class="grid-3">
-        <div class="line-box"><div class="label">syntax</div><p class="body-zh">先检查数据语法。</p></div>
-        <div class="line-box"><div class="label">semantics</div><p class="body-zh">可能时检查语义正确性。</p></div>
-        <div class="line-box"><div class="label">shape</div><p class="body-zh">注意空数据、部分数据和截断数据。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>empty partial truncated</span><span>03 / 23</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Smaller Than Previous" data-source="p493 新数据比之前的数据小N%的时候发出警报">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="summary-num">N%</div>
-      <p class="lead-zh" style="margin-top:2vh">新数据比之前的数据小 N% 时，服务应该发出警报。</p>
-    </div>
-  </div>
-  <div class="foot"><span>size regression alert</span><span>04 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Stale Data" data-source="p493 过期的数据 数据过期之前发出警报">
-  <div class="chrome"><span>stale data</span><span>p493</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">过期数据可能影响当前数据，警报要在数据过期之前发出。</div>
-      <p class="body-zh muted" style="margin-top:2vh">这里的重点是提前发现，而不是等到过期结果进入生产路径。</p>
-    </div>
-  </div>
-  <div class="foot"><span>alert before expiry</span><span>05 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Hold Previous Config" data-source="p493 p494 维持之前的配置运行 直到某个人批准采用新数据">
-  <div class="chrome"><span>safe apply</span><span>p493 to p494</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">收到新数据后，继续用旧配置运行，直到有人批准采用新数据</h2>
-      <p class="lead-zh">材料把这种做法称为最安全的方式，因为新数据可能无效。</p>
-    </div>
-  </div>
-  <div class="foot"><span>approval gate</span><span>06 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="DNS Empty Config" data-source="p494 2005年 Google全球DNS负载延迟均衡系统 空数据 NXDOMAIN 6分钟">
-  <div class="chrome"><span>example 2005</span><span>p494</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">2005 年，空配置让 Google DNS 返回 NXDOMAIN</h2>
-      <div class="timeline">
-        <div class="timeline-row"><div class="label">cause</div><p class="body-zh">文件权限错误，服务收到一份空数据。</p></div>
-        <div class="timeline-row"><div class="label">impact</div><p class="body-zh">服务接受空配置，对全部 Google DNS 请求返回 NXDOMAIN，故障持续 6 分钟。</p></div>
-        <div class="timeline-row"><div class="label">fix</div><p class="body-zh">新配置需要通过安全性检查，包括确认 google.com IP 地址，否则继续按旧配置工作。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>empty dns config</span><span>07 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Malware Slash Config" data-source="p494 2009年 错误的数据 整个Web 标记成病毒感染网站 只有/">
-  <div class="chrome"><span>example 2009</span><span>p494</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">2009 年，一个格式正确的数据把整个 Web 标成病毒感染网站</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="label">trigger</div><p class="body-zh">含有病毒 URL 地址的配置文件，被错误替换为只有 /，结果匹配全部 URL。</p></div>
-        <div class="soft-box"><div class="label">guardrail</div><p class="body-zh">后续检查配置文件的大幅度改变，并检查是否匹配已知不太可能含有病毒的网站。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>semantic bad config</span><span>08 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Progressive Rollout" data-source="p494 渐进式发布 非紧急的发布过程应该是按阶段进行的">
-  <div class="chrome"><span>progressive rollout</span><span>p494</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">非紧急发布按阶段进行，用小规模应用变更来控制配置和二进制风险。</div>
-      <p class="body-zh muted" style="margin-top:2vh">部署容量百分比和阶段等待时间，由服务规模、发布规模和可承受风险决定。</p>
-    </div>
-  </div>
-  <div class="foot"><span>stage capacity and wait</span><span>09 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Rollout Supervision" data-source="p494 整个发布过程应该是有监管的 回退是第一选择 MTTR">
-  <div class="chrome"><span>supervised rollout</span><span>p494</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">发布过程需要监管，出现意外先回退</h2>
-      <p class="lead-zh">工程师或可靠的监控系统盯住发布过程。出现未预料情况时，先降低平均恢复时间 MTTR，后续再分析。</p>
-    </div>
-  </div>
-  <div class="foot"><span>rollback first</span><span>10 / 23</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="User View SLO" data-source="p494 p495 从用户的视角来定义SLO Gmail客户端 错误率与延迟">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <h2 class="h1-zh">从最终用户视角定义可用性与服务性能 SLO</h2>
-      <p class="lead-zh muted" style="margin-top:2vh">Gmail 在客户端度量错误率与延迟，几年内把可用性从 99.0% 提升到 99.9%。</p>
-    </div>
-  </div>
-  <div class="foot"><span>client measured slo</span><span>11 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Error Budget" data-source="p495 错误预算 1-SLO 99.99% 0.01%">
-  <div class="chrome"><span>error budget</span><span>p495</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">错误预算用 1 减 SLO 得出，平衡可靠性与创新速度</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="big-number">0.01%</div><p class="body-zh">99.99% 可用性目标，对应一个月内 0.01% 的错误预算。</p></div>
-        <div class="soft-box"><div class="label">release rule</div><p class="body-zh">预算未用完，开发团队可以合理发布新功能和新变更。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>one minus slo</span><span>12 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Budget Exhausted" data-source="p495 如果错误预算用完了 服务应该停止任何改动">
-  <div class="chrome"><span>budget exhausted</span><span>p495</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">错误预算用完后，停止改动，除非是重要安全问题或错误修复。</div>
-      <p class="body-zh muted" style="margin-top:2vh">成熟且 SLO 超过 99.99% 的系统，可以按季度计算预算。</p>
-    </div>
-  </div>
-  <div class="foot"><span>freeze changes</span><span>13 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Monitoring Outputs" data-source="p495 p496 监控系统 应该仅仅有三种输出 紧急警报 工单 日志">
-  <div class="chrome"><span>monitoring outputs</span><span>p495 to p496</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">监控系统只应该有三种输出</h2>
-      <div class="grid-3">
-        <div class="line-box"><div class="label">page</div><p class="body-zh">紧急警报，某个人必须执行某项操作。</p></div>
-        <div class="line-box"><div class="label">ticket</div><p class="body-zh">工单，某个人必须在几天内执行某种操作。</p></div>
-        <div class="line-box"><div class="label">log</div><p class="body-zh">日志，没人马上看，以后需要时用于分析。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>alert ticket log</span><span>14 / 23</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Email Alert Trap" data-source="p496 将警报用E-mail发送 最终这些警报一定会被无视">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">把警报发到 E-mail，并指望有人读完，最终一定会被无视。</div>
-      <p class="lead-zh muted" style="margin-top:2vh">历史证明，这种策略一开始可行，最终会要求人随时保持警惕性。</p>
-    </div>
-  </div>
-  <div class="foot"><span>email alert failure</span><span>15 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Blameless Postmortem" data-source="p496 事后总结 对事不对人 关注流程 技术而非人">
-  <div class="chrome"><span>postmortem</span><span>p496</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">事后总结对事不对人，关注流程和技术</h2>
-      <p class="lead-zh">假设事故处理者理智、善意，并使用当时所有可用信息做了最佳决策。我们可以修复工作环境，例如系统设计、信息可用性和运维操作校验。</p>
-    </div>
-  </div>
-  <div class="foot"><span>fix the environment</span><span>16 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Capacity N Plus Two" data-source="p496 容量规划 N+2 两个最大的副本不可用">
-  <div class="chrome"><span>capacity planning</span><span>p496</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">服务需要 N+2 配置，在两个最大副本不可用时，峰值流量仍可由 N 个实例承担。</div>
-      <p class="body-zh muted" style="margin-top:2vh">材料允许这种承担发生在某种降级模式下，核心是用户体验不能严重受损。</p>
-    </div>
-  </div>
-  <div class="foot"><span>planned and unplanned failures</span><span>17 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Capacity Forecast Load Test" data-source="p496 p497 流量预测 负载测试 资源与容量的比例">
-  <div class="chrome"><span>forecast and load test</span><span>p496 to p497</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">容量规划要不断校准预测，并用负载测试建立资源比例</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="label">forecast</div><p class="body-zh">持续对比流量预测与真实情况，偏差可能意味着预测方法、容量效率或容量不足问题。</p></div>
-        <div class="soft-box"><div class="label">load test</div><p class="body-zh">依靠负载测试建立资源与容量比例，不只依赖三个月前的历史数据。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>do not trust old capacity</span><span>18 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Launch Day Load" data-source="p497 不要将上线第一天的负载与稳定状态下的负载混淆">
-  <div class="chrome"><span>launch load</span><span>p497</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">不要把上线第一天的负载，和稳定状态下的负载混淆。</div>
-      <p class="body-zh muted" style="margin-top:2vh">发布通常会吸引更多流量，而这恰好也是需要显示服务质量的时机。</p>
-    </div>
-  </div>
-  <div class="foot"><span>launch is not steady state</span><span>19 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Overload Degradation" data-source="p497 过载与故障 过载情况下 合理程度上的次优结果 Google搜索">
-  <div class="chrome"><span>overload behavior</span><span>p497</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">过载时先提供合理的次优结果</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="label">search example</div><p class="body-zh">Google 搜索会只搜索一部分索引数据，并中止某些即时提示功能。</p></div>
-        <div class="soft-box"><div class="label">sre test</div><p class="body-zh">搜索 SRE 对集群进行超出容量的测试，确保过载情况下仍能工作。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>degraded service</span><span>20 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Graceful Shedding Retry" data-source="p497 队列 动态超时 优雅地流量抛弃 重试 连锁故障 指数型延迟重试 抖动">
-  <div class="chrome"><span>shedding and retry</span><span>p497</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">次优结果也不够时，优雅丢弃流量，并控制重试放大</h2>
-      <div class="timeline">
-        <div class="timeline-row"><div class="label">shed</div><p class="body-zh">使用队列、动态超时、延迟回复，或让部分用户接收错误来保障其他客户质量。</p></div>
-        <div class="timeline-row"><div class="label">cascade</div><p class="body-zh">重试会把低错误率转化为高流量，引发连锁故障。</p></div>
-        <div class="timeline-row"><div class="label">client</div><p class="body-zh">发送 RPC 的客户端应实现带抖动的指数型延迟重试。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>exponential backoff with jitter</span><span>21 / 23</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="SRE Team Sustainability" data-source="p498 SRE团队 运维工作不超过50% on-call团队至少8个人 两个地理位置 每12小时1个 假想灾难演习">
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">SRE 团队的最佳实践，最终落到可持续性</h2>
-      <div class="grid-3">
-        <div class="line-box"><div class="summary-num">50%</div><p class="body-zh">运维工作不超过团队时间的一半，过载由产品研发部门承担。</p></div>
-        <div class="line-box"><div class="summary-num">8</div><p class="body-zh">on-call 团队至少 8 人。跨两个地理区域时，每个区域至少 6 人。</p></div>
-        <div class="line-box"><div class="summary-num">2</div><p class="body-zh">每次 on-call 轮值处理不超过两起事故，并用周期性假想灾难演习保持熟练。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>toil oncall drills</span><span>22 / 23</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Core Notes" data-source="p493 p494 p495 p496 p497 p498 保持之前状态 渐进式发布 错误预算 监控系统 N+2 过载 SRE团队">
-  <div class="chrome"><span>core notes</span><span>p493 to p498</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">核心总结，生产运维最佳实践都在降低故障扩大的机会</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="label">change control</div><p class="body-zh">输入先校验，错误输入保持之前状态。发布按阶段进行，出现意外先回退。</p></div>
-        <div class="soft-box"><div class="label">service control</div><p class="body-zh">SLO 从用户视角定义，错误预算约束发布风险，监控只输出紧急警报、工单和日志。</p></div>
-        <div class="soft-box"><div class="label">load control</div><p class="body-zh">容量按 N+2 准备，过载时提供次优结果，必要时优雅丢弃流量并控制重试。</p></div>
-        <div class="soft-box"><div class="label">team control</div><p class="body-zh">SRE 运维工作不超过 50%，on-call 规模和事故上限服务于团队可持续性。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>core summary</span><span>23 / 23</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-appendix-b-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-appendix-b-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》附录B 生产环境运维过程中的最佳实践 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：生产环境运维中的故障控制、发布策略、SLO定义、监控体系、容量规划及团队管理。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "可控的故障模式"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节强调服务输入需经校验，遇到不合理数据应保持旧状态并发出警报。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出错误数据分为不正确与过期两类，前者需检查语法语义，后者需提前预警。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核心逻辑是服务在故障时应牺牲部分访问控制以维持运行，通过维持旧配置等待人工批准来确保安全，为后续具体案例做铺垫。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "不正确的数据"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "针对数据不正确问题，作者主张在处理后检查语法及语义，并警惕空数据或截断数据。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "当新数据比旧数据小N%时应发出警报。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一要求旨在防止因数据格式错误或内容缺失导致的服务异常，确保数据处理的严谨性，自然过渡到对数据时效性的讨论。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "过期的数据"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节指出过期数据可能影响当前数据，因此需在数据过期前发出警报。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这与前文对数据正确性的要求相辅相成，共同构成输入校验的完整反馈链。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过提前预警过期数据，服务能避免基于陈旧信息做出错误决策，为后续讨论故障时的容错机制提供数据层面的保障。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "示例"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过两个Google案例说明故障模式的重要性。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "2005年DNS因空配置返回NXDOMAIN，2009年因错误配置标记全网为病毒。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "解决方案均包括对新配置进行安全性检查，若校验失败则维持旧配置。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些实例验证了前文提出的“维持旧状态”策略的有效性，引出渐进式发布的话题。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "渐进式发布"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节提出非紧急发布应分阶段进行，通过小规模应用变更来控制风险。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布容量百分比和等待时间需依据服务规模及风险决定，且应覆盖多个地理位置以快速检测问题。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布过程需有监管，意外发生时优先回退以降低MTTR。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一策略旨在平衡创新速度与系统稳定性，为定义SLO提供实践基础。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "从用户的视角来定义SLO"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调SLO应以最终用户视角定义可用性与性能，而非服务器端指标。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过Gmail客户端度量错误率与延迟的案例，说明此举显著提升了可用性评估的准确性，并推动了代码改进。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种以用户体验为核心的SLO定义方式，为后续引入错误预算概念奠定了价值导向基础。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "错误预算"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍错误预算用于平衡可靠性与创新速度，通常以月为单位，由1-SLO得出。若预算未用完，团队可发布新功能；"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若用完则停止改动，仅保留安全修复。对于高成熟度系统，可按季度计算。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "错误预算建立了SRE与研发部门共同的数据驱动发布风险评估体系，消除了组织矛盾。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "监控系统"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者规定监控系统仅输出三种结果：紧急警报、工单和日志。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "紧急警报要求立即行动，工单要求几天内处理，日志用于后续分析。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一分类旨在避免警报疲劳，确保重要事件得到及时处理，而非被邮件淹没。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "明确的输出分类为后续详细阐述各类警报的处理机制提供了框架。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "紧急警报"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节详细解释紧急警报需触发某人的立即操作，而非仅发送邮件希望被阅读。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "历史证明邮件警报易被无视，导致更严重灾难。因此，足够重要的事件必须转化为紧急警报或工单，确保有人负责。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一机制强调了人工介入的必要性，与工单处理形成互补，共同构成监控响应体系。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "工单"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "工单要求某人在几天内执行操作，用于处理不需要立即响应但需跟踪的问题。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "与紧急警报不同，工单允许更长的响应时间，适合非紧急Bug或配置调整。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种分级处理机制确保了资源合理分配，避免紧急警报被非紧急事务淹没，为日志分析提供了结构化数据支持。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "日志"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "日志作为监控系统的第三种输出，无人立即查看，但用于后续分析。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "它记录了系统运行细节，为事后总结和问题排查提供依据。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "与前两类即时响应机制不同，日志侧重于长期数据积累，帮助团队识别趋势和潜在问题，是持续改进系统的重要数据源。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "事后总结"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节主张事后总结应关注流程和技术而非个人，假设参与者善意且理性。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "目标是修复工作环境而非人，如优化系统设计、自动校验操作等。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种对事不对人的理念有助于营造开放文化，鼓励团队从事故中学习，避免指责文化，从而提升系统整体可靠性，为容量规划提供经验反馈。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "容量规划"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者提出服务需承受计划内外故障而不严重影响体验，建议“N+2”配置以应对两个最大副本不可用。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过对比流量预测与现实、利用负载测试建立资源比例，避免依赖过时历史数据。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时提醒勿混淆上线首日与稳定负载，确保容量规划能真实反映系统性能，为过载处理提供基础。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "过载与故障"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节指出服务在过载时应提供次优结果，如Google搜索只搜索部分索引。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过队列、动态超时等手段优雅抛弃流量，避免连锁故障。客户端需实现指数退避重试，降低错误放大率。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些策略确保在高负载下系统仍能维持基本功能，防止因重试导致的全局崩溃，体现SRE团队的运维智慧。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SRE团队"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "最后本节规定SRE团队运维时间不超过50%，运维过载由研发承担。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议on-call团队至少8人，分两地分布以避免疲劳，每轮值处理不超过两起事故。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过定期演习保持熟练度，防止因事故减少而导致的技能退化。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一管理策略旨在平衡工作负荷与系统稳定性，确保团队可持续性。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：生产环境运维的核心机制与实践"}]}], "sourceIds": ["SRC-033"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "故障模式与数据校验机制"}]}], "sourceIds": ["SRC-034"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在生产环境中，服务必须对输入进行严格校验。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 1, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "当接收到不合理的配置文件或数据时，服务不应崩溃，而应保持之前的状态正常工作，并发出警报。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 2, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "错误数据主要分为不正确和过期两类。不正确数据需检查语法和语义，警惕空数据或截断数据；"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 3, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "过期数据需在过期前预警。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 4, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核心机制是服务在故障时牺牲部分访问控制以维持运行，通过维持旧配置等待人工批准来确保安全。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 5, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，Google DNS系统在收到空配置时，通过校验失败维持旧配置，避免了NXDOMAIN错误。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 6, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种机制确保了服务在数据异常时的稳定性，防止错误扩散。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 7, "total": 7, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "渐进式发布与错误预算平衡"}]}], "sourceIds": ["SRC-036"]}, {"lines": [{"indent": 0, "chunks": [{"t": "非紧急发布应采用渐进式策略，分阶段应用变更以控制风险。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布容量和等待时间需依据服务规模决定，并覆盖多地理位置以快速检测问题。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布过程需有监管，意外发生时优先回退以降低MTTR。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "错误预算用于平衡可靠性与创新速度，通常以月为单位，由1-SLO得出。若预算未用完，团队可发布新功能；"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若用完则停止改动，仅保留安全修复。例如，Gmail通过客户端度量SLO，将可用性从99.0%提升至99.9%。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "错误预算建立了SRE与研发部门共同的数据驱动发布风险评估体系，消除了组织矛盾，鼓励共同投入新技术。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "监控系统分级与容量规划策略"}]}], "sourceIds": ["SRC-038"]}, {"lines": [{"indent": 0, "chunks": [{"t": "监控系统仅输出紧急警报、工单和日志三种结果。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "紧急警报要求立即行动，工单要求几天内处理，日志用于后续分析。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一分类旨在避免警报疲劳，确保重要事件得到及时处理。容量规划需服务承受计划内外故障，建议“N+2”配置。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过对比流量预测与现实、利用负载测试建立资源比例，避免依赖过时历史数据。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "过载时服务应提供次优结果，如Google搜索只搜索部分索引，通过队列和动态超时优雅抛弃流量，避免连锁故障。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "客户端需实现指数退避重试，降低错误放大率。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "事后总结与SRE团队管理"}]}], "sourceIds": ["SRC-040"]}, {"lines": [{"indent": 0, "chunks": [{"t": "事后总结应关注流程和技术而非个人，假设参与者善意且理性。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 1, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "目标是修复工作环境，如优化系统设计、自动校验操作，而非指责个人。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 2, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种对事不对人的理念有助于营造开放文化，鼓励团队从事故中学习。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 3, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE团队运维时间不超过50%，运维过载由研发承担。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 4, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "on-call团队至少8人，分两地分布以避免疲劳，每轮值处理不超过两起事故。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 5, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过定期演习保持熟练度，防止因事故减少而导致的技能退化。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 6, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一管理策略旨在平衡工作负荷与系统稳定性，确保团队可持续性。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 7, "total": 7, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-042"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形：假设你负责一个核心支付服务，其SLO为99.99%。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "某次发布后，监控显示错误率轻微上升，但仍在月度错误预算范围内。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，一个非关键的配置变更导致部分用户界面显示异常，但未影响支付功能。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 3, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：基于本章内容，你应该如何决策该配置变更的发布状态？对于监控警报，应归类为哪一类？为什么？"}]}], "sourceIds": ["SRC-044"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-045"]}, {"lines": [{"indent": 0, "chunks": [{"t": "1. 发布决策：由于错误率在预算内，且配置变更非紧急，根据渐进式发布原则，可继续发布，但需密切监控。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若界面异常影响用户体验，虽不影响支付功能，但根据用户视角SLO，可能需要回退或快速修复。2. 警报分类："}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "界面显示异常属于非紧急但需跟踪的问题，应归类为工单，要求几天内处理。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "紧急警报仅用于需立即行动的事件，如支付失败。日志用于记录细节。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这样分类避免警报疲劳，确保资源合理分配。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-047"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 493-498。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}], "sourceIds": ["SRC-048", "SRC-049", "SRC-050"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}, {"indent": 0, "chunks": [{"t": "边界：错误预算的计算基于1-SLO，但具体阈值需根据服务成熟度调整，如高成熟度系统可按季度计算。"}]}, {"indent": 0, "chunks": [{"t": "边界：渐进式发布的具体容量百分比和等待时间需根据服务规模决定，无固定标准。"}]}, {"indent": 0, "chunks": [{"t": "边界：SRE团队运维时间不超过50%，但具体分配需根据团队实际情况调整。"}]}], "sourceIds": ["SRC-051", "SRC-052", "SRC-053", "SRC-054"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：容量规划中的“N+2”配置是建议值，实际需根据故障容忍度调整。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“附录C 事故状态文档示范”，继续回答：事故状态文档的结构化要素与更新机制。"}]}], "sourceIds": ["SRC-055", "SRC-056"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

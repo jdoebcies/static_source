@@ -2,434 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>附录A 系统可用性 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》附录A 系统可用性 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: this appendix is a compact reliability reference, so the deck uses graphite for operational seriousness, warm paper for textbook clarity, and blue for availability thresholds. */
-  --ink: #202526;
-  --ink-rgb: 32,37,38;
-  --paper: #f4efe3;
-  --paper-rgb: 244,239,227;
-  --accent: #316c8f;
-  --muted: #667073;
-  --warm: #706253;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #82bdd9; }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.big-number { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(4rem, 9vw, 8.4rem); line-height: .98; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2 { grid-template-columns: 1fr; }
-  .data-table { font-size: clamp(.88rem, 3vw, 1rem); }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p492 附录A 系统可用性">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Appendix A</div>
-      <h1 class="display-zh">系统可用性</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">附录A，用一页说明可用性时间口径</p>
-    </div>
-  </div>
-  <div class="foot"><span>p492</span><span>01 / 08</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Availability Ratio" data-source="p492 系统可用性通常是以某段时间内服务不可用的时间比例来计算">
-  <div class="chrome"><span>availability ratio</span><span>p492</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">系统可用性，通常按某段时间内服务不可用的时间比例计算。</div>
-      <p class="body-zh muted" style="margin-top:2vh">这一页先把可用性落到时间窗口，而不是抽象等级。</p>
-    </div>
-  </div>
-  <div class="foot"><span>downtime proportion</span><span>02 / 08</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="No Planned Outage" data-source="p492 假设没有任何计划内停机时间">
-  <div class="chrome"><span>assumption</span><span>p492</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">表 A 1 的计算前提，是没有任何计划内停机时间</h2>
-      <p class="lead-zh">在这个前提下，不同可用性级别对应各自允许的停机时间。</p>
-    </div>
-  </div>
-  <div class="foot"><span>planned outage excluded</span><span>03 / 08</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Availability Levels" data-source="p492 表A-1 可用性时间表">
-  <div class="chrome"><span>table a1</span><span>p492</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">可用性越高，允许停机时间以数量级压缩</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>可用性水平</th><th>每年</th><th>每月</th><th>每天</th><th>每小时</th></tr></thead>
-          <tbody>
-            <tr><td>90%</td><td>36.5 天</td><td>3 天</td><td>2.4 小时</td><td>6 分钟</td></tr>
-            <tr><td>99%</td><td>3.65 天</td><td>7.2 小时</td><td>14.4 分钟</td><td>36 秒</td></tr>
-            <tr><td>99.9%</td><td>8.76 小时</td><td>43.2 分钟</td><td>1.44 分钟</td><td>3.6 秒</td></tr>
-            <tr><td>99.99%</td><td>52.6 分钟</td><td>4.32 分钟</td><td>8.64 秒</td><td>0.36 秒</td></tr>
-            <tr><td>99.999%</td><td>5.26 分钟</td><td>25.9 秒</td><td>0.87 秒</td><td>0.04 秒</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>allowed downtime</span><span>04 / 08</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Five Nines Hour" data-source="p492 表A-1 99.999% 每小时 0.04 seconds">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="big-number">0.04 秒</div>
-      <p class="lead-zh muted" style="margin-top:2vh">99.999% 可用性按每小时看，只允许这么多停机时间。</p>
-    </div>
-  </div>
-  <div class="foot"><span>99.999 percent per hour</span><span>05 / 08</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Partial Availability" data-source="p492 对一个可能部分保持可用的服务">
-  <div class="chrome"><span>partial availability</span><span>p492</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">有些服务可能只是部分不可用，单纯汇总停机时间不一定最有意义。</div>
-      <p class="body-zh muted" style="margin-top:2vh">材料把这类服务单独拎出来，提示可用性口径需要换成更贴近用户操作的指标。</p>
-    </div>
-  </div>
-  <div class="foot"><span>not always binary</span><span>06 / 08</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Aggregated Metric" data-source="p492 所有操作中的X%失败了 每天每周负载变化很大的系统 多个副本">
-  <div class="chrome"><span>aggregate metric</span><span>p492</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">负载变化大或多副本服务，可以用操作失败比例思考可用性</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">适用系统</h3><p class="body-zh">每天、每周负载变化很大，或者服务有多个副本。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">指标表达</h3><p class="body-zh">所有操作中的 X% 失败了。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>operation failure ratio</span><span>07 / 08</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Formula Reference" data-source="p492 更详细的计算过程请参见第3章中的公式3-1与公式3-2">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="summary-num">第 3 章</div>
-      <div class="callout" style="margin-top:2vh">更详细的计算过程，回到公式 3 1 与公式 3 2。</div>
-      <p class="body-zh muted" style="margin-top:2vh">附录 A 只给时间表和口径提醒，完整计算放在正文公式中。</p>
-    </div>
-  </div>
-  <div class="foot"><span>formula 3.1 and 3.2</span><span>08 / 08</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-appendix-a-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-appendix-a-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》附录A 系统可用性 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：如何量化并理解系统可用性及其计算逻辑。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "原章未分小节：系统可用性"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "附录先把可用性换成允许的不可用时间。表A-1在不计计划内停机的前提下列出90%到99.999%的对应窗口："}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如99.9%意味着每年最多约8.76小时、每月43.2分钟、每天1.44分钟不可用。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "随后作者补充，服务若能部分可用或负载波动很大，更适合按失败操作占比衡量；具体公式回指第3章。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：系统可用性的量化与适用场景分析"}]}], "sourceIds": ["SRC-005"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "把百分比翻译成可支配的时间"}]}], "sourceIds": ["SRC-006"]}, {"lines": [{"indent": 0, "chunks": [{"t": "“99.9%可用”很难直接指导值班和设计，把它换成时间就清楚了："}]}], "sourceIds": ["SRC-007"], "sourceParts": [{"id": "SRC-007", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "按表A-1，不计计划内停机时，一年允许约8.76小时不可用，一个月允许43.2分钟，一天允许1.44分钟。"}]}], "sourceIds": ["SRC-007"], "sourceParts": [{"id": "SRC-007", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "可用性每多一个9，允许的故障窗口就缩小一个数量级。"}]}], "sourceIds": ["SRC-007"], "sourceParts": [{"id": "SRC-007", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这个换算让团队能判断恢复速度、发布风险和目标是否相称，但前提是统计窗口和停机口径已经统一。"}]}], "sourceIds": ["SRC-007"], "sourceParts": [{"id": "SRC-007", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "部分故障时改看失败操作占比"}]}], "sourceIds": ["SRC-008"]}, {"lines": [{"indent": 0, "chunks": [{"t": "有多个副本的服务可能从未“整体停机”，却持续让一部分请求失败；负载还会随小时、天或星期变化。"}]}], "sourceIds": ["SRC-009"], "sourceParts": [{"id": "SRC-009", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这时只统计停机分钟，会把高峰期的大量失败和低峰期的少量失败看成同一件事。"}]}], "sourceIds": ["SRC-009"], "sourceParts": [{"id": "SRC-009", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者建议改看“所有操作中有X%失败”。"}]}], "sourceIds": ["SRC-009"], "sourceParts": [{"id": "SRC-009", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "分母从时间变成操作次数，指标就能反映部分可用以及负载变化对用户请求的实际影响。"}]}], "sourceIds": ["SRC-009"], "sourceParts": [{"id": "SRC-009", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "先选分母，再计算目标"}]}], "sourceIds": ["SRC-010"]}, {"lines": [{"indent": 0, "chunks": [{"t": "时间可用性和请求可用性回答的是不同问题。前者适合服务状态能清楚分成可用与不可用的情形；"}]}], "sourceIds": ["SRC-011"], "sourceParts": [{"id": "SRC-011", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "后者适合部分失败、请求量变化明显的情形。"}]}], "sourceIds": ["SRC-011"], "sourceParts": [{"id": "SRC-011", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "计算前先写清统计对象、窗口和失败定义，再使用第3章公式3-1或3-2。"}]}], "sourceIds": ["SRC-011"], "sourceParts": [{"id": "SRC-011", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "附录没有给出额外模型，也没有声称一个口径适合所有系统；它提供的是选择口径时的判断顺序。"}]}], "sourceIds": ["SRC-011"], "sourceParts": [{"id": "SRC-011", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-012"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形："}]}], "sourceIds": ["SRC-013"], "sourceParts": [{"id": "SRC-013", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "假设一个电商系统在促销期间流量激增，部分服务器因过载暂时不可用，但整体服务仍可通过其他服务器维持运行。"}]}], "sourceIds": ["SRC-013"], "sourceParts": [{"id": "SRC-013", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此时，系统并未完全停机，但部分用户操作失败。"}]}], "sourceIds": ["SRC-013"], "sourceParts": [{"id": "SRC-013", "index": 3, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：在这种场景下，为什么使用“所有操作中X%失败了”这一指标比“服务不可用时间比例”更能准确反映系统状况？"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "请结合多副本系统的特性说明理由。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "多副本系统允许一部分节点失效而整体继续响应，因此很难给整套服务标出一段完整的“停机时间”。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "失败操作占比把每次请求是否成功计入分子、分母；促销高峰里的失败请求更多，对指标的影响也更大。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "它因此能同时表达部分可用和负载变化，而时间比例可能把这两件事藏掉。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-017"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 492-492。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}, {"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}], "sourceIds": ["SRC-018", "SRC-019", "SRC-020", "SRC-021"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：表A-1的换算假设没有计划内停机时间。"}]}, {"indent": 0, "chunks": [{"t": "边界：附录只区分时间比例与失败操作占比；公式定义和推导需回看第3章。"}]}, {"indent": 0, "chunks": [{"t": "边界：选择请求口径时，仍需由具体服务定义什么算一次操作、什么算失败。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“附录B 生产环境运维过程中的最佳实践”，继续回答：生产环境运维中的故障控制、发布策略、SLO定义、监控体系、容量规划及团队管理。"}]}], "sourceIds": ["SRC-022", "SRC-023", "SRC-024", "SRC-025"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

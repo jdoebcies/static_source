@@ -2,660 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第21章 应对过载 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第21章 应对过载 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: overload handling is about pressure, refusal, and graceful survival, so the deck uses dark graphite for stress, warm paper for operating notes, and amber for limit signals. */
-  --ink: #1f2528;
-  --ink-rgb: 31,37,40;
-  --paper: #f7f3e8;
-  --paper-rgb: 247,243,232;
-  --accent: #b8782d;
-  --muted: #687276;
-  --warm: #7f5f42;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.6vw, 6.6rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4vw, 3.8rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.45rem, 2.65vw, 2.45rem); line-height: 1.28; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.45rem, 1.95vw, 1.95rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.22rem, 1.38vw, 1.58rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1rem, 1.08vw, 1.24rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #e0a761; }
-.warm { color: var(--warm); }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
-.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
-  .timeline-row::before { display: none; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p262 章节标题">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Chapter 21</div>
-      <h1 class="display-zh">应对过载</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">系统压力持续上升时，某个部位总会过载。</p>
-      <p class="meta" style="margin-top:1.2vh">Alejandro Forero Cuervo</p>
-    </div>
-  </div>
-  <div class="foot"><span>p262</span><span>01 / 24</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Overload Inevitable" data-source="p262 随着压力不断上升">
-  <div class="chrome"><span>graceful overload</span><span>p262</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">可靠系统的根本要求之一，是能够优雅地处理过载。</div>
-      <p class="body-zh muted" style="margin-top:2vh">负载均衡再有效，也不能保证压力上升时所有部位永远不过载。</p>
-    </div>
-  </div>
-  <div class="foot"><span>reliability requirement</span><span>02 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Degradation Choices" data-source="p262 服务降级 两个例子">
-  <div class="chrome"><span>degraded replies</span><span>p262</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">过载时，服务可以先降低回复成本</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">缩小搜索范围</h3><p class="body-zh">平时查整个文档库，过载时只查文档库的一小部分。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">使用本地缓存</h3><p class="body-zh">用本地缓存的旧数据回复，避免访问主存储系统。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>reduce work</span><span>03 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Datacenter Ceiling" data-source="p262 100个后端任务 每个500 QPS">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">数据中心级调度只能降低风险，不能替代后端的资源边界处理。</div>
-      <p class="body-zh muted" style="margin-top:2vh">100 个后端任务，每个 500 QPS，负载均衡策略就不应调度超过 50000 QPS 到这个数据中心。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p262</span><span>04 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="QPS Trap" data-source="p263 QPS陷阱">
-  <div class="chrome"><span>qps trap</span><span>p263</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">按 QPS 规划容量，会遮住请求成本的差异</h2>
-      <p class="lead-zh">不同请求需要的资源数量可能相差很大。</p>
-      <p class="body-zh muted">成本会受客户端代码、现实时间、家庭用户和企业用户、交互型请求和批量请求影响。</p>
-    </div>
-  </div>
-  <div class="foot"><span>different costs</span><span>05 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Resource Capacity" data-source="p263 500 CPU 内核和1TB内存">
-  <div class="chrome"><span>capacity model</span><span>p263</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">更好的容量模型，是直接看可用资源。</div>
-      <p class="body-zh muted" style="margin-top:2vh">材料给出的例子是某服务在一个数据中心预留 500 CPU 内核和 1TB 内存，请求成本通常按正常情况下消耗的 CPU 时间定义。</p>
-    </div>
-  </div>
-  <div class="foot"><span>cpu time</span><span>06 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="CPU Signal" data-source="p263 使用CPU数量作为主要信号">
-  <div class="chrome"><span>cpu as signal</span><span>p263</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">多数场景里，CPU 可以作为主要配给信号</h2>
-      <div class="grid-2">
-        <div class="line-box"><h3 class="h2-zh accent">有 GC 的环境</h3><p class="body-zh">内存压力通常会转化成 CPU 压力，因为内存受限会增加 GC。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">其他环境</h3><p class="body-zh">其他资源可以按某种比例配置，使短缺情况尽量罕见。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>resource allocation</span><span>07 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="User Quotas" data-source="p263 p264 给每个用户设置限制">
-  <div class="chrome"><span>per user limits</span><span>p263 p264</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">全局过载时，错误应该集中落在异常客户上</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>用户</th><th>示例限额</th><th>含义</th></tr></thead>
-          <tbody>
-            <tr><td>Gmail</td><td>4000 CPU</td><td>按约定配置用户配额和资源</td></tr>
-            <tr><td>Calendar</td><td>4000 CPU</td><td>同一后端服务按客户拆分限制</td></tr>
-            <tr><td>Android</td><td>3000 CPU</td><td>配额总和可以超过总容量</td></tr>
-            <tr><td>Google Plus</td><td>2000 CPU</td><td>所有用户同时打满配额很罕见</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>quota contracts</span><span>08 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Usage Feedback" data-source="p264 实时获取用量信息">
-  <div class="chrome"><span>usage feedback</span><span>p264</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">配额不是静态表格，后端任务会实时接收调整信息</h2>
-      <p class="lead-zh">系统从所有后端任务中实时获取用量信息，再把配额调整推送给每个后端任务。</p>
-      <p class="body-zh muted">难点之一是实时计算每个请求消耗的资源，尤其是在非阻塞 API 和线程池模式的软件服务器中计算 CPU。</p>
-    </div>
-  </div>
-  <div class="foot"><span>per request cost</span><span>09 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Client Throttling" data-source="p264 p265 客户端侧的节流机制">
-  <div class="chrome"><span>client throttling</span><span>p264 p265</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">后端一直发送拒绝回复，也可能把自己拖进过载。</div>
-      <p class="body-zh muted" style="margin-top:2vh">客户端检测到大量配额不足错误后，应自行限制请求速度，超过限制的请求在本地失败，不再进入网络层。</p>
-    </div>
-  </div>
-  <div class="foot"><span>fail locally</span><span>10 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Adaptive Throttling" data-source="p265 自适应节流 请求数量 请求接受数量">
-  <div class="chrome"><span>adaptive throttling</span><span>p265</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">自适应节流只依赖客户端本地记录</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">requests</h3><p class="body-zh">过去两分钟里，应用层代码发出的所有请求数量。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">accepts</h3><p class="body-zh">过去两分钟里，后端任务接受的请求数量。</p></div>
-      </div>
-      <p class="body-zh muted">常规情况下两者相等。后端开始拒绝后，客户端继续发送直到 requests 等于 K 乘以 accepts。</p>
-    </div>
-  </div>
-  <div class="foot"><span>local counters</span><span>11 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Stable Rate" data-source="p266 保持稳定请求速率 50%的处理率">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="callout">本地拒绝的请求也让 requests 上升，这正是算法的重点。</div>
-      <p class="body-zh muted" style="margin-top:2vh">客户端发送速度越快，相对后端接受速度越高，本地丢弃概率也会提高。超大型过载时，后端服务基本可以保持 50% 的处理率。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p266</span><span>12 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="K Parameter" data-source="p266 修改accepts的倍值K">
-  <div class="chrome"><span>tuning k</span><span>p266</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">K 决定客户端节流的激进程度</h2>
-      <div class="grid-2">
-        <div class="line-box"><h3 class="h2-zh accent">降低 K</h3><p class="body-zh">自适应节流更激进，后端收到的拒绝请求更少。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">增加 K</h3><p class="body-zh">算法不那么激进，后端状态能更快传递到客户端。</p></div>
-      </div>
-      <p class="body-zh muted">材料一般推荐 K 等于 2。低频客户端记录有限，客户端节流可能不适用。</p>
-    </div>
-  </div>
-  <div class="foot"><span>aggressiveness</span><span>13 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Criticality Classes" data-source="p266 p267 重要性 四类">
-  <div class="chrome"><span>criticality</span><span>p266 p267</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">重要性把请求分成四类</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>类型</th><th>材料中的含义</th><th>默认来源</th></tr></thead>
-          <tbody>
-            <tr><td>CRITICAL_PLUS</td><td>拒绝会造成非常严重的用户可见问题</td><td>最重要请求</td></tr>
-            <tr><td>CRITICAL</td><td>拒绝也会造成用户可见问题</td><td>生产任务默认请求</td></tr>
-            <tr><td>SHEDDABLE_PLUS</td><td>可以容忍某种程度的不可用性</td><td>批量任务默认请求</td></tr>
-            <tr><td>SHEDDABLE</td><td>可能经常遇到部分不可用，偶尔完全不可用</td><td>可丢弃流量</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>four classes</span><span>14 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Criticality Propagation" data-source="p267 p268 RPC系统自动传递重要性信息">
-  <div class="chrome"><span>rpc propagation</span><span>p267 p268</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">重要性成为 RPC 系统的一级属性后，拒绝顺序可以跨服务保持一致</h2>
-      <p class="lead-zh">后端处理请求 A 时发出请求 B 和 C，B 和 C 会继承 A 的重要性。</p>
-      <p class="body-zh muted">Google 通常在离浏览器或客户端最近的位置设置优先级，特殊情况下才在处理栈中覆盖。</p>
-    </div>
-  </div>
-  <div class="foot"><span>shared priority</span><span>15 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Utilization Signal" data-source="p268 p269 资源利用率信号 执行器负载均值">
-  <div class="chrome"><span>utilization signal</span><span>p268 p269</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">任务过载保护基于本地资源利用率</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">CPU 利用率</h3><p class="small-zh">多数情况下是目前 CPU 使用量除以全部预留 CPU 数量。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">重要性阈值</h3><p class="small-zh">利用率上升后，根据请求重要性拒绝请求，高重要性对应高阈值。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">活跃线程</h3><p class="small-zh">执行器负载均值统计正在运行或等待 CPU 的线程。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">指数衰变</h3><p class="small-zh">平滑突发的大批短时请求，避免短脉冲触发错误拒绝。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">多个信号</h3><p class="small-zh">系统也可以接入内存压力等后端自定义信号。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>local protection</span><span>16 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Two Overload Errors" data-source="p269 处理过载错误 两种情况">
-  <div class="chrome"><span>overload errors</span><span>p269</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">客户端收到过载错误时，先判断范围</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">大量任务过载</h3><p class="body-zh">如果大部分后端任务都过载，请求不应重试，应向上传递给请求者。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">少量任务过载</h3><p class="body-zh">如果只有小部分任务过载，更倾向于立即重试，请求可能落到仍有容量的任务上。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>scope matters</span><span>17 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Retry As Balancing" data-source="p270 快速拒绝 天然的负载均衡机制">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">轻微过载的任务快速拒绝，反而让重试成为天然负载均衡。</div>
-      <p class="body-zh muted" style="margin-top:2vh">重试请求和新请求被同等对待，多余负载就有机会自动转移到其他任务。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p270</span><span>18 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Retry Limits" data-source="p270 p271 决定何时重试 三个方法">
-  <div class="chrome"><span>retry limits</span><span>p270 p271</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">重试必须被限制，否则会放大过载</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">三次上限</h3><p class="small-zh">请求失败 3 次后，把错误回应给调用者。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">10% 比例</h3><p class="small-zh">每个客户端跟踪重试与请求比例，低于 10% 才重试。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">1.1 倍</h3><p class="small-zh">按客户端限制后，重试请求在大多数情况下只增加到原来的 1.1 倍。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">重试计数</h3><p class="small-zh">客户端在请求元数据中加入重试计数，并记录近期直方图。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">无须重试</h3><p class="small-zh">后端可根据直方图返回过载且无须重试错误。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>retry budget</span><span>19 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Retry Layer" data-source="p271 p272 请求只应该在被拒绝层面上面一层重试">
-  <div class="chrome"><span>retry layer</span><span>p271 p272</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">请求只应该在被拒绝层面的直接上层重试。</div>
-      <p class="body-zh muted" style="margin-top:2vh">数据库前端过载时，后端任务 B 负责重试。B 确认数据库前端无法处理后，应向 A 返回过载且无须重试错误，或返回降级回复。</p>
-    </div>
-  </div>
-  <div class="foot"><span>avoid retry explosion</span><span>20 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Connection Load" data-source="p273 连接造成的负载">
-  <div class="chrome"><span>connection load</span><span>p273</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">大型系统里，连接本身也会制造负载</h2>
-      <p class="lead-zh">维护大型连接池有 CPU 和内存成本，连接快速变动也有成本。</p>
-      <p class="body-zh muted">请求率很低的客户端会被健康检查放大成本，有时健康检查消耗比实际处理请求更多。</p>
-    </div>
-  </div>
-  <div class="foot"><span>health checks</span><span>21 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Batch Proxy Fuse" data-source="p273 批处理代理任务 保险丝">
-  <div class="chrome"><span>batch proxy</span><span>p273</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">批处理代理把新连接冲击隔离在后端之外</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">原路径</h3><p class="body-zh">批处理客户端直接访问后端，短时间建立大量客户端时会压垮后端连接管理。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">代理路径</h3><p class="body-zh">批处理客户端先访问批处理代理，再由代理转发给后端，代理承担保险丝角色。</p></div>
-      </div>
-      <p class="body-zh muted">代理还能减少后端连接数量，并提高负载均衡效率。</p>
-    </div>
-  </div>
-  <div class="foot"><span>protect backend</span><span>22 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Core Summary" data-source="p273 p274 小结">
-  <div class="chrome"><span>core notes</span><span>p273 p274</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">核心总结：单个任务必须保护自己的服务质量</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">一个后端任务被配置为服务一定流量，不管多少额外流量被指向它，都应该保证服务质量。</p></div>
-        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">后端任务不应该在过载情况下崩溃，过载阈值应被推高到很难发生的程度。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>core summary</span><span>23 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="No Silver Bullet" data-source="p274 没有万能药">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="kicker accent" style="opacity:1">Core Notes</div>
-      <div class="callout">严肃对待降级情况，过载保护没有万能药。</div>
-      <p class="body-zh muted" style="margin-top:2vh">设计良好的后端程序应该只接受它能处理的请求，并优雅地拒绝其他请求。负载均衡经常需要深入理解系统和请求处理语义。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p274</span><span>24 / 24</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-21-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-21-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第21章 应对过载 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：应对过载。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "QPS陷阱"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本章开篇指出，单纯依据QPS或静态属性规划容量往往失效，因为请求成本随时间波动。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者主张以CPU等可用资源作为容量建模的核心信号，利用内存压力自然转化为CPU压力的特性简化配给逻辑。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这为后续基于资源的动态限流奠定了理论基础，引出如何具体实施限制的话题。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "给每个用户设置限制"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "面对不可避免的全局过载，作者提出通过协商用户配额来保护核心业务。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Google内部服务为例，不同客户端拥有不同的CPU配额总和，且允许超额配置以应对并发峰值。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "后端通过实时计算资源消耗并推送配额信息，实现了对不同用户的差异化资源控制，解决了全局资源分配难题。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "客户端侧的节流机制"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "仅靠后端拒绝无法完全避免过载，因为发送拒绝回复本身也消耗资源。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "为此引入客户端自适应节流，通过监控本地请求数与后端接受数的比例，动态调整本地丢弃概率。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种机制利用本地信息快速响应后端状态，既稳定了请求速率，又避免了因大量拒绝回复导致的资源浪费，解决了后端拒绝效率低下的问题。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "请求数量（requests）"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该标题定义了客户端应用层代码发出的所有请求总数。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在自适应节流算法中，它作为核心监控指标，用于与后端接受的请求数进行对比。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "当后端开始拒绝请求时，该数值会持续上升，从而触发客户端本地的节流机制，通过概率性丢弃请求来降低发往后端的负载，防止过载扩散。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "请求接受数量（accepts）"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该指标指后端任务实际接受的请求数量。在常规情况下它与请求数量相等，但在过载时变小。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者利用这一差值作为信号，当请求数超过接受数的K倍时，客户端启动自适应节流。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这使客户端能基于本地信息快速感知后端状态，并通过增加本地拒绝概率来平衡负载，避免后端资源耗尽。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "重要性"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在配额与节流基础上，引入请求重要性分级（CRITICAL_PLUS至SHEDDABLE）以细化过载处理。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该属性作为RPC一级字段自动传递，确保在资源受限时，低优先级请求优先被拒，而高优先级请求得到保障。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一机制解决了不同业务场景对可用性要求的差异，为后续处理过载错误提供了决策依据。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "最重要 CRITICAL_PLUS"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "这是为最重要请求预留的类型，拒绝会导致严重的用户可见问题。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将其作为优先级最高的保护对象，要求服务必须为其配置资源。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在全局配额不足或任务过载时，系统会按优先级分级拒绝，确保此类请求最后被丢弃，从而保障核心业务在极端压力下的可用性，防止关键功能失效。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "重要 CRITICAL"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "这是生产任务发出的默认请求类型，拒绝也会造成用户可见问题，但严重程度低于CRITICAL_PLUS。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者要求服务必须为所有CRITICAL流量配置资源。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在过载处理中，它享有高优先级保护，仅在极高负载下才会被拒绝。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这确保了日常生产流量的稳定性，平衡了系统资源分配与用户体验。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "可丢弃的SHEDDABLE_PLUS"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该类型流量可容忍一定程度的不可用性，是批量任务的默认值，通常可稍后重试。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将其列为低优先级，在过载时优先被拒绝。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种分类允许系统在资源紧张时牺牲非关键批量任务，以保护核心服务。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "它体现了通过重要性分级来应对过载的策略，确保资源向高价值请求倾斜。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "可丢弃的SHEDDABLE"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "此类流量经常面临部分不可用，偶尔完全不可用。作者将其视为最低优先级，在过载时最先被丢弃。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过这种细粒度分类，系统能更灵活地应对压力，允许非关键数据在极端情况下被忽略。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这减少了因处理低价值请求而消耗的资源，防止过载恶化，同时避免了增加过多分类带来的系统复杂性。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "资源利用率信号"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "后端过载保护依赖于本地计算的资源利用率信号，主要基于CPU消耗及执行器负载均值。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过统计活跃线程数并结合指数衰减平滑突发流量，系统能在负载超过阈值时拒绝请求。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种基于本地信息的信号机制，确保了任务在资源紧张时能迅速自我保护，防止系统崩溃，为处理过载错误提供了触发条件。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "处理过载错误"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "针对客户端收到的过载错误，作者区分了大规模过载与小部分任务过载两种情形。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "前者应停止重试并向上报错，后者则倾向于立即重试。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "由于重试请求与新请求同等对待可形成天然负载均衡，系统无需额外逻辑即可将负载转移至空闲任务，有效利用了剩余容量，解决了局部过载时的请求分发问题。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "决定何时重试"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "为避免重试爆炸，系统实施了多重重试限制：单次请求最多重试3次，且客户端整体重试比例低于10%时才允许重试。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此外，通过请求元数据中的重试计数直方图，后端可判断其他节点是否同样过载，从而返回“无须重试”错误。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些机制共同作用，防止了依赖栈中多层级联重试导致的系统崩溃。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "连接造成的负载"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "除了处理逻辑，连接维护本身也消耗资源。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出健康检查及突发连接可能引发过载，建议通过调节健康检查频率或引入批处理代理来优化。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "代理作为“保险丝”隔离了后端，减少了连接数量并提高了负载均衡效率。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一补充措施解决了连接层面的资源消耗问题，完善了过载保护的最后一环。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "小结"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "小结回顾本章技术，强调后端不应在过载时完全崩溃，而应优雅拒绝多余请求。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出负载均衡需深入理解系统语义，无万能药。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过严肃对待降级情况，避免资源竞争导致的级联失败，确保了系统在极端压力下的稳定性。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这为后续章节探讨更复杂的系统故障处理提供了总结性视角。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：应对过载的核心策略"}]}], "sourceIds": ["SRC-033"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "从QPS到资源感知的容量规划"}]}], "sourceIds": ["SRC-034"]}, {"lines": [{"indent": 0, "chunks": [{"t": "传统负载均衡常陷入QPS陷阱，即假设每个请求成本固定。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "然而，实际请求成本受客户端类型、数据量及时间影响巨大，导致基于QPS的容量规划极易失效。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，更稳健的做法是直接以可用资源（如CPU内核数）衡量容量。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在多数编程环境中，内存压力会转化为CPU压力（如GC增加），因此CPU可作为主要信号。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种资源感知的规划方式，能够动态适应负载变化，避免因静态指标滞后导致的系统过载，为后续的资源配给提供了准确的基础。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "用户配额与客户端自适应节流"}]}], "sourceIds": ["SRC-036"]}, {"lines": [{"indent": 0, "chunks": [{"t": "当全局过载发生时，系统需通过用户配额区分对待。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过协商为不同客户端分配CPU配额，后端可优先保障核心业务。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "然而，仅靠后端拒绝不足以应对过载，因为发送拒绝回复本身也消耗资源。为此引入客户端自适应节流机制："}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "客户端监控本地请求数与后端接受数的比例，当后端开始拒绝时，客户端动态提高本地丢弃概率。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种基于本地信息的反馈机制，能快速抑制请求速率，避免后端陷入发送拒绝回复的资源泥潭，实现了端到端的流量控制。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "重要性分级与过载错误处理"}]}], "sourceIds": ["SRC-038"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在资源受限时，系统需依据请求重要性进行分级处理。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "将请求标记为CRITICAL_PLUS至SHEDDABLE，确保高优先级请求在过载时不被丢弃。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "对于过载错误，需区分大规模与小规模过载：前者停止重试，后者立即重试。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "为避免重试爆炸，系统限制单次重试次数及客户端整体重试比例，并利用重试计数直方图判断其他节点状态。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若发现普遍过载，则返回“无须重试”错误，防止依赖栈中的级联重试导致系统崩溃。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "连接负载与代理隔离策略"}]}], "sourceIds": ["SRC-040"]}, {"lines": [{"indent": 0, "chunks": [{"t": "过载不仅源于处理逻辑，还来自连接维护成本。健康检查及突发连接可能消耗大量CPU和内存。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "为解决此问题，建议调节健康检查频率，并引入批处理代理。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "代理作为“保险丝”，隔离了后端与大量客户端，减少了后端连接数量，同时提高了负载均衡效率。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种架构优化，有效降低了连接层面的资源压力，保护了核心后端任务，确保了系统在极端负载下的稳定性。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-042"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形：假设一个核心搜索服务在后端过载时，大量客户端开始重试请求。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此时，部分重试请求携带了较高的重试计数，且后端检测到其他节点也处于过载状态。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 2, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：在这种情况下，后端应如何响应这些重试请求？请结合重要性分级和重试限制机制说明理由。"}]}], "sourceIds": ["SRC-044"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-045"]}, {"lines": [{"indent": 0, "chunks": [{"t": "后端应返回“过载；无须重试”错误。理由：1. 重试计数高表明请求已多次失败，继续重试可能无效；"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "2. 其他节点过载表明全局性问题，重试无法解决问题；"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "3. 结合重要性，若请求非CRITICAL_PLUS，拒绝重试可避免资源浪费；若为CRITICAL_PLUS，可能需降级而非重试。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这避免了重试爆炸，保护了系统稳定性。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-047"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 262-274。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}], "sourceIds": ["SRC-048", "SRC-049", "SRC-050"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}, {"indent": 0, "chunks": [{"t": "边界：QPS陷阱。"}]}, {"indent": 0, "chunks": [{"t": "边界：给每个用户设置限制。"}]}, {"indent": 0, "chunks": [{"t": "边界：客户端侧的节流机制。"}]}], "sourceIds": ["SRC-051", "SRC-052", "SRC-053", "SRC-054"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：重要性。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第22章 处理连锁故障”，继续回答：怎样理解并使用“处理连锁故障”，以及它在什么条件下不适用。"}]}], "sourceIds": ["SRC-055", "SRC-056"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

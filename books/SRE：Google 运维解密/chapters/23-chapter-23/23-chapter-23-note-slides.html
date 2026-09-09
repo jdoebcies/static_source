@@ -2,863 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第23章 管理关键状态 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第23章 管理关键状态：利用分布式共识来提高可靠性 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: distributed consensus is about keeping critical state calm under failure, so the deck uses graphite ink for risk, warm paper for explanation, and amber for quorum signals. */
-  --ink: #1d2428;
-  --ink-rgb: 29,36,40;
-  --paper: #f7f2e8;
-  --paper-rgb: 247,242,232;
-  --accent: #b7792f;
-  --muted: #6f7a7d;
-  --warm: #7c6752;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #d5a866; }
-.warm { color: var(--warm); }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
-.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
-  .timeline-row::before { display: none; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p293 章节标题">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Chapter 23</div>
-      <h1 class="display-zh">管理关键状态</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">利用分布式共识来提高可靠性。</p>
-      <p class="meta" style="margin-top:1.2vh">Laura Nolan</p>
-    </div>
-  </div>
-  <div class="foot"><span>p293</span><span>01 / 37</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Failure Context" data-source="p293 服务进程崩溃 硬盘故障 自然灾难">
-  <div class="chrome"><span>failure context</span><span>p293</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">SRE 要预先假设进程、硬盘、区域都会失败。</div>
-      <p class="body-zh muted" style="margin-top:2vh">分布式运行能提升灾难下的生存能力，也同时带来维护一致状态视图的问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>distributed state</span><span>02 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Consensus Questions" data-source="p293 共识问题列表">
-  <div class="chrome"><span>what must agree</span><span>p293</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">一组进程真正要一致的是这些关键状态</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">领头人</h3><p class="small-zh">哪个进程目前负责带队。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">成员</h3><p class="small-zh">这个组里到底包含哪些进程。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">队列</h3><p class="small-zh">消息是否已经成功插入。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">租约</h3><p class="small-zh">某个进程是否仍然持有租约。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">键值</h3><p class="small-zh">数据存储中某个键对应什么值。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>critical state</span><span>03 / 37</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Use Proven Consensus" data-source="p294 建议采用正式证明和详尽测试的分布式共识系统">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="callout">关键状态要交给经过证明和测试的共识系统。</div>
-      <p class="body-zh muted" style="margin-top:2vh">领头人选举、共享状态和分布式锁不能靠临时方案，否则可能留下难以修复的数据一致性问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>proven primitive</span><span>04 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="CAP" data-source="p294 p295 CAP 理论 网络分区迟早会发生">
-  <div class="chrome"><span>cap pressure</span><span>p294 p295</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">CAP 把分布式状态的代价说清楚了</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">一致</h3><p class="body-zh">每个节点上看到的数据一致。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">可用</h3><p class="body-zh">每个节点都能访问数据。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">分区容忍</h3><p class="body-zh">网络分区发生时系统仍要面对选择。</p></div>
-      </div>
-      <p class="body-zh muted">光缆、拥塞、硬件故障和网络配置错误都让分区成为迟早会出现的现实。</p>
-    </div>
-  </div>
-  <div class="foot"><span>partition happens</span><span>05 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="BASE Burden" data-source="p295 BASE 最终一致 开发者负担">
-  <div class="chrome"><span>base tradeoff</span><span>p295</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">最终一致把一部分复杂度推给应用开发者</h2>
-      <p class="lead-zh">多主复制常用最后操作为准解决冲突，但时钟漂移和网络分区会带来意外问题。</p>
-      <p class="body-zh muted">材料引用 Jeff Shute 的判断：开发者不应该把大量时间花在处理可能过时的数据上，一致性问题应在数据库层解决。</p>
-    </div>
-  </div>
-  <div class="foot"><span>eventual consistency</span><span>06 / 37</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Correctness First" data-source="p295 财务交易 正确性">
-  <div class="chrome"><span>correctness first</span><span>p295</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">处理关键数据时，可靠性和性能不能靠牺牲正确性换来。</div>
-      <p class="body-zh muted" style="margin-top:2vh">财务交易的例子很直接：最终结果不正确时，可靠和快速都没有价值。</p>
-    </div>
-  </div>
-  <div class="foot"><span>critical data</span><span>07 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Partial Network" data-source="p296 网络非常慢 某些消息丢弃 单方面节流">
-  <div class="chrome"><span>failure is messy</span><span>p296</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">真正难排查的故障，常常不是完全断网</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">网络很慢</h3><p class="body-zh">延迟变高，超时判断开始摇摆。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">部分丢包</h3><p class="body-zh">某些消息到达，某些消息消失。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">单边节流</h3><p class="body-zh">通信不对称，系统行为更难解释。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>coordination failure</span><span>08 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Split Brain Case" data-source="p296 案例1 脑裂问题 STONITH">
-  <div class="chrome"><span>case one</span><span>p296 p297</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">案例 1：简单心跳不能正确实现领头人选举</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">复制组</h3><p class="small-zh">两组文件服务器互相复制，提高可靠性。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">心跳</h3><p class="small-zh">一方联系不到另一方时，发送 STONITH 命令。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">网络变慢</h3><p class="small-zh">命令可能没有成功送达。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">双主</h3><p class="small-zh">两个文件服务器可能同时成为主服务者。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">后果</h3><p class="small-zh">数据损坏，或两个服务同时关闭导致不可用。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>heartbeat trap</span><span>09 / 37</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Manual Failover Case" data-source="p297 案例2 需要人工干预的灾备切换">
-  <div class="chrome"><span>case two</span><span>p297</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">案例 2：人工兜底避免数据丢失，却把可用性和扩展性交给了人</h2>
-      <p class="lead-zh">主实例无法确定副实例健康度时，把自己标记为不可用，并升级给人工处理。</p>
-      <p class="body-zh muted">这种方案避开脑裂风险，但大型基础设施故障时，运维人员往往已经在处理其他问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>manual pressure</span><span>10 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Gossip Case" data-source="p297 案例3 有问题的小组成员算法">
-  <div class="chrome"><span>case three</span><span>p297</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">案例 3：谣言协议发现成员，不等于拥有一致成员视图</h2>
-      <p class="lead-zh">网络分区后，两个分区各自选出领头者，同时接受写入和删除操作。</p>
-      <p class="body-zh muted">材料把维护一致的小组成员信息定义为分布式共识问题的另一种变种。</p>
-    </div>
-  </div>
-  <div class="foot"><span>membership consensus</span><span>11 / 37</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Same Shape" data-source="p297 领头人选举 小组成员 分布式锁 租约 队列 消息传递">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">很多分布式系统问题，最后都归结为共识问题的不同形状。</div>
-      <p class="body-zh muted" style="margin-top:2vh">领头人选举、成员信息、锁、租约、可靠队列、消息传递，临时办法在实践中都会遇到可靠性问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>same problem family</span><span>12 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Async Limits" data-source="p297 p298 异步式分布式共识 FLP impossibility result">
-  <div class="chrome"><span>asynchronous consensus</span><span>p297 p298</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">异步共识的理论边界很硬，工程上靠环境和退避推进</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>材料里的边界</th><th>工程里的应对</th></tr></thead>
-          <tbody>
-            <tr><td>消息可能无限延迟。</td><td>保证有足够健康副本和良好网络连接。</td></tr>
-            <tr><td>有限时间内一定达成共识在理论上不可能。</td><td>加入随机指数型延迟，避免重试连锁反应。</td></tr>
-            <tr><td>协议只在有利环境下继续推进。</td><td>保持安全性，同时提供足够冗余度。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>flp boundary</span><span>13 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Paxos Proposal" data-source="p298 p299 Paxos 提案 大多数 序列号">
-  <div class="chrome"><span>paxos shape</span><span>p298 p299</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Paxos 用提案、序列号和大多数建立顺序</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">提案</h3><p class="small-zh">每个提案可能被大多数进程接受，也可能失败。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">序列号</h3><p class="small-zh">每个提案带唯一序列号，保证操作严格排序。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">同意</h3><p class="small-zh">接收者没有见过更高序列号时才同意。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">提交</h3><p class="small-zh">提案者得到大多数同意后发送带值的提交消息。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">重试</h3><p class="small-zh">失败时用更高序列号重新提案。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>proposal order</span><span>14 / 37</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Majority Journal" data-source="p299 大多数重合 持久存储日志">
-  <div class="chrome"><span>majority and journal</span><span>p299</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">两个大多数一定至少重合一个节点，所以同一个提案不能提交两个不同的值。</div>
-      <p class="body-zh muted" style="margin-top:2vh">接收者接受提案时必须写持久日志，因为重启后仍要保留这个状态。</p>
-    </div>
-  </div>
-  <div class="foot"><span>quorum overlap</span><span>15 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Paxos Primitive" data-source="p299 Paxos 本身不那么好用">
-  <div class="chrome"><span>primitive only</span><span>p299</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">Paxos 本身只是很底层的原语</h2>
-      <p class="lead-zh">它只能让节点共同接收一次某个值和提案号码。</p>
-      <p class="body-zh muted">由于共同接收该值的节点数可以只是法定人数，任何一个节点可能都没有完整视图。</p>
-    </div>
-  </div>
-  <div class="foot"><span>not enough alone</span><span>16 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Service Primitive" data-source="p299 p300 ZooKeeper Consul etcd Chubby 服务原语">
-  <div class="chrome"><span>architecture pattern</span><span>p299 p300</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">真正有用的是共识之上的高级服务</h2>
-      <p class="lead-zh">数据存储、配置存储、队列、锁机制和领头人选举，才对应系统设计师的实际需求。</p>
-      <p class="body-zh muted">材料把 ZooKeeper、Consul、etcd 和 Chubby 都放在这个服务原语模式里，而不是要求每个应用自己链接共识库。</p>
-    </div>
-  </div>
-  <div class="foot"><span>consensus as service</span><span>17 / 37</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="RSM" data-source="p300 可靠的复制状态机">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">复制状态机把同一组操作，以同样顺序，在多个进程中执行。</div>
-      <p class="body-zh muted" style="margin-top:2vh">共识算法负责全局排序，RSM 按这个顺序执行操作，并在成员之间同步状态。</p>
-    </div>
-  </div>
-  <div class="foot"><span>replicated state machine</span><span>18 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Datastore Timestamp" data-source="p300 p301 可靠复制数据存储 时间戳问题 Spanner">
-  <div class="chrome"><span>datastore semantics</span><span>p300 p301</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">复制数据存储把共识放进关键路径，也把一致性语义放到台前</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">读语义</h3><p class="body-zh">读操作可以提供多种一致性语义，这很大程度决定数据存储的扩展性。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">时间戳</h3><p class="body-zh">依赖时间戳选择返回数据在分布式系统中问题很大，因为多台物理机器无法保证时间同步。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>read semantics</span><span>19 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Leader Election" data-source="p301 p302 使用领头人选举机制实现高可用处理系统">
-  <div class="chrome"><span>leader election pattern</span><span>p301 p302</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">唯一领头人是粗粒度互斥的常见做法</h2>
-      <p class="lead-zh">当工作可以由一个进程满足，或者领头人只是协调工作者池时，复制几份服务再选出唯一领头人就能构成高可用服务。</p>
-      <p class="body-zh muted">这里共识算法通常不在关键路径中，所以吞吐量不是主要问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>single leader</span><span>20 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Barrier Lock" data-source="p302 p303 屏障 锁 可续租约">
-  <div class="chrome"><span>coordination primitives</span><span>p302 p303</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">屏障和锁可以由 RSM 实现，但锁要慎用</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>原语</th><th>材料里的用途</th><th>风险提醒</th></tr></thead>
-          <tbody>
-            <tr><td>屏障</td><td>阻挡一组进程继续工作，直到条件满足，例如 Map 完成后再 Reduce。</td><td>单独协调者会成为不可接受的单点故障源。</td></tr>
-            <tr><td>锁</td><td>保障多个工作进程不会操作同一个输入文件。</td><td>实践中应使用可续租约，避免进程崩溃后锁被无限持有。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>barrier and lease</span><span>21 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Queue Broadcast" data-source="p303 p305 可靠分布式队列 原子性广播">
-  <div class="chrome"><span>queue and broadcast</span><span>p303 p305</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">队列用来分发任务，但必须证明任务被成功处理</h2>
-      <p class="lead-zh">材料建议用租约系统，而不是单纯从队列取出任务。</p>
-      <p class="body-zh muted">原子性广播要求参与者可靠接收消息，并以同样顺序处理。材料指出它和分布式共识本质上是一个问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>reliable queue</span><span>22 / 37</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Performance Myth" data-source="p305 分布式共识算法速度太慢观点是错误的">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">分布式共识太慢，不适合高吞吐低延迟系统，这个传统看法是错误的。</div>
-      <p class="body-zh muted" style="margin-top:2vh">材料的限定很重要：某些实现确实慢，但有很多办法可以提高性能，Google 的关键系统已经在使用它。</p>
-    </div>
-  </div>
-  <div class="foot"><span>performance myth</span><span>23 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Workload Deployment" data-source="p305 p306 负载维度 部署策略 RTT">
-  <div class="chrome"><span>performance variables</span><span>p305 p306</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">没有性能最优算法，只有负载、目标和部署共同决定的取舍</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>负载变量</th><th>部署变量</th><th>直接影响</th></tr></thead>
-          <tbody>
-            <tr><td>峰值吞吐量、写请求比例、读一致性要求、请求大小。</td><td>局部还是广域部署，仲裁过程如何分布。</td><td>领头人与客户端距离不同，RTT 差距会变得非常大。</td></tr>
-            <tr><td>系统是否读多写少，是否可以接受过期读。</td><td>是否使用分片、流水线和批处理。</td><td>扩展性和延迟目标会指向不同方案。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>no single optimum</span><span>24 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Multi Paxos" data-source="p306 p308 复合式 Paxos 强势领头人 提议者决斗">
-  <div class="chrome"><span>multi paxos flow</span><span>p306 p308</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">复合式 Paxos 用稳定领头人减少消息，但必须处理提议者决斗</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">视图</h3><p class="small-zh">第一阶段成功后建立新的有序视图，也就是领头人租约。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">跳过</h3><p class="small-zh">视图不变时，后续阶段可以跳过第一阶段。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">更换</h3><p class="small-zh">新提议者会带来重新执行第一阶段的成本。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">决斗</h3><p class="small-zh">两个提议者可能不停打断对方，形成活跃死锁。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">退避</h3><p class="small-zh">随机变量和后退策略是避免冲突的重要机制。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>dueling proposers</span><span>25 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Read Heavy" data-source="p308 p310 大量读操作 法定租约">
-  <div class="chrome"><span>read optimization</span><span>p308 p310</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">读多系统的关键，是哪些读必须强一致</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">任意副本读</h3><p class="body-zh">如果过期数据只造成额外工作，而不是错误结果，读可以从任意副本进行。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">法定租约</h3><p class="body-zh">给法定人数副本授予某部分数据的短租约，换来强一致本地读，但会牺牲部分写性能。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>quorum leases</span><span>26 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Network RTT" data-source="p310 p311 RTT TCP/IP 慢启动 代理池">
-  <div class="chrome"><span>network latency</span><span>p310 p311</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">写性能先撞上两个物理限制：RTT 和持久化写入</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>因素</th><th>材料里的数字或机制</th><th>工程应对</th></tr></thead>
-          <tbody>
-            <tr><td>网络 RTT</td><td>数据中心内毫秒级，美国本土约 45ms，纽约到伦敦约 70ms。</td><td>副本分布跨故障域，但必须接受距离带来的延迟。</td></tr>
-            <tr><td>TCP/IP</td><td>建连需要三次握手，慢启动限制初始带宽。</td><td>用地域性代理池保持到共识组的持久连接。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>proxy pool</span><span>27 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Fast Paxos Leader" data-source="p311 p312 快速 Paxos 稳定领头人机制">
-  <div class="chrome"><span>fast paxos caveat</span><span>p311 p312</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">Fast Paxos 看起来更短，但慢链路长尾可能让它更慢</h2>
-      <p class="lead-zh">如果客户端到接收者 RTT 很高，而接收者之间连接很快，N 个慢网络并发操作可能不如一次慢消息加 N 个快网络操作。</p>
-      <p class="body-zh muted">稳定领头人也有代价：所有改变状态的操作经由领头人，领头人外发带宽和机器性能都会成为瓶颈。</p>
-    </div>
-  </div>
-  <div class="foot"><span>leader bottleneck</span><span>28 / 37</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Batch Disk" data-source="p313 p314 批处理 流水线 磁盘访问">
-  <div class="chrome"><span>batch pipeline disk</span><span>p313 p314</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">批处理、流水线和日志合并，都是把固定成本摊薄</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">批处理</h3><p class="body-zh">多个操作合成一个操作，提升系统吞吐量。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">流水线</h3><p class="body-zh">多个提议同时进行，仍然用视图序号和交易序号全局排序。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">日志合并</h3><p class="body-zh">共识日志和 RSM 交易日志合并，减少在磁盘不同位置交替写入。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>amortize cost</span><span>29 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Replica Count" data-source="p314 p316 副本数量 2f+1 5个副本">
-  <div class="chrome"><span>replica count</span><span>p314 p316</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">副本数量是可靠性、维护、风险、性能和成本的妥协</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>数量</th><th>材料里的含义</th><th>运维含义</th></tr></thead>
-          <tbody>
-            <tr><td>3 个</td><td>非拜占庭失败下最小数量，可承受 1 个副本失败。</td><td>计划维护时还能继续工作，但维护期间再坏一个就不可用。</td></tr>
-            <tr><td>5 个</td><td>可允许两个副本不可用时继续运行。</td><td>只剩 3 个健康副本时，需要立刻增加额外副本。</td></tr>
-            <tr><td>大多数不可达</td><td>理论上进入无法恢复状态。</td><td>强制重配永远存在数据丢失可能性，应全力避免。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>quorum math</span><span>30 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Replica Location" data-source="p316 p318 副本的位置 故障域 RTT 备份">
-  <div class="chrome"><span>replica location</span><span>p316 p318</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">副本位置在故障域承受力和客户端可见性能之间取舍</h2>
-      <p class="lead-zh">副本距离越远，能承受的故障域越大，网络 RTT 通常也越高。</p>
-      <p class="body-zh muted">即使共识副本跨故障域部署，关键数据仍要备份在其他地方，因为软件 Bug 和系统管理员人为错误无法靠副本位置消除。</p>
-    </div>
-  </div>
-  <div class="foot"><span>failure domain</span><span>31 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Capacity Availability" data-source="p318 p320 容量规划 增加副本降低可用性 领头人分布">
-  <div class="chrome"><span>capacity and balance</span><span>p318 p320</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">增加副本不总是提高可用性，也可能制造新的瓶颈</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>场景</th><th>材料里的风险</th><th>需要看的量</th></tr></thead>
-          <tbody>
-            <tr><td>5 个变 6 个</td><td>法定人数从 3 变 4，超过 33% 副本不可用就会导致系统无法工作。</td><td>副本数量与仲裁门槛。</td></tr>
-            <tr><td>最近副本读</td><td>某区域负载升高会吞没最近副本，再传导到第二近副本。</td><td>过载传播路径。</td></tr>
-            <tr><td>领头人聚集</td><td>领头人使用更多网络容量，集中放置会造成出口瓶颈。</td><td>领头人在数据中心之间的分布。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>availability surprise</span><span>32 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Quorum Shape" data-source="p321 p324 仲裁组的组成 重叠仲裁组 层级型仲裁过程">
-  <div class="chrome"><span>quorum composition</span><span>p321 p324</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">仲裁组形状会决定故障后的延迟曲线</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">重叠仲裁组</h3><p class="body-zh">一个东海岸副本可以连接北美和欧洲两个可能仲裁组，但它故障后 RTT 会大幅改变。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">层级仲裁</h3><p class="body-zh">9 个副本分成 3 组，每组 3 个，多数组完成仲裁，可减少对中央副本的依赖。</p></div>
-      </div>
-      <p class="body-zh muted">更多副本意味着更高成本，但在高度分片且读可由副本服务的系统中，可以用更少共识组抵消成本。</p>
-    </div>
-  </div>
-  <div class="foot"><span>hierarchical quorum</span><span>33 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Monitoring" data-source="p324 p325 对分布式共识系统的监控">
-  <div class="chrome"><span>monitoring</span><span>p324 p325</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">共识系统监控要看成员、领头人、进度和瓶颈</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">成员</h3><p class="small-zh">每个共识组的成员数量和健康状态。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">落后</h3><p class="small-zh">副本是否正在恢复、落后，或完全参与。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">领头人</h3><p class="small-zh">是否存在，以及角色变化次数是否快速增加。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">交易数</h3><p class="small-zh">递增交易数字是否持续增长。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">延迟</h3><p class="small-zh">提议接收延迟、网络延迟和日志持久化时间。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>operability</span><span>34 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Core Summary One" data-source="p293 p297 p326 关键状态问题类型">
-  <div class="chrome"><span>core notes</span><span>p293 p297 p326</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <div class="summary-num">核心总结 1</div>
-      <h2 class="h1-zh">先识别问题形状，再选择机制</h2>
-      <div class="grid-2">
-        <div class="line-box"><h3 class="h2-zh accent">需要一致视图</h3><p class="body-zh">领头人、成员列表、租约、锁、队列和键值状态都属于同一问题族。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">不能靠心跳补丁</h3><p class="body-zh">心跳、谣言协议和人工兜底都可能在网络变慢或分区时暴露可靠性问题。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>problem shape</span><span>35 / 37</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Core Summary Two" data-source="p305 p314 p324 性能 部署 监控">
-  <div class="chrome"><span>core notes</span><span>p305 p314 p324</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <div class="summary-num">核心总结 2</div>
-      <h2 class="h1-zh">生产可用性来自协议、部署和监控三层一起成立</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">协议</h3><p class="body-zh">稳定领头人、法定租约、批处理和流水线改变性能曲线。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">部署</h3><p class="body-zh">副本数量、故障域、仲裁组形状和领头人分布共同决定故障表现。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">监控</h3><p class="body-zh">成员健康、落后副本、领头人变化、交易数字和延迟必须可见。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>operating consensus</span><span>36 / 37</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p325 p326 小结 分布式共识 定时炸弹">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">每当见到领头人选举、关键共享状态或分布式锁，就应该想到分布式共识。</div>
-      <p class="body-zh muted" style="margin-top:2vh">材料最后的结论很重：使用心跳等其他方案，会把一枚随时可能爆炸的定时炸弹放进系统。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p325 p326</span><span>37 / 37</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-23-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-23-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第23章 管理关键状态：利用分布式共识来提高可靠性 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：管理关键状态：利用分布式共识来提高可靠性。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "CAP 理论"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节引入CAP理论，指出分布式系统无法同时满足一致性、可用性和分区容错性。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过逻辑推导说明，当网络分区发生时，系统必须在数据一致性和服务可用性之间做出取舍。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一理论为后续讨论为何需要分布式共识系统奠定了理论基础，引出在不可靠网络中维持强一致性的必要性。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "使用共识系统的动力：分布式系统协调失败"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述使用共识系统的动力，指出分布式系统协调失败是核心痛点。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过案例说明，网络分区、延迟或丢包会导致系统行为难以预测。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过列举脑裂、人工干预灾备切换和有问题的组成员算法三个案例，揭示了简单超时机制的缺陷，强调必须使用经过证明的共识算法来解决协调问题。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "案例1：脑裂问题"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该案例描述了文件存储服务因网络延迟导致心跳超时，双方误发STONITH命令强制关闭对方或同时成为主节点，引发数据损坏。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者以此说明简单超时机制无法正确实现领头人选举，揭示了分布式异步共识问题的复杂性，为后文引入正式共识系统提供反面教材。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "案例2：需要人工干预的灾备切换"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "案例讲述分布式数据库在主从通信中断时，主实例标记自身不可用并升级给人工处理，以避免脑裂。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出这虽避免数据丢失却损害可用性并增加运维压力，说明在复杂网络下人工决策困难，进一步论证了自动化分布式共识系统在保障高可用性和降低运维负担方面的必要性。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "案例3：有问题的小组成员算法"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "案例指出使用谣言协议构建索引集群时，网络分区导致两个分区各自错误选举出领头者，造成脑裂和数据损失。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者借此说明维护一致的小组成员信息是分布式共识的变种，强调包括领头人选举、锁机制等在内的关键状态维护，必须采用经过正式证明的共识算法，而非临时性的简单协议。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式共识是如何工作的"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节解释分布式共识的工作原理，聚焦于异步分布式共识。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出FLP不可能性结果，说明在异步环境下无法保证有限时间内达成共识，因此需通过冗余副本和随机延迟来保障安全性。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "接着介绍Paxos协议作为基础，说明其通过提案序列和多数派同意来保证数据一致性，为后续具体协议详解做铺垫。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "Paxos概要：协议示例"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节以Paxos为例详解协议流程。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "提案者发送序列号给接收者，接收者在未接受更高序列号提案时同意，提案者获多数同意后提交。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该机制通过严格顺序性和多数派重合性防止数据冲突。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出Paxos仅保证节点共同接收值，缺乏完整视图，引出对高级系统架构模式的讨论，以弥补底层协议的不足。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式共识的系统架构模式"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍分布式共识的系统架构模式，指出共识算法本身过于底层，需通过高级组件如数据存储、配置存储、锁机制和领头人选举服务来增强实用性。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者以ZooKeeper和Chubby为例，说明将共识作为服务原语提供，可降低系统设计复杂度，并允许灵活更换底层算法，适应不同环境需求。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "可靠的复制状态机"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述可靠的复制状态机（RSM）的概念，即多个进程按相同顺序执行相同操作。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "RSM作为分布式系统基础组件，可用于构建数据存储、锁机制和领头人选举。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，通过共识算法全局排序操作，结合滑动窗口协议同步状态，可实现高可用的分布式复制服务，连接共识算法与实际应用。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "可靠的复制数据存储和配置存储"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论可靠的复制数据存储和配置存储，指出其利用共识算法保证关键路径上的数据一致性。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，基于时间戳的决定性方法在分布式系统中存在时钟漂移问题，而共识系统通过原子性操作解决此问题。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时提及Spanner通过建模不确定性来保证一致性，引出对读操作一致性和性能权衡的深入讨论。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "使用领头人选举机制实现高可用的处理系统"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节探讨使用领头人选举机制实现高可用处理系统，指出领头人选举与分布式共识等价。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过复制服务并使用唯一领头人进行工作协调，可保证粗粒度互斥性。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者以GFS和Bigtable为例，说明该模式适用于工作负载分片或可由单进程满足的场景，通过复制进程和领头人选举构建高可用服务，避免单点故障。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式协调和锁服务"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍分布式协调和锁服务，指出屏障和锁是重要的协调原语。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "屏障用于划分分布式计算阶段，锁用于保障多个工作进程原子性操作输入文件。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调使用可续租约锁避免进程崩溃导致的无限持有，并指出分布式锁是底层系统原语，应用程序应使用更高层系统提供分布式事务服务，以简化开发并提高可靠性。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "可靠的分布式队列和消息传递"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论可靠的分布式队列和消息传递，指出队列用于分发任务，需保证任务被成功处理。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者建议采用租约系统而非单纯取出任务，以最小化系统危险性。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时介绍原子性广播概念，证明其与分布式共识本质相同。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过队列实现负载均衡和点对点通信，利用持久化有序列表支持订阅-分发系统，提升系统可靠性。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式共识系统的性能问题"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节分析分布式共识系统的性能问题，反驳共识算法速度慢的误解。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出性能取决于负载维度如吞吐量、请求类型、读请求一致性要求及数据大小。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过列举部署策略如局部或广域部署、仲裁过程、分片等，说明性能优化需综合考虑。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调没有最优算法，需根据系统负载和部署情况权衡，引出后续具体性能优化技术的讨论。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "复合式Paxos：消息流过程详解"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节详解复合式Paxos的消息流过程，引入强势领头人概念以优化性能。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在正常状态下，提议者只需向法定人数进程发送一次消息即可达成共识。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过图示说明第一阶段建立有序视图后，后续阶段可跳过第一阶段直接发送Accept消息。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时指出领头人更换可能导致“提议者决斗”，引发活跃死锁，需通过随机变量或固定领头人来解决。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "应对大量的读操作"}]}], "sourceIds": ["SRC-033"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节探讨应对大量读操作的优化策略，指出读操作居多的系统需优化性能。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明数据可从任意副本读取，若无需强一致性，过期数据仅造成额外工作。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "为保障读取最新数据，需进行只读共识操作、从稳定领头人读取或使用法定租约协议。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "法定租约通过发放短期租约，换取强一致性本地读操作的可能，平衡读写性能。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "法定租约"}]}], "sourceIds": ["SRC-035"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节深入解析法定租约技术，旨在降低操作延迟和提高读操作吞吐量。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该技术向法定人数进程发放带有时间范围的租约，期间数据修改需所有租约进程响应。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出该技术适用于读操作多且数据集中的系统，通过牺牲部分写性能换取强一致性本地读，有效缓解经典Paxos中强一致性读带来的性能瓶颈，提升系统整体效率。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式共识系统的性能与网络延迟"}]}], "sourceIds": ["SRC-037"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节分析分布式共识系统的性能与网络延迟，指出写性能受网络往返时间（RTT）和磁盘写入时间限制。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明RTT受物理距离和网络拥塞影响，TCP/IP连接建立和慢启动机制增加开销。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过引入地域性代理池，减少客户端跨地理区域打开TCP连接的开销，代理池负责包装分片逻辑和负载均衡，优化客户端体验。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "快速Paxos协议：性能优化"}]}], "sourceIds": ["SRC-039"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍快速Paxos协议的性能优化，该协议允许客户端直接向接收者发送Propose消息，替代经典Paxos的两步操作。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，若客户端到接收者RTT高而接收者间RTT低，快速Paxos可能因慢速网络并发操作而变慢。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此外，客户端直接提议使批处理困难，因提议独立到达接收者，难以合并，影响吞吐量优化效果。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "稳定的领头人机制"}]}], "sourceIds": ["SRC-041"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论稳定的领头人机制，指出Zab和Raft等协议通过选举稳定领头人提高性能。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "领头人始终拥有最新信息，利于读操作优化，但所有写操作需经领头人，增加远距离客户端延迟。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "领头人外发带宽是瓶颈，因其发送包含数据的提议。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者建议采用稳定领头人或轮换机制，平衡性能与故障域，减少广域网络中的延迟影响。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "批处理"}]}], "sourceIds": ["SRC-043"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述批处理机制对系统吞吐量的提升，指出批处理可与流水线机制结合，使多个提议同时进行，类似TCP/IP滑动窗口。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "流水线中的请求通过视图序号和交易序号全局排序，不违反复制状态机要求。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者提及详细讨论见相关文献，强调批处理将磁盘日志写开销与网络延迟分布到更多操作上，提高系统整体吞吐量，优化资源利用。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "磁盘访问"}]}], "sourceIds": ["SRC-045"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节分析磁盘访问对共识系统性能的影响，指出节点需将请求写入持久化存储以恢复状态。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在Paxos协议中，接收者在承诺前需写入磁盘，提议者在发送Accept前也需写入。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明磁盘写入时间约1毫秒至数毫秒，影响共识操作延迟。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过合并日志和批处理操作，减少磁盘寻址时间，提高每秒处理操作数，优化系统性能。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式共识系统的部署"}]}], "sourceIds": ["SRC-047"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论分布式共识系统的部署，强调副本数量和位置是关键决策。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，2f+1副本可容忍f个失败，3副本可容忍1个失败，5副本可容忍2个失败。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "部署需权衡可靠性、维护频率、危险性、性能和成本。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过选择副本数量和位置，系统可在故障域间平衡，确保在部分副本失败时仍能运行，同时最小化网络延迟对性能的影响。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "副本的数量"}]}], "sourceIds": ["SRC-049"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论副本数量的选择，指出3副本可容忍1个失败，5副本可容忍2个失败。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明，若大部分副本不可访问，系统进入无法恢复状态，需管理员强制重新配置，但存在数据丢失风险。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过监控副本状态和日志，系统管理员可决定是等待恢复还是强制配置，确保系统鲁棒性。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "副本数量决策需基于可靠性、维护频率和成本的综合权衡。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "副本的位置"}]}], "sourceIds": ["SRC-051"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节分析副本位置的部署决策，主要权衡故障域数量和延迟要求。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，随着副本距离增加，RTT增加但故障容忍度提高。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "部署需考虑客户端可见性能，理想情况下最小化客户端与共识系统的RTT。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在无领头人协议中，均匀分布副本可形成固定系统性能。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，需考虑灾难恢复，将数据备份在其他地方，以应对软件和人为错误导致的故障。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "容量规划和负载均衡"}]}], "sourceIds": ["SRC-053"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论容量规划和负载均衡，指出增加副本可提高读性能，但可能降低可用性，因法定仲裁过程所需副本数增加。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明，将多个副本放在同一数据中心可能减少可用性，因该中心故障导致所有副本不可用。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过负载均衡机制，避免负载集中导致连锁故障。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，需考虑客户端分布，将副本放置在离客户端近的地方，优化系统性能。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "仲裁组的组成"}]}], "sourceIds": ["SRC-055"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节探讨仲裁组的组成，指出地理位置分布影响性能。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者建议将副本均匀分布，使RTT基本类似，形成固定系统性能。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "然而，跨大陆部署存在延迟差异，如跨大西洋链路较慢。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过重叠仲裁组，如5副本中2个在美国中部，1个在东海岸，2个在欧洲，可保证北美洲副本完成共识，无需等待欧洲回复。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "东海岸副本作为关键轴，连接两个组，优化性能。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "每个共识组中的成员数量，以及每个成员的状态（健康或不健"}]}], "sourceIds": ["SRC-057"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节详细讨论监控每个共识组成员数量和状态，指出进程可能运行但无法工作。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，需监控成员是否健康，以及时发现硬件或软件故障。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过监控成员状态，系统管理员可判断系统是否正常运行，并在出现故障时采取相应措施。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该监控指标是确保分布式共识系统可靠性的基础，帮助识别潜在问题。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "对分布式共识系统的监控"}]}], "sourceIds": ["SRC-059"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍对分布式共识系统的监控，指出需关注成员数量、状态、落后副本、领头人角色及变化次数。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明，监控共识交易记录数字、提议数量和接受数量，可判断系统运行状态。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时监控吞吐量、延迟、网络延迟和磁盘写入时间，帮助故障排查。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过监控这些指标，系统管理员可及时发现并处理故障，确保系统高可用性。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "始终落后的副本"}]}], "sourceIds": ["SRC-061"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节探讨监控始终落后的副本，指出健康成员可能处于不同状态，如启动恢复、始终落后或完全参与。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明，监控落后副本有助于判断系统同步状态，及时发现同步问题。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过监控副本状态，系统管理员可评估系统性能，并在必要时调整副本配置，确保数据一致性和系统可靠性，避免落后副本影响整体性能。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "领头人角色是否存在"}]}], "sourceIds": ["SRC-063"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论监控领头人角色是否存在，指出基于复合Paxos的系统需确保领头人存在，否则系统不可用。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，通过监控领头人角色，系统管理员可及时发现领头人故障，并触发重新选举。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该监控指标是确保系统连续运行的关键，帮助识别网络或软件问题导致的领头人缺失，保障系统高可用性。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "领头人角色变化的次数"}]}], "sourceIds": ["SRC-065"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节分析监控领头人角色变化次数，指出快速变化影响系统性能，可能由网络连接问题或软件Bug引起。"}]}], "sourceIds": ["SRC-066"], "sourceParts": [{"id": "SRC-066", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明，通过监控视图编号降低或角色变化频率，系统管理员可识别领头人抖动或严重Bug。"}]}], "sourceIds": ["SRC-066"], "sourceParts": [{"id": "SRC-066", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该监控指标有助于评估系统稳定性，及时发现并处理网络或软件问题，确保系统正常运行，避免性能下降。"}]}], "sourceIds": ["SRC-066"], "sourceParts": [{"id": "SRC-066", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "共识交易记录数字"}]}], "sourceIds": ["SRC-067"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论监控共识交易记录数字，指出系统管理员需知道系统是否正在处理交易。"}]}], "sourceIds": ["SRC-068"], "sourceParts": [{"id": "SRC-068", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明，递增的共识交易数字代表系统进度，健康时随时间增长。"}]}], "sourceIds": ["SRC-068"], "sourceParts": [{"id": "SRC-068", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过监控该数字，系统管理员可判断系统是否正常运行，及时发现停滞或异常。"}]}], "sourceIds": ["SRC-068"], "sourceParts": [{"id": "SRC-068", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该指标是评估系统活跃度和处理能力的关键，帮助识别潜在故障，确保系统高效运行。"}]}], "sourceIds": ["SRC-068"], "sourceParts": [{"id": "SRC-068", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "系统中的提议数量，以及系统中被接受的提议数量"}]}], "sourceIds": ["SRC-069"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节探讨监控系统中的提议数量和被接受数量，指出这些数字显示系统是否正常运行。"}]}], "sourceIds": ["SRC-070"], "sourceParts": [{"id": "SRC-070", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者说明，通过监控提议和接受数量，系统管理员可评估系统处理能力和效率。"}]}], "sourceIds": ["SRC-070"], "sourceParts": [{"id": "SRC-070", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该监控指标有助于识别系统瓶颈或故障，如提议堆积或接受率低，帮助及时调整系统配置，确保系统高可用性和性能，及时发现并处理潜在问题。"}]}], "sourceIds": ["SRC-070"], "sourceParts": [{"id": "SRC-070", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "吞吐量和延迟"}]}], "sourceIds": ["SRC-071"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论监控吞吐量和延迟，指出这些特性虽不特定于共识系统，但需被管理员理解。"}]}], "sourceIds": ["SRC-072"], "sourceParts": [{"id": "SRC-072", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，通过监控提议接收时间延迟分布、网络延迟、磁盘写入时间和每秒处理字节数，系统管理员可全面了解系统性能。"}]}], "sourceIds": ["SRC-072"], "sourceParts": [{"id": "SRC-072", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该监控指标帮助识别性能瓶颈，优化系统配置，确保高可用性和低延迟，及时发现并处理潜在问题，提升系统整体效率。"}]}], "sourceIds": ["SRC-072"], "sourceParts": [{"id": "SRC-072", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "小结"}]}], "sourceIds": ["SRC-073"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节总结本章内容，回顾分布式共识问题的定义、系统架构及性能特点。"}]}], "sourceIds": ["SRC-074"], "sourceParts": [{"id": "SRC-074", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，分布式共识系统可用于解决领头人选举、关键共享状态和分布式锁等问题，使用心跳机制等非共识方案可能导致严重问题。"}]}], "sourceIds": ["SRC-074"], "sourceParts": [{"id": "SRC-074", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过本章学习，读者应掌握分布式共识系统的应用场景和重要性，避免使用不可靠的协调机制，确保系统高可靠性和一致性。"}]}], "sourceIds": ["SRC-074"], "sourceParts": [{"id": "SRC-074", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：分布式共识的核心机制与性能优化"}]}], "sourceIds": ["SRC-075"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "共识系统的基础架构与一致性保障"}]}], "sourceIds": ["SRC-076"]}, {"lines": [{"indent": 0, "chunks": [{"t": "分布式共识系统旨在解决网络不稳定环境下多节点状态一致性问题。"}]}], "sourceIds": ["SRC-077"], "sourceParts": [{"id": "SRC-077", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核心机制如Paxos协议，通过提案序列和多数派同意确保数据顺序性和一致性。"}]}], "sourceIds": ["SRC-077"], "sourceParts": [{"id": "SRC-077", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "复合式Paxos引入强势领头人，优化消息流，减少通信轮次。"}]}], "sourceIds": ["SRC-077"], "sourceParts": [{"id": "SRC-077", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "然而，领头人更换可能导致“提议者决斗”，引发活跃死锁。因此，系统需通过随机延迟或固定领头人机制避免冲突。"}]}], "sourceIds": ["SRC-077"], "sourceParts": [{"id": "SRC-077", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "复制状态机（RSM）作为上层应用，利用共识算法全局排序操作，实现高可用复制服务。"}]}], "sourceIds": ["SRC-077"], "sourceParts": [{"id": "SRC-077", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过滑动窗口协议同步状态，RSM连接底层共识与上层应用，如数据存储和锁服务，确保关键状态在多个节点间可靠同步。"}]}], "sourceIds": ["SRC-077"], "sourceParts": [{"id": "SRC-077", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "性能优化策略：读操作与网络延迟"}]}], "sourceIds": ["SRC-078"]}, {"lines": [{"indent": 0, "chunks": [{"t": "针对读操作居多的系统，性能优化至关重要。"}]}], "sourceIds": ["SRC-079"], "sourceParts": [{"id": "SRC-079", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "法定租约技术通过发放短期租约，允许本地强一致性读，减少共识操作延迟。"}]}], "sourceIds": ["SRC-079"], "sourceParts": [{"id": "SRC-079", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "快速Paxos协议允许客户端直接向接收者发送提议，替代两步操作，但若客户端到接收者RTT高，可能因慢速网络并发而变慢。"}]}], "sourceIds": ["SRC-079"], "sourceParts": [{"id": "SRC-079", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "稳定领头人机制优化读操作，因领头人拥有最新信息，但写操作需经领头人，增加远距离客户端延迟。"}]}], "sourceIds": ["SRC-079"], "sourceParts": [{"id": "SRC-079", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "批处理机制将多个操作合并，提高吞吐量，结合流水线技术，使多个提议同时进行，类似TCP滑动窗口，优化资源利用，减少磁盘寻址时间，提升系统整体性能。"}]}], "sourceIds": ["SRC-079"], "sourceParts": [{"id": "SRC-079", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "部署策略与监控实践"}]}], "sourceIds": ["SRC-080"]}, {"lines": [{"indent": 0, "chunks": [{"t": "部署共识系统需权衡副本数量和位置。"}]}], "sourceIds": ["SRC-081"], "sourceParts": [{"id": "SRC-081", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "3副本容忍1个失败，5副本容忍2个失败，决策基于可靠性、维护频率和成本。"}]}], "sourceIds": ["SRC-081"], "sourceParts": [{"id": "SRC-081", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "副本位置影响RTT和故障域，均匀分布可形成固定性能，但跨大陆部署存在延迟差异。"}]}], "sourceIds": ["SRC-081"], "sourceParts": [{"id": "SRC-081", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过重叠仲裁组，如美国中部、东海岸和欧洲分布，优化共识过程。"}]}], "sourceIds": ["SRC-081"], "sourceParts": [{"id": "SRC-081", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "监控方面，需关注成员状态、落后副本、领头人角色及变化次数、交易记录数字、提议数量和吞吐量延迟。"}]}], "sourceIds": ["SRC-081"], "sourceParts": [{"id": "SRC-081", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些指标帮助识别故障，评估系统稳定性，及时调整配置，确保高可用性和低延迟，及时发现并处理潜在问题，保障系统高效运行。"}]}], "sourceIds": ["SRC-081"], "sourceParts": [{"id": "SRC-081", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-082"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形：假设你正在设计一个跨地域的分布式数据库系统，主要负载为读操作，且对延迟敏感。"}]}], "sourceIds": ["SRC-083"], "sourceParts": [{"id": "SRC-083", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "系统部署在三个数据中心：A（美国）、B（欧洲）、C（亚洲）。每个数据中心有3个副本，共9个副本。"}]}], "sourceIds": ["SRC-083"], "sourceParts": [{"id": "SRC-083", "index": 2, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：1. 你会如何部署副本位置以平衡故障域和延迟？2. 针对读操作，你会采用何种机制优化性能？"}]}], "sourceIds": ["SRC-084"], "sourceParts": [{"id": "SRC-084", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "3. 如果A数据中心网络分区，系统如何保证一致性？"}]}], "sourceIds": ["SRC-084"], "sourceParts": [{"id": "SRC-084", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-085"]}, {"lines": [{"indent": 0, "chunks": [{"t": "1. 考虑重叠仲裁组，如A和B各2个，C1个，或均匀分布但通过代理池优化RTT。"}]}], "sourceIds": ["SRC-086"], "sourceParts": [{"id": "SRC-086", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "2. 采用法定租约或稳定领头人机制，允许本地读，减少共识操作。"}]}], "sourceIds": ["SRC-086"], "sourceParts": [{"id": "SRC-086", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "3. 若A分区，系统需确保多数派副本可用，如B和C共4个副本，可形成法定人数，保证一致性。"}]}], "sourceIds": ["SRC-086"], "sourceParts": [{"id": "SRC-086", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若多数派不可用，系统可能不可用，需监控和故障转移机制。"}]}], "sourceIds": ["SRC-086"], "sourceParts": [{"id": "SRC-086", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-087"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 293-326。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}], "sourceIds": ["SRC-088", "SRC-089", "SRC-090"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}, {"indent": 0, "chunks": [{"t": "边界：所有性能数据仅基于原书中提到的Google实践，不推广为通用标准。"}]}, {"indent": 0, "chunks": [{"t": "边界：技术术语如Paxos、Raft、Zab等保持原文名称，不替换同义词。"}]}, {"indent": 0, "chunks": [{"t": "边界：确保每个小节内容连贯，逻辑清晰，符合原书结构。"}]}], "sourceIds": ["SRC-091", "SRC-092", "SRC-093", "SRC-094"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：监控部分需具体列出指标，如成员状态、领头人变化次数等。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第24章 分布式周期性任务系统”，继续回答：如何设计一个在大规模分布式环境下高可靠、强一致的周期性任务调度系统？"}]}], "sourceIds": ["SRC-095", "SRC-096"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

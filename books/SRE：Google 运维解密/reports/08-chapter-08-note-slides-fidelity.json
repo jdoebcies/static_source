@@ -1,0 +1,931 @@
+{
+  "status": "pass",
+  "title": "《SRE：Google运维解密》第8章 发布工程 · 原书回顾与主题讲解",
+  "source_count": 62,
+  "slide_count": 130,
+  "first_use_order_matches": true,
+  "all_sources_referenced": true,
+  "continuations_valid": true,
+  "list_run_sizes": [
+    3,
+    4,
+    2
+  ],
+  "composition_manifest": [
+    {
+      "page": 1,
+      "sourceIds": [],
+      "role": "identity"
+    },
+    {
+      "page": 2,
+      "sourceIds": [
+        "SRC-001"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 3,
+      "sourceIds": [
+        "SRC-002"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 4,
+      "sourceIds": [
+        "SRC-003"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 5,
+      "sourceIds": [
+        "SRC-004"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 6,
+      "sourceIds": [
+        "SRC-004"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 7,
+      "sourceIds": [
+        "SRC-004"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 8,
+      "sourceIds": [
+        "SRC-005"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 9,
+      "sourceIds": [
+        "SRC-006"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 10,
+      "sourceIds": [
+        "SRC-006"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 11,
+      "sourceIds": [
+        "SRC-006"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 12,
+      "sourceIds": [
+        "SRC-007"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 13,
+      "sourceIds": [
+        "SRC-008"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 14,
+      "sourceIds": [
+        "SRC-008"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 15,
+      "sourceIds": [
+        "SRC-008"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 16,
+      "sourceIds": [
+        "SRC-009"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 17,
+      "sourceIds": [
+        "SRC-010"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 18,
+      "sourceIds": [
+        "SRC-010"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 19,
+      "sourceIds": [
+        "SRC-010"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 20,
+      "sourceIds": [
+        "SRC-011"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 21,
+      "sourceIds": [
+        "SRC-012"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 22,
+      "sourceIds": [
+        "SRC-012"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 23,
+      "sourceIds": [
+        "SRC-012"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 24,
+      "sourceIds": [
+        "SRC-012"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 25,
+      "sourceIds": [
+        "SRC-013"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 26,
+      "sourceIds": [
+        "SRC-014"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 27,
+      "sourceIds": [
+        "SRC-014"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 28,
+      "sourceIds": [
+        "SRC-014"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 29,
+      "sourceIds": [
+        "SRC-014"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 30,
+      "sourceIds": [
+        "SRC-015"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 31,
+      "sourceIds": [
+        "SRC-016"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 32,
+      "sourceIds": [
+        "SRC-016"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 33,
+      "sourceIds": [
+        "SRC-016"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 34,
+      "sourceIds": [
+        "SRC-017"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 35,
+      "sourceIds": [
+        "SRC-018"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 36,
+      "sourceIds": [
+        "SRC-018"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 37,
+      "sourceIds": [
+        "SRC-018"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 38,
+      "sourceIds": [
+        "SRC-019"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 39,
+      "sourceIds": [
+        "SRC-020"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 40,
+      "sourceIds": [
+        "SRC-020"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 41,
+      "sourceIds": [
+        "SRC-020"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 42,
+      "sourceIds": [
+        "SRC-020"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 43,
+      "sourceIds": [
+        "SRC-021"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 44,
+      "sourceIds": [
+        "SRC-022"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 45,
+      "sourceIds": [
+        "SRC-022"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 46,
+      "sourceIds": [
+        "SRC-022"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 47,
+      "sourceIds": [
+        "SRC-022"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 48,
+      "sourceIds": [
+        "SRC-023"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 49,
+      "sourceIds": [
+        "SRC-024"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 50,
+      "sourceIds": [
+        "SRC-024"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 51,
+      "sourceIds": [
+        "SRC-024"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 52,
+      "sourceIds": [
+        "SRC-025"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 53,
+      "sourceIds": [
+        "SRC-026"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 54,
+      "sourceIds": [
+        "SRC-026"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 55,
+      "sourceIds": [
+        "SRC-026"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 56,
+      "sourceIds": [
+        "SRC-027"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 57,
+      "sourceIds": [
+        "SRC-028"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 58,
+      "sourceIds": [
+        "SRC-028"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 59,
+      "sourceIds": [
+        "SRC-028"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 60,
+      "sourceIds": [
+        "SRC-028"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 61,
+      "sourceIds": [
+        "SRC-029"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 62,
+      "sourceIds": [
+        "SRC-030"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 63,
+      "sourceIds": [
+        "SRC-030"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 64,
+      "sourceIds": [
+        "SRC-030"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 65,
+      "sourceIds": [
+        "SRC-031"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 66,
+      "sourceIds": [
+        "SRC-032"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 67,
+      "sourceIds": [
+        "SRC-032"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 68,
+      "sourceIds": [
+        "SRC-032"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 69,
+      "sourceIds": [
+        "SRC-033"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 70,
+      "sourceIds": [
+        "SRC-034"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 71,
+      "sourceIds": [
+        "SRC-034"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 72,
+      "sourceIds": [
+        "SRC-034"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 73,
+      "sourceIds": [
+        "SRC-034"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 74,
+      "sourceIds": [
+        "SRC-035"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 75,
+      "sourceIds": [
+        "SRC-036"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 76,
+      "sourceIds": [
+        "SRC-036"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 77,
+      "sourceIds": [
+        "SRC-036"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 78,
+      "sourceIds": [
+        "SRC-036"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 79,
+      "sourceIds": [
+        "SRC-037"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 80,
+      "sourceIds": [
+        "SRC-038"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 81,
+      "sourceIds": [
+        "SRC-038"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 82,
+      "sourceIds": [
+        "SRC-038"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 83,
+      "sourceIds": [
+        "SRC-039"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 84,
+      "sourceIds": [
+        "SRC-040"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 85,
+      "sourceIds": [
+        "SRC-041"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 86,
+      "sourceIds": [
+        "SRC-041"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 87,
+      "sourceIds": [
+        "SRC-041"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 88,
+      "sourceIds": [
+        "SRC-041"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 89,
+      "sourceIds": [
+        "SRC-041"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 90,
+      "sourceIds": [
+        "SRC-041"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 91,
+      "sourceIds": [
+        "SRC-042"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 92,
+      "sourceIds": [
+        "SRC-043"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 93,
+      "sourceIds": [
+        "SRC-043"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 94,
+      "sourceIds": [
+        "SRC-043"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 95,
+      "sourceIds": [
+        "SRC-043"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 96,
+      "sourceIds": [
+        "SRC-043"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 97,
+      "sourceIds": [
+        "SRC-043"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 98,
+      "sourceIds": [
+        "SRC-043"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 99,
+      "sourceIds": [
+        "SRC-044"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 100,
+      "sourceIds": [
+        "SRC-045"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 101,
+      "sourceIds": [
+        "SRC-045"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 102,
+      "sourceIds": [
+        "SRC-045"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 103,
+      "sourceIds": [
+        "SRC-045"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 104,
+      "sourceIds": [
+        "SRC-045"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 105,
+      "sourceIds": [
+        "SRC-045"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 106,
+      "sourceIds": [
+        "SRC-045"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 107,
+      "sourceIds": [
+        "SRC-046"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 108,
+      "sourceIds": [
+        "SRC-047"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 109,
+      "sourceIds": [
+        "SRC-047"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 110,
+      "sourceIds": [
+        "SRC-047"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 111,
+      "sourceIds": [
+        "SRC-047"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 112,
+      "sourceIds": [
+        "SRC-047"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 113,
+      "sourceIds": [
+        "SRC-047"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 114,
+      "sourceIds": [
+        "SRC-048"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 115,
+      "sourceIds": [
+        "SRC-049"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 116,
+      "sourceIds": [
+        "SRC-049"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 117,
+      "sourceIds": [
+        "SRC-049"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 118,
+      "sourceIds": [
+        "SRC-050"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 119,
+      "sourceIds": [
+        "SRC-051"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 120,
+      "sourceIds": [
+        "SRC-052"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 121,
+      "sourceIds": [
+        "SRC-052"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 122,
+      "sourceIds": [
+        "SRC-052"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 123,
+      "sourceIds": [
+        "SRC-052"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 124,
+      "sourceIds": [
+        "SRC-052"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 125,
+      "sourceIds": [
+        "SRC-052"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 126,
+      "sourceIds": [
+        "SRC-052"
+      ],
+      "role": "statement"
+    },
+    {
+      "page": 127,
+      "sourceIds": [
+        "SRC-053"
+      ],
+      "role": "chapter"
+    },
+    {
+      "page": 128,
+      "sourceIds": [
+        "SRC-054",
+        "SRC-055",
+        "SRC-056"
+      ],
+      "role": "sequence"
+    },
+    {
+      "page": 129,
+      "sourceIds": [
+        "SRC-057",
+        "SRC-058",
+        "SRC-059",
+        "SRC-060"
+      ],
+      "role": "sequence"
+    },
+    {
+      "page": 130,
+      "sourceIds": [
+        "SRC-061",
+        "SRC-062"
+      ],
+      "role": "sequence"
+    }
+  ],
+  "failures": []
+}

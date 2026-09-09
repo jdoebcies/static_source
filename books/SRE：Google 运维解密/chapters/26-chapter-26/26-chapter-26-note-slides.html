@@ -2,983 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第26章 数据完整性：读写一致 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第26章 数据完整性：读写一致 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: data integrity in this chapter is about user trust under loss, restore drills, and layered recovery, so the deck uses dark graphite for failure pressure, warm paper for operational notes, and teal for verified recovery signals. */
-  --ink: #20262a;
-  --ink-rgb: 32,38,42;
-  --paper: #f6f0e6;
-  --paper-rgb: 246,240,230;
-  --accent: #2f8f84;
-  --muted: #6f7877;
-  --warm: #7e6857;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #7fd0c7; }
-.warm { color: var(--warm); }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.85rem, 1.5vw, 1.35rem); }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
-.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .grid-4, .timeline-row { grid-template-columns: 1fr; }
-  .timeline-row::before { display: none; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p354 章节标题 作者">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Chapter 26</div>
-      <h1 class="display-zh">数据完整性：读写一致</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">从备份思维转向恢复思维。</p>
-      <p class="meta" style="margin-top:1.2vh">Raymond Blum · Rhandeev Singh</p>
-    </div>
-  </div>
-  <div class="foot"><span>p354</span><span>01 / 46</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="User View" data-source="p354 一切要以用户为准">
-  <div class="chrome"><span>user view</span><span>p354</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">讨论数据完整性时，一切要以用户为准。</div>
-      <p class="body-zh muted" style="margin-top:2vh">数据可能没有真正丢失，但只要用户界面让用户长期无法访问，用户就会把它理解为数据丢失。</p>
-    </div>
-  </div>
-  <div class="foot"><span>data integrity</span><span>02 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Access Threshold" data-source="p354 2011年Gmail事故 24小时阈值">
-  <div class="chrome"><span>access threshold</span><span>p354</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">无法访问也会侵蚀云服务可信度</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">Gmail</h3><p class="body-zh">收件箱显示为空，用户会认为数据已经丢失。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">4 天</h3><p class="body-zh">2011 年 Gmail 事故显示这个时间已经太久。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">24 小时</h3><p class="body-zh">材料把它作为 Google App 的合理时间阈值。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>trust window</span><span>03 / 46</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Integrity Demand" data-source="p354 p355 99.99% 数据完整性SLO 200KB损坏">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="callout">99.99% 的数据完整性，可能仍然意味着灾难。</div>
-      <p class="body-zh muted" style="margin-top:2vh">2GB 用户数据中 200KB 损坏，文档、可执行文件和数据库都可能被彻底破坏。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p354 p355</span><span>04 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Detect Repair" data-source="p355 主动探测 快速修复 30分钟">
-  <div class="chrome"><span>detection and repair</span><span>p355</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">超高完整性靠主动探测和快速修复</h2>
-      <p class="lead-zh">如果损坏能在用户受影响前发现，自动删除或修复，并在 30 分钟内恢复访问，用户可见生命周期里的完整性仍然接近 100%。</p>
-    </div>
-  </div>
-  <div class="foot"><span>restore before visible</span><span>05 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Optimization Axes" data-source="p355 p356 在线时间 延迟 规模 创新速度 隐私">
-  <div class="chrome"><span>service priorities</span><span>p355 p356</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">云应用通常在五个目标之间取舍</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">在线时间</h3><p class="small-zh">服务可以被用户使用的时间比率。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">延迟</h3><p class="small-zh">服务对用户的响应时间。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">规模</h3><p class="small-zh">用户数量和可承受负载。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">创新速度</h3><p class="small-zh">以合理成本持续改进服务。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">隐私</h3><p class="small-zh">用户删除后在合理时间内真正摧毁数据。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>five axes</span><span>06 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Api Mix" data-source="p356 Blobstore Megastore Bigtable 引用完整性">
-  <div class="chrome"><span>api mix</span><span>p356</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">创新速度压过其他目标时，数据关系会变复杂</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>选择</th><th>材料里的动机</th><th>完整性压力</th></tr></thead>
-          <tbody>
-            <tr><td>Blobstore</td><td>高负载、扩展性、在线率、低延迟和低成本。</td><td>忽略分布式一致性，需要外部补救。</td></tr>
-            <tr><td>Megastore</td><td>保存一小块权威元数据。</td><td>延迟较高，在线率稍低，成本更高。</td></tr>
-            <tr><td>客户端缓存</td><td>降低用户可见延迟。</td><td>与对象和元数据之间产生引用完整性问题。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>referential integrity</span><span>07 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Recovery Complexity" data-source="p356 Blobstore Megastore 备份独立进行">
-  <div class="chrome"><span>restore complexity</span><span>p356</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">独立备份让恢复变成跨存储对账</h2>
-      <p class="lead-zh">如果 Blobstore 和 Megastore 分别备份，恢复时必须比较恢复后的对象、线上元数据、恢复后的元数据和客户端缓存。</p>
-      <p class="body-zh muted">复杂交互越多，越需要带外系统检查和平衡不同数据存储。</p>
-    </div>
-  </div>
-  <div class="foot"><span>cross store restore</span><span>08 / 46</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Backup Archive" data-source="p356 p357 备份与存档 没有人真的想要备份数据">
-  <div class="chrome"><span>backup vs archive</span><span>p356 p357</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">没有人真的想要备份数据，他们只想恢复数据。</div>
-      <p class="body-zh muted" style="margin-top:2vh">备份可以被应用重新加载，并服务灾难恢复。存档用于审核、取证和合规，恢复时间可以更长。</p>
-    </div>
-  </div>
-  <div class="foot"><span>restore first</span><span>09 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Cloud Requirements" data-source="p357 云计算环境下的需求 API必须可靠">
-  <div class="chrome"><span>cloud requirements</span><span>p357</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">云 API 必须同时简单、可靠、能覆盖数据现实</h2>
-      <div class="grid-4">
-        <div class="line-box"><h3 class="h2-zh accent">本地性</h3><p class="small-zh">数据本地性和缓存。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">分布</h3><p class="small-zh">本地和全局的数据分布。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">一致性</h3><p class="small-zh">强一致性与最终一致性。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">持久性</h3><p class="small-zh">备份与灾难恢复。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>api surface</span><span>10 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Sre Goal" data-source="p358 保障持久性数据的完整性 SRE目标">
-  <div class="chrome"><span>sre goal</span><span>p358</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">SRE 要把大方向变成可衡量能力边界</h2>
-      <p class="lead-zh">保障持久性数据的完整性还不够，SRE 会定义关键指标和测试，衡量系统与流程在真实事故中的表现。</p>
-    </div>
-  </div>
-  <div class="foot"><span>measurable boundary</span><span>11 / 46</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Availability Is Goal" data-source="p358 数据完整性是手段 数据可用性是目标">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="callout">数据完整性是手段，数据可用性是目标。</div>
-      <p class="body-zh muted" style="margin-top:2vh">长达 10 天无法访问后，即使个人信息最终恢复，对用户来说数据已经失去了很多意义。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p358</span><span>12 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Restore System" data-source="p358 交付一个恢复系统 而非备份系统">
-  <div class="chrome"><span>restore system</span><span>p358</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">团队不该只被要求备份，要被要求证明恢复能力</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">定义</h3><p class="body-zh">为不同失败场景定义一系列数据可用性 SLO。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">演练</h3><p class="body-zh">定期演练，确认团队有能力满足这些 SLO。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>backup tax</span><span>13 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Incident Taxonomy" data-source="p359 根源问题 影响范围 发生速度">
-  <div class="chrome"><span>loss taxonomy</span><span>p359</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">数据丢失事故由三个因子组合出来</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">根源问题</h3><p class="body-zh">用户行为、管理员错误、应用 Bug、基础设施问题、硬件故障和部署区事故。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">影响范围</h3><p class="body-zh">大规模影响很多实体，或只影响一小部分用户。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">发生速度</h3><p class="body-zh">一次操作瞬间破坏，或每分钟少量丢失并持续一周。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>24 combinations</span><span>14 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Point In Time" data-source="p359 p360 时间点恢复 时间旅行">
-  <div class="chrome"><span>point in time</span><span>p359 p360</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">最难的是数周或数月后才发现的数据损坏。</div>
-      <p class="body-zh muted" style="margin-top:2vh">大型应用可能要为数百万用户恢复多天、数周甚至数月的数据，并把每块数据恢复到特定时间点。</p>
-    </div>
-  </div>
-  <div class="foot"><span>time travel</span><span>15 / 46</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Replication Is Not Recovery" data-source="p360 复制机制和冗余并不意味着可恢复性">
-  <div class="chrome"><span>replication trap</span><span>p360</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">复制机制和冗余并不意味着可恢复性</h2>
-      <p class="lead-zh">自动同步多个副本的数据存储，可能在你发现问题前把损坏记录和错误删除复制到所有副本。</p>
-      <p class="body-zh muted">复制提高本地性和部署点容错，但不能替代恢复机制。</p>
-    </div>
-  </div>
-  <div class="foot"><span>replica spreads loss</span><span>16 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Diversity" data-source="p360 多样性是关键 黏土板">
-  <div class="chrome"><span>diversity</span><span>p360</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">恢复副本要和故障层保持多样性</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">同层风险</h3><p class="body-zh">数据库导出成本地文件，会引入格式转换、本地文件存储和语义差异。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">媒介隔离</h3><p class="body-zh">设备驱动中的 Bug 不太可能影响磁带备份，关键数据甚至可以想象保存在黏土板上。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>media isolation</span><span>17 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Freshness Tradeoff" data-source="p360 快照40分钟 文件系统备份几个小时">
-  <div class="chrome"><span>freshness tradeoff</span><span>p360</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">越往底层做快照，备份和恢复越慢</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>方式</th><th>材料里的时间</th><th>恢复代价</th></tr></thead>
-          <tbody>
-            <tr><td>数据库交易复制</td><td>可能只需要几秒。</td><td>数据新鲜，但保护范围有限。</td></tr>
-            <tr><td>数据库快照导出</td><td>可能需要 40 分钟。</td><td>还原最后快照时可能丢失最近 40 分钟。</td></tr>
-            <tr><td>文件系统镜像</td><td>可能需要几个小时。</td><td>备份和还原都慢，可能损失数小时信息。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>backup depth</span><span>18 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Retention" data-source="p360 保留期 缓慢发生的数据丢失">
-  <div class="chrome"><span>retention</span><span>p360</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">保留期要覆盖缓慢发生、晚被发现的数据丢失。</div>
-      <p class="body-zh muted" style="margin-top:2vh">恢复这类数据通常需要向前追溯一段时间，并把恢复数据与现有数据合并，复杂度随之上升。</p>
-    </div>
-  </div>
-  <div class="foot"><span>retention window</span><span>19 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Three Layers" data-source="p361 图26-2 软删除 备份 早期预警">
-  <div class="chrome"><span>layered defense</span><span>p361</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Google 用分层机制覆盖不同事故组合</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">软删除</h3><p class="small-zh">对象先标记为删除，延迟彻底摧毁。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">备份恢复</h3><p class="small-zh">在软删除之后处理更广泛的恢复场景。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">早期预警</h3><p class="small-zh">主动发现低级损坏，避免恢复窗口恶化。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">复制机制</h3><p class="small-zh">有帮助，但恢复计划不能依赖它。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">分级覆盖</h3><p class="small-zh">越往后越覆盖罕见事故类型。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>defense in depth</span><span>20 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Soft Delete" data-source="p361 p362 第一层 软删除 Gmail垃圾箱30天">
-  <div class="chrome"><span>layer one</span><span>p361 p362</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">软删除是永久数据丢失的第一道防线</h2>
-      <p class="lead-zh">删除后数据立刻对普通代码不可见，但管理后台、账号恢复、企业管理、用户支持和排错工具仍可恢复。</p>
-      <p class="body-zh muted">Gmail 垃圾箱允许用户恢复 30 天内删除的信息，常见软删除时间是 15、30、45 或 60 天。</p>
-    </div>
-  </div>
-  <div class="foot"><span>trash and restore</span><span>21 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Lazy Delete" data-source="p362 懒删除 历史记录功能">
-  <div class="chrome"><span>lazy delete</span><span>p362</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">面向开发者的服务还可能需要懒删除</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">懒删除</h3><p class="body-zh">应用删除后立刻不可用，但云服务提供商保留几周再彻底销毁。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">历史记录</h3><p class="body-zh">如果删除被作为特例处理，历史记录也要配合软删除或懒删除。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>developer protection</span><span>22 / 46</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Backups Matter Less" data-source="p362 第二层 备份不重要 最重要的是恢复">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="callout">备份不重要，最重要的是恢复。</div>
-      <p class="body-zh muted" style="margin-top:2vh">备份和还原系统的设计，要从恢复点频率、存储位置、保留时间和可接受近期损失反推。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p362 p363</span><span>23 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Backup Design" data-source="p363 旧版Gmail准实时流式备份 快照 本地化">
-  <div class="chrome"><span>backup design</span><span>p363</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">恢复时间越短，备份位置越要靠近生产数据</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>问题</th><th>材料里的取舍</th><th>Google 经验</th></tr></thead>
-          <tbody>
-            <tr><td>近期数据能丢多少</td><td>越少越依赖增量备份。</td><td>旧版 Gmail 使用准实时流式备份。</td></tr>
-            <tr><td>全量备份频率</td><td>频繁全量备份会压垮线上存储。</td><td>全量放非峰值，繁忙时段做增量。</td></tr>
-            <tr><td>恢复时间</td><td>越短越需要本地化。</td><td>快速但昂贵的快照只短期保存。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>rpo and rto</span><span>24 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Tiered Backup" data-source="p363 分级备份 30到90天">
-  <div class="chrome"><span>tiered backup</span><span>p363</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">合理成本下覆盖广泛场景，需要分级备份</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">第一级</h3><p class="small-zh">高频、快速恢复、靠近线上数据，保留数小时到 10 天内。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">第二级</h3><p class="small-zh">低频，保留一位数或两位数天数，恢复可能需要数小时。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">冷存储</h3><p class="small-zh">固定磁带库和异地设施，保护部署点级别事故。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">周期</h3><p class="small-zh">多数服务备份周期定为 30 到 90 天。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">预警</h3><p class="small-zh">早期预警减少复杂恢复场景需求。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>layered backup</span><span>25 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Backup Replication" data-source="p363 p364 额外一层 复制机制 RAID Reed-Solomon GFS">
-  <div class="chrome"><span>backup replica</span><span>p363 p364</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">备份自身也要防丢失</h2>
-      <p class="lead-zh">理想情况下，保存备份的存储系统也有复制机制。否则可能在恢复时才发现备份文件丢了，或备份所在数据中心正在维护。</p>
-      <p class="body-zh muted">材料建议选择常见且被持续使用的冗余系统，例如 RAID、Reed Solomon 纠错码或 GFS 类型复制机制。</p>
-    </div>
-  </div>
-  <div class="foot"><span>backup durability</span><span>26 / 46</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Exabyte Scale" data-source="p364 700 Petabytes 遍历需要80年">
-  <div class="chrome"><span>exabyte scale</span><span>p364</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">T 级别流程不能直接搬到 E 级别。</div>
-      <p class="body-zh muted" style="margin-top:2vh">用理想化 SATA 2.0 接口遍历 700PB 做基础校验，也需要 80 年。</p>
-    </div>
-  </div>
-  <div class="foot"><span>scale breaks process</span><span>27 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Trusted Point" data-source="p364 可信点 增量备份 分布式计算">
-  <div class="chrome"><span>trusted point</span><span>p364</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">海量数据需要可信点、增量和并行分片</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">可信点</h3><p class="body-zh">已校验且不会再变的数据，可以校验并复制以便未来恢复。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">增量</h3><p class="body-zh">只包含上次备份后新增或更改的数据。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">分片</h3><p class="body-zh">N 个任务并行复制和校验各自负责的 1/N 数据。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>horizontal split</span><span>28 / 46</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Dirty Data Spreads" data-source="p365 脏数据传播 越早检测越容易恢复">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="callout">脏数据会传播，越早发现越容易恢复。</div>
-      <p class="body-zh muted" style="margin-top:2vh">每次更新都会降低数据整体质量，关联交易和格式变化会让从指定备份恢复的能力大幅下降。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p365</span><span>29 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Cloud Challenges" data-source="p365 云计算开发者面临的挑战">
-  <div class="chrome"><span>developer challenges</span><span>p365</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">高速创新环境会持续制造完整性挑战</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">关系</h3><p class="body-zh">不同数据存储之间的引用完整性。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">演进</h3><p class="body-zh">数据结构改变、旧代码和无停机迁移。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">接口</h3><p class="body-zh">与其他服务接口不断变化。</p></div>
-      </div>
-      <p class="body-zh muted">不主动管理数据关系，任何不断增长的服务，数据质量都会持续下降。</p>
-    </div>
-  </div>
-  <div class="foot"><span>changing service</span><span>30 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Trust Verify" data-source="p365 Paxos Bigtable 相信存储系统 还是要校验">
-  <div class="chrome"><span>trust and verify</span><span>p365</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">理论正确的存储 API 也需要应用侧校验</h2>
-      <p class="lead-zh">Paxos 理论上可以忽略故障节点，但实现里仍然有超时、重试、灾难处理、优化、Bug 和猜测。</p>
-      <p class="body-zh muted">材料给出的判断很直接：我们相信存储系统的实现，但是还是要校验。</p>
-    </div>
-  </div>
-  <div class="foot"><span>implementation reality</span><span>31 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Out Of Band" data-source="p365 p366 带外数据校验 MapReduce Hadoop">
-  <div class="chrome"><span>out of band</span><span>p365 p366</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">带外数据校验是第三层防线的主体。</div>
-      <p class="body-zh muted" style="margin-top:2vh">它通常由一系列 MapReduce 或 Hadoop 任务实现，用来处理数据存储内部和相互之间的数据问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>validator pipeline</span><span>32 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Validator Culture" data-source="p366 Gmail 24小时检测到 多次修改生产存储">
-  <div class="chrome"><span>validator culture</span><span>p366</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">校验器让高频变更更敢上线</h2>
-      <p class="lead-zh">Gmail 的每个校验器都曾在生产环境检测到真实的数据完整性问题。</p>
-      <p class="body-zh muted">开发者知道新引入的数据一致性问题可在 24 小时内被发现，因此有勇气每周多次修改生产存储系统实现。</p>
-    </div>
-  </div>
-  <div class="foot"><span>confidence to change</span><span>33 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Verifier Balance" data-source="p366 Drive 校验文件内容与文件夹列表 自动修复">
-  <div class="chrome"><span>verifier balance</span><span>p366</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">校验规则只该盯住对用户毁灭性的问题</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">太严格</h3><p class="body-zh">合理修改触发失败，工程师会抛弃校验逻辑。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">不够严格</h3><p class="body-zh">会漏过用户可见的数据问题。</p></div>
-      </div>
-      <p class="body-zh muted">Google Drive 周期性校验文件内容与文件夹列表是否一致，并把校验器增强为可自动修复。</p>
-    </div>
-  </div>
-  <div class="foot"><span>catastrophic only</span><span>34 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Checker Cost" data-source="p366 Gmail 磁盘磁头使用率降低60% 10到14个分片">
-  <div class="chrome"><span>checker cost</span><span>p366</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">大规模带外检测也会消耗生产资源</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>压力</th><th>材料里的做法</th><th>结果</th></tr></thead>
-          <tbody>
-            <tr><td>计算资源</td><td>Gmail 很大一部分计算资源支持每日检测。</td><td>需要限速和重构。</td></tr>
-            <tr><td>缓存命中</td><td>校验器可能降低服务器缓存命中率。</td><td>可能造成用户可见延迟。</td></tr>
-            <tr><td>磁盘压力</td><td>一次重构降低 60% 磁盘磁头使用率。</td><td>没有显著降低覆盖范围。</td></tr>
-            <tr><td>超重校验器</td><td>分成 10 到 14 个分片。</td><td>每天只运行一个分片。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>operational cost</span><span>35 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Checker System" data-source="p366 p367 校验任务管理 监控 报警 限速 Playbook">
-  <div class="chrome"><span>checker system</span><span>p366 p367</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">有效校验系统需要平台化，而不该让小团队临时拼</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">运行面</h3><p class="body-zh">任务管理、限速、监控、报警和监控台页面。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">排障面</h3><p class="body-zh">调试工具、查询工具、日志定位和生产应急手册。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">组织面</h3><p class="body-zh">中央基础设施组维护框架，产品组维护业务校验逻辑。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>shared framework</span><span>36 / 46</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Restore Test" data-source="p367 只有真正进行恢复操作之后 才能确定能否恢复最新数据">
-  <div class="slide-body">
-    <div class="w-quote guest-mark">
-      <div class="callout">只有真正进行恢复操作，才能确定能否恢复最新数据。</div>
-      <p class="body-zh muted" style="margin-top:2vh">备份数据可能早已损坏，拨动开关时才发现灯泡坏了，已经太晚。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p367</span><span>37 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Recovery Checklist" data-source="p367 p368 数据恢复计划覆盖点">
-  <div class="chrome"><span>recovery checklist</span><span>p367 p368</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">恢复演练必须覆盖端到端流程</h2>
-      <div class="grid-4">
-        <div class="line-box"><h3 class="h2-zh accent">数据</h3><p class="small-zh">备份是否完整、正确，还是空的。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">资源</h3><p class="small-zh">是否有足够机器跑恢复、恢复数据和后处理。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">时间</h3><p class="small-zh">整个过程能否在合理时间内完成。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">依赖</h3><p class="small-zh">是否依赖非全天候可用的异地媒介。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>end to end drill</span><span>38 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Gmail Case" data-source="p368 p369 Gmail 2011年2月 GTape">
-  <div class="chrome"><span>case gmail</span><span>p368 p369</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Gmail 2011：GTape 成为最后一道防线</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">报警</h3><p class="small-zh">Gmail 丢失大量用户数据。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">匹配</h3><p class="small-zh">恢复原因与此前测试相符。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">建模</h3><p class="small-zh">很快计算绝大部分用户数据恢复预计时间。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">目标</h3><p class="small-zh">预计完成前恢复超过 99% 数据。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">协作</h3><p class="small-zh">全球分布式工作由中央计划协调。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>tape recovery</span><span>39 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Gmail Lesson" data-source="p368 p369 深度多层防御 内部工具不能正常运行">
-  <div class="chrome"><span>gmail lesson</span><span>p368 p369</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">Gmail 案例证明，多层防御不是装饰</h2>
-      <p class="lead-zh">本次丢失数据太多，Gmail 内部恢复工具已经不能正常运行，离线磁带备份系统接管恢复。</p>
-      <p class="body-zh muted">公众以为大量磁盘和快速网络就够了，材料强调在线系统仍需要能抵抗单个防护失效和底层媒介问题的多层防御。</p>
-    </div>
-  </div>
-  <div class="foot"><span>last line works</span><span>40 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Music Discovery" data-source="p369 p370 Google Music 2012年3月6日 发现问题">
-  <div class="chrome"><span>case music discovery</span><span>p369 p370</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Google Music 事故从一个无法播放的歌曲开始</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">3 月 6 日</h3><p class="small-zh">用户报告之前能播放的歌曲现在无法播放。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">3 月 7 日</h3><p class="small-zh">工程师发现元数据缺少音频文件指针。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">继续深究</h3><p class="small-zh">工程师继续查找系统中可能存在的问题。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">真正原因</h3><p class="small-zh">隐私删除流水线删掉了数据。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">止血</h3><p class="small-zh">最高级别警报发出，删除流水线暂停。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>one song symptom</span><span>41 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Music Scope" data-source="p369 p370 60万条音频文件 2.1万用户 436223条有备份">
-  <div class="chrome"><span>case music scope</span><span>p369 p370</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">临时 MapReduce 把事故规模量出来了</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">60 万</h3><p class="body-zh">删除流水线大概误删的音频文件数量。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">2.1 万</h3><p class="body-zh">大概受影响的用户数量。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">436,223</h3><p class="body-zh">第一批恢复中存在备份的文件数量。</p></div>
-      </div>
-      <p class="body-zh muted">由于检测程序简化了一些步骤，实际问题只会更严重。</p>
-    </div>
-  </div>
-  <div class="foot"><span>impact sizing</span><span>42 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Music Restore" data-source="p370 p371 5000盘磁带 1.5PB 5475个小任务 7天">
-  <div class="chrome"><span>case music restore</span><span>p370 p371</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Google Music 恢复同时暴露了离线媒介的后勤压力</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>环节</th><th>材料里的数字</th><th>含义</th></tr></thead>
-          <tbody>
-            <tr><td>请求规模</td><td>超过 1.5PB 数据。</td><td>定制磁带软件没有为这种规模设计。</td></tr>
-            <tr><td>任务切分</td><td>5,475 个小任务。</td><td>手工输入命令需要超过三天，必须写代码。</td></tr>
-            <tr><td>磁带运输</td><td>5,337 盘磁带，另有 1,862 盘首次漏掉。</td><td>恢复过程依赖异地设施、卡车、场地和人工装载。</td></tr>
-            <tr><td>完成进度</td><td>7 天恢复 1.5PB，5 天用于真正恢复。</td><td>演习经验降低了不可控风险。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>logistics matter</span><span>43 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Core Summary One" data-source="p354 p358 p367 用户可访问性 恢复系统 真正恢复操作">
-  <div class="chrome"><span>core notes</span><span>p354 p358 p367</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <div class="summary-num">核心总结 1</div>
-      <h2 class="h1-zh">目标始终是用户可访问的数据</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">定义</h3><p class="body-zh">数据是否完整，要从用户能否访问云服务来判断。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">系统</h3><p class="body-zh">团队交付的是恢复系统，备份只是恢复的输入。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">证明</h3><p class="body-zh">只有实际恢复过，才能确定最新数据真的可恢复。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>restore as product</span><span>44 / 46</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Core Summary Two" data-source="p361 p365 p372 软删除 早期预警 纵深防御">
-  <div class="chrome"><span>core notes</span><span>p361 p365 p372</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <div class="summary-num">核心总结 2</div>
-      <h2 class="h1-zh">完整性保障要用多层机制覆盖失败组合</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">第一层</h3><p class="body-zh">软删除和懒删除先拦住误删与开发者错误。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">第二层</h3><p class="body-zh">分级备份按恢复时间、保留期和事故范围组织。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">第三层</h3><p class="body-zh">带外校验尽早发现脏数据，降低需要恢复的 N。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>layered protection</span><span>45 / 46</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p372 p373 SRE基本理念 小结 N趋近于0">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">当能在 N 时间内恢复数据后，下一步是把 N 降低到接近 0。</div>
-      <p class="body-zh muted" style="margin-top:2vh">材料最后回到 SRE 基本理念：保持初学者心态，信任但要验证，不要一厢情愿，纵深防御，定期重新检查和重新审核。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p372 p373</span><span>46 / 46</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-26-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-26-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第26章 数据完整性：读写一致 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：数据完整性：读写一致。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "数据完整性的强需求"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节重新定义了数据完整性，强调用户对数据的可访问性比单纯的存储准确更重要。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过Gmail显示空收件箱的例子，说明即使数据未丢失，不可访问也会损害信任。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，与99.99%的在线时间SLO相比，数据损坏带来的毁灭性后果更严重，因此数据完整性要求极高。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这引出了下文对在线时间与完整性权衡的讨论。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "提供超高的数据完整性的策略"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节提出通过主动探测和快速修复来保障超高数据完整性，而非仅依赖事后恢复。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将云计算优化目标归纳为在线时间、延迟、规模、创新速度和隐私五项，并指出BASE与ACID的取舍。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Blobstore和Megastore为例，说明追求创新速度可能导致引用完整性挑战，从而引出对带外校验系统的需求。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "在线时间"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该小节指出数据完整性意味着用户维持对云服务访问的能力。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过对比宕机与数据损坏，说明若数据永久丢失，其在线时间即归零。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因此，主动探测与快速修复是保障超高数据完整性的核心手段，确保用户始终可访问。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "延迟"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将延迟定义为服务对用户的响应时间。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在讨论数据完整性策略时，指出为了降低用户可见延迟，客户端需缓存元数据。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，带外校验若处理不当会降低缓存命中率，进而影响响应速度，因此需在完整性与延迟间权衡。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "规模"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "规模指用户数量及维持服务的最高负载。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者以Google Music为例，说明在EB级数据规模下，传统校验方法耗时过长。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过分布式计算分片并行处理，将校验时间从数十年降至可行范围，展示了规模对数据恢复策略设计的决定性影响。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "创新速度"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "创新速度指在合理成本下提供更好服务的速度。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，追求快速创新常导致开发者依赖熟悉但非最优的API，忽略分布式一致性。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这会增加数据完整性挑战，因此需通过带外校验系统来弥补因快速迭代带来的潜在数据风险。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "隐私"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将隐私定义为数据删除后必须在合理时间内被真正摧毁。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Google Music为例，说明为满足隐私策略的快速删除需求，流水线重构引入了数据竞争Bug，导致大规模误删。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这体现了隐私删除机制与数据完整性保障之间的复杂权衡。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "云计算环境下的需求"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节分析云计算环境引入的技术难点，如混合备份导致恢复数据错误、不停机更新引发版本冲突等。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调API必须支持数据本地性、分布、一致性及持久性，否则复杂应用无法迁移。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这解释了为何需要复杂的备份策略，自然过渡到下一节关于备份与存档区别及Google SRE目标的讨论。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "保障数据完整性和可用性：Google SRE的目标"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节确立SRE目标：保障持久数据完整性，但强调数据可用性才是最终目标。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过Gmail数据丢失案例，说明仅保障完整性而无可用性对用户无意义。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者主张交付恢复系统而非备份系统，要求团队定义可用性SLO并定期演练，为后续事故分类和具体恢复策略奠定基调。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "造成数据丢失的事故类型"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节将数据丢失事故按根源问题、影响范围和发生速度分为24种组合。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出Google最常见的丢失场景是数据删除和软件Bug造成的引用完整性问题，且往往在更新数周后才被发现。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这解释了为何需要支持“时间点恢复”（时间旅行），并引出对备份机制扩展性和保留期的讨论。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "影响范围"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "影响范围指数据丢失是大规模还是针对小部分用户。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将事故按影响范围分类，指出大规模丢失需快速恢复以维持在线率。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google Music案例中，误删影响数万用户，需并行进行根源修复与数据恢复，以控制影响范围并尽快恢复服务。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "发生速度"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "发生速度指数据丢失是瞬间造成还是缓慢持续。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，瞬间丢失需快速恢复，而缓慢丢失（如Bug导致）可能数月后才被发现。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因此，备份保留期需足够长以覆盖缓慢检测到的损坏，并通过早期预警系统加速发现，减少恢复难度。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "扩展性问题：全量、增量以及相互竞争的备份和恢复机制"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节指出复制机制不能替代备份，因为错误会同步传播。强调备份与存档的区别："}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "备份需支持快速恢复以维持在线率，而存档侧重长期合规。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "讨论全量与增量备份的权衡，指出底层快照恢复快但保留期短，冷存储保留期长但恢复慢，引出保留期对恢复复杂度的影响。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "保留期"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节讨论备份保留期，指出缓慢的数据丢失需追溯更长时间，增加恢复复杂度。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google经验表明，应用Bug造成的损坏可能在数月后才被发现，因此备份周期通常定为30-90天。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这为下一节介绍Google SRE保障数据完整性的具体多层手段做了铺垫。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "Google SRE保障数据完整性的手段"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节概述Google采用分级防护策略，包括软删除、备份恢复和早期预警三层机制。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出没有任何单一机制能保护所有事故，需结合复制机制。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这引出下文对第一层软删除机制的详细阐述，说明其作为意外删除防线的有效性。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "24种数据完整性的事故组合"}]}], "sourceIds": ["SRC-033"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节重申24种事故组合需分级防护，并图示对象从软删除到彻底摧毁的过程。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出软删除是第一道防线，备份是第二层，早期预警是第三层。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这为详细展开各层机制提供框架，首先深入讲解第一层软删除的具体实现。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "第一层：软删除"}]}], "sourceIds": ["SRC-035"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节详述软删除机制，通过标记已删除而非立即物理删除，防止意外删除和账号劫持。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出软删除可延伸至用户回收站或开发者懒删除，降低支持压力。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调软删除是应对开发者错误和用户误操作的主要手段，为第二层备份机制的引入做铺垫。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "额外一层：复制机制"}]}], "sourceIds": ["SRC-037"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节指出复制机制虽重要，但不能替代备份，因错误会同步。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调在理想世界中存储实例也应具备复制机制，以防恢复时备份自身损坏。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "讨论在海量数据下，复制和校验的时间成本，引出通过“可信点”和分布式计算来优化恢复效率的策略。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "第三层：早期预警"}]}], "sourceIds": ["SRC-039"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍带外数据校验系统，用于检测低级数据损坏和丢失，防止脏数据传播。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出校验流水线需平衡严格性与可行性，避免误报导致工程师抛弃校验。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Gmail和Google Drive为例，说明自动修复不一致性的重要性，并强调校验器需具备限速、监控和调试工具。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "云计算开发者面临的挑战"}]}], "sourceIds": ["SRC-041"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者列举了引用完整性、数据结构改变、旧代码等挑战。指出开发者常依赖分布式一致性API，但实现中存在Bug。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "随着服务增长，数据关系复杂化，若无主动管理，数据质量必下降。因此需通过带外校验等手段应对这些动态挑战。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "带外数据校验"}]}], "sourceIds": ["SRC-043"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者提出需建立带外检查修复系统，以检测数据存储内部及相互间的问题。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Gmail为例，说明校验器能检测真实完整性问题，提升开发者信心。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时指出需平衡校验严格度与性能，通过限速和分片降低对生产环境的影响，确保有效性。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "案例分析"}]}], "sourceIds": ["SRC-045"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节通过两个案例验证数据恢复系统。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "首先介绍2011年Gmail数据丢失，通过离线磁带备份恢复，证明深度多层防御和团队协作的重要性。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "接着引入2012年Google Music案例，说明海量数据恢复的后勤挑战，为后续详细分析该案例做铺垫。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "2011年2月27日，星期日，深夜"}]}], "sourceIds": ["SRC-047"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节描述2011年Gmail数据丢失事件，备份系统报警。由于内部恢复工具失效，启用GTape离线磁带系统。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过预先建模和演练，快速计算恢复时间并执行恢复。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "证明深度多层防御和应急流程的有效性，引出对Google Music案例的对比分析。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "2012年3月6日，星期二，下午"}]}], "sourceIds": ["SRC-049"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节描述2012年Google Music数据丢失事件，用户反馈歌曲无法播放。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "工程师发现元数据指针缺失，进一步调查发现是隐私数据删除流水线误删音频文件。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过MapReduce评估影响范围，发现误删60万条文件，影响2.1万用户，引出问题严重性评估。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "评估问题严重性"}]}], "sourceIds": ["SRC-051"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节评估Google Music数据丢失的严重性，指出隐私策略要求快速删除数据，但流水线重构后出现Bug。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "团队暂停流水线，通过MapReduce评估影响，发现误删大量文件。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "由于数据量巨大，恢复需从异地磁带读取，引出并行定位Bug和恢复数据的策略。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "问题的解决"}]}], "sourceIds": ["SRC-053"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节描述Google Music数据恢复过程，团队并行进行Bug定位和数据恢复。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "由于数据量巨大，需从异地磁带读取，耗时漫长。通过DiRT演习准备的工具和流程，逐步恢复数据。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出恢复过程中遇到磁带损坏等意外，但最终成功恢复大部分数据，引出根源问题解决。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "解决根源问题"}]}], "sourceIds": ["SRC-055"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节分析Google Music数据丢失根源，发现数据删除流水线存在数据竞争问题。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "由于并行优化导致阶段隔离假设失效，引发Bug。团队重构流水线消除竞争，并增强监控报警。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这体现了SRE理念在数据完整性上的应用，引出小结部分。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SRE的基本理念在数据完整性上的应用"}]}], "sourceIds": ["SRC-057"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节总结SRE理念在数据完整性上的应用，包括保持初学者心态、信任但要验证、不要一厢情愿、纵深防御和定期重新检查。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调通过带外校验和定期演练保障系统可靠性，避免落入过程成功但系统故障的陷阱，为小结做铺垫。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "信任但要验证"}]}], "sourceIds": ["SRC-059"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调依赖的API不可能完美，理论不代表实现完美。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "应使用带外数据检测器检查核心部分，即使API声称无问题。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google Music案例显示，即使有分布式共识算法，实现中仍有Bug，必须通过验证确保数据正确，而非盲目信任。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "不要一厢情愿"}]}], "sourceIds": ["SRC-061"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出不常用组件易在关键时刻故障，数据恢复计划需通过频繁演习保障可用性。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因人类不适合重复测试，必须自动化。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google Music案例中，DiRT演习帮助团队快速应对磁带恢复，证明主动测试而非一厢情愿能避免灾难时的措手不及。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "纵深防御"}]}], "sourceIds": ["SRC-063"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者认为最安全系统也会受Bug影响，需多层保障手段覆盖广泛失败场景。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google采用软删除、备份、早期预警等多层机制。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Gmail和Music案例显示，单一措施失效时，多层防御能确保数据恢复。定期审核流程以适应变化，确保持续有效。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "小结"}]}], "sourceIds": ["SRC-065"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节总结数据完整性保障的核心："}]}], "sourceIds": ["SRC-066"], "sourceParts": [{"id": "SRC-066", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以数据可用性为首要目标，通过矩阵式排列覆盖所有事故组合，并通过持续演习保障恢复计划有效。"}]}], "sourceIds": ["SRC-066"], "sourceParts": [{"id": "SRC-066", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调将恢复时间N趋近于0，最终目标是保障全部数据随时可用，实现真正的数据完整性。"}]}], "sourceIds": ["SRC-066"], "sourceParts": [{"id": "SRC-066", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：数据完整性与可用性权衡"}]}], "sourceIds": ["SRC-067"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "数据完整性与可用性的权衡"}]}], "sourceIds": ["SRC-068"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在云计算环境中，数据完整性与可用性往往存在权衡。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "数据完整性指数据在生命周期内的准确性和一致性，而可用性指用户能否访问数据。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，Gmail显示空收件箱虽数据未丢失，但用户感知为数据丢失。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因此，数据完整性要求极高，需通过主动探测和快速修复保障。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，与99.99%的在线时间SLO相比，数据损坏带来的后果更严重，需优先保障用户可访问性。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "备份与恢复策略的选择"}]}], "sourceIds": ["SRC-070"]}, {"lines": [{"indent": 0, "chunks": [{"t": "备份与存档不同，备份需支持快速恢复以维持在线率，而存档侧重长期合规。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "全量备份恢复快但成本高，增量备份成本低但恢复慢。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google采用分级备份策略，第一层快速恢复，第二层长期保留。复制机制不能替代备份，因错误会同步。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "需通过带外校验和定期演练保障恢复有效性，避免备份自身损坏。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "多层防御与早期预警"}]}], "sourceIds": ["SRC-072"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google采用多层防御保障数据完整性，包括软删除、备份恢复和早期预警。"}]}], "sourceIds": ["SRC-073"], "sourceParts": [{"id": "SRC-073", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "软删除防止意外删除，备份提供恢复点，早期预警通过带外校验检测脏数据。"}]}], "sourceIds": ["SRC-073"], "sourceParts": [{"id": "SRC-073", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "带外校验需平衡严格性与可行性，避免误报。"}]}], "sourceIds": ["SRC-073"], "sourceParts": [{"id": "SRC-073", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过定期演练和自动化测试，确保恢复计划有效，将恢复时间趋近于零，实现数据可用性目标。"}]}], "sourceIds": ["SRC-073"], "sourceParts": [{"id": "SRC-073", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-074"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形：假设你负责一个云存储服务的SLO设计，该服务存储用户的关键业务数据，要求99.99%的可用性。"}]}], "sourceIds": ["SRC-075"], "sourceParts": [{"id": "SRC-075", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "最近发现数据损坏率上升，但用户投诉较少。"}]}], "sourceIds": ["SRC-075"], "sourceParts": [{"id": "SRC-075", "index": 2, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：如何设计数据完整性保障策略，以平衡可用性SLO和数据损坏检测？"}]}], "sourceIds": ["SRC-076"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-077"]}, {"lines": [{"indent": 0, "chunks": [{"t": "首先，明确数据完整性与可用性的权衡，优先保障用户可访问性。"}]}], "sourceIds": ["SRC-078"], "sourceParts": [{"id": "SRC-078", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "其次，采用多层防御，包括软删除防止误删，分级备份提供恢复点。"}]}], "sourceIds": ["SRC-078"], "sourceParts": [{"id": "SRC-078", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "第三，部署带外校验系统，定期检测数据一致性，平衡严格性与可行性，避免误报。"}]}], "sourceIds": ["SRC-078"], "sourceParts": [{"id": "SRC-078", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "最后，通过定期演练和自动化测试，确保恢复计划有效，将恢复时间趋近于零。"}]}], "sourceIds": ["SRC-078"], "sourceParts": [{"id": "SRC-078", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-079"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 354-373。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}, {"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}], "sourceIds": ["SRC-080", "SRC-081", "SRC-082", "SRC-083"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：Google规模和组织实践属于书中经验，不自动写成所有团队的通则。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第27章 可靠地进行产品的大规模发布”，继续回答：如何在大规模互联网环境中，确保产品快速迭代的同时维持极高的系统可靠性？"}]}], "sourceIds": ["SRC-084", "SRC-085"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

@@ -2,782 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第33章 其他行业的实践经验 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第33章 其他行业的实践经验 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: this chapter compares high reliability practices across safety critical industries, so graphite carries severity, warm paper carries field notes, and restrained teal marks cross industry evidence. */
-  --ink: #1f2928;
-  --ink-rgb: 31,41,40;
-  --paper: #f3efe4;
-  --paper-rgb: 243,239,228;
-  --accent: #2f7f78;
-  --muted: #657171;
-  --warm: #76695a;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #73c4b8; }
-.warm { color: var(--warm); }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
-.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
-  .timeline-row::before { display: none; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p476 章节标题 作者">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Chapter 33</div>
-      <h1 class="display-zh">其他行业的实践经验</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">Jennifer Petoff</p>
-      <p class="meta" style="margin-top:1.2vh">编辑 Betsy Beyer</p>
-    </div>
-  </div>
-  <div class="foot"><span>p476</span><span>01 / 32</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Opening Questions" data-source="p476 对其他行业可靠性实践的五个问题">
-  <div class="chrome"><span>opening frame</span><span>p476</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">这一章从一个朴素问题开始，Google 外部怎样处理可靠性</h2>
-      <p class="lead-zh">作者把问题拆成指导思想、具体实践、相似点、差异来源，以及科技行业能学什么。</p>
-      <p class="body-zh muted">讨论材料来自多位有其他行业经验的 Google 工程师。</p>
-    </div>
-  </div>
-  <div class="foot"><span>what can sre learn</span><span>02 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Four Buckets" data-source="p476 p477 四大类 SRE 核心指导思想">
-  <div class="chrome"><span>four categories</span><span>p476 p477</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">为了比较其他行业，本章把 SRE 思想压进四个篮子</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">预案</h3><p class="small-zh">灾难预案与演习。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">复盘</h3><p class="small-zh">书写事后总结的文化。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">自动化</h3><p class="small-zh">降低日常运维负载。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">决策</h3><p class="small-zh">结构化的、理智的决策。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">结尾</h3><p class="small-zh">模式与反模式。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>comparison map</span><span>03 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Industry Panel" data-source="p477 p478 有其他行业背景的资深 SRE">
-  <div class="chrome"><span>expert panel</span><span>p477 p478</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">受访者的共同点，是他们都来自错误代价很高的行业</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">生命安全</h3><p class="body-zh">救生员、医疗器械、民航、核工业、核潜艇。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">公共基础设施</h3><p class="body-zh">国防系统、通信系统、E911、轨道交通信号。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">经济损失</h3><p class="body-zh">财务交易、制造业、航空延误和设备损失。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>high consequence domains</span><span>04 / 32</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Disaster Motto" data-source="p479 愿望不是一个策略">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">愿望不是一个策略。</div>
-      <p class="body-zh muted" style="margin-top:2vh">SRE 的灾难预案态度，是永远保持警惕，持续追问什么可能出故障。</p>
-    </div>
-  </div>
-  <div class="foot"><span>disaster preparation</span><span>05 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="DiRT Goals" data-source="p479 DiRT 演习的三个目标">
-  <div class="chrome"><span>dirt exercise</span><span>p479</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">DiRT 在生产环境制造真实问题，目标不是表演韧性</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">验证</h3><p class="body-zh">确保系统按预想方式应对故障。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">发现</h3><p class="body-zh">找出系统中未预料到的弱点。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">改进</h3><p class="body-zh">寻找提高鲁棒性的方式，避免事故发生。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>production fault tests</span><span>06 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Disaster Practices" data-source="p479 其他行业灾难准备策略清单">
-  <div class="chrome"><span>industry strategies</span><span>p479</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">其他行业的灾难准备，集中在组织、容量、演习和设计</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>方向</th><th>材料里的实践</th></tr></thead>
-          <tbody>
-            <tr><td>组织与人</td><td>坚持安全关注、关注细节、培训与考核。</td></tr>
-            <tr><td>容量与演习</td><td>准备冗余容量，使用模拟或线上灾难演习。</td></tr>
-            <tr><td>设计</td><td>详细需求收集、系统设计、纵深防御。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>preparedness pattern</span><span>07 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Safety From Top" data-source="p479 p480 从组织架构层面坚持安全">
-  <div class="chrome"><span>safety culture</span><span>p479 p480</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">在高危制造车间，每次管理会议都从安全讨论开始</h2>
-      <p class="lead-zh">流程要极为确定，组织从上到下严格遵守，每个员工发现问题时都能主动提出。</p>
-      <p class="body-zh muted">核动力、军用飞机和轨道交通信号系统都有明确的软件安全标准与可靠性级别。</p>
-    </div>
-  </div>
-  <div class="foot"><span>standards and sil</span><span>08 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Small Tasks Matter" data-source="p480 关注任何细节 润滑油补充">
-  <div class="chrome"><span>small maintenance</span><span>p480</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">在核动力海军，小任务里的粗心可能会发展成大型潜艇事故。</div>
-      <p class="body-zh muted" style="margin-top:2vh">系统连接紧密，一个区域的小事故可能导致多个相关系统故障，所以日常维护被严肃对待。</p>
-    </div>
-  </div>
-  <div class="foot"><span>routine prevents disaster</span><span>09 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Redundant Capacity" data-source="p480 冗余容量 SOW 明星电话号码泄露">
-  <div class="chrome"><span>redundant capacity</span><span>p480</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">通信行业把冗余容量做成可移动资源，也承认容量问题不只看总量</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">SOW</h3><p class="body-zh">switch on wheels 是移动通信平台，可应急部署，也可在大型活动前提前部署。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">路由压力</h3><p class="body-zh">2005 年某明星电话号码泄露，粉丝同时拨打，造成类似 DDoS 的大面积路由错误。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>capacity is contextual</span><span>10 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Simulation And Live Drills" data-source="p480 p481 模拟以及进行线上灾难演习">
-  <div class="chrome"><span>drill mode</span><span>p480 p481</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">演习方式取决于故障后果，不能线上测试就把模拟器做逼真</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>行业</th><th>演习方式</th></tr></thead>
-          <tbody>
-            <tr><td>航空</td><td>因设备和人员安全，使用真实数据和高度一致的控制室模拟器。</td></tr>
-            <tr><td>通信</td><td>常做线上演习，关注飓风和环境灾难，建设防水机房和发电能力。</td></tr>
-            <tr><td>核动力海军</td><td>同时做假想练习和实战演习，在可控环境下进行破坏。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>severity decides drill</span><span>11 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Practice Until Remembered" data-source="p481 实战演习每周两到三天 响应机制不断练习">
-  <div class="chrome"><span>practice cadence</span><span>p481</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">假想练习有用，但灾难响应机制必须不断练习，才能确保不会忘记。</div>
-      <p class="body-zh muted" style="margin-top:2vh">核动力海军的实战演习每周进行，每次持续两到三天。</p>
-    </div>
-  </div>
-  <div class="foot"><span>rehearsal builds recall</span><span>12 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Lifeguard Drills" data-source="p481 救生员 神秘顾客 伪落水事故">
-  <div class="chrome"><span>lifeguard drills</span><span>p481</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">救生员行业用类似神秘顾客的方式制造伪落水事故</h2>
-      <p class="lead-zh">设施负责人会与儿童或受训救生员构造情景，逼真到值班救生员难以区分真假。</p>
-      <p class="body-zh muted">这种演习测试的不是文档，而是人在现场识别和响应紧急事故的能力。</p>
-    </div>
-  </div>
-  <div class="foot"><span>realistic scenario</span><span>13 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Training And Recertification" data-source="p481 培训与考核 救生员再考核">
-  <div class="chrome"><span>training</span><span>p481</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">涉及人身安全的行业，把培训和再考核当成可靠性机制</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">体能</h3><p class="small-zh">托住比自己还重的人，让肩膀露出水面。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">技巧</h3><p class="small-zh">急救、CPR 等现场能力。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">流程</h3><p class="small-zh">一名救生员入水时，其他成员知道该做什么。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">本地</h3><p class="small-zh">泳池、湖边和海中救援差异很大。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">复训</h3><p class="small-zh">定期再考核，保持能力不过期。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>skills must stay current</span><span>14 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Requirements And Design" data-source="p481 p482 详细需求收集和系统设计">
-  <div class="chrome"><span>requirements and design</span><span>p481 p482</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">医疗器械和国防系统把设计阶段拉长，因为使用现场常常不同于设计想象</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">LASIK</h3><p class="body-zh">设备要简单明了，需求来自手术医生和维护工程师，减少使用者犯错机会。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">国防系统</h3><p class="body-zh">新设备可能经历一整年设计，实际编码只需要三周。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>design before code</span><span>15 / 32</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Defense In Depth" data-source="p482 纵深防御 核反应堆多层防护">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">核能行业几乎零容忍事故，所以纵深防御成为灾难预案的关键元素。</div>
-      <p class="body-zh muted" style="margin-top:2vh">主要系统有冗余和后备系统，多层防护一直延伸到核辐射物理屏障。</p>
-    </div>
-  </div>
-  <div class="foot"><span>defense in depth</span><span>16 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Postmortem Culture" data-source="p482 事后总结的文化 CAPA">
-  <div class="chrome"><span>capa</span><span>p482</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">CAPA 与 SRE 的对事不对人复盘，关注点都是根源问题</h2>
-      <p class="lead-zh">复盘要问发生了什么、响应是否有效、下次是否有其他方案、如何避免再次发生。</p>
-      <p class="body-zh muted">材料强调纠结于谁造成故障没有意义，组织要找出什么出了问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>corrective preventive action</span><span>17 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Regulation And Safety" data-source="p482 p483 监管部门与安全关注">
-  <div class="chrome"><span>why reviews happen</span><span>p482 p483</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">其他行业也做类似复盘，但动力不完全相同</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>动力</th><th>材料里的例子</th></tr></thead>
-          <tbody>
-            <tr><td>监管</td><td>通信、航空、制造、化工、医疗器械、核工业和运输业都面对严密监管。</td></tr>
-            <tr><td>安全</td><td>高温、高压、有毒气体、腐蚀性液体让员工伤亡风险长期存在。</td></tr>
-            <tr><td>领导关注</td><td>Aloca 前 CEO Paul O'Neil 要求人员伤亡事故 24 小时内通知他。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>drivers differ</span><span>18 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Near Misses" data-source="p483 差点出事 潜伏的错误 CHIRP">
-  <div class="chrome"><span>near misses</span><span>p483</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">差点出事也是事故信号，它让组织在严重后果出现前学习。</div>
-      <p class="body-zh muted" style="margin-top:2vh">未遵守标准流程、泄漏时及时躲开、台阶液体未清理，都意味着潜在事故和优化机会。</p>
-    </div>
-  </div>
-  <div class="foot"><span>latent incident</span><span>19 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Lifeguard After Action" data-source="p483 救生员事后分析与计划文化">
-  <div class="chrome"><span>after action review</span><span>p483</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">救生员行业把事故之后的报告、复盘、训练和心理恢复连成一条链</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">报告</h3><p class="small-zh">水边出现任何事故都要写详细总结。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">分析</h3><p class="small-zh">严重问题会集体从头到尾分析。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">规则</h3><p class="small-zh">根据讨论结果修改运营规则。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">训练</h3><p class="small-zh">组织培训，建立类似事故处理能力。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">恢复</h3><p class="small-zh">创伤性事故后可能有医疗顾问介入。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>blameless in chaos</span><span>20 / 32</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Automation Question" data-source="p484 将重复性工作自动化 消除运维负载">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">Google SRE 反感重复性和被动性工作，自动化用来省下工程时间。</div>
-      <p class="body-zh muted" style="margin-top:2vh">但其他行业对自动化的信任程度差异很大。</p>
-    </div>
-  </div>
-  <div class="foot"><span>automation tradeoff</span><span>21 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Human Chain" data-source="p484 核动力海军避免自动化 人工决策链">
-  <div class="chrome"><span>manual control</span><span>p484</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">美国核动力海军用人工交叉管理，主动避免某些自动化</h2>
-      <p class="lead-zh">操作阀门需要操作员、监督员、船员与工程负责人通话配合。</p>
-      <p class="body-zh muted">这里担心自动化发现不了人能注意到的问题，也担心计算机太快造成无法挽回的后果。</p>
-    </div>
-  </div>
-  <div class="foot"><span>slow and steady</span><span>22 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Fast Automation Risk" data-source="p484 Knight Capital 4.4亿美元 Flash Crash">
-  <div class="chrome"><span>speed can harm</span><span>p484</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">交易行业的教训，是配置错误的自动化会把速度变成伤害</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>事件</th><th>材料里的损失</th></tr></thead>
-          <tbody>
-            <tr><td>Knight Capital Group</td><td>2012 年软件错误在几个小时内造成 4.4 亿美元损失。</td></tr>
-            <tr><td>美国股票交易所 Flash Crash</td><td>2010 年一次自动化操纵尝试导致 30 分钟内千亿美元级损失。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>misconfigured speed</span><span>23 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Automation When Faster" data-source="p484 p485 制造业与英国核能工业自动化">
-  <div class="chrome"><span>when automation helps</span><span>p484 p485</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">也有行业正因为计算机反应更快，才大量使用自动化</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">制造业</h3><p class="body-zh">自动化带来更高效率、更低成本和更稳定的重复性输出。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">英国核能工业</h3><p class="body-zh">如果发电站需要在少于 30 分钟内响应某种情况，响应必须自动化。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>response time threshold</span><span>24 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Selective Automation" data-source="p485 航空行业有选择地采用自动化">
-  <div class="chrome"><span>selective automation</span><span>p485</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">航空行业有选择地自动化。</div>
-      <p class="body-zh muted" style="margin-top:2vh">后备系统切换常自动进行，其他任务仍要求人工二次校验。即使有很多自动监控系统，空中交通管理系统最终实现仍需要人来校验运行。</p>
-    </div>
-  </div>
-  <div class="foot"><span>human verification</span><span>25 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="LASIK Automation" data-source="p485 LASIK 输入数据检查 虹膜图像对比">
-  <div class="chrome"><span>lasik automation</span><span>p485</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">LASIK 的自动化价值，是把用户错误挡在手术前</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>风险</th><th>自动化改进</th></tr></thead>
-          <tbody>
-            <tr><td>医生手动输入数字，可能输错病人或左右眼。</td><td>输入超出预期范围时，程序立刻警告。</td></tr>
-            <tr><td>屈光度测试数据与手术环节可能混乱。</td><td>操作环节虹膜照片自动对比测量环节虹膜图像。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>automation reduces user error</span><span>26 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Structured Decisions" data-source="p485 p486 结构化和理性的决策">
-  <div class="chrome"><span>decision principles</span><span>p485 p486</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">在 SRE 里，理性决策要把方向、信息源、假设和数据先摆清楚</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">过程</h3><p class="body-zh">决策基本方向事先决定，信息源清楚，假设明确说明。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">优先级</h3><p class="body-zh">数据驱动优于情感、直觉和资深人士意见，每个人都为用户负责。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>data before hierarchy</span><span>27 / 32</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="HiPPO" data-source="p486 HiPPO 工资最高的员工的意见">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">决策应该是通知式的，过程不应该围绕最资深成员的个人意见。</div>
-      <p class="body-zh muted" style="margin-top:2vh">Eric Schmidt 和 Jonathan Rosenberg 将这种风险称为 HiPPO，工资最高的员工的意见。</p>
-    </div>
-  </div>
-  <div class="foot"><span>avoid highest paid opinion</span><span>28 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Stable Old Technology" data-source="p486 如果运行正常就不要修改 通信远程交换机">
-  <div class="chrome"><span>do not change lightly</span><span>p486</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">一些行业把大量设计投入转化为对底层技术的保守态度</h2>
-      <p class="lead-zh">通信行业仍使用 19 世纪 80 年代部署的远程交换机，因为它们基本不会出错，冗余度非常高。</p>
-      <p class="body-zh muted">核能行业也类似，目前运行正常就不要修改，是很多决策背后的想法。</p>
-    </div>
-  </div>
-  <div class="foot"><span>stable systems resist change</span><span>29 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Procedures And Experiments" data-source="p486 手册流程 可控测试 实验文化">
-  <div class="chrome"><span>procedures and tests</span><span>p486</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">手册和实验都是理性决策方式，只适用于不同系统节奏</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>方式</th><th>适用逻辑</th></tr></thead>
-          <tbody>
-            <tr><td>手册与流程</td><td>适合发展慢、故障场景稳定，或员工技能水平较低的行业。</td></tr>
-            <tr><td>可控测试</td><td>制造业经常构建和测试猜想，确认变更不会带来意外。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>decision rhythm</span><span>30 / 32</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Risk Control" data-source="p486 交易行业风险控制部门">
-  <div class="chrome"><span>risk control</span><span>p486</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">交易行业把决策切成更小的块，并让独立风险控制部门掌握停止权。</div>
-      <p class="body-zh muted" style="margin-top:2vh">系统异常时，第一反应是关掉系统。只有风险控制部门可以重新启用。</p>
-    </div>
-  </div>
-  <div class="foot"><span>risk owns restart</span><span>31 / 32</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Core Summary" data-source="p487 小结 Google 变更速度 错误预算">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="summary-num">核心总结</div>
-      <div class="callout" style="margin-top:2vh">Google 采用了行业普遍的可靠性原则，再用错误预算支撑快速创新文化。</div>
-      <p class="body-zh muted" style="margin-top:2vh">本章最后的差异点很清楚：Google 更倾向于变更速度，但必须根据故障影响来选择保守程度。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p487</span><span>32 / 32</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-33-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-33-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第33章 其他行业的实践经验 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：怎样理解并使用“其他行业的实践经验”，以及它在什么条件下不适用。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "有其他行业背景的资深SRE"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本章开篇通过多位Google资深工程师的背景介绍，引出跨行业可靠性研究的必要性。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Peter Dahl、Mike Doherty等人在国防、医疗、通信、核能等领域拥有丰富经验，这些行业对故障零容忍，且后果往往涉及人身安全或巨额损失。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过展示这些不同背景专家的共同点，作者确立了SRE思想在外部行业同样适用的前提，为后续讨论具体实践奠定案例基础。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "灾难预案与演习"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将可靠性思想归纳为四大类，首先聚焦灾难预案。Google的DiRT演习旨在生产环境中制造故障以发现弱点。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "其他行业同样重视预案，通过组织架构关注安全、关注细节、冗余容量、模拟演习、培训考核、详细设计及纵深防御等手段应对风险。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一部分概述了各行业在灾难应对上的通用策略，自然过渡到对具体策略的深入剖析。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "关注任何细节"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Jeff Stevenson回忆海军经历，指出小任务中的粗心可能导致潜艇事故。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因系统紧密连接，小错误会引发连锁故障。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核动力海军重视日常维护，防止小问题演变成大事故，强调细节对整体可靠性的关键影响。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "冗余容量"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "通信行业系统容量难以预测，受自然灾害或大型活动影响。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Gus Hartmann提到利用SOW移动通信平台提供冗余容量，以应对突发情况。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此外，容量不仅指绝对值，还需应对如明星电话泄露导致的类DDoS攻击，防止路由错误。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "模拟以及进行线上灾难演习"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "航空业因安全限制无法线上测试，故部署使用真实数据的逼真模拟器。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通信行业则采用线上演习应对飓风，建设防水机房及长效发电机。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核动力海军结合假想练习与每周实战演习，通过可控环境下的破坏确保响应机制熟练，防止灾难发生。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "培训与考核"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "涉及人身安全的行业极为重视培训考核。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "救生员需通过健身、急救技巧及特定场景流程的严谨考核，并定期再考核。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因游泳池与海洋环境差异，各地有特有课程，确保员工在不同环境下具备正确的应急响应能力与体能储备。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "对详细的需求收集和系统设计的关注"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "医疗器械行业因使用场景多变，需从医生和工程师处获取详细需求。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Erik Gross指出激光手术设备设计简单以防错。Peter Dahl提到国防系统重视设计，耗时一年设计仅三周编码。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这与Google快速迭代文化不同，源于对风险承受能力的差异。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "纵深防御"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "核能行业中，纵深防御是灾难预案关键。所有系统有冗余备份，主要系统强制备有后备系统。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "设计加入多层防护机制，包括最后的物理屏障。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因对事故零容忍，该理念确保在故障发生时能层层阻断，防止灾难扩大，保障绝对安全。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "事后总结的文化"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "事后总结（Postmortem）强调对事不对人，旨在根除故障根源。Google通过传阅总结让全员受益。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "其他行业如核能、制造业受政府监管或出于安全关注，也进行类似分析。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，制造业关注“差点出事”的潜伏错误，救生员行业则对任何事故进行详细复盘。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些实践表明，无论行业如何，系统性反思是提升可靠性的关键动力。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "将重复性工作自动化，消除运维负载"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google推崇自动化以消除重复性运维负载。然而，其他行业对自动化态度各异。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核动力海军因担心自动化速度过快导致不可控风险，倾向于人工交叉管理；"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "金融交易行业因自动化配置错误可能导致巨额损失而保持谨慎。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "相反，制造业和核能行业在追求效率或快速响应时，则广泛采用自动化。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这揭示了自动化并非万能，需权衡风险与效率。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "结构化和理性的决策"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google强调数据驱动的结构化决策，反对HiPPO（最高薪者意见）主导。其他行业决策方式多样："}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通信和核能行业倾向于“不坏不修”的保守策略，依赖手册流程；制造业通过实验验证变更；"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "交易行业则通过独立风险控制部门隔离风险。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些差异反映了不同行业对变更速度和风险承受能力的不同权衡，为小结中的平衡观点提供依据。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "小结"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本章总结指出，Google的可靠性原则在其他行业得到验证。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核心结论是Google更倾向于快速变更，而其他行业如核能、医疗更保守以规避人身风险。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google利用错误预算平衡可靠性与创新，其软件产品不直接造成人身伤亡的优势使其能采用独特文化。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这一小结回顾了全章对比，强调了在扩展性、复杂度与可靠性间寻求平衡的重要性。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：跨行业可靠性实践的深层逻辑"}]}], "sourceIds": ["SRC-027"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "灾难预案中的冗余与演习策略"}]}], "sourceIds": ["SRC-028"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在灾难预案中，冗余容量和演习是核心手段。"}]}], "sourceIds": ["SRC-029"], "sourceParts": [{"id": "SRC-029", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通信行业利用SOW移动平台应对突发流量，如明星电话泄露导致的DDoS效应；"}]}], "sourceIds": ["SRC-029"], "sourceParts": [{"id": "SRC-029", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核动力海军则通过每周实战演习和假想练习确保响应机制熟练。"}]}], "sourceIds": ["SRC-029"], "sourceParts": [{"id": "SRC-029", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google的DiRT演习在生产环境制造故障，旨在发现未预料弱点。"}]}], "sourceIds": ["SRC-029"], "sourceParts": [{"id": "SRC-029", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "不同行业根据风险承受能力选择模拟或线上演习，如航空业因安全限制仅使用逼真模拟器，而通信业可进行线上演练。"}]}], "sourceIds": ["SRC-029"], "sourceParts": [{"id": "SRC-029", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这体现了预案需结合行业特性，确保在故障发生时系统能按预期响应。"}]}], "sourceIds": ["SRC-029"], "sourceParts": [{"id": "SRC-029", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "事后总结中的归因与预防机制"}]}], "sourceIds": ["SRC-030"]}, {"lines": [{"indent": 0, "chunks": [{"t": "事后总结要系统分析故障来源，不归责个人；Google通过传阅总结让其他团队也能学习。"}]}], "sourceIds": ["SRC-031"], "sourceParts": [{"id": "SRC-031", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "制造业和航空业还会记录“差点出事”的潜伏错误，例如CHIRP允许匿名汇报未遂事故；"}]}], "sourceIds": ["SRC-031"], "sourceParts": [{"id": "SRC-031", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "救生员行业则详细复盘事故，并关注人员心理状态。"}]}], "sourceIds": ["SRC-031"], "sourceParts": [{"id": "SRC-031", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "记录、分析和传播这些材料，能把一次故障转成后来可复用的预防经验。"}]}], "sourceIds": ["SRC-031"], "sourceParts": [{"id": "SRC-031", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "自动化决策中的风险权衡"}]}], "sourceIds": ["SRC-032"]}, {"lines": [{"indent": 0, "chunks": [{"t": "自动化在降低运维负载的同时，也带来风险权衡。"}]}], "sourceIds": ["SRC-033"], "sourceParts": [{"id": "SRC-033", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核动力海军因担心自动化速度过快导致不可控风险，采用人工交叉管理；"}]}], "sourceIds": ["SRC-033"], "sourceParts": [{"id": "SRC-033", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "金融交易行业因配置错误可能导致巨额损失而保持谨慎。"}]}], "sourceIds": ["SRC-033"], "sourceParts": [{"id": "SRC-033", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "相反，制造业和核能行业在追求效率或快速响应时，广泛采用自动化。"}]}], "sourceIds": ["SRC-033"], "sourceParts": [{"id": "SRC-033", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google推崇自动化以节省工程师时间，但需意识到不同行业对自动化的信任度不同。"}]}], "sourceIds": ["SRC-033"], "sourceParts": [{"id": "SRC-033", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "决策时应评估自动化带来的效率提升与潜在风险，确保在可控范围内实施，避免速度成为危害。"}]}], "sourceIds": ["SRC-033"], "sourceParts": [{"id": "SRC-033", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "结构化决策中的文化与流程"}]}], "sourceIds": ["SRC-034"]}, {"lines": [{"indent": 0, "chunks": [{"t": "结构化决策强调数据驱动，反对HiPPO主导。Google通过数据支持决策，而其他行业则依赖不同机制。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通信和核能行业倾向于“不坏不修”，依赖手册流程；制造业通过实验验证变更；"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "交易行业通过独立风险控制部门隔离风险。这些差异反映了行业对变更速度和风险承受能力的权衡。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，交易行业通过风险控制部门在异常时立即终止系统，确保不亏钱。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这表明决策方式需适应行业特性，平衡创新速度与风险控制，确保系统在复杂环境中稳定运行。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-036"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形：假设你正在为一个涉及患者生命安全的医疗物联网设备团队制定可靠性策略。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该设备需要实时监测心率，并在异常时自动给药。团队面临两个选择："}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "一是采用高度自动化的快速迭代开发，以迅速修复软件漏洞；"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "二是采用保守的手动审批流程，每次代码变更都需经过多层人工验证和模拟测试。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 4, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题："}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "基于本章关于其他行业（如医疗、核能、航空）的实践经验，分析哪种策略更符合“纵深防御”和“事后总结文化”的要求？"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "请说明理由，并指出如果选择快速迭代可能带来的具体风险。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-039"]}, {"lines": [{"indent": 0, "chunks": [{"t": "应选择保守的手动审批流程。医疗行业对故障零容忍，因为后果涉及人身安全，类似核能和航空业。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "纵深防御要求多层防护，手动验证和模拟测试提供了额外的安全屏障，防止自动化错误导致致命后果。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "事后总结文化强调系统化反思，保守流程允许更详细的记录和复盘，便于追踪问题根源。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "快速迭代可能带来软件漏洞未及时修复的风险，导致设备误操作，危及患者生命。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此外，快速变更可能引入未预见的弱点，增加灾难预案的复杂性，违背了其他行业对可靠性的高度重视。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-041"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 476-487。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}], "sourceIds": ["SRC-042", "SRC-043", "SRC-044"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}, {"indent": 0, "chunks": [{"t": "边界：本章内容基于Google SRE工程师的个人访谈，其他行业的实践可能因具体企业而异，不具普遍性。"}]}, {"indent": 0, "chunks": [{"t": "边界：自动化和决策策略的对比主要反映特定行业（如核能、金融、医疗）的经验，不能直接推广到所有软件行业。"}]}, {"indent": 0, "chunks": [{"t": "边界：事后总结的文化描述侧重于组织学习，未讨论法律或伦理层面的责任归属。"}]}], "sourceIds": ["SRC-045", "SRC-046", "SRC-047", "SRC-048"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：冗余容量和演习策略的具体实施细节因行业技术架构不同而存在差异，需结合具体场景调整。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第34章 结语”，继续回答：怎样理解并使用“结语”，以及它在什么条件下不适用。"}]}], "sourceIds": ["SRC-049", "SRC-050"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

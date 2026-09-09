@@ -2,768 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第4章 服务质量目标 深度笔记</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第4章 服务质量目标 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  --ink: #17202c;
-  --ink-rgb: 23,32,44;
-  --paper: #faf7ef;
-  --paper-rgb: 250,247,239;
-  --accent: #2f6f73;
-  --accent-rgb: 47,111,115;
-  --muted: #66707a;
-  --serif-zh: "Noto Serif SC", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; transition: transform .85s cubic-bezier(.77,0,.175,1); z-index: 10; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem,5vw,5.5rem) clamp(2rem,6vw,6.5rem) clamp(1.5rem,3vw,3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide.bare .foot { opacity: .34; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem,7vw,7rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem,4.6vw,4.2rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.45rem,3vw,2.5rem); line-height: 1.28; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem,2vw,2rem); line-height: 1.5; }
-.body-zh { font-family: var(--sans-zh); font-size: clamp(1.45rem,1.55vw,1.72rem); line-height: 1.55; }
-.small-zh { font-family: var(--sans-zh); font-size: clamp(1.1rem,1.2vw,1.35rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem,.9vw,1rem); text-transform: uppercase; letter-spacing: .14em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem,.8vw,.9rem); letter-spacing: .08em; opacity: .55; }
-.chrome { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem,.8vw,.9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; margin-bottom: 2vh; }
-.foot { display: flex; justify-content: space-between; font-family: var(--mono); font-size: clamp(.75rem,.8vw,.9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .4; margin-top: auto; padding-top: 2vh; }
-.w-quote { width: var(--w-quote); margin: 0 auto; }
-.w-statement { width: var(--w-statement); margin: 0 auto; }
-.w-note { width: var(--w-note); margin: 0 auto; }
-.w-default { width: var(--w-default); margin: 0 auto; }
-.w-wide { width: var(--w-wide); margin: 0 auto; }
-.note-stack { width: var(--w-default); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(1.8rem,4vh,3.4rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem,4vw,4rem); align-items: center; }
-.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: clamp(1rem,2.5vw,2.4rem); }
-.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(.9rem,2vw,2rem); }
-.tile { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem,2vh,1.6rem); }
-.slide.dark .tile { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft { opacity: .66; }
-.accent { color: var(--accent); opacity: 1; }
-.callout { font-family: var(--serif-zh); font-size: clamp(2rem,3.5vw,3.5rem); line-height: 1.38; max-width: 14em; }
-.callout-mark { position: relative; padding-top: clamp(1.5rem,3vh,2.3rem); }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.55rem,.75vw,.85rem); height: clamp(.55rem,.75vw,.85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem,4em,4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem,3vh,2.4rem); }
-.timeline-row { position: relative; display: grid; gap: clamp(1rem,2vw,2rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem,1.6vh,1.4rem); left: 6%; right: 6%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .12); }
-.timeline-node { position: relative; z-index: 1; }
-.slide.light .timeline-node .meta { background: var(--paper); display: inline-block; padding-right: .8rem; }
-.slide.dark .timeline-node .meta { background: var(--ink); display: inline-block; padding-right: .8rem; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem,6.4vw,6rem); font-weight: 700; color: var(--accent); line-height: .95; }
-.table-wrap { width: var(--w-wide); margin: 0 auto; display: flex; flex-direction: column; gap: clamp(1.4rem,3.5vh,2.8rem); }
-.data-table { width: 100%; border-collapse: separate; border-spacing: 0 clamp(.45rem,1vh,.8rem); font-family: var(--sans-zh); font-size: clamp(1.05rem,1.2vw,1.38rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem,1.2vw,1.1rem) clamp(.85rem,1.4vw,1.35rem); text-align: left; vertical-align: middle; }
-.data-table th { font-family: var(--mono); font-size: clamp(.76rem,.8vw,.92rem); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(var(--accent-rgb), .08); }
-.data-table td { background: rgba(var(--ink-rgb), .045); }
-.data-table tr > *:first-child { border-radius: 6px 0 0 6px; font-weight: 700; }
-.data-table tr > *:last-child { border-radius: 0 6px 6px 0; }
-.flow { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(1rem,2vw,2rem); align-items: stretch; }
-.flow-step { border: 1px solid rgba(var(--ink-rgb), .14); padding: clamp(1rem,2vw,1.6rem); border-radius: 6px; min-height: clamp(10rem,22vh,15rem); display: flex; flex-direction: column; justify-content: space-between; }
-.slide.dark .flow-step { border-color: rgba(var(--paper-rgb), .18); }
-.diagram-box { border: 1px solid rgba(var(--ink-rgb), .16); background: rgba(var(--ink-rgb), .035); border-radius: 6px; padding: clamp(1rem,2vw,1.8rem); }
-.line-chart { width: 100%; height: clamp(18rem,44vh,31rem); display: block; }
-.line-chart text { font-family: var(--mono); font-size: clamp(.72rem,.75vw,.88rem); fill: rgba(var(--ink-rgb), .58); }
-.line-chart .axis { stroke: rgba(var(--ink-rgb), .32); stroke-width: 1; }
-.line-chart .grid { stroke: rgba(var(--ink-rgb), .1); stroke-width: 1; }
-.line-chart .p50 { stroke: #83919a; }
-.line-chart .p85 { stroke: #6d8c93; }
-.line-chart .p95 { stroke: #4f7f86; }
-.line-chart .p99 { stroke: var(--accent); }
-.line-chart .series { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.legend { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(.7rem,1.4vw,1.2rem); margin-top: clamp(.8rem,1.5vh,1.2rem); }
-.legend span { font-family: var(--mono); font-size: clamp(.74rem,.8vw,.9rem); opacity: .72; }
-#nav { position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); }
-#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
-#nav .dot.active { background: rgba(255,255,255,.95); width: 20px; border-radius: 999px; }
-.anim-item { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
-.slide.active .anim-item { opacity: 1; transform: translateY(0); }
-.slide.active .anim-item:nth-child(1) { transition-delay: .05s; }
-.slide.active .anim-item:nth-child(2) { transition-delay: .15s; }
-.slide.active .anim-item:nth-child(3) { transition-delay: .25s; }
-.slide.active .anim-item:nth-child(4) { transition-delay: .35s; }
-.slide.active .anim-item:nth-child(n+5) { transition-delay: .45s; }
-@media (max-width: 820px) {
-  .slide { padding: 2rem 1.2rem 1.4rem; }
-  .grid-2, .grid-3, .grid-4, .flow { grid-template-columns: 1fr; }
-  .timeline-row { grid-template-columns: 1fr !important; }
-  .timeline-row::before { display: none; }
-  .table-wrap { overflow-x: auto; }
-  .data-table { min-width: 760px; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<div id="deck">
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p69 章标题">
-  <div class="slide-body" style="align-items:center;text-align:center">
-    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.4rem,3vh,2.4rem)">
-      <div class="kicker anim-item accent">Google SRE 第4章</div>
-      <h1 class="display-zh anim-item">服务质量目标</h1>
-      <p class="lead-zh anim-item soft" style="max-width:24em">从用户可见行为出发，把可靠性翻译成指标、目标、协议和运维动作</p>
-    </div>
-  </div>
-  <div class="foot"><div>Chris Jones 等</div><div>p69 到 p79</div></div>
-</section>
-
-<section class="slide light bare" data-theme="light" data-screen-label="Premise" data-source="p69 开篇">
-  <div class="slide-body" style="align-items:flex-start">
-    <div class="w-statement">
-      <div class="kicker anim-item">Premise</div>
-      <h2 class="display-zh anim-item" style="font-size:clamp(3.1rem,7.6vw,7.2rem)">可靠运维从度量用户在意的行为开始</h2>
-      <p class="lead-zh anim-item soft" style="margin-top:clamp(1.4rem,3vh,2.2rem);max-width:25em">如果不知道哪些行为重要，也没有度量正确性，团队就无法判断系统是否真的正常工作。</p>
-    </div>
-  </div>
-  <div class="foot"><div>服务行为重要性</div><div>02 / 22</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Terms Map" data-source="p69 服务质量术语">
-  <div class="chrome"><div>结构 · 术语分层</div><div>03 / 22</div></div>
-  <div class="slide-body">
-    <div class="w-wide">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,3.5rem)">三个词拆开之后，可靠性讨论才不会混在一起</h2>
-      <div class="flow">
-        <div class="flow-step anim-item">
-          <div class="meta accent">SLI</div>
-          <p class="body-zh">服务质量指标，描述某项质量的具体量化度量。</p>
-        </div>
-        <div class="flow-step anim-item">
-          <div class="meta accent">SLO</div>
-          <p class="body-zh">服务质量目标，为某个指标设定目标值或目标范围。</p>
-        </div>
-        <div class="flow-step anim-item">
-          <div class="meta accent">SLA</div>
-          <p class="body-zh">服务质量协议，描述目标达成或未达成之后的后果。</p>
-        </div>
-        <div class="flow-step anim-item">
-          <div class="meta accent">SRE</div>
-          <p class="body-zh">在指标建模、选择和分析中提供运维判断。</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>术语清晰度</div><div>03 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="SLI Defined" data-source="p70 指标">
-  <div class="chrome"><div>指标 · SLI</div><div>04 / 22</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:13em">SLI 的单位是服务质量，不是监控系统里的全部数字</h2>
-      <div class="grid-3">
-        <div class="tile anim-item"><div class="meta accent">延迟</div><p class="body-zh" style="margin-top:1vh">处理请求所消耗的时间，常被作为关键 SLI。</p></div>
-        <div class="tile anim-item"><div class="meta accent">错误率</div><p class="body-zh" style="margin-top:1vh">请求处理失败的百分比，用来观察失败面。</p></div>
-        <div class="tile anim-item"><div class="meta accent">吞吐量</div><p class="body-zh" style="margin-top:1vh">每秒请求数量，经常以速率或汇总值出现。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>具体量化指标</div><div>04 / 22</div></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Proxy" data-source="p70 直接度量与替代指标">
-  <div class="slide-body" style="align-items:center;text-align:center">
-    <div class="w-quote guest-mark">
-      <div class="kicker anim-item">Measurement Gap</div>
-      <h2 class="h1-zh anim-item">最好的 SLI 贴近用户体验，但系统常常只能拿到替代信号</h2>
-      <p class="body-zh anim-item soft" style="max-width:22em;margin:clamp(1.5rem,3vh,2.2rem) auto 0">客户端延迟更接近用户感知，受条件限制时团队可能只能观测服务器端延迟。</p>
-    </div>
-  </div>
-  <div class="foot"><div>用户可见质量</div><div>05 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Availability" data-source="p70 可用性和持久性">
-  <div class="chrome"><div>指标 · 可用性</div><div>06 / 22</div></div>
-  <div class="slide-body">
-    <div class="grid-2 w-wide">
-      <div class="anim-item">
-        <div class="kicker">Availability</div>
-        <div class="callout callout-mark" style="color:var(--ink)">100% 可用性不现实，接近 100% 可以成为目标</div>
-      </div>
-      <div class="anim-item">
-        <p class="lead-zh" style="max-width:18em">可用性通常用格式正确的请求处理成功比例定义，也会被称为服务产出。</p>
-        <p class="body-zh soft" style="max-width:20em;margin-top:clamp(1rem,2vh,1.6rem)">存储系统还会把持久性作为重要指标，衡量数据能否在一段时间内完整保存并再次读取。</p>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>9 的数量只是表达方式</div><div>06 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="SLO Defined" data-source="p70 p71 目标">
-  <div class="chrome"><div>目标 · SLO</div><div>07 / 22</div></div>
-  <div class="slide-body">
-    <div class="table-wrap">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">SLO 给 SLI 加上可判断的目标值或目标范围</h2>
-      <table class="data-table anim-item">
-        <thead>
-          <tr><th>对象</th><th>能否作为目标</th><th>原因</th><th>章节例子</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>QPS</td><td>通常不适合</td><td>外部请求量由用户决定</td><td>不能要求用户按固定速率访问</td></tr>
-          <tr><td>延迟</td><td>适合</td><td>团队可以优化服务或硬件</td><td>搜索请求平均延迟小于 100ms</td></tr>
-          <tr><td>范围</td><td>适合</td><td>目标可以有上下限</td><td>范围下限小于等于 SLI 小于等于范围上限</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="foot"><div>目标必须可操作</div><div>07 / 22</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Expectations" data-source="p71 SLO 公布">
-  <div class="chrome"><div>目标 · 预期管理</div><div>08 / 22</div></div>
-  <div class="slide-body" style="align-items:center;text-align:center">
-    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.3rem,3vh,2.2rem)">
-      <div class="kicker anim-item">Expectation</div>
-      <h2 class="h1-zh anim-item">没有明确 SLO，用户会自己发明服务质量预期</h2>
-      <p class="body-zh anim-item soft" style="max-width:25em">这种自发预期可能变成没有根据的抱怨，也可能变成对服务能力的过度依赖或过度低估。</p>
-    </div>
-  </div>
-  <div class="foot"><div>服务太慢了</div><div>08 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Chubby Risk" data-source="p71 全球 Chubby 服务计划内停机">
-  <div class="chrome"><div>案例 · Chubby</div><div>09 / 22</div></div>
-  <div class="slide-body">
-    <div class="grid-2 w-wide">
-      <div class="anim-item">
-        <h2 class="h1-zh" style="max-width:11em">真实故障太少，也会制造错误架构</h2>
-      </div>
-      <div class="anim-item">
-        <p class="body-zh">全球 Chubby 服务长期高可靠，让其他服务负责人开始相信它永远不会出故障。</p>
-        <p class="body-zh soft" style="margin-top:clamp(1rem,2vh,1.5rem)">更多服务依赖上来以后，罕见的全球不可用会放大成外部用户可见故障。</p>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>安全假象</div><div>09 / 22</div></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Chubby Mechanism" data-source="p71 Chubby 可控故障">
-  <div class="slide-body" style="align-items:center;text-align:center">
-    <div class="w-quote guest-mark">
-      <div class="kicker anim-item">Reliability Ceiling</div>
-      <h2 class="h1-zh anim-item">SRE 保证达到 SLO，同时避免服务质量大幅超出 SLO</h2>
-      <p class="body-zh anim-item soft" style="max-width:23em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0">如果真实故障没有把可用性拉到目标以下，团队会安排可控停机，暴露不合理依赖。</p>
-    </div>
-  </div>
-  <div class="foot"><div>计划内停机</div><div>10 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="SLA Boundary" data-source="p72 协议">
-  <div class="chrome"><div>协议 · SLA</div><div>11 / 22</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:14em">SLA 的边界问题很简单，目标没达到时有什么后果</h2>
-      <div class="grid-3">
-        <div class="tile anim-item"><div class="meta accent">后果</div><p class="body-zh" style="margin-top:1vh">可能是退款、罚款，也可能是其他业务后果。</p></div>
-        <div class="tile anim-item"><div class="meta accent">SRE 角色</div><p class="body-zh" style="margin-top:1vh">通常不写 SLA，但会帮助避免触发惩罚条款。</p></div>
-        <div class="tile anim-item"><div class="meta accent">分歧点</div><p class="body-zh" style="margin-top:1vh">没有客观度量 SLO 的方式，讨论很容易变成争议。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>SLO 与 SLA 的分界</div><div>11 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Service Classes" data-source="p72 p73 常见服务分类">
-  <div class="chrome"><div>实践 · 选择指标</div><div>12 / 22</div></div>
-  <div class="slide-body">
-    <div class="table-wrap">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">SLI 先问用户需要系统交付什么</h2>
-      <table class="data-table anim-item">
-        <thead>
-          <tr><th>系统类型</th><th>主要关注</th><th>用户问题</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>用户可见服务</td><td>可用性、延迟、吞吐量</td><td>能否处理请求，每个请求多久，能处理多少</td></tr>
-          <tr><td>存储系统</td><td>延迟、可用性、持久性</td><td>读写多久，能否访问，数据能否保存</td></tr>
-          <tr><td>大数据系统</td><td>吞吐量、端到端延迟</td><td>处理多少数据，从输入到产出多久</td></tr>
-          <tr><td>所有系统</td><td>正确性</td><td>返回、读取、分析的结果是否正确</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="foot"><div>四五个代表性指标通常足够</div><div>12 / 22</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Collection" data-source="p73 指标的收集">
-  <div class="chrome"><div>实践 · 数据采集</div><div>13 / 22</div></div>
-  <div class="slide-body">
-    <div class="grid-2 w-wide">
-      <div class="anim-item">
-        <div class="kicker">Server Side</div>
-        <p class="lead-zh">服务器端监控和日志能收集大部分指标，例如后端延迟和 HTTP 500 比例。</p>
-      </div>
-      <div class="anim-item">
-        <div class="kicker accent">Client Side</div>
-        <p class="lead-zh">客户端数据能发现服务器指标看不见的问题，例如页面脚本导致的用户可见延迟。</p>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>浏览器可用延迟</div><div>13 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Aggregation" data-source="p73 p74 汇总">
-  <div class="chrome"><div>实践 · 汇总</div><div>14 / 22</div></div>
-  <div class="slide-body">
-    <div class="w-wide">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto clamp(2rem,5vh,3.5rem)">平均值会抹掉瞬时压力和长尾问题</h2>
-      <div class="timeline-row" style="grid-template-columns:repeat(4,1fr)">
-        <div class="timeline-node anim-item"><div class="meta accent">偶数秒</div><p class="body-zh" style="margin-top:1vh">系统处理 200 个请求</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent">其他秒</div><p class="body-zh" style="margin-top:1vh">系统处理 0 个请求</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent">一分钟平均</div><p class="body-zh" style="margin-top:1vh">看起来是每秒 100 个请求</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent">即时负载</div><p class="body-zh" style="margin-top:1vh">峰值其实是平均值的两倍</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>汇总窗口决定可见性</div><div>14 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Latency Distribution" data-source="p74 图4 1">
-  <div class="chrome"><div>图解 · 延迟分布</div><div>15 / 22</div></div>
-  <div class="slide-body">
-    <div class="grid-2 w-wide">
-      <div class="anim-item">
-        <h2 class="h1-zh" style="max-width:11em">长尾变差时，平均值可能安静得像什么都没发生</h2>
-        <p class="body-zh soft" style="max-width:20em;margin-top:clamp(1rem,2vh,1.6rem)">图 4 1 说明常见请求约 50ms 完成，但有 5% 请求慢了约 20 倍。这里重画的是结构关系。</p>
-      </div>
-      <div class="diagram-box anim-item">
-        <svg class="line-chart" viewBox="0 0 720 360" role="img" aria-label="请求延迟百分位简化曲线">
-          <line class="axis" x1="60" y1="300" x2="680" y2="300"></line>
-          <line class="axis" x1="60" y1="40" x2="60" y2="300"></line>
-          <line class="grid" x1="60" y1="235" x2="680" y2="235"></line>
-          <line class="grid" x1="60" y1="170" x2="680" y2="170"></line>
-          <line class="grid" x1="60" y1="105" x2="680" y2="105"></line>
-          <text x="24" y="52">高</text>
-          <text x="24" y="304">低</text>
-          <text x="600" y="334">时间</text>
-          <path class="series p50" d="M70 284 C180 282 260 282 350 281 S560 282 670 281"></path>
-          <path class="series p85" d="M70 268 C190 267 270 266 355 266 S560 267 670 266"></path>
-          <path class="series p95" d="M70 248 C170 246 255 246 350 244 S560 246 670 244"></path>
-          <path class="series p99" d="M70 226 C160 222 250 224 330 220 S470 128 520 96 S600 94 670 90"></path>
-          <text x="86" y="276">50%</text>
-          <text x="86" y="260">85%</text>
-          <text x="86" y="241">95%</text>
-          <text x="548" y="86">99%</text>
-        </svg>
-        <div class="legend"><span>50% 普遍情况</span><span>85% 偏慢请求</span><span>95% 长尾入口</span><span>99% 最差情况</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>简化重画图 4 1</div><div>15 / 22</div></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Percentiles" data-source="p74 p75 百分位和统计性谬误">
-  <div class="slide-body" style="align-items:center;text-align:center">
-    <div class="w-quote guest-mark">
-      <div class="kicker anim-item">Percentiles</div>
-      <h2 class="h1-zh anim-item">SRE 更关心分布，特别是高百分位暴露的最差情况</h2>
-      <p class="body-zh anim-item soft" style="max-width:24em;margin:clamp(1.6rem,3.5vh,2.6rem) auto 0">99% 延迟为 100ms，表示 99% 请求都小于 100ms。算术平均和中位数可能相差很远，直觉假设必须验证。</p>
-    </div>
-  </div>
-  <div class="foot"><div>统计性谬误</div><div>16 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="SLI Template" data-source="p75 指标的标准化">
-  <div class="chrome"><div>实践 · 标准化</div><div>17 / 22</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:13em">常见 SLI 应该模板化，减少每个服务从头讨论的成本</h2>
-      <div class="grid-3">
-        <div class="tile anim-item"><div class="meta accent">汇总</div><p class="body-zh" style="margin-top:1vh">每 1 分钟汇总一次，范围是集群中的全部任务。</p></div>
-        <div class="tile anim-item"><div class="meta accent">采样</div><p class="body-zh" style="margin-top:1vh">每 10 秒度量一次，包含黑盒监控发来的 HTTP GET。</p></div>
-        <div class="tile anim-item"><div class="meta accent">延迟</div><p class="body-zh" style="margin-top:1vh">从收到请求开始，到最后一个字节被发出结束。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>重用定义模板</div><div>17 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Goal Backward" data-source="p75 p76 目标在实践中的应用">
-  <div class="chrome"><div>实践 · 目标定义</div><div>18 / 22</div></div>
-  <div class="slide-body">
-    <div class="grid-2 w-wide">
-      <div class="anim-item">
-        <div class="kicker">Wrong Start</div>
-        <h2 class="h1-zh" style="max-width:10em">从容易度量的数值出发，SLO 作用会很有限</h2>
-      </div>
-      <div class="anim-item">
-        <div class="kicker accent">Better Start</div>
-        <p class="lead-zh">先思考或调研用户最关心的方面，再反向推导可以近似表达它的指标。</p>
-        <p class="body-zh soft" style="margin-top:clamp(1rem,2vh,1.6rem)">SLO 还要写清度量方法和有效条件，例如 99% 的 Get RPC 在 100ms 内完成。</p>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>目标反推指标</div><div>18 / 22</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Error Budget" data-source="p76 p77 错误预算">
-  <div class="chrome"><div>目标 · 错误预算</div><div>19 / 22</div></div>
-  <div class="slide-body">
-    <div class="w-note" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:clamp(1.4rem,3vh,2.4rem)">
-      <div class="kicker anim-item">Error Budget</div>
-      <h2 class="h1-zh anim-item">要求 SLO 被 100% 满足，会压低创新和部署速度</h2>
-      <p class="body-zh anim-item soft" style="max-width:27em">错误预算把达不到 SLO 的容忍度显式化。每天或每周观察 SLO 不达标频率，可以和预算对比，并指导新版本发布。</p>
-    </div>
-  </div>
-  <div class="foot"><div>对达不到目标的容忍度</div><div>19 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Target Choice" data-source="p77 p78 目标的选择">
-  <div class="chrome"><div>目标 · 选择原则</div><div>20 / 22</div></div>
-  <div class="slide-body">
-    <div class="table-wrap">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto">SLO 选择是产品、业务、工程约束的共同决策</h2>
-      <table class="data-table anim-item">
-        <thead>
-          <tr><th>原则</th><th>要避免的偏差</th><th>运维含义</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>不要只看当前状态</td><td>把团队锁进过时架构</td><td>为重构和改进保留方向</td></tr>
-          <tr><td>保持简单</td><td>复杂汇总掩盖变化</td><td>让团队能理解和行动</td></tr>
-          <tr><td>避免绝对值</td><td>无限扩张或永远可用</td><td>别为用户不需要的质量付出过高成本</td></tr>
-          <tr><td>SLO 越少越好</td><td>无法说服开发团队的问题</td><td>只保留必要系统属性</td></tr>
-          <tr><td>不要追求完美</td><td>先定过难目标再放松</td><td>从松散目标开始逐渐收紧</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="foot"><div>SLO 是优先级杠杆</div><div>20 / 22</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Control Loop" data-source="p78 控制手段">
-  <div class="chrome"><div>运维 · 控制手段</div><div>21 / 22</div></div>
-  <div class="slide-body">
-    <div class="w-wide">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,3.5rem)">SLO 把监控数据接到操作决策上</h2>
-      <div class="timeline-row" style="grid-template-columns:repeat(4,1fr)">
-        <div class="timeline-node anim-item"><div class="meta accent">01</div><p class="body-zh" style="margin-top:1vh">监控并度量系统 SLI</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent">02</div><p class="body-zh" style="margin-top:1vh">比较 SLI 和 SLO</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent">03</div><p class="body-zh" style="margin-top:1vh">判断是否需要操作</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent">04</div><p class="body-zh" style="margin-top:1vh">执行动作让系统回到目标</p></div>
-      </div>
-      <p class="body-zh soft anim-item" style="max-width:28em;text-align:center;margin:clamp(2rem,5vh,3.2rem) auto 0">如果请求延迟继续上涨并会在几小时内超出目标，团队就有依据测试 CPU 是否不足并增加资源。</p>
-    </div>
-  </div>
-  <div class="foot"><div>没有 SLO 就不知道何时动作</div><div>21 / 22</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Core Notes" data-source="p78 p79 预期和协议实践">
-  <div class="chrome"><div>核心总结</div><div>22 / 22</div></div>
-  <div class="slide-body">
-    <div class="w-default" style="display:flex;flex-direction:column;gap:clamp(1.6rem,4vh,2.8rem)">
-      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
-        <div class="summary-num">01</div>
-        <p class="body-zh">公布 SLO 可以建立用户预期。对内目标高一点，对外目标低一点，可以留出响应问题和重构系统的缓冲区。</p>
-      </div>
-      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
-        <div class="summary-num">02</div>
-        <p class="body-zh">实际性能长期远超宣传目标，会让基础设施用户按假象构建依赖。计划内维护、限速和低负载下限速都能减少过度依赖。</p>
-      </div>
-      <div class="anim-item" style="display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,3rem);align-items:start">
-        <div class="summary-num">03</div>
-        <p class="body-zh">SLA 需要业务和法务选择后果条款。SRE 的贡献是说明达标概率和困难程度，并提醒对外宣传保持保守。</p>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>SLO 到 SLA</div><div>22 / 22</div></div>
-</section>
-
-</div>
-<div id="nav"></div>
 <script>
-(function(){
-  const deck = document.getElementById('deck');
-  const slides = Array.from(deck.querySelectorAll('.slide'));
-  const total = slides.length;
-  const nav = document.getElementById('nav');
-  let current = Number(localStorage.getItem('sre-chapter-04-slide') || 0);
-  if (current < 0 || current >= total) current = 0;
-  let locked = false;
-  function renderNav() {
-    nav.innerHTML = '';
-    slides.forEach((slide, index) => {
-      const dot = document.createElement('button');
-      dot.className = 'dot' + (index === current ? ' active' : '');
-      dot.setAttribute('aria-label', 'Go to slide ' + (index + 1));
-      dot.onclick = () => goTo(index);
-      nav.appendChild(dot);
-    });
-    const theme = slides[current].dataset.theme;
-    nav.style.background = theme === 'light' ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)';
-    Array.from(nav.querySelectorAll('.dot')).forEach((dot, index) => {
-      dot.style.background = index === current
-        ? (theme === 'light' ? 'rgba(0,0,0,.72)' : 'rgba(255,255,255,.95)')
-        : (theme === 'light' ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.3)');
-    });
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第4章 服务质量目标 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：如何构建可运维的服务质量目标体系。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "服务质量术语"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本章开篇确立核心概念，指出若不度量行为正确性便无法可靠运维。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者定义SLI为具体量化指标，SLO为目标值，SLA为未达标后果。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过区分三者，旨在消除SLA被赋予过多含义的模糊性，为后续讨论建立清晰语义基础，自然过渡到对SLI的具体定义。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "指标"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "详细定义SLI为服务质量的量化指标，如请求延迟、错误率等。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出理想SLI应直接度量服务质量，但常需以可观测指标替代。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以可用性为例，说明其定义为格式正确请求处理成功的比例，并引入“9”的数量描述法，为后续SLO设定提供度量基准。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "目标"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "定义SLO为SLI的目标值或范围，强调选择合适SLO的复杂性，如QPS由用户决定难以直接设定。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过莎士比亚搜索服务示例，说明SLO可鼓励优化或硬件采购。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出SLO公布能设立用户预期，避免无根据抱怨，引出Chubby服务案例以说明高可靠性可能带来的安全假象。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "全球Chubby服务计划内停机"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过Chubby案例说明高可靠性可能导致其他服务产生不合理依赖。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE通过故意安排计划内停机，打破安全假象，迫使服务负责人面对分布式系统缺陷。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此案例展示SLO不仅用于达标，也可用于控制服务质量以暴露系统脆弱性，过渡到SLA的定义。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "协议"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "定义SLA为SLO未达标时的后果协议，区分SLO与SLA的关键在于是否有明确后果。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出SRE通常不参与SLA书写，但参与避免触发惩罚条款及制定SLI。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Google搜索无公开SLA为例，说明即使无SLA，定义SLI与SLO仍对管理服务质量至关重要，转入实践应用。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "指标在实践中的应用"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "进入实践部分，强调识别关键SLI需理解用户真实需求，而非监控所有指标。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出指标过多或过少均有害，建议四五个代表性指标。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过分类讨论用户可见服务、存储系统、大数据系统及正确性指标，说明不同系统关注点差异，为具体指标收集方法做铺垫。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "运维人员和最终用户各关心什么"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "细化各类服务关心的SLI：用户可见服务关注可用性、延迟、吞吐量；存储系统关注延迟、可用性、持久性；"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "大数据系统关注吞吐量、端到端延迟；所有系统关注正确性。指出正确性更关注内部数据，通常非SRE直接负责。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此分类帮助读者理解不同场景下的指标侧重，过渡到指标收集方法。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "指标的收集"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "说明指标多通过监控系统（如Borgmon）或日志分析收集。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调客户端数据收集的重要性，指出仅监控服务器端可能遗漏影响用户体验的问题，如页面JavaScript导致的延迟。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以莎士比亚搜索为例，说明度量浏览器中可用延迟更能反映用户体验，过渡到数据汇总问题。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "汇总"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出汇总原始数据需谨慎，简单平均可能掩盖峰值或长尾延迟。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以偶数秒请求为例，说明平均负载相同但即时负载不同。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调大部分指标应以分布而非平均值定义，通过图4-1展示百分位指标能揭示长尾变化，指出用户更偏好稳定而非抖动快的系统，过渡到统计谬误讨论。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "关于统计性谬误"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出SRE倾向于分析百分比分布而非算术平均值，因长尾效应更具特点。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "说明计算机系统数据分布非平均，直觉近似可能失效。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调需验证数据分布，避免基于错误假设做出过高或过低频率的操作，如自动重启服务器。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此观点为指标标准化提供理论依据，过渡到标准化建议。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "指标的标准化"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议标准化常见SLI以避免重复评估，提供标准模板如汇总间隔、范围、频率等。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出构建可重用SLI模板可节约成本并简化理解。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "标准化旨在统一度量方式，为后续SLO定义提供一致基础，过渡到SLO在实践中的应用，强调从用户需求出发而非仅从可度量性出发。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "目标在实践中的应用"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调SLO定义应从用户关心的方面入手，而非仅从可度量性入手。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出用户关心的部分常难度量，需以近似形式表达。建议从目标反向推导指标，而非先选指标再定目标。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此观点纠正常见误区，为具体SLO定义方法做铺垫，过渡到SLO定义的具体规则。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "目标的定义"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "具体说明SLO定义需指出度量方式及有效条件，如99%的Get RPC在100ms内完成。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出可指定多个SLO目标以覆盖不同性能曲线，或为不同负载类型指定单独SLO。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调要求SLO 100%满足不现实，应使用错误预算作为容忍度，通过监控达标程度预警问题，过渡到SLO选择策略。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "目标的选择"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出SLO选择非纯技术活动，需反映产品业务决策，SRE应参与可行性讨论。列出讨论要点："}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "不仅以当前状态为基础，保持简单，避免绝对值，SLO越少越好，不追求完美。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调SLO是杠杆，需谨慎使用以平衡用户体验与开发效率，过渡到控制手段。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "不要仅以目前的状态为基础选择目标"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出仅按当前标准制定目标可能导致团队长期运维过时系统，阻碍架构重构。强调需从全局出发，推动系统演进。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此观点提醒读者避免静态思维，为后续保持简单、避免绝对值等原则提供背景，过渡到保持简单的具体建议。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "保持简单"}]}], "sourceIds": ["SRC-033"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出SLI中过于复杂的汇总模式可能掩盖系统性能变化，且难以理解。强调简单性有助于清晰监控和决策。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此原则与避免绝对值、SLO少而精相呼应，共同构成SLO选择的核心准则，过渡到避免绝对值的具体解释。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "避免绝对值"}]}], "sourceIds": ["SRC-035"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出要求系统无限扩张或永远可用不切实际，且运维复杂，可能超出用户可接受标准。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调即使能做到，也需长时间构建。此观点反对完美主义，为不追求完美做铺垫，过渡到SLO应随时间优化的建议。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SLO越少越好"}]}], "sourceIds": ["SRC-037"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出应仅选择足够覆盖系统属性的SLO，确保每个SLO必不可少。若无法说服开发团队达标，则该SLO不必要。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出用户满意度难用SLO表达。此原则强调SLO的聚焦性，避免过度监控，过渡到不追求完美的具体策略。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "不要追求完美"}]}], "sourceIds": ["SRC-039"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出可随时间了解系统行为后优化SLO，从松散目标逐渐收紧，优于一开始制定困难目标。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调SLO是激励机制，需谨慎使用以平衡开发与产品效果。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此观点反对激进目标，过渡到SLO作为控制手段的具体应用。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "控制手段"}]}], "sourceIds": ["SRC-041"]}, {"lines": [{"indent": 0, "chunks": [{"t": "说明SLI和SLO在运维决策中的作用：监控SLI，比较SLI与SLO决定操作，执行操作以满足目标。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以请求延迟上涨为例，说明SLO帮助决定何时增加CPU。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调无SLO则不知何时行动，过渡到SLO建立用户预期的功能。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SLO可以建立用户预期"}]}], "sourceIds": ["SRC-043"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出公布SLO可设置用户预期，帮助用户理解服务是否满足要求。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以照片分享网站为例，说明用户会根据SLO选择合适系统。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调正确预期对服务选择至关重要，过渡到留出安全区的策略。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "留出一定的安全区"}]}], "sourceIds": ["SRC-045"]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议对内使用更高SLO，对外使用稍低SLO以留出响应问题的时间。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLO缓冲区可用于重构或降低成本，保护用户不受直接影响。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此策略平衡内部优化与外部体验，过渡到实际SLO不宜过高的建议。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "实际SLO也不要过高"}]}], "sourceIds": ["SRC-047"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出用户按实际情况构建服务，若实际性能远超SLO宣传，用户可能产生过度依赖。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Chubby服务为例，说明计划内维护可避免过度可用。建议通过主观可控模式减少依赖，或限速手段。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此观点强调SLO应与实际能力匹配，过渡到SLA实践应用。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "协议在实践中的应用"}]}], "sourceIds": ["SRC-049"]}, {"lines": [{"indent": 0, "chunks": [{"t": "说明SLA起草需业务与法务部门选择后果条款，SRE帮助理解SLO达标概率与困难。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议用户宣传保持保守，因受众广时修改SLA更困难。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此部分总结SLA实践，强调SRE在其中的辅助角色，完成本章关于服务质量目标的完整论述。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：服务质量目标的核心逻辑与实战策略"}]}], "sourceIds": ["SRC-051"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SLI、SLO与SLA的语义边界"}]}], "sourceIds": ["SRC-052"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在构建服务质量体系时，首要任务是厘清SLI、SLO与SLA的语义边界。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 1, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLI是服务质量的量化指标，如请求延迟或错误率，它是客观存在的度量值。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 2, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLO是SLI的目标值或范围，代表运维团队承诺的服务水平。SLA则是SLO未达标时的后果协议，通常涉及财务惩罚。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 3, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "区分三者的关键在于：SLI是“测什么”，SLO是“目标多少”，SLA是“做不到怎么办”。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 4, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "许多团队混淆SLA与SLO，导致过度关注惩罚而非服务改进。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 5, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "正确理解这一边界，有助于将运维重点从规避惩罚转向提升服务质量。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 6, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，Google搜索服务虽无公开SLA，但通过明确的SLI和SLO管理用户体验，证明即使无SLA，定义SLO仍具价值。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 7, "total": 7, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "指标选择与统计分布的实战陷阱"}]}], "sourceIds": ["SRC-054"]}, {"lines": [{"indent": 0, "chunks": [{"t": "选择SLI时，应避免监控所有指标，而是聚焦用户真正关心的四五个代表性指标。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 1, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "常见陷阱在于过度依赖平均值，如平均请求延迟可能掩盖长尾延迟问题。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 2, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "统计性谬误指出，计算机系统数据分布非平均，长尾效应更具特点。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 3, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，99%的请求延迟可能远高于平均值，若仅监控平均值，将忽略大部分用户的糟糕体验。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 4, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因此，SRE应倾向于分析百分比分布，如99%或99.9%百分位，以揭示最差情况。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 5, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此外，指标收集需兼顾服务器端与客户端数据，因为客户端延迟（如JavaScript执行）可能影响用户体验，而服务器端指标无法捕捉。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 6, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "标准化SLI模板，如固定汇总间隔和频率，可简化监控并提高数据可比性。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 7, "total": 7, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SLO设定的平衡艺术与风险控制"}]}], "sourceIds": ["SRC-056"]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLO设定并非纯技术活动，而是产品与业务的决策反映。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 1, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "设定SLO时，应避免仅以当前系统状态为基础，否则可能阻碍架构重构。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 2, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，需保持简单，避免绝对值目标如“永远可用”，因其不切实际且运维复杂。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 3, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLO应少而精，仅覆盖必不可少系统属性，若无法说服开发团队达标，则该SLO不必要。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 4, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此外，SLO不应追求完美，而应从松散目标逐渐收紧，以留出优化空间。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 5, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLO作为控制手段，通过监控SLI与比较SLO，指导运维决策，如增加CPU资源。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 6, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "然而，SLO过高可能导致用户过度依赖，如Chubby服务通过计划内停机打破安全假象，防止不合理依赖。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 7, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "因此，SLO设定需在用户体验、运维成本与系统可靠性间取得平衡。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 8, "total": 8, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SLA协作与用户预期管理"}]}], "sourceIds": ["SRC-058"]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLA的起草需业务与法务部门协作，明确未达标后果，如退款或罚款。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 1, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE在此过程中扮演辅助角色，帮助理解SLO达标概率与困难，确保SLA目标现实可行。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 2, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "用户预期管理至关重要，公布SLO可设立用户对服务质量的预期，帮助用户判断服务是否满足需求。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 3, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，照片分享网站用户会根据SLO选择合适系统。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 4, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "为管理预期，可留出安全区，对内使用更高SLO，对外使用稍低SLO，以留出响应时间。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 5, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，实际SLO不宜过高，避免用户产生过度依赖，如Chubby服务通过计划内维护控制可用性。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 6, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLA宣传应保持保守，因受众广时修改SLA更困难。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 7, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过SLA与SLO的结合，团队可有效管理用户预期，平衡服务可靠性与业务灵活性。"}]}], "sourceIds": ["SRC-059"], "sourceParts": [{"id": "SRC-059", "index": 8, "total": 8, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-060"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形："}]}], "sourceIds": ["SRC-061"], "sourceParts": [{"id": "SRC-061", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "某团队为内部API设定SLO为99.9%的请求延迟低于50ms，但实际监控发现99%的请求延迟为40ms，1%为200ms。"}]}], "sourceIds": ["SRC-061"], "sourceParts": [{"id": "SRC-061", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "团队认为SLO达标，未采取行动。"}]}], "sourceIds": ["SRC-061"], "sourceParts": [{"id": "SRC-061", "index": 3, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：基于本章关于统计分布与SLO设定的原则，分析该团队做法的潜在风险，并说明如何改进SLO监控策略。"}]}], "sourceIds": ["SRC-062"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-063"]}, {"lines": [{"indent": 0, "chunks": [{"t": "风险："}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "团队仅关注SLO达标（99.9%低于50ms），忽略长尾延迟（1%为200ms），可能导致部分用户遭遇糟糕体验，且平均值掩盖了分布问题。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "改进：应监控99%或99.9%百分位延迟，而非仅SLO达标率；"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若99%延迟为40ms，1%为200ms，需分析长尾原因，如资源争用或代码缺陷；"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SLO设定应避免绝对值，考虑用户容忍度，如将SLO设为99%延迟低于100ms，更现实且覆盖大部分用户；"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，SLI收集应包含客户端数据，以全面反映用户体验。"}]}], "sourceIds": ["SRC-064"], "sourceParts": [{"id": "SRC-064", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-065"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 69-79。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}, {"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}], "sourceIds": ["SRC-066", "SRC-067", "SRC-068", "SRC-069"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：Google规模和组织实践属于书中经验，不自动写成所有团队的通则。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第5章 减少琐事”，继续回答：怎样理解并使用“减少琐事”，以及它在什么条件下不适用。"}]}], "sourceIds": ["SRC-070", "SRC-071"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
-  function activate() {
-    deck.style.transform = 'translateX(-' + (current * 100) + 'vw)';
-    slides.forEach(slide => slide.classList.remove('active'));
-    slides[current].classList.add('active');
-    localStorage.setItem('sre-chapter-04-slide', String(current));
-    renderNav();
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
   }
-  function goTo(index) {
-    if (locked || index < 0 || index >= total || index === current) return;
-    locked = true;
-    current = index;
-    activate();
-    setTimeout(() => { locked = false; }, 850);
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
   }
-  document.addEventListener('keydown', event => {
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === ' ') { event.preventDefault(); goTo(current + 1); }
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { event.preventDefault(); goTo(current - 1); }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
   });
-  let wheelTimer = null;
-  document.addEventListener('wheel', event => {
-    if (wheelTimer) return;
-    wheelTimer = setTimeout(() => { wheelTimer = null; }, 700);
-    if (event.deltaY > 30) goTo(current + 1);
-    if (event.deltaY < -30) goTo(current - 1);
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
   }, { passive: true });
-  let touchStartX = 0;
-  document.addEventListener('touchstart', event => { touchStartX = event.touches[0].clientX; }, { passive: true });
-  document.addEventListener('touchend', event => {
-    const diff = touchStartX - event.changedTouches[0].clientX;
-    if (diff > 50) goTo(current + 1);
-    if (diff < -50) goTo(current - 1);
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
   }, { passive: true });
-  activate();
-})();
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

@@ -2,849 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第28章 迅速培养SRE加入on-call note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第28章 迅速培养SRE加入on-call · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: SRE training is apprenticeship under production pressure, so the deck uses graphite for operational gravity, warm paper for learning notes, and amber green for readiness checkpoints. */
-  --ink: #1f2826;
-  --ink-rgb: 31,40,38;
-  --paper: #f5efe3;
-  --paper-rgb: 245,239,227;
-  --accent: #8a7a2b;
-  --muted: #68746f;
-  --warm: #7a5f4b;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem, 6.4vw, 6.2rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 760; font-size: clamp(2rem, 3.9vw, 3.7rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 680; font-size: clamp(1.45rem, 2.55vw, 2.35rem); line-height: 1.28; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.42rem, 1.9vw, 1.95rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.2rem, 1.36vw, 1.56rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1rem, 1.06vw, 1.22rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #d1c87f; }
-.warm { color: var(--warm); }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 520; font-size: clamp(2rem, 3.2vw, 3.35rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
-.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.06vw, 1.22rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.05vw, .96rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
-  .timeline-row::before { display: none; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p406 章节标题 作者">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Chapter 28</div>
-      <h1 class="display-zh">迅速培养SRE加入on-call</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">Andrew Widdowson</p>
-      <p class="meta" style="margin-top:1.2vh">编辑 Shylaja Nukala</p>
-    </div>
-  </div>
-  <div class="foot"><span>p406</span><span>01 / 36</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Training Starts" data-source="p406 新的SRE已经招聘到了 接下来怎么办">
-  <div class="chrome"><span>training starts</span><span>p406</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">新 SRE 招到以后，真正的问题是如何在工作中把他们训练成可靠工程师。</div>
-      <p class="body-zh muted" style="margin-top:2vh">早期教育和技术培训投入足够，能让新成员更快进入状态，并让工程技能更平衡。</p>
-    </div>
-  </div>
-  <div class="foot"><span>education and technical training</span><span>02 / 36</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Trust Requirement" data-source="p406 成功的SRE团队离不开信任">
-  <div class="chrome"><span>trust requirement</span><span>p406</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">on-call 培训的底层要求是团队能信任新人</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">懂系统</h3><p class="small-zh">了解系统如何运行。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">会诊断</h3><p class="small-zh">能判断系统的异常情况。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">会求助</h3><p class="small-zh">善于利用资源和寻求帮助。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">能镇静</h3><p class="small-zh">在压力下保持镇静。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">能解决</h3><p class="small-zh">快速处理问题。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>global services</span><span>03 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Three Training Questions" data-source="p406 三个培训问题 评估 几情 活动">
-  <div class="chrome"><span>training questions</span><span>p406</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">新手需要学什么之外，还要回答三个团队问题</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">评估</h3><p class="body-zh">现有 on-call 工程师如何判断新人准备好了。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">互利</h3><p class="body-zh">如何利用新员工的激情和好奇心，让老员工也受益。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">活动</h3><p class="body-zh">哪些活动既丰富团队知识，也能让大家喜欢。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>readiness and learning culture</span><span>04 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="No Single Method" data-source="p407 没有一种教育方式适用于所有SRE团队">
-  <div class="chrome"><span>learning styles</span><span>p407</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">培训不能押注一种学习习惯</h2>
-      <p class="lead-zh">新招聘到的学员学习习惯各不相同，没有一种教育方式最优，也没有一种方式适用于所有 SRE 团队。</p>
-      <p class="body-zh muted">本章后续列出的课程，是 Google SRE 内部多种培训方式的代表，用来保障知识拥有和知识传递。</p>
-    </div>
-  </div>
-  <div class="foot"><span>representative practices</span><span>05 / 36</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Training Map" data-source="p408 p409 图28-1 两个轴 工作类型 时间">
-  <div class="chrome"><span>training map</span><span>p408 p409</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">培养计划要同时安排工作类型和时间节奏</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>图中的轴</th><th>材料里的含义</th><th>培训安排</th></tr></thead>
-          <tbody>
-            <tr><td>X 轴</td><td>工作类型从抽象到具体。</td><td>同时容纳被动、主动和混合活动。</td></tr>
-            <tr><td>Y 轴</td><td>新 SRE 从很少了解系统开始。</td><td>先读事后总结，再反向工程系统，再见习 on-call。</td></tr>
-            <tr><td>虚线</td><td>正式 on-call 后学习基本靠自己主导。</td><td>培训仍持续，但边界更开放。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>pace and variety</span><span>06 / 36</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Early Training Principle" data-source="p409 培训初期 重体系 而非混乱">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">培训初期要重体系，而不是把新人丢进混乱。</div>
-      <p class="body-zh muted" style="margin-top:2vh">SRE 团队本来就要用主动办法减少被动性工作，培训过程也应该体现这一点。</p>
-    </div>
-  </div>
-  <div class="foot"><span>system over chaos</span><span>07 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="John Example" data-source="p409 John 刚加入 FooServer SRE团队 工单全部指派">
-  <div class="chrome"><span>bad onboarding example</span><span>p409</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">反面例子里，新人第一天就接收所有新工单</h2>
-      <p class="lead-zh">主管让 John 自己找老员工问背景，期待他有一天突然掌握全部工具、流程和系统知识。</p>
-      <p class="body-zh muted">材料里老成员补了一句：团队都是摸着石头过河。</p>
-    </div>
-  </div>
-  <div class="foot"><span>tickets as training</span><span>08 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Fire Training Problem" data-source="p410 浴火重生式学习方式 关注于运维 被动性教育">
-  <div class="chrome"><span>why it fails</span><span>p410</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">浴火重生式培训通常反映团队自己已经被运维琐事牵着走。</div>
-      <p class="body-zh muted" style="margin-top:2vh">它假设大部分知识能靠动手实践获得。如果职位只需要处理工单，那其实不是 SRE 职位。</p>
-    </div>
-  </div>
-  <div class="foot"><span>reactive education</span><span>09 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Trainee Questions" data-source="p410 SRE 学员肯定会存在以下问题">
-  <div class="chrome"><span>trainee questions</span><span>p410</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">混乱会放大新人最关心的三个不确定性</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">任务</h3><p class="body-zh">我现在正在做的是什么工作。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">进度</h3><p class="body-zh">我现在的进度如何。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">门槛</h3><p class="body-zh">什么时候我能积累到足够经验参加 on-call。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>confidence and uncertainty</span><span>10 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Cumulative Learning" data-source="p410 系统性 累积型的学习方式">
-  <div class="chrome"><span>cumulative path</span><span>p410</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">更好的训练方式，是为新人建立有顺序的学习路径</h2>
-      <p class="lead-zh">任何系统性培训都比直接处理随机工单和琐事好。</p>
-      <p class="body-zh muted">材料要求有选择地组合理论和实践：常用的系统抽象概念要优先，真实操作也要尽早出现。</p>
-    </div>
-  </div>
-  <div class="foot"><span>ordered learning path</span><span>11 / 36</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Curriculum Sequence" data-source="p410 p411 实时直接面向用户的服务系统 课程顺序">
-  <div class="chrome"><span>example curriculum</span><span>p410 p411</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">面向用户的服务，可以按请求路径组织课程</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">入口</h3><p class="small-zh">网络、数据中心、前端负载均衡、代理。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">前端</h3><p class="small-zh">应用程序前端、日志记录、用户体验 SLO。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">中层</h3><p class="small-zh">缓存和后端负载均衡系统。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">基础设施</h3><p class="small-zh">后端、基础设施、计算资源管理。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">整体</h3><p class="small-zh">调试技巧、问题升级流程、紧急演练。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>request path curriculum</span><span>12 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Checklist Shape" data-source="p412 检查列表 专家联系方式 文档资源 基本知识 自检问题">
-  <div class="chrome"><span>on-call checklist</span><span>p412</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">on-call 学习检查列表不是把手册塞进文档</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>列表提供</th><th>材料里的作用</th></tr></thead>
-          <tbody>
-            <tr><td>专家联系方式</td><td>指出每块知识可以向谁确认。</td></tr>
-            <tr><td>文档资源</td><td>把最有用的资料摆到新人面前。</td></tr>
-            <tr><td>服务基本知识</td><td>让新人理解每一节能学到什么。</td></tr>
-            <tr><td>简单自检问题</td><td>帮助新人和讲师判断学习进度。</td></tr>
-            <tr><td>实际操作环节</td><td>把知识转成可练习的技能。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>resources and self check</span><span>13 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Homework Feedback" data-source="p412 问答形式的家庭作业 学习进度 下一阶段">
-  <div class="chrome"><span>feedback loop</span><span>p412</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">培训反馈不一定是正式考试，但最好有问答作业</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">关键路径</h3><p class="body-zh">哪些后端服务器在关键路径中，为什么。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">简化空间</h3><p class="body-zh">服务的哪些方面可以简化或自动化。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">瓶颈判断</h3><p class="body-zh">第一个瓶颈在哪里，出现后怎样缓解。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>homework as signal</span><span>14 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Access Upgrade" data-source="p412 分层访问权限 升级 最高权限">
-  <div class="chrome"><span>access ladder</span><span>p412</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">访问权限也可以分层授予，让学习进度和生产权限一起升级。</div>
-      <p class="body-zh muted" style="margin-top:2vh">第一层允许只读访问组件内部信息，之后允许修改生产状态。搜索 SRE 团队把这个过程称为升级。</p>
-    </div>
-  </div>
-  <div class="foot"><span>graduated permissions</span><span>15 / 36</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Project Work" data-source="p412 p413 目标性强的项目工作 而非琐事">
-  <div class="chrome"><span>project work</span><span>p412 p413</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">新手项目要小而有意义，不能只是分担琐事</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">可见修改</h3><p class="body-zh">在技术栈中加入小的用户可见功能，并跟到生产发布。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">监控盲点</h3><p class="body-zh">为现有服务监控盲点增加新的监控。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">自动化痛点</h3><p class="body-zh">选择尚未自动化的痛点，减轻团队日常负担。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>meaningful contribution</span><span>16 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Engineer Traits" data-source="p413 培养反向工程能力和随机应变能力">
-  <div class="chrome"><span>what to cultivate</span><span>p413</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">SRE 培训要培养三种能力，而不是传统系统管理员模式</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>能力</th><th>材料里的原因</th></tr></thead>
-          <tbody>
-            <tr><td>反向工程</td><td>日常会遇到从未见过的系统。</td></tr>
-            <tr><td>统计学思维</td><td>海量规模下很多异常很难检测。</td></tr>
-            <tr><td>随机应变</td><td>标准流程不工作时仍然要解决问题。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>beyond sysadmin mode</span><span>17 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Reverse Engineering" data-source="p414 反向工程 弄明白系统如何工作">
-  <div class="chrome"><span>reverse engineering</span><span>p414</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">反向工程训练，是让 SRE 在陌生环境里处理额外难题</h2>
-      <p class="lead-zh">工程师要愿意深入调试工具、RPC 框架和系统二进制文件，理解数据如何流动。</p>
-      <p class="body-zh muted">培训要让成员练习用调试和诊断信息做推断，使这种方式成为日后工作习惯。</p>
-    </div>
-  </div>
-  <div class="foot"><span>how systems work</span><span>18 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Scientific Method" data-source="p414 统计学和比较性思维 在压力下坚持科学方法论">
-  <div class="chrome"><span>scientific method</span><span>p414</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">大规模故障处理像实时决策树，SRE 只能在有限时间里选少数动作。</div>
-      <p class="body-zh muted" style="margin-top:2vh">经验要和精心构造的假设结合，通过证实或证伪减少决策空间。</p>
-    </div>
-  </div>
-  <div class="foot"><span>hypotheses under pressure</span><span>19 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Find Difference" data-source="p414 下列哪一个东西与其他不同 内核版本 CPU架构 二进制文件版本">
-  <div class="chrome"><span>comparative thinking</span><span>p414</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">系统故障调试常常是在找哪个因素与其他不同</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">版本差异</h3><p class="body-zh">内核版本、CPU 架构、二进制文件版本。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">流量差异</h3><p class="body-zh">地区性的流量区别，或其他几百种因素。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">架构要求</h3><p class="body-zh">因子必须可控，并能独立分析和比较。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>controlled factors</span><span>20 / 36</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Improvisation" data-source="p414 随机应变 当意料之外的事情发生时怎么办">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">手册失效、开发团队联系不上时，SRE 必须能临场发挥。</div>
-      <p class="body-zh muted" style="margin-top:2vh">培训初期要讲决策陷阱，也要训练及时抽身，从更高层面换角度看问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>when the runbook fails</span><span>21 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Production Service Course" data-source="p415 如何反向工程某个生产环境服务 Google 新闻团队 百慕大三角区">
-  <div class="chrome"><span>course scenario</span><span>p415</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">反向工程课程把学员放进一个完整生产服务失联场景</h2>
-      <p class="lead-zh">Google 新闻团队全员去百慕大三角区团建，30 天没有消息。</p>
-      <p class="body-zh muted">新组建的 Google 新闻 SRE 团队需要自行搞清楚端到端服务原理，保障它继续运行。</p>
-    </div>
-  </div>
-  <div class="foot"><span>google news exercise</span><span>22 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Request Tracing" data-source="p415 跟踪浏览器请求 RPC连接关系 白盒与黑盒监控">
-  <div class="chrome"><span>request tracing</span><span>p415</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">课程核心动作，是沿着真实请求构建组件图</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">浏览器请求</h3><p class="small-zh">在 Google 基础设施中跟踪一个请求。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">多种发现</h3><p class="small-zh">用多种方式发现生产服务之间的连接。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">换来源</h3><p class="small-zh">再跟踪另一个来源请求，暴露过窄假设。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">调试信息</h3><p class="small-zh">用 RPC 连接、白盒和黑盒监控判断数据路径。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">组件图</h3><p class="small-zh">构造系统组件图，讨论共享基础设施服务。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>component map</span><span>23 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Senior Review" data-source="p415 p416 学员自行构建技术栈组件图 资深SRE共同讨论">
-  <div class="chrome"><span>senior review</span><span>p415 p416</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">课程末尾，学员要独立画出未来 on-call 系统的一部分，再和资深 SRE 讨论。</div>
-      <p class="body-zh muted" style="margin-top:2vh">学员遗漏的小而关键的细节，是最好的讨论话题。资深成员也可能学到系统新变化。</p>
-    </div>
-  </div>
-  <div class="foot"><span>newest member as teacher</span><span>24 / 36</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Oncall Readiness" data-source="p416 有抱负的on-call工程师的5个特点">
-  <div class="chrome"><span>readiness meaning</span><span>p416</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">能够参与 on-call，意味着了解足够多，也能随时自学剩下的知识</h2>
-      <p class="lead-zh">on-call 轮值一般不是 SRE 的主要目标，但生产环境运维经常需要响应紧急事故。</p>
-      <p class="body-zh muted">负责任地进行 on-call，需要对运维系统有一定程度的了解和熟悉。</p>
-    </div>
-  </div>
-  <div class="foot"><span>responsible on-call</span><span>25 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Postmortem Study" data-source="p416 p417 事后总结的阅读和书写">
-  <div class="chrome"><span>postmortem study</span><span>p416 p417</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">事后总结要被整理成未来新手的教育材料</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>做法</th><th>材料里的理由</th></tr></thead>
-          <tbody>
-            <tr><td>写作时考虑未来新人</td><td>最佳受众可能是还没有入职的工程师。</td></tr>
-            <tr><td>收集有价值文档</td><td>束之高阁的事后总结没有用。</td></tr>
-            <tr><td>区分死记和课程</td><td>有些需要记住，有些适合讲授大型系统弱点和新奇故障方式。</td></tr>
-            <tr><td>公开最佳文档</td><td>可提供给相关团队、上下游团队阅读。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>blameless learning material</span><span>26 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Postmortem Groups" data-source="p416 p417 事后总结团体学习 故障沙龙">
-  <div class="chrome"><span>incident salons</span><span>p416 p417</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">定期阅读故障文档，会潜移默化构建生产环境知识库</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">团体学习</h3><p class="body-zh">分发、阅读有价值的事后总结，并组织集体讨论。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">故障沙龙</h3><p class="body-zh">请原始作者非正式出席，描述故障过程并组织讨论。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>shared incident memory</span><span>27 / 36</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Role Playing Exercise" data-source="p417 故障处理分角色演习 命运之轮 走木板">
-  <div class="chrome"><span>role playing exercise</span><span>p417</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">故障处理分角色演习，是把全队拉进同一个问题现场。</div>
-      <p class="body-zh muted" style="margin-top:2vh">这个传统也被称为命运之轮或走木板。做得最好时，它会成为每周共同学习的机会。</p>
-    </div>
-  </div>
-  <div class="foot"><span>wheel of misfortune</span><span>28 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="GM Mechanics" data-source="p417 p418 GM 主on-call 副on-call 30到60分钟">
-  <div class="chrome"><span>game mechanics</span><span>p417 p418</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">演习像桌上 RPG，GM 控制故障信息的展开</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">选人</h3><p class="small-zh">GM 选择主 on-call 和副 on-call。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">报警</h3><p class="small-zh">主持人宣布某个警报发生。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">调查</h3><p class="small-zh">on-call 团队调查并现场处理。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">信息</h3><p class="small-zh">GM 提供图表走势，或假扮其他团队。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">时长</h3><p class="small-zh">主副 on-call 在 30 到 60 分钟内寻找根因。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>controlled incident scene</span><span>29 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Exercise Payoff" data-source="p418 每个人都会从中学到一点东西">
-  <div class="chrome"><span>exercise payoff</span><span>p418</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">成功的灾难演习让每个人学到一点东西</h2>
-      <p class="lead-zh">可能是新工具、新技巧、解决问题的另一个角度，或新员工对成功解决问题的认可。</p>
-      <p class="body-zh muted">材料还指出，这项练习可能鼓励团队成员面对下周挑战，甚至成为下一周的 GM。</p>
-    </div>
-  </div>
-  <div class="foot"><span>practice and confidence</span><span>30 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Break Real Things" data-source="p418 破坏真的东西 并且修复它们">
-  <div class="chrome"><span>hands on failure</span><span>p418</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">最好的经验来自动手破坏或修复真实生产环境。</div>
-      <p class="body-zh muted" style="margin-top:2vh">真正学习应该在加入 on-call 之前开始，让学员更好使用内部工具和监控系统处理故障。</p>
-    </div>
-  </div>
-  <div class="foot"><span>realistic practice</span><span>31 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Safe Realism" data-source="p418 p419 多数据中心 QA实例 人工负载 配置问题 内存泄露">
-  <div class="chrome"><span>safe realism</span><span>p418 p419</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">真实性靠低风险环境承载，而不是靠纸面模拟</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>训练环境</th><th>能训练的问题</th></tr></thead>
-          <tbody>
-            <tr><td>多数据中心部署系统</td><td>把流量从至少一个实例切走，将该实例作为练习使用。</td></tr>
-            <tr><td>功能齐全的 QA 实例</td><td>加入人工负载，模拟真实用户流量和资源消耗。</td></tr>
-            <tr><td>逼真的虚拟负载</td><td>配置问题、内存泄露、性能下降、请求崩溃、存储瓶颈。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>training instance</span><span>32 / 36</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Destroy Search Cluster" data-source="p419 一起来摧毁一个搜索集群">
-  <div class="chrome"><span>destroy a cluster</span><span>p419</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">搜索团队每季度做一次团体活动，慢慢把组件逼近瓶颈</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">讨论</h3><p class="body-zh">哪些性能特点可能会受到影响。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">假设</h3><p class="body-zh">每个参与者提出系统行为变化的假想和逻辑。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">验证</h3><p class="body-zh">执行操作，验证假设，并解释系统现象。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>quarterly degradation exercise</span><span>33 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Docs Apprenticeship" data-source="p419 p420 维护文档是学徒任务的一部分">
-  <div class="chrome"><span>docs apprenticeship</span><span>p419 p420</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">on-call 学习检查列表同时服务三类人</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>对象</th><th>检查列表的作用</th></tr></thead>
-          <tbody>
-            <tr><td>学员</td><td>理解运维系统边界，掌握重要组件和原因。</td></tr>
-            <tr><td>导师和管理者</td><td>反映学习进度，回答今天学哪一节、哪一节最困惑。</td></tr>
-            <tr><td>其他团队成员</td><td>成为社会契约和知识标准，只有掌握文档的人才能加入 on-call。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>social contract</span><span>34 / 36</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Shadow Oncall" data-source="p420 p421 尽早 尽快见习on-call">
-  <div class="chrome"><span>shadow on-call</span><span>p420 p421</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">见习 on-call 应该在第一条真实报警之前发生</h2>
-      <p class="lead-zh">掌握系统基础知识后，可以把报警系统的警报复制一份给学员，先从工作时间内报警开始。</p>
-      <p class="body-zh muted">学员不是问题解决负责人，可以在没有压力的情况下观察故障发展，和主 on-call 共享终端或坐在一起讨论。</p>
-    </div>
-  </div>
-  <div class="foot"><span>real alerts without ownership</span><span>35 / 36</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Conclusion" data-source="p421 p422 on-call之后 小结 以比扩张机器更快的速度扩张团队">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="summary-num">核心总结</div>
-      <div class="callout" style="margin-top:2vh">加入 on-call 是里程碑，学习不能在这里停止。</div>
-      <p class="body-zh muted" style="margin-top:2vh">团队要用仪式确认通过培训，再用常规学习时间讨论新的和即将发生的改动。目标很明确：SRE 必须以比扩张机器更快的速度扩张团队。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p421 p422</span><span>36 / 36</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-28-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-28-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第28章 迅速培养SRE加入on-call · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答："}]}], "sourceIds": ["SRC-001"], "sourceParts": [{"id": "SRC-001", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "如何平衡新SRE的入职培训与老员工的on-call效率，确保新人快速具备独立处理故障的能力，同时不增加团队负担？"}]}], "sourceIds": ["SRC-001"], "sourceParts": [{"id": "SRC-001", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "新的SRE已经招聘到了，接下来怎么办"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节确立培训目标：让新人快速具备信任度，能诊断异常并冷静解决问题。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出仅关注知识不够，需解决老员工评估新人、利用新人激情及组织丰富活动三个问题。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调学习习惯差异，引出Google推荐的多种培训方式，为后续具体方法做铺垫。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "表28-1:SRE培训课程"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "列出Google SRE推荐的培训课程及注意要点，作为内部知识传递的代表。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些课程旨在保障团队拥有足够知识并有效传递。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节作为过渡，引出图28-1展示的SRE培训最佳实践，强调在培养新人的同时保证老员工不落伍。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "培训初期：重体系，而非混乱"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "批判“浴火重生”式被动培训，指出其导致新人迷茫、效率低下。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过John入职FooServer团队的案例，说明仅靠处理工单无法建立系统认知。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调SRE培训应系统化、阶段化，避免混乱，为引入系统性学习方式提供反面论证。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "系统性、累积型的学习方式"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "提出建立顺序性学习路径，结合理论与实操。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以面向用户的服务为例，按请求进入、前端、中层、基础设施及整体调试顺序培训。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "介绍Google搜索SRE的“on-call学习检查列表”，通过问答作业和分层访问权限控制，实现进度反馈与技能累积。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "1）请求是如何进入系统中的"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该部分讲解网络与数据中心基本概念、前端负载均衡及代理机制。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者将其作为培训起点，帮助新手从抽象层面理解流量入口，为后续深入服务内部逻辑建立基础认知框架。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "2）前端服务"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "涵盖应用程序前端、日志记录及用户体验SLO等内容。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过此环节让学员掌握面向用户的服务细节，结合日志与SLO指标，培养其对用户体验敏感度的初步感知能力。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "3）中层服务"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "介绍缓存机制与后端负载均衡系统。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者在此处引导学员关注数据流转的关键节点，通过理解中间层架构，帮助其建立对系统内部依赖关系及性能瓶颈的结构性认识。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "4）基础设施"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "涉及后端、基础设施及计算资源管理。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者安排此模块旨在让学员深入底层资源管理，理解支撑上层服务的物理与逻辑基础，从而形成对系统全貌的完整技术栈认知。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "5）整体"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "包含调试技巧、问题升级流程及紧急演练。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过整体视角串联前序知识，强调实战中的决策逻辑与协作流程，旨在培养学员在复杂故障场景下的综合应对与系统思维能力。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "目标性强的项目工作，而非琐事"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "主张通过解决具体难题激励新人，如增加用户可见功能、完善监控或自动化痛点。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "让新人同时参与学习与项目，获得参与感和效率感。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这有助于建立新老员工间的信任，通过实际贡献融入团队，区别于单纯的琐事处理。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "培养反向工程能力和随机应变能力"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "探讨SRE应具备的核心特质：反向工程能力、统计学思维及随机应变能力。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在大规模系统中，仅靠运维思维不够，需具备海量工程思维。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节概述了这些特点的重要性，为后续详细讲解如何培养这些能力做铺垫。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "反向工程：弄明白系统如何工作"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调通过理解系统工作原理及数据流动，提升在陌生环境中处理难题的效率。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议通过教授调试诊断技巧，让新人习惯利用调试信息进行推断。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这有助于培养其在压力下坚持科学方法论，为后续讲解统计学思维做基础。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "统计学和比较性思维：在压力下坚持科学方法论"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "将故障处理视为实时决策树中的抉择过程。强调在有限时间内，需通过精心构造的假设来缩小决策空间。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "培训新人成为好的数据分析者，通过比较性思维识别异常因子，如内核版本或流量区别，从而在压力下做出有效决策。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "随机应变的能力：当意料之外的事情发生时怎么办"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "针对标准流程失效或开发团队失联等意外情况，强调临场发挥的重要性。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出固守陈规可能导致无法找到根源，建议培训新人利用未经验证的假设进行决策，并学会从更高角度思考，避免陷入决策陷阱，提升应变能力。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "将知识串联起来：反向工程某个生产环境服务"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "以Google新闻团队团建缺席为例，介绍“反向工程生产服务”课程。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "学员需自行跟踪请求，利用调试信息构建组件图，并与资深SRE讨论。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此过程强调动手发现连接关系，防止遗漏，并通过与资深成员交流纠正错误，深化对系统的理解。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "有抱负的on-call工程师的5个特点"}]}], "sourceIds": ["SRC-033"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出参与on-call意味着具备足够了解及自学能力。本节聚焦“对事故的渴望”，强调事后总结的重要性。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "引用Santayana名言，说明事后总结是找出问题来源、持续改进的重要手段，为新人提供学习大型系统结构弱点的机会。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "故障处理分角色演习"}]}], "sourceIds": ["SRC-035"]}, {"lines": [{"indent": 0, "chunks": [{"t": "介绍Google SRE的“故障处理分角色演习”传统，如“命运之轮”。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过模拟历史或假想故障，让新人扮演on-call角色，主持人提供信息。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此活动促进全员学习新工具或技巧，帮助新人融入团队文化，同时让老员工跟上环境变化。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "破坏真的东西，并且修复它们"}]}], "sourceIds": ["SRC-037"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调动手破坏和修复真实生产环境的重要性。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议在培训早期引入低风险环境，如多数据中心部署或QA实例，加入人工负载模拟真实流量。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过观察系统行为变化，强迫新人寻找问题因素并修复，获得比阅读文档更深刻的经验。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "维护文档是学徒任务的一部分"}]}], "sourceIds": ["SRC-039"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出“on-call学习检查列表”对学员、导师及其他团队的作用。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调文档需及时更新，鼓励新人参与修改，经资深SRE评审后提交。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这既保障知识更新，又通过社会契约形式确立标准，促进新老员工知识共存与更新。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "尽早、尽快见习on-call"}]}], "sourceIds": ["SRC-041"]}, {"lines": [{"indent": 0, "chunks": [{"t": "主张在掌握基础知识后尽早让新人见习on-call，接收工作时间内的报警。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过观察故障发展、与主on-call共享终端或共同书写事后总结，积累实战经验。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "资深成员“反向见习”新人，提供提示但不干预，促进信任与能力转移。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "on-call之后：通过培训的仪式感，以及日后的持续教"}]}], "sourceIds": ["SRC-043"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调加入on-call是里程碑，应举行仪式庆祝。培训并未停止，需建立常规学习时间讨论新改动，由推进者展示。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "鼓励SRE给开发者做讲座，促进沟通与理解，保持团队对新技术栈的敏感度，确保持续学习与适应。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "小结"}]}], "sourceIds": ["SRC-045"]}, {"lines": [{"indent": 0, "chunks": [{"t": "总结SRE培训投入的价值，旨在培养合格SRE并磨炼团队技能。强调任务目标是让团队扩张速度超过机器扩张速度。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "鼓励读者根据具体情况应用本章实践，创建学习型团队，祝读者在创建学习型团队的路上一切顺利。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：SRE新人on-call能力培养体系"}]}], "sourceIds": ["SRC-047"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "系统性学习路径与反馈机制"}]}], "sourceIds": ["SRC-048"]}, {"lines": [{"indent": 0, "chunks": [{"t": "针对新人缺乏系统认知的痛点，应建立顺序性、累积型的学习路径。"}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "首先按技术栈逻辑分组，如从请求进入、前端服务、中层服务到基础设施，最后覆盖整体调试。"}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "结合Google搜索SRE的“on-call学习检查列表”，通过问答作业反馈进度。"}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "实施分层访问权限控制，从只读内部信息到修改生产状态，随检查列表完成逐步升级权限。"}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种机制确保新人明确当前进度，避免在混乱中迷失，为后续实战打下坚实基础。"}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "反向工程与统计学思维训练"}]}], "sourceIds": ["SRC-050"]}, {"lines": [{"indent": 0, "chunks": [{"t": "面对复杂系统，新人需具备反向工程能力与统计学思维。"}]}], "sourceIds": ["SRC-051"], "sourceParts": [{"id": "SRC-051", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过“反向工程生产服务”课程，如模拟Google新闻团队缺席场景，让新人自行跟踪请求、构建组件图，发现连接关系。"}]}], "sourceIds": ["SRC-051"], "sourceParts": [{"id": "SRC-051", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，培养其在压力下坚持科学方法论，将故障处理视为决策树抉择。"}]}], "sourceIds": ["SRC-051"], "sourceParts": [{"id": "SRC-051", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过构造假设、比较因子（如内核版本、流量），识别异常。"}]}], "sourceIds": ["SRC-051"], "sourceParts": [{"id": "SRC-051", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种训练使新人能从数据中推断问题，而非依赖固定流程，提升在陌生环境中的诊断效率。"}]}], "sourceIds": ["SRC-051"], "sourceParts": [{"id": "SRC-051", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "实战演习与文档维护结合"}]}], "sourceIds": ["SRC-052"]}, {"lines": [{"indent": 0, "chunks": [{"t": "理论需结合实战。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过“故障处理分角色演习”，模拟历史或假想故障，让新人扮演on-call角色，主持人提供信息，促进全员学习。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "进一步引入“破坏真的东西”环节，在低风险QA实例或模拟负载环境中，强迫新人寻找并修复问题。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，将维护“on-call学习检查列表”作为学徒任务，鼓励新人更新文档，经资深SRE评审。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这既保障知识更新，又通过社会契约确立标准，促进知识传承。"}]}], "sourceIds": ["SRC-053"], "sourceParts": [{"id": "SRC-053", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "见习on-call与持续教育机制"}]}], "sourceIds": ["SRC-054"]}, {"lines": [{"indent": 0, "chunks": [{"t": "尽早让新人见习on-call，接收工作时间报警，观察故障发展而非事后学习。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过共同书写事后总结、资深成员“反向见习”等方式，积累实战经验。加入on-call后，培训并未停止。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "建立常规学习时间，讨论新改动，由推进者展示。鼓励SRE给开发者做讲座，促进沟通。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种持续教育机制确保团队知识随技术栈更新，保持对新技术的敏感度，实现团队能力的持续扩张。"}]}], "sourceIds": ["SRC-055"], "sourceParts": [{"id": "SRC-055", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-056"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形：假设你是一名新入职的SRE，负责一个复杂的微服务系统。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在一次故障演习中，你发现某个关键服务的响应时间突然飙升，但监控图表显示该服务本身的CPU和内存使用率正常。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此时，标准故障处理手册中并未涵盖此情况，且负责该服务的开发团队正在开会无法联系。"}]}], "sourceIds": ["SRC-057"], "sourceParts": [{"id": "SRC-057", "index": 3, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：基于本章所学，请描述你应如何运用“反向工程”和“统计学思维”来定位问题？"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "并说明在无法联系开发团队时，如何体现“随机应变能力”？"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-059"]}, {"lines": [{"indent": 0, "chunks": [{"t": "1. 反向工程：不依赖手册，而是自行跟踪请求数据流。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 1, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "检查上游依赖（如负载均衡、缓存）和下游服务（如数据库、其他微服务）的状态，构建或更新组件图，寻找异常连接点。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 2, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "2. 统计学思维：将响应时间飙升视为异常数据点。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 3, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "比较不同时间段、不同用户群体、不同请求参数的数据，寻找共同因子（如特定API调用、特定地区流量）。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 4, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过假设-验证循环，缩小问题范围。3. 随机应变：在无法联系开发团队时，不固守流程。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 5, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "利用现有监控工具（如RPC追踪、日志）进行深度分析。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 6, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "尝试隔离故障（如切断非关键依赖），或切换流量到备用实例。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 7, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "从更高层面思考，如网络层或基础设施层问题，而非仅关注应用代码。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 8, "total": 8, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-061"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 406-422。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}], "sourceIds": ["SRC-062", "SRC-063", "SRC-064"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}, {"indent": 0, "chunks": [{"t": "边界：本章提到的Google SRE培训实践（如反向工程课程、分角色演习）基于Google特定规模和组织文化，其他团队需根据自身情况调整，不可直接照搬。"}]}, {"indent": 0, "chunks": [{"t": "边界：分层访问权限控制虽能提升新人效率，但也需严格的安全审计，防止权限滥用导致生产事故。"}]}, {"indent": 0, "chunks": [{"t": "边界：“破坏真的东西”需在低风险环境中进行，如QA实例或隔离的生产副本，严禁直接在未隔离的生产环境进行破坏性测试。"}]}], "sourceIds": ["SRC-065", "SRC-066", "SRC-067", "SRC-068"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：事后总结的集体学习需避免流于形式，应聚焦于问题来源分析和流程改进，而非单纯的责任追究。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第29章 处理中断性任务”，继续回答：处理中断性任务。"}]}], "sourceIds": ["SRC-069", "SRC-070"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

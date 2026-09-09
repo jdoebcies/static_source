@@ -1,0 +1,340 @@
+{
+  "status": "pass",
+  "validator": "/Users/sunjingyun/.agents/skills/ljg-present/Tools/ValidateDeck.ts",
+  "runtime": "deno-bun-api-shim",
+  "theme": "black",
+  "chapter_count": 41,
+  "passed_chapters": 41,
+  "failed_chapters": 0,
+  "results": [
+    {
+      "unit_id": "00-prefaces",
+      "relative_path": "chapters/00-prefaces/00-prefaces-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "01-chapter-01",
+      "relative_path": "chapters/01-chapter-01/01-chapter-01-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "02-chapter-2-google-sre",
+      "relative_path": "chapters/02-chapter-2-google-sre/02-chapter-2-google-sre-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "03-chapter-03",
+      "relative_path": "chapters/03-chapter-03/03-chapter-03-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "04-chapter-04",
+      "relative_path": "chapters/04-chapter-04/04-chapter-04-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "05-chapter-05",
+      "relative_path": "chapters/05-chapter-05/05-chapter-05-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "06-chapter-06",
+      "relative_path": "chapters/06-chapter-06/06-chapter-06-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "07-chapter-7-google",
+      "relative_path": "chapters/07-chapter-7-google/07-chapter-7-google-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "08-chapter-08",
+      "relative_path": "chapters/08-chapter-08/08-chapter-08-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "09-chapter-09",
+      "relative_path": "chapters/09-chapter-09/09-chapter-09-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "10-chapter-10",
+      "relative_path": "chapters/10-chapter-10/10-chapter-10-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "11-chapter-11-on-call",
+      "relative_path": "chapters/11-chapter-11-on-call/11-chapter-11-on-call-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "12-chapter-12",
+      "relative_path": "chapters/12-chapter-12/12-chapter-12-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "13-chapter-13",
+      "relative_path": "chapters/13-chapter-13/13-chapter-13-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "14-chapter-14",
+      "relative_path": "chapters/14-chapter-14/14-chapter-14-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "15-chapter-15",
+      "relative_path": "chapters/15-chapter-15/15-chapter-15-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "16-chapter-16",
+      "relative_path": "chapters/16-chapter-16/16-chapter-16-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "17-chapter-17",
+      "relative_path": "chapters/17-chapter-17/17-chapter-17-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "18-chapter-18-sre",
+      "relative_path": "chapters/18-chapter-18-sre/18-chapter-18-sre-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "19-chapter-19",
+      "relative_path": "chapters/19-chapter-19/19-chapter-19-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "20-chapter-20",
+      "relative_path": "chapters/20-chapter-20/20-chapter-20-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "21-chapter-21",
+      "relative_path": "chapters/21-chapter-21/21-chapter-21-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "22-chapter-22",
+      "relative_path": "chapters/22-chapter-22/22-chapter-22-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "23-chapter-23",
+      "relative_path": "chapters/23-chapter-23/23-chapter-23-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "24-chapter-24",
+      "relative_path": "chapters/24-chapter-24/24-chapter-24-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "25-chapter-25",
+      "relative_path": "chapters/25-chapter-25/25-chapter-25-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "26-chapter-26",
+      "relative_path": "chapters/26-chapter-26/26-chapter-26-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "27-chapter-27",
+      "relative_path": "chapters/27-chapter-27/27-chapter-27-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "28-chapter-28-sre-on-call",
+      "relative_path": "chapters/28-chapter-28-sre-on-call/28-chapter-28-sre-on-call-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "29-chapter-29",
+      "relative_path": "chapters/29-chapter-29/29-chapter-29-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "30-chapter-30-sre",
+      "relative_path": "chapters/30-chapter-30-sre/30-chapter-30-sre-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "31-chapter-31-sre",
+      "relative_path": "chapters/31-chapter-31-sre/31-chapter-31-sre-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "32-chapter-32-sre",
+      "relative_path": "chapters/32-chapter-32-sre/32-chapter-32-sre-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "33-chapter-33",
+      "relative_path": "chapters/33-chapter-33/33-chapter-33-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "34-chapter-34",
+      "relative_path": "chapters/34-chapter-34/34-chapter-34-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "35-appendix-a",
+      "relative_path": "chapters/35-appendix-a/35-appendix-a-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "36-appendix-b",
+      "relative_path": "chapters/36-appendix-b/36-appendix-b-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "37-appendix-c",
+      "relative_path": "chapters/37-appendix-c/37-appendix-c-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "38-appendix-d",
+      "relative_path": "chapters/38-appendix-d/38-appendix-d-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "39-appendix-e",
+      "relative_path": "chapters/39-appendix-e/39-appendix-e-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    },
+    {
+      "unit_id": "40-appendix-f",
+      "relative_path": "chapters/40-appendix-f/40-appendix-f-note-slides.html",
+      "status": "PASS",
+      "passed": 37,
+      "total": 37,
+      "failed": []
+    }
+  ],
+  "visual_verification": "deferred: Interceptor is unavailable in this runtime"
+}

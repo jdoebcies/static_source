@@ -2,752 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第18章 SRE部门中的软件工程实践 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第18章 SRE部门中的软件工程实践 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  /* palette thesis: this chapter is about turning production pain into durable internal software, so dark graphite carries operational weight, warm paper carries planning notes, and green blue marks engineering leverage. */
-  --ink: #20272b;
-  --ink-rgb: 32,39,43;
-  --paper: #faf7ef;
-  --paper-rgb: 250,247,239;
-  --accent: #2f7d78;
-  --muted: #65717a;
-  --warm: #9a6d3a;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #83c7bf; }
-.warm { color: var(--warm); }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(.85rem, 1.5vw, 1.3rem); }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb), .16); }
-.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
-.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .grid-4, .timeline-row { grid-template-columns: 1fr; }
-  .timeline-row::before { display: none; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p226 章节标题" style="text-align:center;align-items:center">
-  <div class="slide-body">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Chapter 18</div>
-      <h1 class="display-zh">SRE部门中的<br>软件工程实践</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">从生产环境一手经验，走向内部软件工程项目。</p>
-      <p class="meta" style="margin-top:1.2vh">Dave Helstroom、Trisha Weir、Evan Leonard、Kurt Delimon</p>
-    </div>
-  </div>
-  <div class="foot"><span>p226</span><span>01 / 31</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Hidden Engineering" data-source="p226 幕后软件工程实践">
-  <div class="chrome"><span>hidden engineering</span><span>p226</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">Google 还有很多幕后软件工程实践</h2>
-      <p class="lead-zh">除了 Gmail、Google 地图、Bigtable 和 Colossus，还有大量内部工具来自 SRE 部门。</p>
-      <p class="body-zh muted">这些工具围绕机器正常运行、低延迟和生产环境开发，形式包括发布系统、监控系统和动态服务器组合上的开发环境。</p>
-    </div>
-  </div>
-  <div class="foot"><span>internal tools</span><span>02 / 31</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Not Scripts" data-source="p226 完整的软件工程项目">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">SRE 开发的工具，是完整的软件工程项目。</div>
-      <p class="body-zh muted" style="margin-top:2vh">它们不是一次性脚本和小补丁。开发者需要面向内部用户做产品规划，也要制定未来方向。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p226</span><span>03 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Why SRE Builds" data-source="p226 p227 SRE 自行开发工具的原因">
-  <div class="chrome"><span>why sre builds</span><span>p226 p227</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">SRE 适合做生产工具，有三个直接原因</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">生产知识</h3><p class="body-zh">理解 Google 特有生产环境的深度和广度。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">直接使用</h3><p class="body-zh">自己就是工具用户，知道重点在哪里。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">反馈密集</h3><p class="body-zh">其他 SRE 熟悉问题和方案，可以给出高质量反馈。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>knowledge user feedback</span><span>04 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Scaling Pressure" data-source="p227 团队大小不应该与用户服务规模成比例增长">
-  <div class="chrome"><span>scaling pressure</span><span>p227</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">SRE 团队不能随着用户服务规模同比增长。</div>
-      <p class="body-zh muted" style="margin-top:2vh">服务指数增长时，要让 SRE 组织线性增长，就必须持续自动化，优化工具和流程，消除日常运维效率问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>automation pressure</span><span>05 / 31</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Career Value" data-source="p227 SRE 组织也会获益">
-  <div class="chrome"><span>career value</span><span>p227</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">软件工程项目也反过来服务 SRE 组织</h2>
-      <p class="lead-zh">它给工程师提供职业发展方向和磨炼编程技能的机会。</p>
-      <p class="body-zh muted">长期项目能平衡 on call 轮值，也能吸引和留住同时重视软件工程技能与系统工程技能的人。</p>
-    </div>
-  </div>
-  <div class="foot"><span>growth and retention</span><span>06 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Auxon Context" data-source="p227 p228 Auxon 项目背景">
-  <div class="chrome"><span>auxon context</span><span>p227 p228</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">Auxon 从容量规划痛点里长出来</h2>
-      <p class="lead-zh">它是 SRE 内部开发的自动化容量规划工具。</p>
-      <p class="body-zh muted">案例先回到传统容量规划，看它如何收集需求预测、制定采购和分配计划、评审批准，再部署配置资源。</p>
-    </div>
-  </div>
-  <div class="foot"><span>capacity planning</span><span>07 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Traditional Loop" data-source="p228 传统容量规划方法">
-  <div class="chrome"><span>traditional loop</span><span>p228</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">传统容量规划是一个没有尽头的循环</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">预测</h3><p class="small-zh">收集未来项目需求。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">计划</h3><p class="small-zh">制定采购、构建和分配计划。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">评审</h3><p class="small-zh">确认预算、产品期望和技术要求。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">部署</h3><p class="small-zh">资源到位后配置给服务。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">传递</h3><p class="small-zh">每次变化都继续影响未来季度。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>endless planning loop</span><span>08 / 31</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Unreliable Plan" data-source="p229 不可靠性">
-  <div class="chrome"><span>unreliable plan</span><span>p229</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">小变化也会让资源配给计划失效</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">服务侧变化</h3><p class="body-zh">效率下降、需求增加、产品策略变化，都会改变资源需求。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">供给侧变化</h3><p class="body-zh">新集群上线推迟，会影响多个服务的全局冗余和延迟要求。</p></div>
-      </div>
-      <p class="body-zh muted">每个季度又基于前一个季度制定，当前执行变化还必须更新未来规划。</p>
-    </div>
-  </div>
-  <div class="foot"><span>fragile allocation</span><span>09 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Manual Bin Packing" data-source="p229 p230 耗时巨大同时不够精确">
-  <div class="chrome"><span>manual bin packing</span><span>p229 p230</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">手工把需求编排到可用资源上，既复杂又不精确。</div>
-      <p class="body-zh muted" style="margin-top:2vh">电子表格会遇到扩展性、错误检查、数据过期和变更追踪问题。最佳压缩问题也不适合人类手工计算。</p>
-    </div>
-  </div>
-  <div class="foot"><span>spreadsheet limits</span><span>10 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Lost Intent" data-source="p230 需求原因湮灭">
-  <div class="chrome"><span>lost intent</span><span>p230</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">传统请求把原因丢在传递过程中</h2>
-      <p class="lead-zh">服务常常只留下刚性的资源请求，例如某集群需要多少 CPU。</p>
-      <p class="body-zh muted">为什么需要这些 CPU，为什么一定要在这个集群，背后的产品意图早已湮灭。</p>
-    </div>
-  </div>
-  <div class="foot"><span>intent disappears</span><span>11 / 31</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Intent Planning" data-source="p230 基于意图的容量规划">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">列出要求，不要拘泥于具体实现细节。</div>
-      <p class="body-zh muted" style="margin-top:2vh">基于意图的流程用编程方式记录依赖和资源参数，再由算法生成资源配给方案。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p230</span><span>12 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Intent Benefit" data-source="p230 p231 最优解和成本">
-  <div class="chrome"><span>intent benefit</span><span>p230 p231</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">计算机接手底层分配，人回到更高层目标</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">可靠</h3><p class="body-zh">记录真实需求和选择自由度，面对变动时更稳。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">省力</h3><p class="body-zh">让服务负责人关注 SLO、依赖和基础架构优化。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">降本</h3><p class="body-zh">用计算优化需求和供给匹配，提高计划精确度。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>computer optimized planning</span><span>13 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Intent Ladder" data-source="p231 p232 意图抽象级别">
-  <div class="chrome"><span>intent ladder</span><span>p231 p232</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">资源请求可以上升为运维意图</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">具体资源</h3><p class="small-zh">服务 Foo 在指定集群需要 50 个 CPU。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">地理选择</h3><p class="small-zh">在某地理区域任意三个集群使用。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">增长冗余</h3><p class="small-zh">满足区域需求增长，并保障 N+2 冗余。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">可靠性目标</h3><p class="small-zh">让 Foo 以 99.999% 可靠度运行。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">经验判断</h3><p class="small-zh">一般服务到第三步收益最大。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>abstraction levels</span><span>14 / 31</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Intent Inputs" data-source="p232 p233 表达产品意图的先导条件">
-  <div class="chrome"><span>intent inputs</span><span>p232 p233</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">完整表达服务意图，需要三类信息</h2>
-      <div class="grid-3">
-        <div class="soft-box"><h3 class="h2-zh accent">依赖关系</h3><p class="body-zh">Foo 依赖 Bar，Bar 还可能依赖 Baz 和 Qux，位置选择要看整条依赖链。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">性能指标</h3><p class="body-zh">高阶资源类型要转换成低阶资源类型，例如请求量需要多少计算和带宽。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">优先级</h3><p class="body-zh">资源不够时，要透明决定哪些请求可以被牺牲。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>dependencies metrics priorities</span><span>15 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Auxon Product" data-source="p233 Auxon简介">
-  <div class="chrome"><span>auxon product</span><span>p233</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">Auxon 把人类意图转成机器可求解的限制条件</h2>
-      <p class="lead-zh">它收集服务资源要求和依赖信息，再形成巨大的线性规划表达式。</p>
-      <p class="body-zh muted">这个工具由 SRE 内部小团队和项目经理用两年写成，已经用于规划百万美元级计算资源分配。</p>
-    </div>
-  </div>
-  <div class="foot"><span>intent to constraints</span><span>16 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Auxon Components" data-source="p234 p235 Auxon 主要组件">
-  <div class="chrome"><span>auxon components</span><span>p234 p235</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Auxon 的输入围绕规模、需求、供给和成本</h2>
-      <div class="grid-4">
-        <div class="line-box"><h3 class="h2-zh accent">性能数据</h3><p class="small-zh">描述服务规模化能力。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">需求预测</h3><p class="small-zh">描述每个服务的未来需求。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">资源供给</h3><p class="small-zh">给出基础资源可用性。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">资源价格</h3><p class="small-zh">提供基础资源成本信息。</p></div>
-      </div>
-      <p class="body-zh muted">意图配置把服务和依赖关系粘合起来，配置语言引擎再转成求解器需要的机器格式。</p>
-    </div>
-  </div>
-  <div class="foot"><span>inputs and glue</span><span>17 / 31</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Solver And Plan" data-source="p235 Auxon 求解器和资源分配计划">
-  <div class="chrome"><span>solver and plan</span><span>p235</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">求解器产出的不是建议，而是资源分配计划</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">Auxon 求解器</h3><p class="body-zh">建立混合整型线性规划程序，并在几百到几千台机器上并行求解。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">分配计划</h3><p class="body-zh">描述何处的何种资源分配给哪个服务，也列出无法满足的资源需求。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>solver output</span><span>18 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Builders As Users" data-source="p235 开发团队也是消费者">
-  <div class="chrome"><span>builders as users</span><span>p235</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">Auxon 团队既是工具消费者，也是工具开发者。</div>
-      <p class="body-zh muted" style="margin-top:2vh">他们继续参与多个 Google 服务的 on call 和技术设计讨论。工具出问题时，团队会直接受到影响。</p>
-    </div>
-  </div>
-  <div class="foot"><span>first hand experience</span><span>19 / 31</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Approximation" data-source="p236 近似">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">不要过于关注完美和纯粹性。</div>
-      <p class="body-zh muted" style="margin-top:2vh">当问题边界不清晰时，更快发布和迭代更重要。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p236</span><span>20 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Dummy Solver" data-source="p236 傻瓜求解器">
-  <div class="chrome"><span>dummy solver</span><span>p236</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">简化版求解器先让远景变得可体验</h2>
-      <p class="lead-zh">团队一开始没有线性规划经验，也没有完全理解产品核心限制。</p>
-      <p class="body-zh muted">傻瓜求解器用简单启发逻辑处理资源请求，虽不返回最优解，却让团队更切实地理解产品远景。</p>
-    </div>
-  </div>
-  <div class="foot"><span>learn by approximating</span><span>21 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Modular Uncertainty" data-source="p236 p237 模糊性和模块化设计">
-  <div class="chrome"><span>modular uncertainty</span><span>p236 p237</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">需求模糊时，把接口留给未来变化</h2>
-      <div class="grid-2">
-        <div class="line-box"><h3 class="h2-zh accent">求解器抽象</h3><p class="body-zh">傻瓜求解器和 Auxon 之间抽象分离，后续可替换为更聪明的求解器。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">计划抽象</h3><p class="body-zh">资源分配计划不绑定某一种自动化工具、预测工具或性能监控工具。</p></div>
-      </div>
-      <p class="body-zh muted">通用方案必须始终有真实使用案例，避免脱离真实需求。</p>
-    </div>
-  </div>
-  <div class="foot"><span>flexible interfaces</span><span>22 / 31</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Adoption" data-source="p237 提升了解程度推进采用率">
-  <div class="chrome"><span>adoption</span><span>p237</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">内部工具也需要完整推广方案</h2>
-      <div class="grid-3">
-        <div class="soft-box"><h3 class="h2-zh accent">持续推广</h3><p class="body-zh">公告邮件和简单演示通常不够。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">用户拥护</h3><p class="body-zh">早期用户的支持会推动采用。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">高层赞助</h3><p class="body-zh">资深工程师和管理层看到实用潜力后提供背书。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>adoption work</span><span>23 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Set Expectations" data-source="p238 设立期望值">
-  <div class="chrome"><span>set expectations</span><span>p238</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">先定义最小成功条件，再稳定发布</h2>
-      <p class="lead-zh">承诺过多过快会损害可信度，结果吸引力不足又找不到试用者。</p>
-      <p class="body-zh muted">Auxon 用长期计划和短期修复平衡迭代速度，让用户先消除手工整合短期资源请求的痛苦，再逐步获得长期成本收益。</p>
-    </div>
-  </div>
-  <div class="foot"><span>mvp and roadmap</span><span>24 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Right Users" data-source="p238 识别合适的用户">
-  <div class="chrome"><span>right users</span><span>p238</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">早期版本要找有痛感的人。</div>
-      <p class="body-zh muted" style="margin-top:2vh">Auxon 初期目标是还没有容量规划流程的团队。早期成功案例证明实用性，并把用户变成推广者。</p>
-    </div>
-  </div>
-  <div class="foot"><span>early adopters</span><span>25 / 31</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Support And Agnostic" data-source="p239 客户支持和不可知性">
-  <div class="chrome"><span>support and agnostic</span><span>p239</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">采用门槛来自学习曲线，也来自工具绑定</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">客户支持</h3><p class="body-zh">早期一对一协作，帮助用户理解自动化是在消除重复手工劳动。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">不可知性</h3><p class="body-zh">不强迫用户换用某种特定数据或工具，避免为一两个大用户过度定制。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>lower adoption cost</span><span>26 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Team Makeup" data-source="p239 p240 团队内部组成">
-  <div class="chrome"><span>team makeup</span><span>p239 p240</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">种子团队先混合通用型人才和领域专家</h2>
-      <div class="grid-3">
-        <div class="line-box"><h3 class="h2-zh accent">通用型人才</h3><p class="body-zh">可以快速开始工作。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">资深领域专家</h3><p class="body-zh">提供更广阔的知识和经验。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">引入时机</h3><p class="body-zh">项目已有一定成功，团队能充分获益时再扩充专家。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>generalists and specialists</span><span>27 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Project Signals" data-source="p240 培养软件工程风气">
-  <div class="chrome"><span>project signals</span><span>p240</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">一次性工具要变成长期项目，需要正面信号</h2>
-      <div class="grid-2">
-        <div class="soft-box"><h3 class="h2-zh accent">适合推进</h3><p class="body-zh">领域专家有兴趣，目标用户技术强，项目能减少琐事、优化设施或简化复杂流程。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">需要警惕</h3><p class="body-zh">同时改变太多组件、全有或全无上线、无法迭代、只服务很小范围或过度抽象。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>project selection</span><span>28 / 31</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Engineering Culture" data-source="p241 招聘与开发时间">
-  <div class="chrome"><span>engineering culture</span><span>p241</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">SRE 要补上的，是完整产品团队经验</h2>
-      <p class="lead-zh">SRE 通常编程能力很强，但许多人缺少产品讨论和用户需求思考经历。</p>
-      <p class="body-zh muted">TPM 和 PM 能把面向用户的软件开发经验带进来；专注且不受干扰的项目时间也必须得到保障。</p>
-    </div>
-  </div>
-  <div class="foot"><span>product habits</span><span>29 / 31</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="How To Do It" data-source="p242 p243 做到这一点">
-  <div class="chrome"><span>how to do it</span><span>p242 p243</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">把软件开发引入 SRE，要同时处理技术和组织</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">明确信息</h3><p class="small-zh">讲清战略目标和 SRE 能获得的好处。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">评估能力</h3><p class="small-zh">补上项目经理、用户宣传和敏捷流程经验。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">发布迭代</h3><p class="small-zh">六个月周期内聚焦实用功能并学习研发协作。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">保持标准</h3><p class="small-zh">代码评审、端到端集成测试和生产交接都不能省。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">建立可信度</h3><p class="small-zh">可信度建立很慢，失去很快。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>organization and delivery</span><span>30 / 31</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p244 小结">
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">核心总结</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">SRE 的生产环境一手经验，让他们能用创新手段处理老问题。</p></div>
-        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">Auxon 把容量规划从手工资源抢夺，推进到基于意图和算法求解的资源分配。</p></div>
-        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">内部软件项目要成功，需要产品规划、推广、用户支持、合适用户和可信交付。</p></div>
-        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">SRE 花在软件开发上的精力，会对公司、SRE 组织和个人产生回报。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>summary</span><span>31 / 31</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-18-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-18-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第18章 SRE部门中的软件工程实践 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：怎样理解并使用“SRE部门中的软件工程实践”，以及它在什么条件下不适用。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "为什么软件工程项目对SRE很重要"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本章开篇指出Google生产环境极其复杂，第三方工具难以满足需求，因此SRE需自行开发内部工具。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE具备深厚的生产环境知识，能设计出高可用、易集成的软件。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作为工具的直接使用者，SRE能深刻理解需求并快速获取高质量反馈，加速迭代。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此外，SRE团队规模不应随用户服务指数级增长，通过开发自动化工具可保持线性增长。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "软件工程项目还为SRE提供了职业发展路径，平衡了运维与编程技能，吸引了多元化人才，避免了团队盲点。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "Auxon 案例分析：项目背景和要解决的问题"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节引入Auxon案例，旨在说明其诞生的背景及解决的问题。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "首先回顾传统容量规划方法，包括收集需求预测、制定资源计划、评审批准及部署配置四个步骤。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调容量规划是一个永无止境的循环，假设时刻变化，计划需不断向下传递调整。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "传统方法以“需求”为驱动，手工调整供给，但面对细微改动或策略变化时，往往导致计划全盘失效或需重新整合，缺乏可靠性。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "传统的容量规划方法"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "详细阐述传统容量规划的四个步骤：预测未来需求、制定资源计划、评审批准、部署配置。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出该方法的核心缺陷在于“不可靠性”，任何细微改动如服务效率下降、用户增加或集群延期，都可能导致计划失效。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，该方法“耗时巨大且不够精确”，手工编排资源面临NP-hard问题，电子表格工具扩展性差且易出错。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "由于信息传递导致原因湮灭，资源请求变得死板，最终产生极不精确且需大量人力维护的配置结果。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "1.收集对未来项目需求的预测"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该小节指出传统容量规划需预测未来几个季度至几年的资源需求，使用现有最佳数据计划明天。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "其核心在于明确资源数量、时间及物理位置，为后续的资源采购与构建计划提供基础输入，是容量规划循环的起始驱动环节。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "2.制定资源的采购、构建和分配计划"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "此步骤基于前一步的需求预测，决定在何处构建多少资源以满足未来需求。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "它涉及将抽象的需求转化为具体的物理资源部署方案，是连接预测与实际资源获取的关键环节，确保资源供给能匹配业务增长预期。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "3.评审，并且批准这个计划"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "该环节旨在审查计划的合理性，确认其是否符合预算约束以及产品期望与技术要求。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过评审确保资源分配方案在财务和技术上的可行性，防止因计划缺陷导致后续部署失败，是资源落地前的关键控制点。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "4.部署和配置对应的资源"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "这是资源规划的最后执行步骤，涉及将底层CPU、磁盘等资源合理配置给具体服务使用。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "当资源到位后，需确定哪些服务最终使用该资源，完成从计划到实际运行的转化，确保服务获得所需的计算能力。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "不可靠性"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出传统规划易因细微改动（如服务效率下降、需求增加、集群上线推迟或产品决策变化）而全盘失效。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "小改动需重新整合，大改动则需推翻重来，且季度间计划相互依赖，导致计划极不稳定，难以保证优化结果。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "耗时巨大，同时不够精确"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "传统方法中，收集预测数据及手工将资源需求编排至可用资源的过程繁琐且易错。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "电子表格工具扩展性差、数据易过期，导致团队简化模型。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "由于最佳压缩是NP-hard问题，手工计算难以精确，产生极不精确且耗费大量人力的配置结果。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "解决方案：基于意图的容量规划"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "提出解决方案：基于意图的容量规划。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核心思想是列出要求而非拘泥于细节，将服务依赖和资源参数用编程方式记录，利用算法自动生成配给方案。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "当需求或供给变化时，可重新生成计划以优化资源分配。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "该方法通过记录真实需求和选择自由度，提高了计划的可靠性，能产生满足最多要求的最优解。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "计算机处理复杂计算节省了人力，使服务负责人能关注SLO保障和架构优化，而非争夺底层资源，同时降低了组织成本。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "基于意图的容量规划"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "深入解释“意图”的概念，即服务负责人对运维方式的理性表达，需跳过具体细节。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过四个层级示例展示抽象程度的提升："}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "从具体的CPU请求，到增加地理区域选择自由度，再到表达满足需求增长和冗余度的目标，最后到以特定可靠度运行。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google经验表明，达到第三步（提供足够自由度并清晰表达后果）时获益最大。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种抽象化使得在资源不足时能更灵活地权衡和分配，而非僵化地执行具体指令。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "表达产品意图的先导条件"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "阐述完整表达服务意图所需的信息：依赖关系、性能指标和优先级。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "依赖关系影响服务位置选择，如网络延迟限制，且服务依赖往往是嵌套的，需综合考虑多层依赖。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "性能指标是依赖关系中的黏合剂，将高阶资源转换为低阶资源，需通过负载测试和监控获得。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "优先级则解决资源不足时的牺牲顺序，基于意图的规划使优先级划分更透明、开放和一致，避免了传统过程中随意且不透明的优先级划分。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "依赖关系"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调服务依赖关系（如Foo依赖Bar需满足30ms延迟）极大影响位置选择。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "依赖是嵌套的，需综合考虑Bar、Baz等底层系统。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "基于意图的规划必须将这些限制纳入考量，以确定服务Foo的最佳部署位置，确保基础设施满足性能要求。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "性能指标"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "性能指标是依赖关系中的黏合剂，将高阶资源类型转换为低阶资源类型。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过负载测试和监控获得指标，可确定服务Foo服务N个用户请求所需的CPU或Bar服务提供的Mb/s数据量，从而决定预期的资源用量，支撑容量规划。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "Auxon简介"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "介绍Auxon是Google开发的基于意图的容量规划工具，由SRE内部小组耗时两年开发。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon收集基于意图的服务资源要求和依赖信息，将人工指定的产品意图转化为机器可用的限制条件，并指定优先级。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些需求形成线性规划表达式，Auxon通过求解该表达式及组合最优压缩算法，生成资源分配计划。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon已成为Google多个重要部门的关键容量规划组件，规划百万美元级计算资源。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "需求和实现：成功和不足"}]}], "sourceIds": ["SRC-033"]}, {"lines": [{"indent": 0, "chunks": [{"t": "回顾Auxon的开发历程，起源于SRE和技术项目经理对电子表格手工规划低效的痛点。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "开发团队保持与生产环境的密切接触，既是消费者也是开发者，利用第一手经验决定功能优先级，增强了主人翁意识和产品可信度。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "面对线性规划经验不足，初期构建简化版“傻瓜求解器”以快速体验产品远景，后续再替换为更智能的求解器。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种近似手段加速了开发，同时通过模块化设计处理需求模糊问题，确保了软件的通用性和灵活性。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "近似"}]}], "sourceIds": ["SRC-035"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调在复杂软件项目中不要追求完美，而应快速发布和迭代。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon初期通过构建简化版求解器，利用启发式逻辑处理资源请求，虽非最优但提供了切实的产品体验。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过抽象分离接口，使得后续替换更智能求解器不影响其他组件。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，利用模块化设计处理性能数据建模的不确定性，允许用户替换未来机器性能数据。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "共同点是“发布与迭代”，在不确定因素中保持设计灵活，确保通用解决方案有真实使用案例。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "提升了解程度，推进采用率"}]}], "sourceIds": ["SRC-037"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出SRE软件需靠实际优势赢取用户采用，推广内部工具需持续完整的方案、用户拥护及管理层赞助。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "提高用户了解程度难度较大，仅靠公告或演示不够。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "需从用户角度出发设计，提供必要文档，因为SRE工作繁忙，若工具难用会被弃用。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过展示工具对生产环境可靠性提高及工作压力降低的实际价值，吸引用户试用，并利用早期成功案例作为当地专家帮助其他团队，促进推广。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "设立期望值"}]}], "sourceIds": ["SRC-039"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调为产品设计最小成功条件或MVP的重要性，避免承诺过多导致可信度丧失。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过递进式、稳定的小型发布提升用户信心。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon案例中，平衡长期计划与短期修复，承诺消除手工整合资源请求的痛苦，并随着新功能增加提供长期成本节约。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "迭代式开发流程允许快速修改优先级或制定新里程碑，使用户能迅速确定当前用例是否实现，增强了项目的透明度和可预测性。"}]}], "sourceIds": ["SRC-040"], "sourceParts": [{"id": "SRC-040", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "识别合适的用户"}]}], "sourceIds": ["SRC-041"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出Auxon初期目标用户是尚未有容量规划流程的团队，因为已有内部方案的团队缺乏更换动力。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过早期成功案例证实实用性，将早期用户转化为推广者。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "量化工具实用程度有助于其他团队迁移，如撰写前后流程对比案例分析，展示流程和人力的节约，从而激励其他团队试用。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "识别合适用户并展示其价值，是推动工具在组织内广泛采用的关键策略。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "客户支持"}]}], "sourceIds": ["SRC-043"]}, {"lines": [{"indent": 0, "chunks": [{"t": "说明SRE软件虽服务于技术人员，但仍存在学习曲线。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在项目初期提供一对一客户支持至关重要，帮助用户克服情绪挑战，如恐惧被脚本替代。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过协作展示工具消除重复劳动的价值，确保用户仍负责配置文件和流程。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "早期成功案例可作为当地专家资源，帮助其他团队试用。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种支持不仅解决了技术问题，还缓解了用户对自动化带来的心理障碍，促进了工具的顺利引入。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "在合适的层次上进行设计"}]}], "sourceIds": ["SRC-045"]}, {"lines": [{"indent": 0, "chunks": [{"t": "介绍“不可知性”概念，即开发足够通用的软件，确保各种数据均可作为输入，用户无需采用特定工具。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon避免对大型用户过度定制，降低采用门槛，提高组织内采用率。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时避免追求“100%”采用率陷阱，因为针对每个项目定制功能投入产出比低。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过保持通用性，Auxon能适应不同团队的数据环境，无需强制用户更换现有工具，从而在保持灵活性的同时满足多样化需求。"}]}], "sourceIds": ["SRC-046"], "sourceParts": [{"id": "SRC-046", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "团队内部组成"}]}], "sourceIds": ["SRC-047"]}, {"lines": [{"indent": 0, "chunks": [{"t": "讨论SRE内部软件开发团队组成，建议合并通用型人才和领域专家。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通用型人才快速上手，领域专家提供广阔知识，避免设计盲点。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "尽快与内部专家建立关系，如运维研究和量化分析部门，获取领域知识。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "随着项目复杂化，引入统计学和数学优化背景成员，优化基础功能。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在团队充分获益且项目有一定成功后引入专家是最佳时机，避免过早外包或咨询，充分利用内部资源。"}]}], "sourceIds": ["SRC-048"], "sourceParts": [{"id": "SRC-048", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "在SRE团队中培养软件工程风气"}]}], "sourceIds": ["SRC-049"]}, {"lines": [{"indent": 0, "chunks": [{"t": "探讨将一次性工具演化为长期软件工程项目的条件："}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "领域专家兴趣、高质量用户反馈、明显优势如减少琐事或优化架构。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "项目目标需与组织发展一致，获得技术领导层背书，避免重复项目。SRE主导项目易过于专注单一服务，缺乏通用性；"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "过于通用则缺乏具体价值。成功例子如三层负载均衡器演变为Google Cloud负载均衡器。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "关键在于平衡专注与通用，确保项目对组织有持续价值。"}]}], "sourceIds": ["SRC-050"], "sourceParts": [{"id": "SRC-050", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "做到这一点"}]}], "sourceIds": ["SRC-051"]}, {"lines": [{"indent": 0, "chunks": [{"t": "分析在SRE团队中引入软件开发的挑战，指出这是技术和组织架构问题。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE习惯快速写代码，与软件工程长期开发习惯相悖。需明确目标是推广最佳实践还是形成标准化方案。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在大型团队中，标准化需数年推进，但回报率高。需同时推进多方面工作，如招聘、流程建立等。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "认识到SRE快速响应与软件工程严谨性之间的张力，是成功实施的关键前提。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "创建并且宣扬一个明确的信息"}]}], "sourceIds": ["SRC-053"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调定义和宣扬战略目标的重要性，特别是SRE从中获得的益处。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE多为怀疑论者，需通过可靠案例展示项目如何加速新员工、减少重复任务、促进信息流通。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "当SRE开始询问“如何”工作而非“能否”工作时，表明已跨越第一道难关。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过宣扬明确信息，克服SRE对软件工程 overhead 的抵触，建立对项目可行性的信心，推动文化转变。"}]}], "sourceIds": ["SRC-054"], "sourceParts": [{"id": "SRC-054", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "评估组织的能力"}]}], "sourceIds": ["SRC-055"]}, {"lines": [{"indent": 0, "chunks": [{"t": "指出SRE团队通常缺乏构建完整产品的经验，需创建产品团队，填补项目经理、用户宣传等角色空缺。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过内部招聘或咨询产品开发团队建立敏捷流程，咨询产品经理确定需求优先级。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在有正面结果后招聘这些角色更容易。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "评估组织能力，识别技能缺口，并通过外部辅导或内部培养弥补，是成功开展软件工程项目的组织基础。"}]}], "sourceIds": ["SRC-056"], "sourceParts": [{"id": "SRC-056", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "发布并且迭代"}]}], "sourceIds": ["SRC-057"]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议推动SRE软件开发时，在合理时间内交付实用价值以建立可信度。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "首轮产品应面向直接且易于实现的目标，如六个月产品更新周期，帮助团队集中精力寻找正确功能集并学习高效研发。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "初始发布后，可迁移至测试后立即上线模型，更快发布新功能及获取反馈。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过快速迭代和交付价值，逐步建立团队信心和产品成熟度，避免初期过度复杂化。"}]}], "sourceIds": ["SRC-058"], "sourceParts": [{"id": "SRC-058", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "不要降低标准"}]}], "sourceIds": ["SRC-059"]}, {"lines": [{"indent": 0, "chunks": [{"t": "强调在开发过程中抵制走捷径的诱惑，用产品研发团队的标准要求自己。问自己：若其他团队开发，我们是否使用？"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若被广泛采用，是否具备足够代码评审和端到端测试？找其他SRE团队按常规服务生产交接标准评价产品。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "软件工程项目建立可信度慢，但失去它很快。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "坚持高标准是确保工具长期可靠性和组织信任的关键，避免因短期便利牺牲长期质量。"}]}], "sourceIds": ["SRC-060"], "sourceParts": [{"id": "SRC-060", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "小结"}]}], "sourceIds": ["SRC-061"]}, {"lines": [{"indent": 0, "chunks": [{"t": "总结软件工程项目在Google SRE组织内随人数增多而增加，成功与失败案例为后续项目铺路。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon案例显示，SRE的一手运维经验使其能以创新手段处理老问题。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE驱动的软件开发简化低效流程，实现自动化，使SRE团队无需与部署服务规模线性增长。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "最终，SRE在软件开发上的精力投入，对整个公司、SRE组织及个人都产生回报，证明了软件工程在SRE部门中的重要性和价值。"}]}], "sourceIds": ["SRC-062"], "sourceParts": [{"id": "SRC-062", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：基于意图的容量规划与SRE软件工程实践"}]}], "sourceIds": ["SRC-063"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "传统容量规划的困境与意图抽象"}]}], "sourceIds": ["SRC-064"]}, {"lines": [{"indent": 0, "chunks": [{"t": "传统容量规划依赖手工收集需求预测、制定计划、评审和部署，这是一个永无止境的循环。"}]}], "sourceIds": ["SRC-065"], "sourceParts": [{"id": "SRC-065", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "任何细微改动，如服务效率下降或集群延期，都可能导致计划失效，且手工编排资源面临NP-hard问题，结果极不精确。"}]}], "sourceIds": ["SRC-065"], "sourceParts": [{"id": "SRC-065", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "基于意图的容量规划通过抽象表达服务需求，如从具体的CPU请求提升到满足需求增长和冗余度的目标，甚至以特定可靠度运行。"}]}], "sourceIds": ["SRC-065"], "sourceParts": [{"id": "SRC-065", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种抽象提供了选择自由度，使算法能自动生成最优配给方案，当需求变化时可重新计算，从而提高了计划的可靠性和灵活性，节省了人力。"}]}], "sourceIds": ["SRC-065"], "sourceParts": [{"id": "SRC-065", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "Auxon工具的核心机制与组件"}]}], "sourceIds": ["SRC-066"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon是Google开发的基于意图的容量规划工具，其核心是将服务依赖和资源参数转化为线性规划表达式。"}]}], "sourceIds": ["SRC-067"], "sourceParts": [{"id": "SRC-067", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "主要组件包括：性能数据描述服务规模化能力；需求预测数据推断资源使用量；资源供给提供物理服务器上限；"}]}], "sourceIds": ["SRC-067"], "sourceParts": [{"id": "SRC-067", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "资源价格代表成本目标；意图配置信息定义服务依赖和优先级；配置语言引擎将人类可读配置转为机器格式；"}]}], "sourceIds": ["SRC-067"], "sourceParts": [{"id": "SRC-067", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "求解器建立混合整型线性规划程序并并行求解；最终生成资源分配计划。"}]}], "sourceIds": ["SRC-067"], "sourceParts": [{"id": "SRC-067", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Auxon通过求解表达式和优化压缩算法，自动决定资源在集群中的分配，解决了手工规划的痛点。"}]}], "sourceIds": ["SRC-067"], "sourceParts": [{"id": "SRC-067", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "SRE软件工程的组织与文化挑战"}]}], "sourceIds": ["SRC-068"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在SRE团队中推行软件工程面临文化与组织挑战。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE习惯快速写代码解决当下问题，与软件工程长期、严谨的开发习惯相悖。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "需明确目标是推广最佳实践还是形成标准化方案，这需要数年推进。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "SRE团队通常缺乏构建完整产品的经验，需引入项目经理、产品经理等角色，建立敏捷流程。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，需克服SRE对软件工程 overhead 的怀疑，通过展示项目如何加速新员工、减少重复任务来建立可信度。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "坚持高标准，如代码评审和测试，是确保工具长期可靠性的关键。"}]}], "sourceIds": ["SRC-069"], "sourceParts": [{"id": "SRC-069", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "迭代发布与用户采用策略"}]}], "sourceIds": ["SRC-070"]}, {"lines": [{"indent": 0, "chunks": [{"t": "成功推广SRE软件需采取迭代发布和用户采用策略。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "初期应聚焦于直接且易于实现的目标，如六个月更新周期，快速交付实用价值以建立可信度。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过设立MVP，平衡长期计划与短期修复，递进式发布提升用户信心。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "识别合适用户，如尚未有容量规划流程的团队，通过早期成功案例和量化价值展示，将其转化为推广者。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "提供客户支持，帮助用户克服学习曲线和情绪挑战，利用早期成功案例作为当地专家资源，促进工具在组织内的广泛采用。"}]}], "sourceIds": ["SRC-071"], "sourceParts": [{"id": "SRC-071", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-072"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形：假设你负责一个高并发的在线视频服务，当前面临资源紧张。"}]}], "sourceIds": ["SRC-073"], "sourceParts": [{"id": "SRC-073", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "传统做法是手动计算每个视频流所需的CPU和带宽，并指定具体的服务器集群。"}]}], "sourceIds": ["SRC-073"], "sourceParts": [{"id": "SRC-073", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "现在引入基于意图的容量规划工具。"}]}], "sourceIds": ["SRC-073"], "sourceParts": [{"id": "SRC-073", "index": 3, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题："}]}], "sourceIds": ["SRC-074"], "sourceParts": [{"id": "SRC-074", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "如果产品团队决定将视频清晰度从1080p提升到4K，导致单用户资源需求增加，同时要求保障99.99%的可用性。"}]}], "sourceIds": ["SRC-074"], "sourceParts": [{"id": "SRC-074", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在基于意图的规划下，你如何向工具表达这一变化？与传统方法相比，这种表达方式在应对资源短缺时有什么优势？"}]}], "sourceIds": ["SRC-074"], "sourceParts": [{"id": "SRC-074", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-075"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在基于意图的规划中，你不应直接指定具体的CPU数量或集群，而是表达意图："}]}], "sourceIds": ["SRC-076"], "sourceParts": [{"id": "SRC-076", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "满足视频清晰度提升带来的资源需求增长，并保障99.99%的可用性（或N+2冗余）。"}]}], "sourceIds": ["SRC-076"], "sourceParts": [{"id": "SRC-076", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "优势在于，工具能根据这一高层意图，结合当前资源供给和依赖关系，自动计算最优的资源分配方案。"}]}], "sourceIds": ["SRC-076"], "sourceParts": [{"id": "SRC-076", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "若资源短缺，工具能透明地展示优先级，可能自动调整非关键资源的分配，或提示需要增加特定类型的资源，而不是像传统方法那样因需求变动而需全盘重新计算和手工调整，提高了应对变化的灵活性和可靠性。"}]}], "sourceIds": ["SRC-076"], "sourceParts": [{"id": "SRC-076", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-077"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 226-244。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}, {"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}], "sourceIds": ["SRC-078", "SRC-079", "SRC-080", "SRC-081"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：Google规模和组织实践属于书中经验，不自动写成所有团队的通则。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第19章 前端服务器的负载均衡”，继续回答：怎样理解并使用“前端服务器的负载均衡”，以及它在什么条件下不适用。"}]}], "sourceIds": ["SRC-082", "SRC-083"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

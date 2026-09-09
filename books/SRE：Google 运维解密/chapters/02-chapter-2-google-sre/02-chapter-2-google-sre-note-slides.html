@@ -2,722 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第2章 Google 生产环境 SRE视角</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第2章 Google 生产环境：SRE视角 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  --ink: #17202d;
-  --ink-rgb: 23,32,45;
-  --paper: #f7f5ef;
-  --paper-rgb: 247,245,239;
-  --accent: #1f6f8b;
-  --accent-rgb: 31,111,139;
-  --muted: #687282;
-  --serif-zh: "Noto Serif SC", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .7s cubic-bezier(.77,0,.175,1); z-index: 10; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem,5vw,5.5rem) clamp(2rem,6vw,6.5rem) clamp(1.5rem,3vw,3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3rem,7vw,7rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem,4.4vw,4.2rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 600; font-size: clamp(1.55rem,3vw,2.75rem); line-height: 1.28; letter-spacing: 0; }
-.lead-zh { font-family: var(--serif-zh); font-weight: 400; font-size: clamp(1.45rem,2vw,2rem); line-height: 1.5; }
-.body-zh { font-family: var(--sans-zh); font-weight: 400; font-size: clamp(1.28rem,1.5vw,1.72rem); line-height: 1.55; }
-.small-zh { font-size: clamp(1rem,1.12vw,1.28rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.78rem,.88vw,1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: clamp(.8rem,1.6vh,1.2rem); }
-.meta { font-family: var(--mono); font-size: clamp(.75rem,.82vw,.94rem); letter-spacing: .1em; text-transform: uppercase; opacity: .58; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: 1rem; font-family: var(--mono); font-size: clamp(.74rem,.8vw,.9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .45; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.note-stack { width: var(--w-default); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(1.7rem,3.8vh,3.4rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem,3vw,3rem); align-items: center; }
-.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: clamp(1rem,2.2vw,2rem); }
-.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(.9rem,1.8vw,1.6rem); }
-.cardless { border-top: 1px solid rgba(var(--accent-rgb),.38); padding-top: clamp(1rem,2vh,1.5rem); }
-.slide.dark .cardless { border-top-color: rgba(var(--paper-rgb),.22); }
-.soft { color: rgba(var(--ink-rgb),.6); }
-.slide.dark .soft { color: rgba(var(--paper-rgb),.68); }
-.accent { color: var(--accent); }
-.slide.dark .accent { color: #7bc0d5; }
-.callout { font-family: var(--serif-zh); font-size: clamp(2rem,3.2vw,3.45rem); line-height: 1.42; }
-.callout-mark { position: relative; padding-top: clamp(1.5rem,3vh,2.2rem); }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem,.75vw,.85rem); height: clamp(.5rem,.75vw,.85rem); background: var(--accent); opacity: .75; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; }
-.guest-mark::before { content: ""; width: clamp(2.4rem,4em,4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem,3vh,2.4rem); }
-.timeline-row { position: relative; display: grid; gap: clamp(.9rem,1.8vw,1.6rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.9rem,1.5vh,1.35rem); left: 6%; right: 6%; height: 1px; background: rgba(var(--ink-rgb),.12); z-index: 0; }
-.slide.dark .timeline-row::before { background: rgba(var(--paper-rgb),.14); }
-.timeline-node { position: relative; z-index: 1; }
-.slide.light .timeline-node .meta { background: var(--paper); padding-right: .6rem; }
-.slide.dark .timeline-node .meta { background: var(--ink); padding-right: .6rem; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem,6.5vw,6rem); font-weight: 700; color: var(--accent); line-height: .95; }
-.stat-num { font-family: var(--serif-zh); font-size: clamp(5rem,12vw,11rem); font-weight: 900; line-height: .9; color: var(--accent); }
-.table-wrap { width: var(--w-wide); margin: 0 auto; display: flex; flex-direction: column; gap: clamp(1.4rem,3.4vh,2.6rem); }
-.data-table { width: 100%; border-collapse: separate; border-spacing: 0 clamp(.45rem,1vh,.8rem); font-size: clamp(1.05rem,1.18vw,1.38rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.75rem,1.15vw,1.1rem) clamp(.8rem,1.3vw,1.3rem); text-align: left; vertical-align: top; }
-.data-table th { font-family: var(--mono); font-size: clamp(.72rem,.78vw,.9rem); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(var(--accent-rgb),.08); }
-.data-table td { background: rgba(var(--ink-rgb),.045); }
-.diagram { display: grid; gap: clamp(.8rem,1.5vw,1.3rem); font-size: clamp(.95rem,1.06vw,1.2rem); line-height: 1.35; }
-.diagram-box { border: 1px solid rgba(var(--accent-rgb),.42); background: rgba(var(--accent-rgb),.075); padding: clamp(.75rem,1.1vw,1.05rem); border-radius: 8px; }
-.slide.dark .diagram-box { border-color: rgba(var(--paper-rgb),.24); background: rgba(var(--paper-rgb),.07); }
-.diagram-pill { display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(var(--accent-rgb),.45); border-radius: 999px; padding: clamp(.4rem,.7vw,.65rem) clamp(.65rem,1vw,.95rem); background: rgba(var(--paper-rgb),.7); }
-.slide.dark .diagram-pill { background: rgba(var(--paper-rgb),.08); border-color: rgba(var(--paper-rgb),.28); }
-.nested-campus { background: linear-gradient(180deg,#cfe8f0 0%,#cfe8f0 22%,#93b66f 22%,#93b66f 48%,#b59a38 48%,#b59a38 100%); border: 1px solid rgba(var(--ink-rgb),.22); min-height: clamp(19rem,40vh,28rem); padding: clamp(1rem,2vw,1.8rem); display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem,2vw,1.8rem); align-items: end; }
-.datacenter { background: rgba(var(--paper-rgb),.86); border: 1px solid rgba(var(--ink-rgb),.24); padding: clamp(.75rem,1.2vw,1rem); }
-.cluster-row { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-top: .7rem; }
-.rack-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: .12rem; margin-top: .45rem; }
-.rack-grid span { height: clamp(.6rem,1vw,.9rem); background: rgba(var(--ink-rgb),.62); }
-.flow { display: flex; align-items: center; gap: clamp(.5rem,1vw,1rem); flex-wrap: wrap; }
-.arrow { color: var(--accent); opacity: .9; font-family: var(--mono); }
-#nav { position: fixed; left: 50%; bottom: 2.1vh; transform: translateX(-50%); z-index: 30; display: flex; gap: 9px; padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,.2); backdrop-filter: blur(10px); }
-#nav .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.35); border: 0; padding: 0; cursor: pointer; transition: all .25s ease; }
-#nav .dot.active { width: 20px; border-radius: 999px; background: rgba(255,255,255,.95); }
-.anim-item { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
-.slide.active .anim-item { opacity: 1; transform: translateY(0); }
-.slide.active .anim-item:nth-child(1) { transition-delay: .04s; }
-.slide.active .anim-item:nth-child(2) { transition-delay: .14s; }
-.slide.active .anim-item:nth-child(3) { transition-delay: .24s; }
-.slide.active .anim-item:nth-child(4) { transition-delay: .34s; }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.25rem 1.4rem; }
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  .nested-campus { grid-template-columns: 1fr; min-height: auto; }
-  .table-wrap { width: 100%; }
-  .data-table { font-size: clamp(.95rem,3.5vw,1.1rem); }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<div id="deck">
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p41 章节标题" style="text-align:center;align-items:center">
-  <div class="slide-body" style="align-items:center">
-    <div class="w-statement" style="display:flex;flex-direction:column;align-items:center;gap:clamp(1.3rem,3vh,2.3rem)">
-      <div class="kicker anim-item accent" style="opacity:1">SRE Book Chapter 02</div>
-      <h1 class="display-zh anim-item">Google 生产环境<br>SRE 视角</h1>
-      <p class="lead-zh anim-item soft" style="max-width:25em">这一章把后续章节反复使用的生产环境名词先放到同一张地图上</p>
-    </div>
-  </div>
-  <div class="foot" style="width:100%"><div>JC van Winkel</div><div>p41 to p53</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Machine Server Split" data-source="p41 p42 machine server Borg">
-  <div class="chrome"><div>抽象边界 · 硬件</div><div>02 / 21</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:13em">Google 先把物理服务器和软件服务器拆开</h2>
-      <div class="grid-3">
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Machine</div><p class="body-zh">代表具体硬件，有时也代表一个虚拟机。硬件配置在数据中心内大体一致。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Server</div><p class="body-zh">代表对外提供服务的软件系统。它可以运行在任何合适的物理服务器上。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Borg</div><p class="body-zh">集群管理系统负责分配资源，避免把业务服务绑定到某台固定机器。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p41 p42</div><div>02 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Datacenter Topology" data-source="p42 图2 1">
-  <div class="chrome"><div>结构图 · 园区拓扑</div><div>03 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-wide grid-2">
-      <div class="anim-item">
-        <h2 class="h1-zh" style="max-width:10em">拓扑从机柜一直放大到园区</h2>
-        <p class="body-zh soft" style="max-width:20em;margin-top:1.4rem">章节先给出物理层级，因为后面的故障域、调度和容量规划都要落在这些边界上。</p>
-      </div>
-      <div class="nested-campus anim-item">
-        <div class="datacenter">
-          <div class="meta accent" style="opacity:1">Datacenter</div>
-          <div class="cluster-row">
-            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-          </div>
-        </div>
-        <div class="datacenter">
-          <div class="meta accent" style="opacity:1">Datacenter</div>
-          <div class="cluster-row">
-            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-            <div><div class="small-zh">Cluster</div><div class="rack-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>约10台机器成机柜，多个数据中心成园区</div><div>03 / 21</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Jupiter B4" data-source="p43 Jupiter B4">
-  <div class="chrome"><div>网络底座 · Jupiter 与 B4</div><div>04 / 21</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:12em">数据中心内部和数据中心之间，各有一层网络抽象</h2>
-      <div class="grid-2">
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Jupiter</div><p class="body-zh">几百台自制交换机用 Clos 连接方式组成一个高速虚拟交换机，最大数据中心可提供 1.3 Pb/s 交叉带宽。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">B4</div><p class="body-zh">全球骨干网基于 SDN 和 OpenFlow，使用动态带宽管理优化连接，提升平均带宽利用。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p43</div><div>04 / 21</div></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Failure Isolation" data-source="p43 硬件故障">
-  <div class="slide-body" style="align-items:center;text-align:center">
-    <div class="w-quote guest-mark">
-      <div class="kicker anim-item accent" style="opacity:1">Operational Premise</div>
-      <h2 class="h1-zh anim-item">硬件故障不是异常事件，而是日常背景噪声</h2>
-      <p class="body-zh anim-item soft" style="max-width:23em;margin:clamp(1.4rem,3vh,2.4rem) auto 0">一个集群一年内会有几千起机器损坏和几千块硬盘损失，业务团队不能每天处理这些事。</p>
-    </div>
-  </div>
-  <div class="foot" style="width:100%"><div>p43</div><div>05 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Borg Control Loop" data-source="p43 p44 图2 2 Borg">
-  <div class="chrome"><div>结构图 · Borg</div><div>06 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-wide grid-2">
-      <div class="anim-item">
-        <h2 class="h1-zh" style="max-width:10em">Borg 把任务实例安放到集群机器上</h2>
-        <p class="body-zh soft" style="max-width:20em;margin-top:1.4rem">任务可以是长期运行的软件服务器，也可以是 MapReduce 这类批处理任务。</p>
-      </div>
-      <div class="diagram anim-item">
-        <div class="flow">
-          <div class="diagram-pill">用户提交 Job</div><span class="arrow">→</span><div class="diagram-pill">Borg 主节点</div><span class="arrow">→</span><div class="diagram-pill">资源计划</div>
-        </div>
-        <div class="grid-3">
-          <div class="diagram-box"><div class="meta accent" style="opacity:1">Task 1</div><p>机器 A 上启动，异常时终止并重启。</p></div>
-          <div class="diagram-box"><div class="meta accent" style="opacity:1">Task 2</div><p>机器 B 上启动，承接同一任务流量。</p></div>
-          <div class="diagram-box"><div class="meta accent" style="opacity:1">Task N</div><p>可扩展到几千个实例，支撑冗余和吞吐。</p></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>运行 监控 终止 重启</div><div>06 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="BNS Addressing" data-source="p44 p45 BNS">
-  <div class="chrome"><div>名称解析 · BNS</div><div>07 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-note" style="text-align:center">
-      <div class="kicker anim-item accent" style="opacity:1">Borg Name Service</div>
-      <h2 class="h1-zh anim-item">实例不固定在机器上，地址也不能写死</h2>
-      <p class="lead-zh anim-item soft" style="max-width:24em;margin:1.5rem auto 0">BNS 给每个任务实例分配名字和编号，再解析到当前 IP 地址与端口。</p>
-      <div class="diagram-box anim-item" style="margin:clamp(1.6rem,3vh,2.4rem) auto 0;max-width:42em;font-family:var(--mono);font-size:clamp(1.1rem,1.4vw,1.55rem)">/bns/集群名/用户名/任务名/实例名<br><span class="arrow">→</span> IP 地址:端口</div>
-    </div>
-  </div>
-  <div class="foot"><div>p44 p45</div><div>07 / 21</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Resource Discipline" data-source="p45 资源 故障域">
-  <div class="chrome"><div>调度约束 · 资源与故障域</div><div>08 / 21</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:13em">调度器同时追求利用率和故障隔离</h2>
-      <div class="grid-3">
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">资源声明</div><p class="body-zh">任务配置声明 CPU 和内存，Borg 据此把实例合理塞进物理机器。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">故障域</div><p class="body-zh">同一任务的全部实例不会放在同一机柜上，避免机柜交换机成为单点故障源。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">资源越界</div><p class="body-zh">实例超出分配范围会被杀掉并重启，慢速重启优于长期泄露资源。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p45</div><div>08 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Storage Stack" data-source="p45 p46 图2 3">
-  <div class="chrome"><div>结构图 · 存储系统</div><div>09 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-wide grid-2">
-      <div class="diagram anim-item" style="text-align:center">
-        <div class="diagram-box">Bigtable<br><span class="small-zh soft">NoSQL 与 PB 级数据</span></div>
-        <div class="flow" style="justify-content:center"><span class="arrow">↙</span><div class="diagram-box">Colossus<br><span class="small-zh soft">集群文件系统 复制 加密</span></div><span class="arrow">↘</span></div>
-        <div class="grid-3">
-          <div class="diagram-box">Spanner<br><span class="small-zh soft">SQL 与一致性</span></div>
-          <div class="diagram-box">D<br><span class="small-zh soft">磁盘和 SSD 文件服务</span></div>
-          <div class="diagram-box">Blobstore<br><span class="small-zh soft">按场景选择</span></div>
-        </div>
-      </div>
-      <div class="anim-item">
-        <h2 class="h1-zh" style="max-width:10em">永久数据通过集群级存储承接</h2>
-        <p class="body-zh soft" style="max-width:21em;margin-top:1.4rem">本地硬盘主要用于临时文件，底层 D 服务分布在几乎所有机器上，用户面向 Colossus 和数据库服务工作。</p>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p45 p46</div><div>09 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Network Control" data-source="p46 p47 BwE GSLB">
-  <div class="chrome"><div>控制平面 · 网络与流量</div><div>10 / 21</div></div>
-  <div class="slide-body">
-    <div class="table-wrap">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto">网络也被当成可调度资源</h2>
-      <table class="data-table anim-item">
-        <thead><tr><th>组件</th><th>职责</th><th>SRE 视角</th></tr></thead>
-        <tbody>
-          <tr><td>SDN 控制器</td><td>用集中化且有备份的控制器计算最佳路径</td><td>把复杂路由从交换硬件中抽离</td></tr>
-          <tr><td>BwE</td><td>管理全部可用带宽</td><td>像 Borg 管 CPU 一样管网络</td></tr>
-          <tr><td>GSLB</td><td>在 DNS、用户服务、RPC 三层分配流量</td><td>把请求导向有容量且更近的位置</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="foot"><div>p46 p47</div><div>10 / 21</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Chubby" data-source="p47 p48 Chubby">
-  <div class="chrome"><div>一致性工具 · Chubby</div><div>11 / 21</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:12em">强一致的小状态需要单独的基础设施</h2>
-      <div class="grid-3">
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">锁 API</div><p class="body-zh">Chubby 提供类似文件系统的锁操作接口，可处理异地和跨机房请求。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Paxos</div><p class="body-zh">它用 Paxos 提供分布式一致性，适合要求很高的小规模关键数据。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">主实例选举</div><p class="body-zh">五个冗余实例可通过 Chubby 自动选出一个主实例处理对外请求。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>BNS 路径映射也使用 Chubby</div><div>11 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Borgmon" data-source="p48 Borgmon">
-  <div class="chrome"><div>观测 · Borgmon</div><div>12 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-default grid-2">
-      <div class="anim-item">
-        <div class="stat-num">3</div>
-        <h2 class="h2-zh" style="max-width:10em;margin-top:1rem">监控指标有三种主要用途</h2>
-      </div>
-      <div class="diagram anim-item">
-        <div class="diagram-box"><strong>真实问题报警</strong><p class="small-zh soft">把用户会感知的问题推到值班链路。</p></div>
-        <div class="diagram-box"><strong>版本前后对比</strong><p class="small-zh soft">判断新版本是否更快或更稳。</p></div>
-        <div class="diagram-box"><strong>资源趋势计划</strong><p class="small-zh soft">观察资源使用随时间变化，支撑容量规划。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p48</div><div>12 / 21</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Software Infrastructure" data-source="p48 p49 RPC Protobuf">
-  <div class="chrome"><div>软件基础设施 · RPC</div><div>13 / 21</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:13em">服务默认通过 RPC 连接，调试和监控也内置到进程里</h2>
-      <div class="grid-3">
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">多线程</div><p class="body-zh">代码库大量采用多线程，一个任务实例可以同时利用多个 CPU。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">HTTP 调试</div><p class="body-zh">每个软件服务器内置 HTTP 服务，暴露调试信息和统计信息。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">Protobuf</div><p class="body-zh">比 XML 更小更快，数据大小小 3 到 10 倍，序列化速度快 100 倍。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>Stubby gRPC Protobuf</div><div>13 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Development Pipeline" data-source="p49 研发环境">
-  <div class="chrome"><div>研发环境 · 仓库与测试</div><div>14 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-wide">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(2rem,5vh,4rem)">生产环境的可靠性从提交链路开始</h2>
-      <div class="timeline-row grid-4">
-        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">共享仓库</div><p class="body-zh">除部分开源项目外，工程师使用同一个共享软件仓库。</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">CL</div><p class="body-zh">跨项目基础组件问题也可以直接修改并提交评审。</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">并行编译</div><p class="body-zh">编译请求发往数据中心里的编译服务器并行处理。</p></div>
-        <div class="timeline-node anim-item"><div class="meta accent" style="opacity:1">持续测试</div><p class="body-zh">被 CL 直接或间接影响的测试都会运行，部分项目测试通过后自动部署。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p49</div><div>14 / 21</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Shakespeare Service" data-source="p49 p50 莎士比亚搜索">
-  <div class="chrome"><div>示范服务 · 两个部分</div><div>15 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-wide grid-2">
-      <div class="anim-item">
-        <h2 class="h1-zh" style="max-width:10em">假想搜索服务把基础设施串起来</h2>
-        <p class="body-zh soft" style="max-width:20em;margin-top:1.4rem">章节用莎士比亚搜索展示一个服务怎样利用索引、存储、前端、负载均衡和 RPC。</p>
-      </div>
-      <div class="diagram anim-item">
-        <div class="diagram-box"><div class="meta accent" style="opacity:1">Batch</div><p>Map 阶段分词，Shuffle 阶段排序，Reduce 阶段合并位置列表，最终写入 Bigtable。</p></div>
-        <div class="diagram-box"><div class="meta accent" style="opacity:1">Frontend</div><p>长期运行，接收全球用户请求，再调用后端查询 Bigtable 中的索引。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p49 p50</div><div>15 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Request Flow" data-source="p50 p51 图2 4">
-  <div class="chrome"><div>结构图 · 用户请求链路</div><div>16 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-wide">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:12em;margin:0 auto clamp(1.6rem,4vh,3rem)">一次请求穿过 DNS、GFE、GSLB、RPC 和 Bigtable</h2>
-      <div class="diagram anim-item">
-        <div class="flow" style="justify-content:center">
-          <div class="diagram-pill">用户浏览器</div><span class="arrow">①</span><div class="diagram-pill">Google DNS</div><span class="arrow">→</span><div class="diagram-pill">GSLB</div>
-        </div>
-        <div class="flow" style="justify-content:center">
-          <div class="diagram-pill">GFE</div><span class="arrow">②</span><div class="diagram-pill">Shakespeare 前端</div><span class="arrow">③④</span><div class="diagram-pill">Shakespeare 后端</div><span class="arrow">⑤</span><div class="diagram-pill">Bigtable</div>
-        </div>
-        <div class="grid-3">
-          <div class="diagram-box">GFE 终结 TCP 连接，并按配置反向代理到真实服务。</div>
-          <div class="diagram-box">前端构造 Protobuf 查询，再通过 GSLB 获取可用后端 BNS 地址。</div>
-          <div class="diagram-box">后端读取 Bigtable，结果沿 Protobuf 结构返回，前端生成 HTML。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p50 p51</div><div>16 / 21</div></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Reliability Chain" data-source="p52 几百毫秒 GSLB">
-  <div class="slide-body" style="align-items:center;text-align:center">
-    <div class="w-quote guest-mark">
-      <div class="kicker anim-item accent" style="opacity:1">Reliability Chain</div>
-      <h2 class="h1-zh anim-item">几百毫秒背后是一串必须可靠的组件</h2>
-      <p class="body-zh anim-item soft" style="max-width:24em;margin:clamp(1.4rem,3vh,2.4rem) auto 0">GSLB 出问题会造成严重故障，所以测试、灰度发布和主动优雅降级成为链路的一部分。</p>
-    </div>
-  </div>
-  <div class="foot" style="width:100%"><div>p52</div><div>17 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Capacity Math" data-source="p52 100 QPS 3470 QPS N+2">
-  <div class="chrome"><div>容量计算 · N+2</div><div>18 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-default grid-2">
-      <div class="anim-item">
-        <div class="stat-num">37</div>
-        <h2 class="h2-zh" style="max-width:11em;margin-top:1rem">实例数量来自峰值流量和失效假设</h2>
-      </div>
-      <div class="diagram anim-item">
-        <div class="diagram-box"><strong>100 QPS</strong><p class="small-zh soft">压测显示单个服务器大约每秒处理 100 个请求。</p></div>
-        <div class="diagram-box"><strong>3470 QPS</strong><p class="small-zh soft">预计峰值需要至少 35 个任务实例。</p></div>
-        <div class="diagram-box"><strong>N+2</strong><p class="small-zh soft">一次更新占掉一个实例，叠加一台物理服务器故障后仍剩 35 个实例。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p52</div><div>18 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Geo Placement" data-source="p52 区域流量 南美洲">
-  <div class="chrome"><div>部署取舍 · 地理流量</div><div>19 / 21</div></div>
-  <div class="slide-body">
-    <div class="table-wrap">
-      <h2 class="h1-zh anim-item" style="text-align:center;max-width:13em;margin:0 auto">区域部署不是平均撒实例，而是按流量和成本权衡</h2>
-      <table class="data-table anim-item">
-        <thead><tr><th>区域</th><th>峰值流量</th><th>部署含义</th></tr></thead>
-        <tbody>
-          <tr><td>北美洲</td><td>1430 QPS</td><td>部署在美国，靠近主要用户并保留容量余量。</td></tr>
-          <tr><td>欧洲和非洲</td><td>1400 QPS</td><td>单独部署以降低跨洲访问延迟。</td></tr>
-          <tr><td>亚洲及澳大利亚</td><td>350 QPS</td><td>本地区部署，避免后端访问远端数据。</td></tr>
-          <tr><td>南美洲</td><td>290 QPS</td><td>只放 4 个实例，降低为 N+1，极端情况下让 GSLB 导走流量，节省约 20% 硬件。</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="foot"><div>p52</div><div>19 / 21</div></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Data Placement" data-source="p52 p53 Bigtable 副本">
-  <div class="chrome"><div>数据放置 · Bigtable 副本</div><div>20 / 21</div></div>
-  <div class="slide-body">
-    <div class="note-stack">
-      <h2 class="h1-zh anim-item" style="max-width:13em">后端靠近数据，数据也要靠近后端</h2>
-      <div class="grid-3">
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">延迟</div><p class="body-zh">亚洲后端访问美国 Bigtable 会产生延迟，章节因此选择每个地理区域放副本。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">可用性</div><p class="body-zh">Bigtable 出现问题时，可以利用副本继续提供服务。</p></div>
-        <div class="anim-item cardless"><div class="meta accent" style="opacity:1">一致性限制</div><p class="body-zh">Bigtable 只提供最终一致性，但该示例数据更新不频繁，所以可以接受。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p52 p53</div><div>20 / 21</div></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Core Notes" data-source="p41 p53 章节术语">
-  <div class="chrome"><div>Core Notes · 生产环境视角</div><div>21 / 21</div></div>
-  <div class="slide-body">
-    <div class="w-default grid-2">
-      <div class="anim-item">
-        <div class="summary-num">04</div>
-        <h2 class="h2-zh" style="max-width:10em;margin-top:1rem">这一章真正沉淀的是四类生产机制</h2>
-      </div>
-      <div class="diagram anim-item">
-        <div class="diagram-box"><strong>抽象</strong><p class="small-zh soft">machine 和 server 分离，BNS 消除地址固定性。</p></div>
-        <div class="diagram-box"><strong>调度</strong><p class="small-zh soft">Borg 管计算资源，BwE 管带宽，GSLB 管全局流量。</p></div>
-        <div class="diagram-box"><strong>状态</strong><p class="small-zh soft">Colossus、Bigtable、Spanner 和 Chubby 分别承载不同一致性需求。</p></div>
-        <div class="diagram-box"><strong>闭环</strong><p class="small-zh soft">Borgmon、测试、灰度、降级和容量模型把故障纳入日常控制。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><div>p53 提醒这些术语后续会反复引用</div><div>21 / 21</div></div>
-</section>
-
-</div>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-02-slide") || 0), slides.length - 1);
-slides.forEach((slide, index) => {
-  const dot = document.createElement("button");
-  dot.className = "dot";
-  dot.setAttribute("aria-label", `go to slide ${index + 1}`);
-  dot.addEventListener("click", () => go(index));
-  nav.appendChild(dot);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  nav.querySelectorAll(".dot").forEach((dot, i) => dot.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-02-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft" || event.key === "PageUp") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.touches[0].clientX; }, { passive: true });
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 45) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, { passive: true });
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第2章 Google 生产环境：SRE视角 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：理解Google生产环境的硬件与软件基础设施架构。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "硬件"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节确立Google数据中心硬件自主设计与高度一致性的基调，指出其供电、制冷及网络系统均为自研。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过对比传统托管中心，强调Google硬件的一致性优势，为后续区分物理与软件服务器概念做铺垫，引出对具体服务器定义的讨论。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "物理服务器（machine）"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节明确定义物理服务器为具体硬件或虚拟机，旨在与软件服务器严格区分。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出Google不采用专用物理机运行特定服务，而是通过Borg集群管理系统进行资源分配，这种解耦设计是Google大规模运维的核心特征，为后续介绍Borg机制奠定基础。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "软件服务器（server）"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节定义软件服务器为对外提供服务的软件系统，强调其与物理服务器解耦的特殊性。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出这种分离虽不寻常，但能提升资源利用率，并预告后续章节将详细解释其背后的管理细节，自然过渡到对管理物理服务器的系统软件Borg的介绍。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "管理物理服务器的系统管理软件"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述开发大规模系统管理软件以隔离硬件故障与业务需求的必要性。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过列举集群中高频的硬件损坏数据，说明将硬件故障从业务用户中隔离的重要性，引出负责维护硬件的专门团队及核心集群管理系统Borg，为深入解析Borg功能做铺垫。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "管理物理服务器"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节深入解析Borg作为分布式集群操作系统的作用，负责任务编排与实例监控。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者描述Borg如何启动任务实例、监控异常并重启，强调其通过动态分配提高利用率，并引入BNS名称解析系统解决IP动态变化问题，为后续存储与网络章节提供任务调度背景。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "存储"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍Google集群级存储系统，包括D服务、Colossus文件系统及Bigtable等数据库。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过分层结构图展示从底层磁盘到上层分布式数据库的演进，强调其提供可靠、易用的存储服务，并指出Bigtable支持最终一致性，为后续网络负载均衡及具体服务案例提供数据支撑。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "网络"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述Google基于SDN的网络架构，利用Jupiter交换机与B4骨干网实现高速互联。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者重点介绍BwE带宽控制器与GSLB全球负载均衡系统，说明如何通过集中式路由计算优化带宽分配并降低延迟，为后续介绍其他系统软件及具体服务部署提供网络基础。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "其他系统软件"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍Chubby分布式锁服务及监控警报系统Borgmon。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出Chubby通过Paxos协议提供强一致性锁，用于主实例选举；"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Borgmon则通过抓取指标触发警报或对比版本状态。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些组件共同构成数据中心的关键支撑软件，为后续软件基础设施的高效设计做铺垫。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式锁服务"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍Chubby集群锁服务，提供类文件系统的API操作锁，利用Paxos协议保障分布式一致性。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "文中指出Chubby是实现主实例选举的关键组件，通过自动选举确定唯一处理请求的实例，并用于存放BNS路径与IP的高一致性数据，解决跨机房锁请求问题。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "监控与警报系统"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述监控系统在运维中的重要性，指出数据中心运行多个Borgmon实例定期抓取指标。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些指标用于触发警报、对比服务更新前后的状态变化以评估性能，以及检查资源随时间的变化以辅助资源计划制定，体现了监控对服务稳定性和资源管理的支撑作用。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "软件基础设施"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节聚焦Google底层软件基础设施，强调多线程设计与gRPC通信协议的优势。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出Protobuf相比XML在大小与速度上的显著提升，并说明RPC通信在前后端交互中的应用，为后续研发环境及具体服务案例（如莎士比亚搜索）的技术实现提供底层支持。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "研发环境"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节描述Google高效的研发环境，包括共享代码库、代码评审及自动化测试部署流程。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出这种集中式开发模式带来的挑战与解决方案，如并行编译与自动部署，为后续通过具体服务案例展示基础设施如何协同工作提供工程实践背景。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "莎士比亚搜索：一个示范服务"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节以假想的莎士比亚搜索服务为例，展示批处理与前端服务器的架构。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过MapReduce框架的Mapping、Shuffle和Reduce阶段说明索引构建过程，并引入Bigtable存储，为后续详细解析用户请求处理流程及任务数据组织方式提供具体案例场景。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "用户请求的处理过程"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节详细拆解用户请求从DNS解析到最终HTML返回的全过程，涉及GSLB、GFE及后端服务交互。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者通过图示说明各组件间的RPC调用与负载均衡机制，强调系统可靠性与优雅降级措施，为最后章节讨论任务与数据的组织方式及容量规划提供流程依据。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "任务和数据的组织方式"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节通过容量规划案例说明任务实例的冗余设计（N+2）及地理分布策略。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 2, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者结合流量数据与Bigtable副本机制，解释如何在保证可靠性与降低成本间权衡，并强调最终一致性在特定场景下的适用性，总结本章核心术语，为后续章节讨论SRE实践奠定基础。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 2, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：Google生产环境的核心架构与运维逻辑"}]}], "sourceIds": ["SRC-033"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "物理与软件服务器的解耦逻辑"}]}], "sourceIds": ["SRC-034"]}, {"lines": [{"indent": 0, "chunks": [{"t": "在Google的生产环境中，物理服务器（Machine）与软件服务器（Server）被严格解耦。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 1, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "物理服务器指代具体的硬件或虚拟机，而软件服务器则是对外提供服务的软件系统。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 2, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种解耦并非为了技术炫技，而是为了解决大规模集群中的资源利用率问题。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 3, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "传统架构中，物理机与特定服务绑定，导致资源闲置或瓶颈。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 4, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google通过Borg集群管理系统，将任务实例动态调度到任意物理服务器上。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 5, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这意味着，没有哪台物理服务器专门服务于邮件或搜索系统，而是根据CPU、内存等资源需求进行动态分配。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 6, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种设计的核心优势在于，当某台物理服务器故障时，Borg可以迅速将该服务器上的软件服务器实例迁移至其他健康节点，从而对用户透明。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 7, "total": 8, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "理解这一逻辑的关键在于认识到，Google的运维重点从“维护特定硬件”转向了“管理任务实例的生命周期”，硬件故障被视为常态而非例外，系统必须具备自动恢复能力。"}]}], "sourceIds": ["SRC-035"], "sourceParts": [{"id": "SRC-035", "index": 8, "total": 8, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分布式存储与网络的基础设施支撑"}]}], "sourceIds": ["SRC-036"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google的基础设施依赖于高度抽象的存储与网络系统。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在存储层面，D服务提供底层磁盘支持，Colossus文件系统在此基础上构建分布式文件存储，而Bigtable和Spanner则提供结构化数据服务。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Bigtable采用最终一致性模型，适合对实时性要求不高但需处理海量数据的场景。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在网络层面，Jupiter交换机通过Clos架构提供高带宽虚拟网络，B4骨干网利用SDN技术实现动态带宽管理。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "GSLB（全球负载均衡系统）在DNS、服务层和RPC层进行流量调度，将用户请求导向最近且有空闲容量的数据中心。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种架构使得Google能够统一管理全球资源，通过集中式控制器优化路由，解决分布式路由难以处理的流量迁移问题，从而在保证低延迟的同时最大化带宽利用率。"}]}], "sourceIds": ["SRC-037"], "sourceParts": [{"id": "SRC-037", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "服务可靠性与容量规划的工程实践"}]}], "sourceIds": ["SRC-038"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google通过严格的容量规划与冗余设计保障服务可靠性。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 1, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "以莎士比亚搜索服务为例，面对峰值流量，Google不仅计算所需的最小实例数，还引入N+2冗余模式，以应对更新过程中的短暂不可用及物理服务器故障。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 2, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在地理分布上，Google根据各区域流量特征部署副本，如在流量较小的南美区域采用N+1冗余以降低成本，并通过GSLB将溢出流量导向其他区域。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 3, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "数据存储上，利用Bigtable的跨数据中心复制功能，既保证故障时的可用性，又通过本地副本加速访问。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 4, "total": 5, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种实践表明，Google的可靠性并非依赖单一组件的绝对稳定，而是通过多层冗余、优雅降级及动态流量调度，在硬件故障频发的大规模环境中实现整体服务的持续可用。"}]}], "sourceIds": ["SRC-039"], "sourceParts": [{"id": "SRC-039", "index": 5, "total": 5, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-040"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形："}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "假设你负责一个类似Google架构的系统，某台物理服务器突然断电，导致其上运行的三个软件服务器实例同时失效。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "请推演Borg系统会如何响应，以及GSLB在此过程中可能扮演的角色。思考："}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "如果这三个实例分别处理不同用户的请求，用户是否会感知到服务中断？为什么？"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 4, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：核对思路："}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "首先，Borg检测到实例异常后会终止并重启它们，可能在新物理机上重启，这解释了为何用户可能感知不到硬件故障。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "其次，若重启期间服务不可用，GSLB可能将流量暂时导向其他健康数据中心，通过负载均衡缓解压力。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "最后，思考这种解耦设计如何改变了传统运维中“修复硬件”的思维，转而关注“实例恢复”与“流量调度”。"}]}], "sourceIds": ["SRC-042"], "sourceParts": [{"id": "SRC-042", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-043"]}, {"lines": [{"indent": 0, "chunks": [{"t": "Borg会检测到实例异常，终止并重启它们，可能在新物理机上重启，从而对用户透明。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "GSLB可能将流量导向其他健康数据中心，缓解压力。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种解耦设计将运维重点从“修复硬件”转向“实例恢复”与“流量调度”。"}]}], "sourceIds": ["SRC-044"], "sourceParts": [{"id": "SRC-044", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-045"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 41-53。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}], "sourceIds": ["SRC-046", "SRC-047", "SRC-048"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}, {"indent": 0, "chunks": [{"t": "边界：Google的硬件一致性并非绝对，部分数据中心可能存在不同迭代周期的硬件。"}]}, {"indent": 0, "chunks": [{"t": "边界：Bigtable的最终一致性模型适用于数据更新不频繁的场景，并非所有场景适用。"}]}, {"indent": 0, "chunks": [{"t": "边界：N+2冗余模式是基于特定流量假设的规划，实际部署需根据具体业务需求调整。"}]}], "sourceIds": ["SRC-049", "SRC-050", "SRC-051", "SRC-052"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：Chubby的强一致性锁服务适用于高一致性要求场景，但可能带来性能开销。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第3章 拥抱风险”，继续回答：怎样理解并使用“拥抱风险”，以及它在什么条件下不适用。"}]}], "sourceIds": ["SRC-053", "SRC-054"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>

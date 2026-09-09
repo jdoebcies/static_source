@@ -1,10 +1,7 @@
-# SRE Google 运维解密 note-slides
+# SRE：Google运维解密 · Book Mirror V8.2 Note Slides
 
-- 处理单元：41
-- 总 slides：1024
-- 章节入口：`index.html`
-- 章节目录：`chapters/<slug>/<slug>-note-slides.html`
-- 验收标准：`python3 /root/.openclaw/skills/note-slides/scripts/check_deck.py --input <html>`
-- 当前状态：41 个章节全部 PASS，0 warning
-
-本目录是《SRE：Google 运维解密》的 HTML note-slides 归档包。打开 `index.html` 进入章节总索引。
+- 生成方式：从本次 V8.2 Markdown 源稿重新解析，不沿用旧 HTML 内容。
+- 位置契约：41 个章节 HTML 使用旧站点相同相对路径，以便原链接继续有效。
+- 保真：每章均生成 source manifest、续页重建与 composition 审计。
+- 图示转换：演示模板禁止资源标签，本地图片转为带标题的 `[图示]` 文字页；Markdown 与 Heptabase 仍保留图。
+- 视觉复验：当前环境没有 Interceptor，按 ljg-present 契约记为 deferred；静态 validator 结果见 chapter_manifest.json。

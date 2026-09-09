@@ -2,674 +2,849 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>第8章 发布工程 note slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《SRE：Google运维解密》第8章 发布工程 · 原书回顾与主题讲解</title>
 <style>
-:root {
-  --ink: #17202b;
-  --ink-rgb: 23,32,43;
-  --paper: #fbfaf6;
-  --paper-rgb: 251,250,246;
-  --accent: #2d6f7c;
-  --muted: #65707f;
-  --warm: #b46b45;
-  --serif-zh: "Noto Serif SC", "Songti SC", "STSong", serif;
-  --sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --w-quote: min(100%, 48rem);
-  --w-statement: min(100%, 56rem);
-  --w-note: min(100%, 64rem);
-  --w-default: min(100%, 76rem);
-  --w-wide: min(100%, 92rem);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--sans-zh); text-wrap: pretty; }
-#deck { position: fixed; inset: 0; width: 10000vw; height: 100vh; display: flex; flex-wrap: nowrap; transition: transform .75s cubic-bezier(.77,0,.175,1); will-change: transform; }
-.slide { width: 100vw; height: 100vh; flex: 0 0 100vw; position: relative; padding: clamp(2rem, 5vw, 5.5rem) clamp(2rem, 6vw, 6.5rem) clamp(1.5rem, 3vw, 3rem); display: flex; flex-direction: column; overflow: hidden; }
-.slide.dark { background: var(--ink); color: var(--paper); }
-.slide.light { background: var(--paper); color: var(--ink); }
-.slide.bare .chrome { display: none; }
-.slide-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-.chrome, .foot { display: flex; justify-content: space-between; gap: clamp(1rem, 2vw, 2rem); font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .1em; text-transform: uppercase; opacity: .46; }
-.chrome { margin-bottom: 2vh; }
-.foot { margin-top: auto; padding-top: 2vh; }
-.display-zh { font-family: var(--serif-zh); font-weight: 900; font-size: clamp(3.2rem, 7vw, 7rem); line-height: 1.08; letter-spacing: 0; }
-.h1-zh { font-family: var(--serif-zh); font-weight: 700; font-size: clamp(2rem, 4.2vw, 4rem); line-height: 1.18; letter-spacing: 0; }
-.h2-zh { font-family: var(--serif-zh); font-weight: 650; font-size: clamp(1.55rem, 3vw, 2.55rem); line-height: 1.28; }
-.lead-zh { font-family: var(--serif-zh); font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.5; }
-.body-zh { font-size: clamp(1.28rem, 1.44vw, 1.66rem); line-height: 1.56; }
-.small-zh { font-size: clamp(1.02rem, 1.12vw, 1.28rem); line-height: 1.5; }
-.kicker { font-family: var(--mono); font-size: clamp(.8rem, .9vw, 1rem); text-transform: uppercase; letter-spacing: .15em; opacity: .55; margin-bottom: 1vh; }
-.meta { font-family: var(--mono); font-size: clamp(.75rem, .8vw, .9rem); letter-spacing: .08em; opacity: .5; }
-.accent { color: var(--accent); opacity: 1; }
-.slide.dark .accent { color: #7bb8c1; }
-.warm { color: var(--warm); }
-.muted { opacity: .64; }
-.w-quote { width: var(--w-quote); margin-left: auto; margin-right: auto; }
-.w-statement { width: var(--w-statement); margin-left: auto; margin-right: auto; }
-.w-note { width: var(--w-note); margin-left: auto; margin-right: auto; }
-.w-default { width: var(--w-default); margin-left: auto; margin-right: auto; }
-.w-wide { width: var(--w-wide); margin-left: auto; margin-right: auto; }
-.stack { display: flex; flex-direction: column; gap: clamp(1.2rem, 2.6vh, 2.2rem); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.2rem, 3vw, 3rem); align-items: stretch; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2vw, 2rem); }
-.line-box { border-top: 1px solid rgba(var(--ink-rgb), .16); padding-top: clamp(1rem, 2vh, 1.8rem); }
-.slide.dark .line-box { border-top-color: rgba(var(--paper-rgb), .18); }
-.soft-box { border-radius: 8px; padding: clamp(1.1rem, 1.7vw, 1.6rem); background: rgba(var(--ink-rgb), .05); }
-.slide.dark .soft-box { background: rgba(var(--paper-rgb), .08); }
-.callout { font-family: var(--serif-zh); font-weight: 500; font-size: clamp(2rem, 3.25vw, 3.4rem); line-height: 1.42; }
-.callout-mark { padding-top: clamp(1.6rem, 3vh, 2.4rem); position: relative; }
-.callout-mark::before { content: ""; position: absolute; top: 0; left: 0; width: clamp(.5rem, .75vw, .85rem); height: clamp(.5rem, .75vw, .85rem); background: var(--accent); opacity: .72; }
-.guest-mark { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.guest-mark::before { content: ""; display: block; width: clamp(2.4rem, 4em, 4.8rem); height: 1px; background: currentColor; opacity: .35; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
-.timeline-row { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(.85rem, 1.6vw, 1.4rem); }
-.timeline-row::before { content: ""; position: absolute; top: clamp(.85rem, 1.6vh, 1.4rem); left: 5%; right: 5%; height: 1px; background: rgba(var(--ink-rgb), .12); z-index: 0; }
-.timeline-item { position: relative; z-index: 1; padding-top: clamp(2.2rem, 4vh, 3.2rem); }
-.timeline-item::before { content: ""; position: absolute; top: clamp(.56rem, 1.2vh, 1rem); left: 0; width: clamp(.7rem, 1vw, 1rem); height: clamp(.7rem, 1vw, 1rem); border-radius: 50%; background: var(--accent); }
-.table-wrap { overflow: hidden; border-top: 1px solid rgba(var(--ink-rgb), .16); }
-.data-table { width: 100%; border-collapse: collapse; font-size: clamp(.98rem, 1.08vw, 1.26rem); line-height: 1.45; }
-.data-table th, .data-table td { padding: clamp(.72rem, 1.1vw, 1rem); border-bottom: 1px solid rgba(var(--ink-rgb), .12); vertical-align: top; text-align: left; }
-.data-table th { font-family: var(--mono); color: var(--accent); font-weight: 600; }
-.summary-num { font-family: var(--serif-zh); font-size: clamp(3rem, 6.5vw, 6rem); line-height: .95; color: var(--accent); }
-#nav { position: fixed; left: 50%; bottom: clamp(1rem, 2vh, 2rem); transform: translateX(-50%); display: flex; gap: .45rem; z-index: 20; }
-.nav-dot { width: clamp(.34rem, .5vw, .5rem); height: clamp(.34rem, .5vw, .5rem); border-radius: 50%; background: rgba(var(--paper-rgb), .35); border: 0; }
-.nav-dot.active { background: var(--accent); }
-@media (max-width: 760px) {
-  .slide { padding: 2rem 1.35rem 1.6rem; }
-  .grid-2, .grid-3, .timeline-row { grid-template-columns: 1fr; }
-  .timeline-row::before { display: none; }
-}
+  :root {
+    --c-black: #1A1A1A;
+    --c-red: #E63956;
+    --c-yellow: #FFD400;
+    --c-white: #FFFFFF;
+    --c-gold: #FFE082;
+    --hacker-void: #07110D;
+    --hacker-paper: #EAF4EC;
+    --hacker-signal: #00C46A;
+    --hacker-dark-bg: #06110D;
+    --hacker-dark-deep: #020806;
+    --hacker-dark-panel: #0A1A13;
+    --hacker-dark-fg: #CFE1D5;
+    --hacker-dark-muted: #8FA398;
+    --hacker-dark-signal: #25E981;
+    --footer-h: clamp(42px, 7vh, 72px);
+    --stage-inline: clamp(30px, 7vw, 112px);
+    --title-signal-w: clamp(72px, 9vw, 148px);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  [hidden] { display: none !important; }
 
-/* mobile-reading-fallback: keep horizontal paging; scroll long content within its slide. */
-@media (max-width: 900px), (pointer: coarse) and (max-width: 1024px) {
-  html,
+  body[data-theme="black"] {
+    --bg: var(--c-black); --fg: var(--c-white);
+    --acc-bg: var(--c-red); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="red"] {
+    --bg: var(--c-red); --fg: var(--c-white);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-gold);
+  }
+  body[data-theme="yellow"] {
+    --bg: var(--c-yellow); --fg: var(--c-black);
+    --acc-bg: var(--c-black); --acc-fg: var(--c-white); --hl: var(--c-red);
+  }
+  body[data-theme="hacker"],
+  body[data-theme="cyber"] {
+    --bg: var(--hacker-paper); --fg: var(--hacker-void);
+    --acc-bg: var(--hacker-void); --acc-fg: var(--hacker-paper); --hl: var(--hacker-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+  }
+  body[data-theme="hacker-dark"] {
+    --bg: var(--hacker-dark-bg); --fg: var(--hacker-dark-fg);
+    --acc-bg: var(--hacker-dark-deep); --acc-fg: var(--hacker-dark-fg); --hl: var(--hacker-dark-signal);
+    --stage-inline: clamp(48px, 8vw, 160px);
+    color-scheme: dark;
+  }
+
   body {
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Avenir Next Condensed", "DIN Condensed", "Helvetica Neue", "Arial Black", "PingFang SC", "Heiti SC", -apple-system, sans-serif;
+    font-weight: 850;
+    letter-spacing: -.045em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
   }
 
-  #deck {
-    position: fixed !important;
-    width: 10000vw !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-
+  .stage { position: fixed; inset: 0; overflow: hidden; }
   .slide {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    min-height: 0 !important;
-    height: 100dvh !important;
-    flex: 0 0 100vw !important;
-    padding: clamp(1.25rem, 5.5vw, 2.2rem) clamp(1rem, 5vw, 1.8rem) 3.4rem !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(28px, 6vmin, 96px) var(--stage-inline) calc(var(--footer-h) + clamp(18px, 3.5vmin, 54px));
+    color: var(--fg);
+    background: var(--bg);
+    isolation: isolate;
+  }
+  .slide.active { display: flex; }
+  .slide[data-cover="true"],
+  .slide[data-emphasis="true"] { color: var(--acc-fg); background: var(--acc-bg); }
+  .slide[data-cover="true"] {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .slide *,
-  .slide [style*="max-width"] {
-    max-width: 100% !important;
+  .fit-box {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
   }
 
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    width: 100% !important;
-    max-width: calc(100vw - 2rem) !important;
+  .lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .14em;
+    width: min(82vw, 1480px);
+    max-width: 100%;
+    line-height: 1.03;
+    text-align: center;
+  }
+  .line { width: 100%; max-width: 100%; white-space: nowrap; text-align: center; }
+  .line[data-indent="1"],
+  .line[data-indent="2"] { padding-inline: 0; }
+  .hl { color: var(--hl); }
+  .keep-cjk-tail { white-space: nowrap; }
+  [data-emphasis="true"] .hl { color: inherit; }
+
+  .slide[data-len="single"] .lines { font-size: clamp(172px, 56vmin, 800px); }
+  .slide[data-len="short"] .lines { font-size: clamp(124px, 34vmin, 520px); }
+  .slide[data-len="medium"] .lines { font-size: clamp(80px, 20vmin, 316px); }
+  .slide[data-len="long"] .lines { font-size: clamp(56px, 13vmin, 210px); }
+  .slide[data-len="xlong"] .lines { font-size: clamp(42px, 8.4vmin, 136px); }
+  .slide[data-len="long"] .line,
+  .slide[data-len="xlong"] .line,
+  .slide[data-quote="true"] .line {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+  .slide[data-cover="true"] .lines {
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    font-size: clamp(80px, 24vmin, 380px);
+    line-height: .88;
+    letter-spacing: -.07em;
+  }
+  .slide[data-emphasis="true"]:not([data-cover="true"]),
+  .slide[data-title="true"]:not([data-cover="true"]) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .slide[data-cover="true"] .fit-box { transform-origin: center center; }
+  .slide[data-emphasis="true"]:not([data-cover="true"]) .fit-box,
+  .slide[data-title="true"]:not([data-cover="true"]) .fit-box { transform-origin: center center; }
+  .slide[data-title="true"] .lines {
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    padding-top: clamp(14px, 2vmin, 30px);
+    border-top: 0;
+    background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;
+  }
+  .slide[data-title="true"][data-depth="2"] .lines { font-size: clamp(68px, 14vmin, 224px); line-height: .98; }
+  .slide[data-depth="3"] .lines,
+  .slide[data-depth="4"] .lines,
+  .slide[data-depth="5"] .lines { font-size: clamp(60px, 12.5vmin, 200px); }
+  .slide[data-quote="true"] .lines {
+    width: min(82vw, 1360px);
+    max-width: 100%;
+    padding: clamp(18px, 2.6vmin, 42px) clamp(18px, 2.4vmin, 38px);
+    border-top: clamp(7px, .8vmin, 13px) solid var(--hl);
+    border-bottom: 1px solid currentColor;
   }
 
-  .slide-body {
-    min-height: auto !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    gap: 1rem !important;
+  .slide[data-line-count="2"] .lines,
+  .slide[data-line-count="3"] .lines,
+  .slide[data-line-count="4"] .lines {
+    width: min(82vw, 1580px);
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(8px, 1.25vmin, 20px);
+    align-items: stretch;
+    line-height: 1.13;
+    font-size: var(--multi-size);
+    letter-spacing: -.025em;
+  }
+  .slide[data-line-count="2"][data-density="light"] .lines { --multi-size: clamp(54px, 9.2vmin, 148px); }
+  .slide[data-line-count="2"][data-density="medium"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="2"][data-density="dense"] .lines { --multi-size: clamp(42px, 7.4vmin, 118px); }
+  .slide[data-line-count="3"][data-density="light"] .lines { --multi-size: clamp(48px, 8.2vmin, 132px); }
+  .slide[data-line-count="3"][data-density="medium"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="3"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="4"][data-density="light"] .lines { --multi-size: clamp(42px, 7.2vmin, 116px); }
+  .slide[data-line-count="4"][data-density="medium"] .lines { --multi-size: clamp(40px, 6.8vmin, 108px); }
+  .slide[data-line-count="4"][data-density="dense"] .lines { --multi-size: clamp(38px, 6.4vmin, 102px); }
+  .slide[data-line-count="2"] .line,
+  .slide[data-line-count="3"] .line,
+  .slide[data-line-count="4"] .line {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    padding: clamp(8px, 1.2vmin, 18px);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+    border-top: 1px solid currentColor;
+  }
+  .pre-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 94vw;
+    padding: clamp(12px, 2.2vmin, 34px);
+    border: 1px solid currentColor;
+  }
+  .pre-title {
+    margin-bottom: .7em;
+    font: 650 clamp(12px, 1.6vmin, 22px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  .pre-wrap pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(22px, 3.8vmin, 70px);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: 0;
+    white-space: pre;
+  }
+  .slide[data-pre-density="dense"] .pre-wrap pre { font-size: clamp(18px, 3vmin, 52px); }
+  .slide[data-pre-density="x-dense"] .pre-wrap pre { font-size: clamp(15.5px, 2.5vmin, 42px); }
+  .slide[data-pre-density="dense"] { --stage-inline: clamp(28px, 4vw, 64px); }
+  .slide[data-pre-density="x-dense"] { --stage-inline: clamp(18px, 3vw, 48px); }
+  .slide[data-pre-density="dense"] .pre-wrap,
+  .slide[data-pre-density="x-dense"] .pre-wrap { padding: clamp(8px, 1.5vmin, 22px); }
+
+  .table-wrap { width: min(82vw, 1520px); }
+  .table-caption {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: clamp(18px, 3vmin, 46px);
+    padding: .34em .54em;
+    color: var(--acc-fg);
+    background: var(--acc-bg);
+    font: 760 clamp(16px, 2.3vmin, 34px) "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: .08em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(30px, 5.2vmin, 82px); line-height: 1.08; letter-spacing: -.025em; }
+  th, td { padding: .38em .46em; text-align: left; border-bottom: 1px solid currentColor; }
+  th { color: var(--acc-fg); background: var(--acc-bg); font-size: .72em; letter-spacing: .02em; }
+
+  .math {
+    display: inline-block;
+    font-family: "STIX Two Math", "Times New Roman", "Songti SC", serif;
+    font-weight: 620;
+    letter-spacing: .01em;
+    white-space: nowrap;
+  }
+  .math-display { display: block; width: 100%; text-align: center; font-size: 1.12em; border-bottom: .08em solid var(--hl); }
+  .math sup, .math sub { font-size: .58em; line-height: 0; position: relative; }
+  .math sup { top: -.36em; }
+  .math sub { bottom: -.08em; }
+
+  .deck-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    z-index: 30;
+    pointer-events: none;
+    color: var(--fg);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: clamp(11px, 1.15vmin, 15px);
+    font-weight: 650;
+    letter-spacing: .12em;
+  }
+  .pager { position: absolute; left: 50%; bottom: clamp(13px, 2.4vh, 27px); transform: translateX(-50%); }
+  .meta-footer { position: absolute; right: clamp(22px, 4vw, 64px); bottom: clamp(13px, 2.4vh, 27px); }
+  body[data-current="emphasis"] .deck-footer { color: var(--acc-fg); }
+
+  body[data-theme="hacker"] .slide,
+  body[data-theme="cyber"] .slide {
+    background:
+      radial-gradient(circle at 50% 47%, rgba(0,196,106,.07), transparent 34%),
+      var(--hacker-paper);
+  }
+  body[data-theme="hacker"] .slide::before,
+  body[data-theme="cyber"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(7,17,13,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(7,17,13,.04) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(7,17,13,.035) 0 1px, transparent 1px 10vh);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+    mask-image: radial-gradient(circle at center, rgba(7,17,13,.34), transparent 78%);
+  }
+  body[data-theme="hacker"] .slide::after,
+  body[data-theme="cyber"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(5px, .55vmin, 9px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-signal) 0 18%, transparent 18% 24%, var(--hacker-signal) 24% 76%, transparent 76% 82%, var(--hacker-signal) 82% 100%);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"],
+  body[data-theme="hacker"] .slide[data-emphasis="true"],
+  body[data-theme="cyber"] .slide[data-cover="true"],
+  body[data-theme="cyber"] .slide[data-emphasis="true"] {
+    color: var(--hacker-paper);
+    background: radial-gradient(circle at 50% 47%, rgba(0,196,106,.15), transparent 36%), var(--hacker-void);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker"] .slide[data-emphasis="true"]::before,
+  body[data-theme="cyber"] .slide[data-cover="true"]::before,
+  body[data-theme="cyber"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 5px, rgba(234,244,236,.025) 5px 6px),
+      repeating-linear-gradient(90deg, rgba(0,196,106,.07) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(0,196,106,.055) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker"] .slide[data-cover="true"] .lines::after,
+  body[data-theme="cyber"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(6px, .75vmin, 11px);
+    margin: .18em auto 0;
+    background: var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker"] .slide[data-line-count="4"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="2"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="3"] .line,
+  body[data-theme="cyber"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(7,17,13,.20);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-signal);
+    background: linear-gradient(90deg, transparent, rgba(0,196,106,.08), transparent) top center / 70% 2px no-repeat, rgba(7,17,13,.028);
+  }
+  body[data-theme="hacker"] .pre-wrap,
+  body[data-theme="cyber"] .pre-wrap {
+    color: var(--hacker-paper);
+    background: var(--hacker-void);
+    border-color: rgba(0,196,106,.5);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-signal);
+  }
+  body[data-theme="hacker"] .table-caption,
+  body[data-theme="cyber"] .table-caption { color: var(--hacker-void); background: var(--hacker-signal); }
+  body[data-theme="hacker"] th,
+  body[data-theme="cyber"] th { color: var(--hacker-paper); background: var(--hacker-void); }
+
+  body[data-theme="hacker-dark"] .slide {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-bg);
+  }
+  body[data-theme="hacker-dark"] .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.035) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh),
+      linear-gradient(180deg, rgba(37,233,129,.025), transparent 34%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+    mask-image: radial-gradient(circle at center, rgba(255,255,255,.62), transparent 82%);
+  }
+  body[data-theme="hacker-dark"] .slide::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: clamp(22px, 5vh, 66px);
+    width: min(58vw, 920px);
+    height: clamp(4px, .45vmin, 7px);
+    transform: translateX(-50%);
+    z-index: -1;
+    background: linear-gradient(to right, var(--hacker-dark-signal) 0 15%, transparent 15% 22%, rgba(37,233,129,.58) 22% 78%, transparent 78% 85%, var(--hacker-dark-signal) 85% 100%);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"],
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"] {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"]::before,
+  body[data-theme="hacker-dark"] .slide[data-emphasis="true"]::before {
+    background:
+      repeating-linear-gradient(90deg, rgba(37,233,129,.05) 0 1px, transparent 1px 8vw),
+      repeating-linear-gradient(0deg, rgba(207,225,213,.025) 0 1px, transparent 1px 10vh);
+  }
+  body[data-theme="hacker-dark"] .slide[data-cover="true"] .lines::after {
+    content: "";
+    display: block;
+    width: clamp(58px, 8vw, 128px);
+    height: clamp(5px, .65vmin, 9px);
+    margin: .18em auto 0;
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .slide[data-line-count="2"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="3"] .line,
+  body[data-theme="hacker-dark"] .slide[data-line-count="4"] .line {
+    border: 1px solid rgba(37,233,129,.22);
+    border-top: clamp(3px, .38vmin, 6px) solid var(--hacker-dark-signal);
+    background: var(--hacker-dark-panel);
+  }
+  body[data-theme="hacker-dark"] .slide[data-quote="true"] .lines {
+    background: rgba(10,26,19,.76);
+    border-bottom-color: rgba(207,225,213,.34);
+  }
+  body[data-theme="hacker-dark"] .pre-wrap {
+    color: var(--hacker-dark-fg);
+    background: var(--hacker-dark-deep);
+    border-color: rgba(37,233,129,.38);
+    border-top: clamp(6px, .7vmin, 11px) solid var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] .table-caption,
+  body[data-theme="hacker-dark"] th {
+    color: var(--hacker-dark-deep);
+    background: var(--hacker-dark-signal);
+  }
+  body[data-theme="hacker-dark"] th,
+  body[data-theme="hacker-dark"] td { border-bottom-color: rgba(207,225,213,.24); }
+  body[data-theme="hacker-dark"] .deck-footer { color: var(--hacker-dark-muted); }
+  body[data-theme="hacker-dark"][data-current="emphasis"] .deck-footer { color: var(--hacker-dark-muted); }
+
+  /* Cover and title pages inherit one stable centered stage axis. */
+  body[data-theme] .slide[data-cover="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(84vw, 1360px);
+    max-width: 100%;
+    gap: .06em;
+    font-size: clamp(64px, 20vmin, 320px);
+    line-height: .88;
+  }
+  body[data-theme] .slide[data-cover="true"] .line {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: balance;
+    text-align: center;
+  }
+  body[data-theme] .slide[data-title="true"] .lines {
+    display: flex;
+    grid-template-columns: none;
+    width: min(82vw, 1320px);
+    max-width: 100%;
+    gap: .14em;
+  }
+  body[data-theme] .slide[data-title="true"] .line[data-indent] {
+    padding-left: 0;
   }
 
-  .note-stack,
-  .w-quote,
-  .w-statement,
-  .w-note,
-  .w-default,
-  .w-wide,
-  .table-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    gap: clamp(1rem, 3.6vw, 1.8rem) !important;
+  @media (max-aspect-ratio: 1/1) {
+    .slide { --stage-inline: clamp(34px, 8vw, 78px); }
+    .lines { max-width: 82vw; }
+    .slide[data-math="display"][data-len="xlong"] .lines { font-size: clamp(42px, 5.3vmin, 78px); }
+    body[data-theme] .slide[data-cover="true"] .lines {
+      width: 78vw;
+      max-width: 78vw;
+      font-size: clamp(56px, 18vmin, 180px);
+    }
+    body[data-theme] .slide[data-title="true"] .lines {
+      width: 76vw;
+      max-width: 76vw;
+    }
+    .slide[data-len="long"] .line,
+    .slide[data-len="xlong"] .line { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    .table-wrap { width: 86vw; }
   }
 
-  .display-zh {
-    font-size: clamp(1.65rem, 6.9vw, 2.45rem) !important;
-    line-height: 1.22 !important;
+  @media (max-height: 620px) {
+    :root { --footer-h: 40px; }
+    .slide { padding-top: 24px; padding-bottom: 58px; }
+    .pager, .meta-footer { bottom: 9px; }
   }
 
-  .h1-zh {
-    font-size: clamp(1.45rem, 6.4vw, 2.25rem) !important;
-    line-height: 1.3 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .lines {
+    width: max-content;
+    max-width: none;
   }
-
-  .h2-zh {
-    font-size: clamp(1.15rem, 5.1vw, 1.75rem) !important;
-    line-height: 1.38 !important;
+  body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines {
+    font-size: clamp(64px, 12vmin, 190px);
   }
-
-  .lead-zh {
-    font-size: clamp(.96rem, 4.05vw, 1.2rem) !important;
-    line-height: 1.72 !important;
+  body[data-theme] .slide[data-semantic-atom="true"] .line {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: nowrap;
   }
-
-  .body-zh {
-    font-size: clamp(.94rem, 3.95vw, 1.12rem) !important;
-    line-height: 1.72 !important;
-  }
-
-  .small-zh,
-  .meta,
-  .kicker,
-  .chrome,
-  .foot {
-    font-size: clamp(.78rem, 3.5vw, 1rem) !important;
-    line-height: 1.5 !important;
-  }
-
-  .chrome,
-  .foot {
-    flex-wrap: wrap !important;
-    gap: .45rem .85rem !important;
-    letter-spacing: .06em !important;
-  }
-
-  .grid,
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .pill-grid,
-  .process,
-  .risk-map,
-  .diagram,
-  .diagram-flow,
-  .matrix,
-  .matrix-row,
-  .cluster-row,
-  .nested-campus,
-  .rack-grid,
-  .split-band,
-  .timeline,
-  .timeline-row,
-  .flow {
-    grid-template-columns: 1fr !important;
-    gap: clamp(.85rem, 3.5vw, 1.35rem) !important;
-  }
-
-  .timeline-row::before,
-  .timeline-item::before,
-  .arrow {
-    display: none !important;
-  }
-
-  .stack-row {
-    grid-template-columns: 1fr !important;
-    gap: .4rem !important;
-  }
-
-  .data-table {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    border-spacing: 0 .45rem !important;
-    font-size: clamp(.86rem, 3.7vw, 1rem) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: .68rem .72rem !important;
-  }
-
-  .stat-num,
-  .big-number {
-    font-size: clamp(3rem, 19vw, 6rem) !important;
-  }
-
-  .callout {
-    max-width: 100% !important;
-    font-size: clamp(1.22rem, 5.7vw, 1.85rem) !important;
-  }
-
-  .display-zh,
-  .h1-zh,
-  .h2-zh,
-  .lead-zh,
-  .body-zh,
-  .small-zh,
-  .callout {
-    overflow-wrap: anywhere !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  .step,
-  .line-box,
-  .soft-box,
-  .diagram-box,
-  .matrix-cell,
-  .tile,
-  .check-item {
-    min-height: auto !important;
-  }
-
-  .anim-item,
-  .slide.active .anim-item {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-
-  #nav {
-    display: flex !important;
-    max-width: calc(100vw - 1.5rem);
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 10px;
-    bottom: .75rem;
-  }
-
-  #nav > button {
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .slide {
-    padding-left: clamp(.95rem, 4.8vw, 1.35rem) !important;
-    padding-right: clamp(.95rem, 4.8vw, 1.35rem) !important;
-  }
-}
-
 </style>
 </head>
-<body>
-<main id="deck">
-<section class="slide dark bare active" data-theme="dark" data-screen-label="Cover" data-source="p120 章节标题">
-  <div class="slide-body" style="text-align:center;align-items:center">
-    <div class="guest-mark w-statement">
-      <div class="kicker accent" style="opacity:1">SRE Book Chapter 08</div>
-      <h1 class="display-zh">发布工程</h1>
-      <p class="lead-zh muted" style="margin-top:2vh">从源代码到部署的可靠流程</p>
-    </div>
-  </div>
-  <div class="foot"><span>p120</span><span>01 / 24</span></div>
-</section>
+<body data-template-version="4.5.0" data-theme="black">
+<main class="stage" id="stage"></main>
+<footer class="deck-footer">
+  <div class="pager" id="pager">01 / 01</div>
+  <div class="meta-footer" id="metaFooter">书镜 V8.2 · 原书回顾与主题讲解</div>
+</footer>
 
-<section class="slide light" data-theme="light" data-screen-label="Discipline Scope" data-source="p120 发布工程 构建和交付软件">
-  <div class="chrome"><span>release engineering</span><span>p120</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">发布工程关注构建和交付软件</h2>
-      <p class="lead-zh">发布工程师横跨源代码管理、编译器、构建配置语言、自动化构建工具、包管理器和安装器。</p>
-      <p class="body-zh muted">材料把它放在软件工程内部，一个较新且发展较快的学科。</p>
-    </div>
-  </div>
-  <div class="foot"><span>build and deliver</span><span>02 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Reliable Release" data-source="p120 可重现 自动化 独特的雪花">
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">可靠服务需要可靠发布，每一次发布都应该可以重复。</div>
-      <p class="body-zh muted" style="margin-top:2vh">SRE 关注二进制文件和配置文件如何从源代码走到部署，任何流程改变都应该有意为之。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p120</span><span>03 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Release Role" data-source="p120 p121 发布工程师的角色 数据驱动">
-  <div class="chrome"><span>release role</span><span>p120 p121</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">发布工程师用数据定义最佳实践</h2>
-      <div class="grid-3">
-        <div class="soft-box"><h3 class="h2-zh accent">速度</h3><p class="body-zh">统计从代码修改提交到生产部署需要多长时间。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">使用率</h3><p class="body-zh">观察构建配置文件中某个特性的使用情况。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">默认正确</h3><p class="body-zh">让工具默认能正确工作，并用文档降低重复造轮子。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>data driven practice</span><span>04 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="SRE Partnership" data-source="p121 SRE 紧密协作 测试 回滚">
-  <div class="chrome"><span>sre partnership</span><span>p121</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">发布工程和 SRE 共同守住变更路径</h2>
-      <p class="lead-zh">SRE 负责产品更新的安全部署，发布工程师与 SRE 一起制定测试、无缝发布和顺利回滚的策略。</p>
-      <p class="body-zh muted">这一章后面所有工具都服务于这个目标：让业务需要的变更能被控制。</p>
-    </div>
-  </div>
-  <div class="foot"><span>test rollout rollback</span><span>05 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Four Philosophies" data-source="p121 发布工程哲学 四个主要哲学">
-  <div class="chrome"><span>release philosophy</span><span>p121</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">日常工作由四个哲学约束</h2>
-      <div class="grid-2">
-        <div class="line-box"><h3 class="h2-zh accent">自服务模型</h3><p class="body-zh">团队可以掌控和执行自己的发布流程。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">追求速度</h3><p class="body-zh">更快让用户可见功能上线，并缩小版本间变更。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">密闭性</h3><p class="body-zh">同一源代码版本在不同机器上应该得到相同构建结果。</p></div>
-        <div class="line-box"><h3 class="h2-zh accent">策略和流程</h3><p class="body-zh">用安全、访问控制和审计约束发布动作。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>four constraints</span><span>06 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Self Service" data-source="p121 自服务模型 自动构建 自动发布">
-  <div class="chrome"><span>self service</span><span>p121</span></div>
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <h2 class="h1-zh">自服务让几千个工程师仍能快速发布</h2>
-      <p class="lead-zh muted" style="margin-top:2vh">每个团队可以决定多久发布、什么时候发布。很多项目利用自动构建工具和部署工具自动完成发布，工程师只在发生问题时干预。</p>
-    </div>
-  </div>
-  <div class="foot"><span>team controlled release</span><span>07 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Release Speed" data-source="p121 p122 追求速度 每小时构建 测试通过即发布">
-  <div class="chrome"><span>release speed</span><span>p121 p122</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">频繁发布让每个版本更小</h2>
-      <div class="grid-3">
-        <div class="soft-box"><p class="body-zh">面向用户的软件组件会频繁重构建，让用户可见功能尽快上线。</p></div>
-        <div class="soft-box"><p class="body-zh">有些团队每小时构建一次，再按测试结果和功能列表选择版本。</p></div>
-        <div class="soft-box"><p class="body-zh">有些团队采用 Push On Green，通过所有测试就部署。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>smaller changes</span><span>08 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Hermetic Build" data-source="p122 密闭性 指定版本 编译器 依赖库">
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">密闭构建不依赖构建机器上碰巧安装了什么。</div>
-      <p class="body-zh muted" style="margin-top:2vh">构建过程使用指定版本的工具和依赖库，编译过程自包含，不依赖编译环境之外的其他服务。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p122</span><span>09 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Cherry Picking" data-source="p122 摘樱桃 构建工具 同一源代码仓库">
-  <div class="chrome"><span>cherry picking</span><span>p122</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">修复旧版本时，构建工具版本也要回到当时</h2>
-      <p class="lead-zh">Google 把构建工具放在与被构建程序相同的源代码仓库中。对上个月发布版本做 cherry picking 时，仍使用当时的编译器版本。</p>
-      <p class="body-zh muted">这样可以避免用这个月的新编译器改变旧发布的构建语义。</p>
-    </div>
-  </div>
-  <div class="foot"><span>tool version belongs to source</span><span>10 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Policy Controls" data-source="p122 p123 强调策略和流程 指定操作">
-  <div class="chrome"><span>policy controls</span><span>p122 p123</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">发布过程中的关键动作需要被授权</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>动作</th><th>材料里的控制点</th></tr></thead>
-          <tbody>
-            <tr><td>源代码改动</td><td>配置文件决定谁能批准，几乎所有修改都经过代码评审。</td></tr>
-            <tr><td>发布版本</td><td>创建发布、批准集成请求、批准 cherry picking 请求。</td></tr>
-            <tr><td>生产部署</td><td>实际部署某个发布版本，修改项目构建配置文件。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>review and access control</span><span>11 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Change Report" data-source="p123 改动报告 构建结果归档 SRE 调试">
-  <div class="chrome"><span>change report</span><span>p123</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">SRE 需要知道每个新发布里到底包含了哪些改动。</div>
-      <p class="body-zh muted" style="margin-top:2vh">自动化发布系统会生成发布中所有改动的报告，并与其他构建结果一起归档，方便发布出问题时在线调试。</p>
-    </div>
-  </div>
-  <div class="foot"><span>debuggable release</span><span>12 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Rapid Overview" data-source="p123 Rapid 自动化发布系统">
-  <div class="chrome"><span>rapid overview</span><span>p123</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">Rapid 把发布生命周期自动化</h2>
-      <p class="lead-zh">Rapid 使用一系列 Google 内部技术，执行可扩展、密闭且可靠的发布流程。</p>
-      <p class="body-zh muted">后续构建、分支、测试、打包和部署，都围绕 Rapid 与相关工具展开。</p>
-    </div>
-  </div>
-  <div class="foot"><span>continuous build and deploy</span><span>13 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Build With Blaze" data-source="p123 Blaze 构建目标 构建标识符">
-  <div class="chrome"><span>build</span><span>p123</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Blaze 定义目标，Rapid 传递项目开关</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>环节</th><th>做什么</th><th>为什么有用</th></tr></thead>
-          <tbody>
-            <tr><td>Blaze</td><td>定义 Jar 文件等构建目标，并自动构建全部依赖。</td><td>多语言项目能用统一构建工具处理。</td></tr>
-            <tr><td>Rapid</td><td>项目配置文件定义二进制、测试和项目特有构建标识符。</td><td>发布流程知道要构建什么。</td></tr>
-            <tr><td>二进制</td><td>可用一个命令显示构建时间、源代码版本和构建标识符。</td><td>运行产物能追溯回构建过程。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>traceable binary</span><span>14 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Branch Model" data-source="p123 分支 主分支 发布分支 cherry picking">
-  <div class="chrome"><span>branch model</span><span>p123</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">发布分支从主分支切出后不再合回</h2>
-      <p class="lead-zh">所有代码默认提交到主分支。发布通常基于主分支某个版本创建新分支，Bug 修复先进入主分支，再 cherry picking 到发布分支。</p>
-      <p class="body-zh muted">这样避免第一次构建之后又引入主分支上的无关改动。</p>
-    </div>
-  </div>
-  <div class="foot"><span>explicit release contents</span><span>15 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Testing Loop" data-source="p123 p124 持续测试 发布分支 单元测试">
-  <div class="chrome"><span>testing loop</span><span>p123 p124</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">测试要在主分支和发布分支各自成立</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">主分支</h3><p class="small-zh">每次改动提交后运行单元测试。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">选择</h3><p class="small-zh">建议用最后一个测试全部通过的版本发布。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">分支</h3><p class="small-zh">发布过程中重新运行全部单元测试。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">审核</h3><p class="small-zh">为测试结果创建审核记录。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">系统</h3><p class="small-zh">打包后在独立测试环境运行系统级测试。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>branch specific proof</span><span>16 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="MPM Packaging" data-source="p124 MPM 哈希 签名 标签">
-  <div class="chrome"><span>packaging</span><span>p124</span></div>
-  <div class="slide-body">
-    <div class="w-default stack">
-      <h2 class="h1-zh">MPM 包把构建结果变成可识别产物</h2>
-      <div class="grid-3">
-        <div class="soft-box"><h3 class="h2-zh accent">名称</h3><p class="body-zh">每个包有固定名称，例如 search/shakespeare/frontend。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">完整性</h3><p class="body-zh">包记录构建结果哈希值，并加入签名确保真实完整。</p></div>
-        <div class="soft-box"><h3 class="h2-zh accent">标签</h3><p class="body-zh">dev、canary 和 production 等标签标记发布位置。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>name hash signature tag</span><span>17 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Rapid Workflow" data-source="p124 p126 Blueprint 工作流 四步发布流程">
-  <div class="chrome"><span>rapid workflow</span><span>p124 p126</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">Rapid 工作流把发布请求分发到生产基础设施</h2>
-      <div class="timeline-row">
-        <div class="timeline-item"><h3 class="h2-zh accent">1</h3><p class="small-zh">使用集成版本号创建发布分支。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">2</h3><p class="small-zh">用 Blaze 编译二进制，同时执行单元测试。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">3</h3><p class="small-zh">构建结果用于系统级集成测试和测试部署。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">4</h3><p class="small-zh">记录每一步日志，生成相对上次发布的改动报告。</p></div>
-        <div class="timeline-item"><h3 class="h2-zh accent">管理</h3><p class="small-zh">单独批准或拒绝每个 cherry picking 请求。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>blueprint and borg</span><span>18 / 24</span></div>
-</section>
-
-<section class="slide dark" data-theme="dark" data-screen-label="Sisyphus Rollout" data-source="p126 Sisyphus 发布 风险承受能力">
-  <div class="chrome"><span>sisyphus rollout</span><span>p126</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">部署节奏要匹配服务风险承受能力</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>服务场景</th><th>发布方式</th></tr></thead>
-          <tbody>
-            <tr><td>开发和预生产环境</td><td>每小时构建，所有测试通过后自动发布更新。</td></tr>
-            <tr><td>大型面向用户服务</td><td>先更新一个集群，再以指数速度更新其他集群。</td></tr>
-            <tr><td>敏感基础设施服务</td><td>发布扩展到几天完成，并按地理位置交替进行。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>risk based deployment</span><span>19 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Config Risk" data-source="p127 配置管理 不稳定性 代码评审">
-  <div class="chrome"><span>configuration management</span><span>p127</span></div>
-  <div class="slide-body">
-    <div class="w-statement callout-mark">
-      <div class="callout">配置管理看起来简单，却是不稳定性的一个重要来源。</div>
-      <p class="body-zh muted" style="margin-top:2vh">本章给出的所有配置分发模型，都要求配置文件存放在主要代码仓库中，并经过严格代码评审。</p>
-    </div>
-  </div>
-  <div class="foot"><span>reviewed configuration</span><span>20 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Config Models" data-source="p127 p128 四种配置文件分发模型">
-  <div class="chrome"><span>config models</span><span>p127 p128</span></div>
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">配置文件分发有四种选择</h2>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>模型</th><th>材料里的含义</th><th>适用或风险</th></tr></thead>
-          <tbody>
-            <tr><td>主分支版本</td><td>开发者和 SRE 修改主分支配置，评审后应用到运行系统。</td><td>容易理解，但二进制发布和配置变更异步。</td></tr>
-            <tr><td>随二进制打包</td><td>配置文件和二进制文件放在同一个 MPM 包里。</td><td>灵活性有限，但只需安装一个包。</td></tr>
-            <tr><td>独立配置包</td><td>用构建系统和打包系统发布配置文件。</td><td>可单独修改配置，并通过构建 ID 重建某一时刻配置。</td></tr>
-            <tr><td>外部存储</td><td>配置放在 Chubby、Bigtable 或源代码仓库文件系统中。</td><td>适合经常改变或运行时动态改变的配置。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>choose by service need</span><span>21 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Non Google Lesson" data-source="p128 不仅仅只对 Google 有用 发布政策">
-  <div class="slide-body">
-    <div class="w-statement guest-mark">
-      <div class="callout">工具可以强制执行政策，但政策必须先被正确定义。</div>
-      <p class="body-zh muted" style="margin-top:2vh">材料把包版本、持续构建、发布频率、配置策略和发布指标，都列为大部分公司共同面对的问题。</p>
-    </div>
-  </div>
-  <div class="foot"><span>p128</span><span>22 / 24</span></div>
-</section>
-
-<section class="slide light" data-theme="light" data-screen-label="Start Early" data-source="p128 p129 一开始就进行发布工程">
-  <div class="chrome"><span>start early</span><span>p128 p129</span></div>
-  <div class="slide-body">
-    <div class="w-note stack">
-      <h2 class="h1-zh">发布工程不能等规模变大后再补</h2>
-      <p class="lead-zh">团队应该在开发流程开始时就留出发布工程资源。尽早采用最佳实践和流程，可以降低未来重新改动系统的成本。</p>
-      <p class="body-zh muted">开发团队、SRE 和发布工程师必须紧密协作，互相了解构建与部署预期。</p>
-    </div>
-  </div>
-  <div class="foot"><span>lifecycle timing</span><span>23 / 24</span></div>
-</section>
-
-<section class="slide dark bare" data-theme="dark" data-screen-label="Core Notes" data-source="p120 p129 章节线索">
-  <div class="slide-body">
-    <div class="w-wide stack">
-      <h2 class="h1-zh">核心总结</h2>
-      <div class="grid-2">
-        <div class="soft-box"><div class="summary-num">01</div><p class="body-zh">发布工程把源代码、构建、测试、打包、部署和回滚连成可重复流程。</p></div>
-        <div class="soft-box"><div class="summary-num">02</div><p class="body-zh">自服务、速度、密闭性、策略和流程，是 Google 发布工程的四个约束。</p></div>
-        <div class="soft-box"><div class="summary-num">03</div><p class="body-zh">Rapid、Blaze、MPM 和 Sisyphus 分别承担构建、追溯、打包和风险化部署节奏。</p></div>
-        <div class="soft-box"><div class="summary-num">04</div><p class="body-zh">配置管理和发布政策要在项目早期建立，并由开发团队、SRE 与发布工程师共同维护。</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>summary</span><span>24 / 24</span></div>
-</section>
-</main>
-<div id="nav"></div>
 <script>
-const slides = Array.from(document.querySelectorAll(".slide"));
-const deck = document.getElementById("deck");
-const nav = document.getElementById("nav");
-let current = Math.min(Number(localStorage.getItem("sre-chapter-08-slide") || 0), slides.length - 1);
-slides.forEach((_, index) => {
-  const item = document.createElement("button");
-  item.className = "nav-dot";
-  item.type = "button";
-  item.addEventListener("click", () => go(index));
-  nav.appendChild(item);
-});
-function go(index) {
-  current = Math.max(0, Math.min(index, slides.length - 1));
-  deck.style.transform = `translateX(${-current * 100}vw)`;
-  slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-  Array.from(nav.children).forEach((item, i) => item.classList.toggle("active", i === current));
-  localStorage.setItem("sre-chapter-08-slide", String(current));
-}
-window.addEventListener("keydown", event => {
-  if (event.key === "ArrowRight" || event.key === " ") go(current + 1);
-  if (event.key === "ArrowLeft") go(current - 1);
-});
-let touchStart = null;
-window.addEventListener("touchstart", event => { touchStart = event.changedTouches[0].clientX; }, {passive: true});
-window.addEventListener("touchend", event => {
-  if (touchStart === null) return;
-  const delta = event.changedTouches[0].clientX - touchStart;
-  if (Math.abs(delta) > 40) go(current + (delta < 0 ? 1 : -1));
-  touchStart = null;
-}, {passive: true});
-go(current);
+  const RAW_SLIDES = [{"cover": true, "lines": [{"indent": 0, "chunks": [{"t": "《SRE：Google运维解密》第8章 发布工程 · 原书回顾与主题讲解"}]}], "sourceIds": []}, {"lines": [{"indent": 0, "chunks": [{"t": "本单元要回答：发布工程是保障软件可靠交付的核心学科，涉及从源码到部署的全流程自动化。"}]}], "sourceIds": ["SRC-001"]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "一、原书回顾：作者怎样展开"}]}], "sourceIds": ["SRC-002"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "发布工程师的角色"}]}], "sourceIds": ["SRC-003"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节界定发布工程师的职责，强调其需精通源码管理、编译及自动化构建工具。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者指出，SRE通过定义最佳实践，确保二进制文件可重现构建，避免“独特的雪花”。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布工程师利用数据工具监控发布速度与特性使用率，与SRE协作制定测试与回滚策略，保障服务可靠运行。"}]}], "sourceIds": ["SRC-004"], "sourceParts": [{"id": "SRC-004", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "发布工程哲学"}]}], "sourceIds": ["SRC-005"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述指导发布工程师工作的四大哲学。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "核心在于通过自服务模型让团队掌控发布流程，利用自动化工具实现无需人工干预的快速发布。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时强调构建过程的密闭性，确保不同环境下的构建结果一致，并通过策略与流程控制访问权限，保障发布过程的安全与可追溯。"}]}], "sourceIds": ["SRC-006"], "sourceParts": [{"id": "SRC-006", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "自服务模型"}]}], "sourceIds": ["SRC-007"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节解释自服务模型如何应对大规模扩张。通过开发工具与制定最佳实践，使产品研发团队能自主执行发布流程。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google凭借此模型，让每个团队决定发布频率，实现高度自动化。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "工程师仅在出问题时干预，从而在数千工程师规模下保持快速发布新产品的能力。"}]}], "sourceIds": ["SRC-008"], "sourceParts": [{"id": "SRC-008", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "追求速度"}]}], "sourceIds": ["SRC-009"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节探讨如何通过高频发布提升效率。目标是将用户可见功能尽快上线，同时减少单次变更量以简化测试调试。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "文中提及两种模式：每小时构建并基于测试结果选择版本，或采用“测试通过即发布”模型。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "频繁发布有助于降低版本间差异，使调试更简单，提升整体交付速度。"}]}], "sourceIds": ["SRC-010"], "sourceParts": [{"id": "SRC-010", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "密闭性"}]}], "sourceIds": ["SRC-011"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节强调构建工具必须确保一致性与可重复性。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "密闭构建不受第三方库或环境软件影响，使用指定版本的编译器与依赖库。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "针对生产环境Bug修复，Google采用“摘樱桃”方式，将后续改动加入旧源码版本构建。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "构建工具本身也置于源码仓库，确保历史版本构建时调用当时的编译器，保证一致性。"}]}], "sourceIds": ["SRC-012"], "sourceParts": [{"id": "SRC-012", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "强调策略和流程"}]}], "sourceIds": ["SRC-013"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节说明如何通过多层安全机制控制发布操作。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "关键操作如批准源码改动、执行具体动作、创建版本及部署等，均需严格权限控制。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "自动化系统提供包含所有改动的报告，归档构建结果。SRE据此了解新发布内容，便于快速在线调试。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "代码评审与自动化报告结合，完善了发布流程的安全反馈链。"}]}], "sourceIds": ["SRC-014"], "sourceParts": [{"id": "SRC-014", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "持续构建与部署"}]}], "sourceIds": ["SRC-015"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节引入Google自动化发布系统Rapid，利用内部技术实现可扩展、密闭且可靠的流程。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "后续小节将详细描述软件生命周期及Rapid的管理方式。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Rapid系统通过一系列组件执行发布，旨在解决大规模环境下的构建、测试与部署难题，确保发布流程的标准化与高效性。"}]}], "sourceIds": ["SRC-016"], "sourceParts": [{"id": "SRC-016", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "构建"}]}], "sourceIds": ["SRC-017"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍Google构建工具Blaze，支持C++、Java等多种语言。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "工程师定义构建目标及其依赖，Blaze自动构建全部依赖。构建目标定义于Rapid配置文件中，传递特定功能开关。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "二进制文件支持显示构建时间、源码版本及标识符，便于将文件与构建过程对应，确保构建过程的可追溯性。"}]}], "sourceIds": ["SRC-018"], "sourceParts": [{"id": "SRC-018", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "分支"}]}], "sourceIds": ["SRC-019"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节阐述代码分支管理策略。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "代码默认提交至主分支，但发布通常基于主分支版本创建的新分支，新分支不再合并回主分支。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Bug修复先提交至主分支，再摘樱桃至发布分支，避免引入无关改动。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "此方法明确每个发布版本包含的改动，确保发布内容的纯净性与可控性。"}]}], "sourceIds": ["SRC-020"], "sourceParts": [{"id": "SRC-020", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "测试"}]}], "sourceIds": ["SRC-021"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节描述持续测试系统的作用。主分支提交后运行单元测试，快速检测错误。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "建议使用测试通过的版本进行发布，降低主分支无关改动带来的风险。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布分支需重新运行全部单元测试并记录结果，确保在摘樱桃场景下测试确实通过。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "独立测试环境运行系统级测试，进一步保障构建质量。"}]}], "sourceIds": ["SRC-022"], "sourceParts": [{"id": "SRC-022", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "打包"}]}], "sourceIds": ["SRC-023"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节介绍通过Midas Package Manager分发软件。MPM基于Blaze规则构建包，记录哈希值并签名以确保完整性。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "包支持标签功能，标记发布位置如dev或production。应用新标签时，旧标签自动移除，确保安装最新版本。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Rapid加入构建ID标签，使包能通过名称与标签唯一识别，简化版本管理。"}]}], "sourceIds": ["SRC-024"], "sourceParts": [{"id": "SRC-024", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "Rapid系统"}]}], "sourceIds": ["SRC-025"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节详解Rapid系统架构与工作流程。系统由Blueprint文件配置，定义构建、测试及部署规则。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "基于角色的访问控制决定操作权限。Rapid将请求分发至Borg服务器，支持数千并发发布。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "典型流程包括创建发布分支、并发编译与测试、运行系统级集成测试，并记录日志与改动报告，实现全流程自动化管理。"}]}], "sourceIds": ["SRC-026"], "sourceParts": [{"id": "SRC-026", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "部署"}]}], "sourceIds": ["SRC-027"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节说明Rapid驱动简单部署，利用任务执行器更新Borg任务。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "复杂部署由Sisyphus框架执行，支持逻辑工作单元与可扩展Python类。Sisyphus提供监控台控制发布流程。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Rapid创建发布时指定MPM包标签，Sisyphus据此选择版本。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "部署策略结合服务风险，从每小时自动发布到指数级更新，适应不同服务需求。"}]}], "sourceIds": ["SRC-028"], "sourceParts": [{"id": "SRC-028", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "配置管理"}]}], "sourceIds": ["SRC-029"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节探讨配置管理作为不稳定来源的处理方式。发布工程师与SRE合作分发配置文件。主要模型包括："}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "使用主分支版本配置文件，异步更新二进制与配置；将配置与二进制打包在同一MPM包；"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "或将配置打包为独立MPM包，利用构建ID重新构建。这些方法确保配置与二进制版本的一致性，简化部署流程。"}]}], "sourceIds": ["SRC-030"], "sourceParts": [{"id": "SRC-030", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "小结"}]}], "sourceIds": ["SRC-031"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节总结发布工程实践不仅适用于Google，也适用于更广泛范围。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过合适工具与自动化，发布过程可简化为按按钮。作者强调，任何组织都应先定义发布政策，再指导工具创造。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布工程不应是事后诸葛亮，而应在开发初期投入资源，避免未来重构成本，降低整体系统复杂度。"}]}], "sourceIds": ["SRC-032"], "sourceParts": [{"id": "SRC-032", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "不仅仅只对Google有用"}]}], "sourceIds": ["SRC-033"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节指出发布工程问题具有普遍性，如包版本管理、构建频率及配置策略。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google开发自定义工具以适应海量规模，第三方工具难以满足。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "作者强调，政策必须先被正确定义，才能指导工具功能创造。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "无论政策是否自动化，组织都应花时间定义发布政策，以指导工具开发与流程优化，确保发布过程可控。"}]}], "sourceIds": ["SRC-034"], "sourceParts": [{"id": "SRC-034", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "一开始就进行发布工程"}]}], "sourceIds": ["SRC-035"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节呼吁团队在开发流程初期就投入发布工程资源。早期采用最佳实践可降低成本，避免未来系统重构。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 1, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "开发团队、SRE与发布工程师需紧密协作，互相了解构建与部署预期。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 2, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布工程师应理解代码开发需求，开发团队不应仅扔代码。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 3, "total": 4, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "管理层需在项目早期规划发布工程，考虑其在产品生命周期中的地位。"}]}], "sourceIds": ["SRC-036"], "sourceParts": [{"id": "SRC-036", "index": 4, "total": 4, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "更多信息"}]}], "sourceIds": ["SRC-037"]}, {"lines": [{"indent": 0, "chunks": [{"t": "本节提供额外学习资源，推荐四场关于发布工程的演讲视频。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "内容涵盖持续发布降低变更复杂性、大规模环境一致性维护、发布工程十诫及大规模环境软件分发。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这些演讲来自USENIX及LISA等会议，为读者提供深入理解发布工程理论与实践的进一步途径。"}]}], "sourceIds": ["SRC-038"], "sourceParts": [{"id": "SRC-038", "index": 3, "total": 3, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "二、主题讲解：发布工程的核心机制与实践"}]}], "sourceIds": ["SRC-039"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "构建的密闭性与可重复性"}]}], "sourceIds": ["SRC-040"]}, {"lines": [{"indent": 0, "chunks": [{"t": "构建的密闭性（Hermeticity）是确保软件发布可靠性的基石。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在大规模分布式环境中，构建结果的一致性直接决定了部署的安全。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "密闭构建意味着构建过程完全自包含，不依赖于构建机器上安装的第三方类库或外部软件工具。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "例如，Google使用指定版本的编译器和依赖库，确保无论在哪台机器上，基于同一源代码版本的构建结果都完全相同。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种机制消除了“环境差异”带来的不确定性，使得构建过程可重现。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "当需要修复生产环境Bug并重新构建旧版本时，密闭性保证了使用当时的编译器版本，而非当前最新的环境，从而维持了历史版本的一致性。"}]}], "sourceIds": ["SRC-041"], "sourceParts": [{"id": "SRC-041", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "自动化发布流程中的分支与测试策略"}]}], "sourceIds": ["SRC-042"]}, {"lines": [{"indent": 0, "chunks": [{"t": "自动化发布流程依赖于严格的分支管理与持续测试策略。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 1, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "代码默认提交至主分支，但发布通常基于主分支的特定版本创建新分支，且新分支不再合并回主分支。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 2, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种隔离策略避免了主分支上无关改动对发布版本的污染。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 3, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Bug修复先提交至主分支，再通过“摘樱桃”方式引入发布分支，确保每个发布版本包含的改动明确且可控。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 4, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，持续测试系统在每次提交后运行单元测试，快速检测错误。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 5, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "在发布前，必须在发布分支上重新运行全部测试，确保在摘樱桃场景下测试依然通过。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 6, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种策略降低了因主分支变动导致发布失败的风险，提高了发布的成功率。"}]}], "sourceIds": ["SRC-043"], "sourceParts": [{"id": "SRC-043", "index": 7, "total": 7, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "配置管理与部署的风险控制"}]}], "sourceIds": ["SRC-044"]}, {"lines": [{"indent": 0, "chunks": [{"t": "配置管理是发布工程中易被忽视但风险极高的环节。配置文件的不稳定常导致服务故障。"}]}], "sourceIds": ["SRC-045"], "sourceParts": [{"id": "SRC-045", "index": 1, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "Google采用多种模型分发配置文件：一是使用主分支版本，异步更新二进制与配置；"}]}], "sourceIds": ["SRC-045"], "sourceParts": [{"id": "SRC-045", "index": 2, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "二是将配置与二进制打包在同一MPM包，简化部署但限制灵活性；"}]}], "sourceIds": ["SRC-045"], "sourceParts": [{"id": "SRC-045", "index": 3, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "三是将配置打包为独立MPM包，利用构建ID重新构建，实现配置与二进制版本的解耦。"}]}], "sourceIds": ["SRC-045"], "sourceParts": [{"id": "SRC-045", "index": 4, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "部署策略则根据服务风险承受能力调整："}]}], "sourceIds": ["SRC-045"], "sourceParts": [{"id": "SRC-045", "index": 5, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "开发环境可每小时自动发布，面向用户的服务采用指数级更新，敏感基础设施服务则扩展至数天完成。"}]}], "sourceIds": ["SRC-045"], "sourceParts": [{"id": "SRC-045", "index": 6, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种分层策略平衡了发布速度与系统稳定性，确保不同风险等级的服务得到适当保护。"}]}], "sourceIds": ["SRC-045"], "sourceParts": [{"id": "SRC-045", "index": 7, "total": 7, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "发布工程的早期介入与组织协作"}]}], "sourceIds": ["SRC-046"]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布工程不应是项目后期的补救措施，而应在开发初期就介入。"}]}], "sourceIds": ["SRC-047"], "sourceParts": [{"id": "SRC-047", "index": 1, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "早期投入资源定义发布政策与最佳实践，能显著降低未来系统重构的成本。"}]}], "sourceIds": ["SRC-047"], "sourceParts": [{"id": "SRC-047", "index": 2, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "发布工程师、SRE与开发团队需紧密协作，互相理解构建与部署的预期。"}]}], "sourceIds": ["SRC-047"], "sourceParts": [{"id": "SRC-047", "index": 3, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "开发团队不应仅关注代码编写，而需考虑发布流程的需求；发布工程师需理解代码开发对构建与部署的影响。"}]}], "sourceIds": ["SRC-047"], "sourceParts": [{"id": "SRC-047", "index": 4, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "通过早期规划，组织可以建立标准化的发布流程，避免“事后诸葛亮”式的被动应对。"}]}], "sourceIds": ["SRC-047"], "sourceParts": [{"id": "SRC-047", "index": 5, "total": 6, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "这种协作模式确保了发布工程在整个产品生命周期中的有效性，提升了整体交付效率与系统可靠性。"}]}], "sourceIds": ["SRC-047"], "sourceParts": [{"id": "SRC-047", "index": 6, "total": 6, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "检验理解"}]}], "sourceIds": ["SRC-048"]}, {"lines": [{"indent": 0, "chunks": [{"t": "情形："}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 1, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "假设你负责一个高并发的在线支付服务，该服务对数据一致性要求极高，且近期频繁出现因配置变更导致的故障。"}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 2, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "同时，开发团队希望加快新功能上线速度，但测试团队抱怨构建环境不稳定导致测试结果不可靠。"}]}], "sourceIds": ["SRC-049"], "sourceParts": [{"id": "SRC-049", "index": 3, "total": 3, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "问题：基于发布工程哲学，你将如何设计构建、配置与部署策略来解决上述问题？请说明具体步骤及理由。"}]}], "sourceIds": ["SRC-050"]}, {"emphasis": false, "title": true, "depth": 3, "lines": [{"indent": 0, "chunks": [{"t": "核对思路（先作答再看）"}]}], "sourceIds": ["SRC-051"]}, {"lines": [{"indent": 0, "chunks": [{"t": "1. 构建策略："}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 1, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "实施密闭构建，确保编译器与依赖库版本固定，消除环境差异，保证构建结果可重现，解决测试不可靠问题。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 2, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "2. 配置策略："}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 3, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "采用独立MPM包管理配置文件，利用构建ID版本化配置，实现配置与二进制解耦，便于单独修改配置而不重新构建二进制，降低配置变更风险。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 4, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "3. 部署策略：根据支付服务的高风险特性，采用渐进式部署（如指数级更新或按地理位置交替），而非全量即时发布。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 5, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "结合自动化测试通过即发布模型，但增加人工审批环节以控制风险。4. 协作机制："}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 6, "total": 7, "joinBefore": ""}]}, {"lines": [{"indent": 0, "chunks": [{"t": "建立早期介入机制，发布工程师与开发、测试团队共同定义发布政策，确保流程自动化且符合业务需求。"}]}], "sourceIds": ["SRC-052"], "sourceParts": [{"id": "SRC-052", "index": 7, "total": 7, "joinBefore": ""}]}, {"emphasis": false, "title": true, "depth": 2, "lines": [{"indent": 0, "chunks": [{"t": "来源、范围与阅读连接"}]}], "sourceIds": ["SRC-053"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "原书定位：PDF 120-129。"}]}, {"indent": 0, "chunks": [{"t": "源文件 SHA-256：75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96。"}]}, {"indent": 0, "chunks": [{"t": "“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。"}]}], "sourceIds": ["SRC-054", "SRC-055", "SRC-056"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。"}]}, {"indent": 0, "chunks": [{"t": "边界：构建密闭性虽保证一致性，但可能增加构建配置复杂度，需平衡维护成本。"}]}, {"indent": 0, "chunks": [{"t": "边界：频繁发布与自动化测试依赖强大的基础设施支持，小团队可能难以复制Google规模。"}]}, {"indent": 0, "chunks": [{"t": "边界：配置管理策略的选择需根据项目复杂度权衡，过度解耦可能增加运维难度。"}]}], "sourceIds": ["SRC-057", "SRC-058", "SRC-059", "SRC-060"]}, {"semanticGroup": "list-run", "lines": [{"indent": 0, "chunks": [{"t": "边界：早期介入发布工程需管理层支持，否则可能因资源不足而流于形式。"}]}, {"indent": 0, "chunks": [{"t": "阅读连接：下一单元是“第9章 简单化”，继续回答：软件系统本质上是动态和不稳定的，SRE需要在系统的灵活性和稳定性之间维持平衡。"}]}], "sourceIds": ["SRC-061", "SRC-062"]}];
+  const stage = document.getElementById("stage");
+  const pager = document.getElementById("pager");
+  const metaFooter = document.getElementById("metaFooter");
+  const body = document.body;
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function latexBody(raw) {
+    let value = raw
+      .replace(/\\cdot/g, "·")
+      .replace(/\\times/g, "×")
+      .replace(/\\propto/g, "∝")
+      .replace(/\\alpha/g, "α")
+      .replace(/\\beta/g, "β")
+      .replace(/\\gamma/g, "γ");
+    value = escapeHtml(value);
+    value = value.replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>");
+    value = value.replace(/\^([A-Za-z0-9αβγ+\-]+)/g, "<sup>$1</sup>");
+    value = value.replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>");
+    value = value.replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>");
+    return value;
+  }
+
+  function renderPlainAware(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(
+      /([\u3400-\u9fff]{3}(?:[，。！？；：、…—」』）》】]+)?)(\s*)$/u,
+      '<span class="keep-cjk-tail">$1</span>$2'
+    );
+  }
+
+  function renderMathAware(text) {
+    const exactDisplay = text.trim().match(/^\$\$([\s\S]+)\$\$$/);
+    const exactInline = text.trim().match(/^\$(?![\d?])([^$\n]+)\$$/);
+    if (exactDisplay) return '<span class="math math-display">' + latexBody(exactDisplay[1]) + "</span>";
+    if (exactInline) return '<span class="math math-display">' + latexBody(exactInline[1]) + "</span>";
+
+    const pattern = /\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g;
+    let result = "";
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      const at = match.index ?? 0;
+      result += renderPlainAware(text.slice(cursor, at));
+      result += '<span class="math">' + latexBody(match[1] ?? match[2]) + "</span>";
+      cursor = at + match[0].length;
+    }
+    result += renderPlainAware(text.slice(cursor));
+    return result;
+  }
+
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "grapheme" })
+    : null;
+
+  function glyphCount(text) {
+    const compact = String(text || "").replace(/\s/g, "");
+    return graphemeSegmenter
+      ? Array.from(graphemeSegmenter.segment(compact)).length
+      : Array.from(compact).length;
+  }
+
+  function isListLike(text) {
+    return /^\s*(?:[-+]\s+|\d+[.)]\s+)/.test(text);
+  }
+
+  function isDisplayMathSource(text) {
+    const value = String(text || "").trim();
+    return /^\$\$[\s\S]+\$\$$/.test(value) || /^\$(?![\d?])[^$\n]+\$$/.test(value);
+  }
+
+  function lineLength(line) {
+    let count = 0;
+    for (const chunk of line.chunks || []) {
+      for (const char of chunk.t || "") {
+        count += /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(char) ? 1.8 : 1;
+      }
+    }
+    return count;
+  }
+
+  function lengthTier(lines) {
+    const max = Math.max(0, ...lines.map(lineLength)) + Math.max(0, lines.length - 1) * 4;
+    if (max <= 2) return "single";
+    if (max <= 6) return "short";
+    if (max <= 10) return "medium";
+    if (max <= 26) return "long";
+    return "xlong";
+  }
+
+  function linesText(slide) {
+    return (slide?.lines || []).map((line) => (line.chunks || []).map((chunk) => chunk.t || "").join("")).join("\n").trim();
+  }
+
+  function normalizeSlides(raw) {
+    const slides = Array.isArray(raw) ? raw.slice() : [];
+    const title = document.title.trim();
+    if (slides[0]?.cover) return slides;
+    if (slides[0] && linesText(slides[0]) === title) {
+      slides[0] = { ...slides[0], cover: true, emphasis: true };
+      return slides;
+    }
+    return [{ cover: true, emphasis: true, lines: [{ indent: 0, chunks: [{ t: title }] }], sourceIds: [] }, ...slides];
+  }
+
+  const SLIDES = normalizeSlides(RAW_SLIDES);
+
+  function compositionFor(slide) {
+    const lineCount = slide?.lines?.length ?? 0;
+    if (slide?.cover) return "identity";
+    if (slide?.emphasis || slide?.title) return "chapter";
+    if (slide?.table || slide?.pre != null) return "evidence";
+    if (slide?.quote) return "quotation";
+    if (slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)) return "sequence";
+    return "statement";
+  }
+
+  SLIDES.forEach((slide) => {
+    const element = document.createElement("section");
+    element.className = "slide";
+    if (slide.cover) element.dataset.cover = "true";
+    if (slide.emphasis) element.dataset.emphasis = "true";
+    if (slide.title) element.dataset.title = "true";
+    if (slide.depth) element.dataset.depth = String(slide.depth);
+    if (slide.quote) element.dataset.quote = "true";
+    if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;
+    element.dataset.composition = compositionFor(slide);
+    element.dataset.sourceIds = (slide.sourceIds || []).join(",");
+    if (slide.sourceParts?.length) element.dataset.sourceParts = JSON.stringify(slide.sourceParts);
+
+    if (slide.pre != null) {
+      const preLines = String(slide.pre).split("\n");
+      const preRows = preLines.length;
+      const preCols = Math.max(0, ...preLines.map((line) => Array.from(line).length));
+      element.dataset.preRows = String(preRows);
+      element.dataset.preCols = String(preCols);
+      element.dataset.preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal";
+      const wrap = document.createElement("div");
+      wrap.className = "pre-wrap fit-box";
+      const inner = document.createElement("div");
+      if (slide.preTitle) {
+        const title = document.createElement("div");
+        title.className = "pre-title";
+        title.textContent = slide.preTitle;
+        inner.appendChild(title);
+      }
+      const pre = document.createElement("pre");
+      pre.textContent = slide.pre;
+      inner.appendChild(pre);
+      wrap.appendChild(inner);
+      element.appendChild(wrap);
+    } else if (slide.table) {
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap fit-box";
+      if (slide.table.caption) {
+        const caption = document.createElement("div");
+        caption.className = "table-caption";
+        caption.textContent = slide.table.caption;
+        wrap.appendChild(caption);
+      }
+      const table = document.createElement("table");
+      const hasHeader = slide.table.header === true;
+      const tableHead = hasHeader ? document.createElement("thead") : null;
+      const bodyRows = document.createElement("tbody");
+      (slide.table.rows || []).forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const cellNode = document.createElement(hasHeader && rowIndex === 0 ? "th" : "td");
+          cellNode.textContent = cell;
+          tr.appendChild(cellNode);
+        });
+        if (hasHeader && rowIndex === 0) tableHead.appendChild(tr);
+        else bodyRows.appendChild(tr);
+      });
+      if (tableHead) table.appendChild(tableHead);
+      table.appendChild(bodyRows);
+      wrap.appendChild(table);
+      element.appendChild(wrap);
+    } else if (slide.lines?.length) {
+      const weights = slide.lines.map(lineLength);
+      const lineCount = slide.lines.length;
+      const maxWeight = Math.max(...weights);
+      const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+      const density = maxWeight >= 45 || totalWeight >= 110 ? "dense" : maxWeight >= 24 || totalWeight >= 65 ? "medium" : "light";
+      const layout = lineCount >= 2 && lineCount <= 4 ? "rows" : "single";
+
+      const len = lengthTier(slide.lines);
+      const semanticText = linesText(slide);
+      const semanticAtom = lineCount === 1
+        && glyphCount(semanticText) <= 16
+        && !isListLike(semanticText)
+        && !isDisplayMathSource(semanticText);
+      element.dataset.len = len;
+      element.dataset.lineCount = String(lineCount);
+      element.dataset.density = density;
+      element.dataset.layout = layout;
+      if (semanticAtom) element.dataset.semanticAtom = "true";
+      if (semanticAtom || (lineCount === 1 && ["single", "short", "medium"].includes(len))) element.dataset.takahashi = "true";
+
+      const lines = document.createElement("div");
+      lines.className = "lines fit-box";
+      slide.lines.forEach((line, lineIndex) => {
+        const node = document.createElement("div");
+        node.className = "line";
+        node.dataset.indent = String(line.indent || 0);
+        node.dataset.lineIndex = String(lineIndex + 1);
+        node.dataset.weight = String(Math.round(weights[lineIndex]));
+        node.innerHTML = (line.chunks || []).map((chunk) => {
+          const rendered = renderMathAware(chunk.t);
+          return chunk.hl ? '<span class="hl">' + rendered + "</span>" : rendered;
+        }).join("");
+        lines.appendChild(node);
+      });
+      element.appendChild(lines);
+      if (lines.querySelector(".math-display")) element.dataset.math = "display";
+    }
+
+    stage.appendChild(element);
+  });
+
+  const slides = Array.from(stage.querySelectorAll(".slide"));
+  let index = 0;
+
+  function fitSlide(slide) {
+    const box = slide.querySelector(".fit-box");
+    if (!box) return { scale: 1, fits: true };
+    box.style.transform = "none";
+    const style = getComputedStyle(slide);
+    const availableWidth = Math.max(1, slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    const availableHeight = Math.max(1, slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+    const contentWidth = Math.max(1, box.scrollWidth);
+    const contentHeight = Math.max(1, box.scrollHeight);
+    const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight) * .975;
+    box.style.transform = "scale(" + scale.toFixed(5) + ")";
+    slide.dataset.fitScale = scale.toFixed(5);
+
+    const content = box.getBoundingClientRect();
+    const bounds = slide.getBoundingClientRect();
+    const safeLeft = bounds.left + parseFloat(style.paddingLeft) - 1;
+    const safeRight = bounds.right - parseFloat(style.paddingRight) + 1;
+    const safeTop = bounds.top + parseFloat(style.paddingTop) - 1;
+    const safeBottom = bounds.bottom - parseFloat(style.paddingBottom) + 1;
+    const fits = content.left >= safeLeft && content.right <= safeRight && content.top >= safeTop && content.bottom <= safeBottom;
+    slide.dataset.fits = String(fits);
+    return { scale, fits };
+  }
+
+  function show(nextIndex) {
+    nextIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    slides[index]?.classList.remove("active");
+    index = nextIndex;
+    slides[index]?.classList.add("active");
+    pager.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    metaFooter.hidden = index !== 0;
+    body.dataset.current = slides[index]?.dataset.emphasis === "true" || slides[index]?.dataset.cover === "true" ? "emphasis" : "theme";
+    requestAnimationFrame(() => fitSlide(slides[index]));
+  }
+
+  function fullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (["ArrowRight", "ArrowDown", " ", "Enter", "j", "PageDown"].includes(event.key)) {
+      event.preventDefault();
+      show(index + 1);
+    } else if (["ArrowLeft", "ArrowUp", "k", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      show(index - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      show(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      show(slides.length - 1);
+    } else if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      fullscreen();
+    }
+  });
+
+  let touchX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchX = event.touches[0]?.clientX ?? null;
+  }, { passive: true });
+  document.addEventListener("touchend", (event) => {
+    if (touchX == null) return;
+    const dx = (event.changedTouches[0]?.clientX ?? touchX) - touchX;
+    if (dx < -40) show(index + 1);
+    else if (dx > 40) show(index - 1);
+    touchX = null;
+  }, { passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.(".deck-footer")) return;
+    show(event.clientX > innerWidth / 2 ? index + 1 : index - 1);
+  });
+
+  const refit = () => requestAnimationFrame(() => fitSlide(slides[index]));
+  window.addEventListener("resize", refit);
+  document.addEventListener("fullscreenchange", refit);
+  document.fonts?.ready.then(refit);
+  if ("ResizeObserver" in window) new ResizeObserver(refit).observe(stage);
+
+  window.__DECK_AUDIT = {
+    templateVersion: body.dataset.templateVersion,
+    title: document.title,
+    slideCount: slides.length,
+    activeIndex: () => index,
+    show,
+    fitCurrent: () => fitSlide(slides[index]),
+    currentLayout: () => ({
+      lineCount: slides[index]?.dataset.lineCount,
+      density: slides[index]?.dataset.density,
+      layout: slides[index]?.dataset.layout,
+      semanticAtom: slides[index]?.dataset.semanticAtom,
+      semanticGroup: slides[index]?.dataset.semanticGroup,
+      composition: slides[index]?.dataset.composition,
+      fitScale: slides[index]?.dataset.fitScale,
+      fits: slides[index]?.dataset.fits
+    }),
+    footerState: () => ({ index, metaHidden: metaFooter.hidden, pager: pager.textContent }),
+    renderMathAware
+  };
+
+  show(0);
 </script>
 </body>
 </html>
