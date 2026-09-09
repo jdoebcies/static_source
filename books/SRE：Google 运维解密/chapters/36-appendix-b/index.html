@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》附录B 生产环境运维过程中的最佳实践 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">可控的故障模式</a><a class="sub" href="#section-3">不正确的数据</a><a class="sub" href="#section-4">过期的数据</a><a class="sub" href="#section-5">示例</a><a class="sub" href="#section-6">渐进式发布</a><a class="sub" href="#section-7">从用户的视角来定义SLO</a><a class="sub" href="#section-8">错误预算</a><a class="sub" href="#section-9">监控系统</a><a class="sub" href="#section-10">紧急警报</a><a class="sub" href="#section-11">工单</a><a class="sub" href="#section-12">日志</a><a class="sub" href="#section-13">事后总结</a><a class="sub" href="#section-14">容量规划</a><a class="sub" href="#section-15">过载与故障</a><a class="sub" href="#section-16">SRE团队</a><a class="" href="#section-17">二、主题讲解：生产环境运维的核心机制与实践</a><a class="sub" href="#section-18">故障模式与数据校验机制</a><a class="sub" href="#section-19">渐进式发布与错误预算平衡</a><a class="sub" href="#section-20">监控系统分级与容量规划策略</a><a class="sub" href="#section-21">事后总结与SRE团队管理</a><a class="" href="#section-22">检验理解</a><a class="sub" href="#section-23">核对思路（先作答再看）</a><a class="" href="#section-24">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">附录B</p><h1>生产环境运维过程中的最佳实践</h1>
+<p>本单元要回答：生产环境运维中的故障控制、发布策略、SLO定义、监控体系、容量规划及团队管理。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">可控的故障模式</h3>
+<p>本节强调服务输入需经校验，遇到不合理数据应保持旧状态并发出警报。作者指出错误数据分为不正确与过期两类，前者需检查语法语义，后者需提前预警。核心逻辑是服务在故障时应牺牲部分访问控制以维持运行，通过维持旧配置等待人工批准来确保安全，为后续具体案例做铺垫。</p>
+<h3 id="section-3">不正确的数据</h3>
+<p>针对数据不正确问题，作者主张在处理后检查语法及语义，并警惕空数据或截断数据。当新数据比旧数据小N%时应发出警报。这一要求旨在防止因数据格式错误或内容缺失导致的服务异常，确保数据处理的严谨性，自然过渡到对数据时效性的讨论。</p>
+<h3 id="section-4">过期的数据</h3>
+<p>本节指出过期数据可能影响当前数据，因此需在数据过期前发出警报。这与前文对数据正确性的要求相辅相成，共同构成输入校验的完整反馈链。通过提前预警过期数据，服务能避免基于陈旧信息做出错误决策，为后续讨论故障时的容错机制提供数据层面的保障。</p>
+<h3 id="section-5">示例</h3>
+<p>作者通过两个Google案例说明故障模式的重要性。2005年DNS因空配置返回NXDOMAIN，2009年因错误配置标记全网为病毒。解决方案均包括对新配置进行安全性检查，若校验失败则维持旧配置。这些实例验证了前文提出的“维持旧状态”策略的有效性，引出渐进式发布的话题。</p>
+<h3 id="section-6">渐进式发布</h3>
+<p>本节提出非紧急发布应分阶段进行，通过小规模应用变更来控制风险。发布容量百分比和等待时间需依据服务规模及风险决定，且应覆盖多个地理位置以快速检测问题。发布过程需有监管，意外发生时优先回退以降低MTTR。这一策略旨在平衡创新速度与系统稳定性，为定义SLO提供实践基础。</p>
+<h3 id="section-7">从用户的视角来定义SLO</h3>
+<p>作者强调SLO应以最终用户视角定义可用性与性能，而非服务器端指标。通过Gmail客户端度量错误率与延迟的案例，说明此举显著提升了可用性评估的准确性，并推动了代码改进。这种以用户体验为核心的SLO定义方式，为后续引入错误预算概念奠定了价值导向基础。</p>
+<h3 id="section-8">错误预算</h3>
+<p>本节介绍错误预算用于平衡可靠性与创新速度，通常以月为单位，由1-SLO得出。若预算未用完，团队可发布新功能；若用完则停止改动，仅保留安全修复。对于高成熟度系统，可按季度计算。错误预算建立了SRE与研发部门共同的数据驱动发布风险评估体系，消除了组织矛盾。</p>
+<h3 id="section-9">监控系统</h3>
+<p>作者规定监控系统仅输出三种结果：紧急警报、工单和日志。紧急警报要求立即行动，工单要求几天内处理，日志用于后续分析。这一分类旨在避免警报疲劳，确保重要事件得到及时处理，而非被邮件淹没。明确的输出分类为后续详细阐述各类警报的处理机制提供了框架。</p>
+<h3 id="section-10">紧急警报</h3>
+<p>本节详细解释紧急警报需触发某人的立即操作，而非仅发送邮件希望被阅读。历史证明邮件警报易被无视，导致更严重灾难。因此，足够重要的事件必须转化为紧急警报或工单，确保有人负责。这一机制强调了人工介入的必要性，与工单处理形成互补，共同构成监控响应体系。</p>
+<h3 id="section-11">工单</h3>
+<p>工单要求某人在几天内执行操作，用于处理不需要立即响应但需跟踪的问题。与紧急警报不同，工单允许更长的响应时间，适合非紧急Bug或配置调整。这种分级处理机制确保了资源合理分配，避免紧急警报被非紧急事务淹没，为日志分析提供了结构化数据支持。</p>
+<h3 id="section-12">日志</h3>
+<p>日志作为监控系统的第三种输出，无人立即查看，但用于后续分析。它记录了系统运行细节，为事后总结和问题排查提供依据。与前两类即时响应机制不同，日志侧重于长期数据积累，帮助团队识别趋势和潜在问题，是持续改进系统的重要数据源。</p>
+<h3 id="section-13">事后总结</h3>
+<p>本节主张事后总结应关注流程和技术而非个人，假设参与者善意且理性。目标是修复工作环境而非人，如优化系统设计、自动校验操作等。这种对事不对人的理念有助于营造开放文化，鼓励团队从事故中学习，避免指责文化，从而提升系统整体可靠性，为容量规划提供经验反馈。</p>
+<h3 id="section-14">容量规划</h3>
+<p>作者提出服务需承受计划内外故障而不严重影响体验，建议“N+2”配置以应对两个最大副本不可用。通过对比流量预测与现实、利用负载测试建立资源比例，避免依赖过时历史数据。同时提醒勿混淆上线首日与稳定负载，确保容量规划能真实反映系统性能，为过载处理提供基础。</p>
+<h3 id="section-15">过载与故障</h3>
+<p>本节指出服务在过载时应提供次优结果，如Google搜索只搜索部分索引。通过队列、动态超时等手段优雅抛弃流量，避免连锁故障。客户端需实现指数退避重试，降低错误放大率。这些策略确保在高负载下系统仍能维持基本功能，防止因重试导致的全局崩溃，体现SRE团队的运维智慧。</p>
+<h3 id="section-16">SRE团队</h3>
+<p>最后本节规定SRE团队运维时间不超过50%，运维过载由研发承担。建议on-call团队至少8人，分两地分布以避免疲劳，每轮值处理不超过两起事故。通过定期演习保持熟练度，防止因事故减少而导致的技能退化。这一管理策略旨在平衡工作负荷与系统稳定性，确保团队可持续性。</p>
+<h2 id="section-17">二、主题讲解：生产环境运维的核心机制与实践</h2>
+<h3 id="section-18">故障模式与数据校验机制</h3>
+<p>在生产环境中，服务必须对输入进行严格校验。当接收到不合理的配置文件或数据时，服务不应崩溃，而应保持之前的状态正常工作，并发出警报。错误数据主要分为不正确和过期两类。不正确数据需检查语法和语义，警惕空数据或截断数据；过期数据需在过期前预警。核心机制是服务在故障时牺牲部分访问控制以维持运行，通过维持旧配置等待人工批准来确保安全。例如，Google DNS系统在收到空配置时，通过校验失败维持旧配置，避免了NXDOMAIN错误。这种机制确保了服务在数据异常时的稳定性，防止错误扩散。</p>
+<h3 id="section-19">渐进式发布与错误预算平衡</h3>
+<p>非紧急发布应采用渐进式策略，分阶段应用变更以控制风险。发布容量和等待时间需依据服务规模决定，并覆盖多地理位置以快速检测问题。发布过程需有监管，意外发生时优先回退以降低MTTR。错误预算用于平衡可靠性与创新速度，通常以月为单位，由1-SLO得出。若预算未用完，团队可发布新功能；若用完则停止改动，仅保留安全修复。例如，Gmail通过客户端度量SLO，将可用性从99.0%提升至99.9%。错误预算建立了SRE与研发部门共同的数据驱动发布风险评估体系，消除了组织矛盾，鼓励共同投入新技术。</p>
+<h3 id="section-20">监控系统分级与容量规划策略</h3>
+<p>监控系统仅输出紧急警报、工单和日志三种结果。紧急警报要求立即行动，工单要求几天内处理，日志用于后续分析。这一分类旨在避免警报疲劳，确保重要事件得到及时处理。容量规划需服务承受计划内外故障，建议“N+2”配置。通过对比流量预测与现实、利用负载测试建立资源比例，避免依赖过时历史数据。过载时服务应提供次优结果，如Google搜索只搜索部分索引，通过队列和动态超时优雅抛弃流量，避免连锁故障。客户端需实现指数退避重试，降低错误放大率。</p>
+<h3 id="section-21">事后总结与SRE团队管理</h3>
+<p>事后总结应关注流程和技术而非个人，假设参与者善意且理性。目标是修复工作环境，如优化系统设计、自动校验操作，而非指责个人。这种对事不对人的理念有助于营造开放文化，鼓励团队从事故中学习。SRE团队运维时间不超过50%，运维过载由研发承担。on-call团队至少8人，分两地分布以避免疲劳，每轮值处理不超过两起事故。通过定期演习保持熟练度，防止因事故减少而导致的技能退化。这一管理策略旨在平衡工作负荷与系统稳定性，确保团队可持续性。</p>
+<h2 id="section-22">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个核心支付服务，其SLO为99.99%。某次发布后，监控显示错误率轻微上升，但仍在月度错误预算范围内。同时，一个非关键的配置变更导致部分用户界面显示异常，但未影响支付功能。</p>
+<p><strong>问题</strong>：基于本章内容，你应该如何决策该配置变更的发布状态？对于监控警报，应归类为哪一类？为什么？</p>
+<h3 id="section-23">核对思路（先作答再看）</h3>
+<ol>
+<li>发布决策：由于错误率在预算内，且配置变更非紧急，根据渐进式发布原则，可继续发布，但需密切监控。若界面异常影响用户体验，虽不影响支付功能，但根据用户视角SLO，可能需要回退或快速修复。2. 警报分类：界面显示异常属于非紧急但需跟踪的问题，应归类为工单，要求几天内处理。紧急警报仅用于需立即行动的事件，如支付失败。日志用于记录细节。这样分类避免警报疲劳，确保资源合理分配。</li>
+</ol>
+<h2 id="section-24">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 493-498。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：错误预算的计算基于1-SLO，但具体阈值需根据服务成熟度调整，如高成熟度系统可按季度计算。</li>
+<li>边界：渐进式发布的具体容量百分比和等待时间需根据服务规模决定，无固定标准。</li>
+<li>边界：SRE团队运维时间不超过50%，但具体分配需根据团队实际情况调整。</li>
+<li>边界：容量规划中的“N+2”配置是建议值，实际需根据故障容忍度调整。</li>
+<li>阅读连接：下一单元是“附录C 事故状态文档示范”，继续回答：事故状态文档的结构化要素与更新机制。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../35-appendix-a/index.html">上一篇 · 系统可用性</a><a href="../37-appendix-c/index.html">下一篇 · 事故状态文档示范</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

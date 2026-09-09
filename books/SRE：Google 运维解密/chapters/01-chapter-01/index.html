@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第1章 介绍 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">系统管理员模式</a><a class="sub" href="#section-3">Google的解决之道：SRE</a><a class="sub" href="#section-4">SRE方法论</a><a class="sub" href="#section-5">确保长期关注研发工作</a><a class="sub" href="#section-6">监控系统</a><a class="sub" href="#section-7">紧急警报（alert）</a><a class="sub" href="#section-8">工单（ticket）</a><a class="sub" href="#section-9">日志（logging）</a><a class="sub" href="#section-10">应急事件处理</a><a class="sub" href="#section-11">变更管理</a><a class="sub" href="#section-12">需求预测和容量规划</a><a class="sub" href="#section-13">资源部署</a><a class="sub" href="#section-14">效率与性能</a><a class="sub" href="#section-15">小结</a><a class="" href="#section-16">二、主题讲解：SRE核心机制：从冲突到协同</a><a class="sub" href="#section-17">Dev与Ops的目标冲突及其代价</a><a class="sub" href="#section-18">SRE的工程化思维与50%规则</a><a class="sub" href="#section-19">错误预算与迭代速度的平衡</a><a class="sub" href="#section-20">监控分层与应急处理机制</a><a class="" href="#section-21">检验理解</a><a class="sub" href="#section-22">核对思路（先作答再看）</a><a class="" href="#section-23">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第1章</p><h1>介绍</h1>
+<p>本单元要回答：传统运维模式下的Dev/Ops冲突与SRE的引入。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">系统管理员模式</h3>
+<p>本章开篇指出传统运维依赖人工处理事件与变更，导致Dev与Ops部门目标冲突。研发追求快速发布，运维关注稳定，这种对立引发沟通障碍与信任危机。作者通过描述双方因风险定义不同而产生的政治斗争，引出传统模式在成本与协作上的局限性，为后续提出SRE解决方案做铺垫。</p>
+<h3 id="section-3">Google的解决之道：SRE</h3>
+<p>作者介绍SRE是Google用软件工程思维解决运维问题的尝试。SRE团队由具备软件技能的工程师组成，旨在通过自动化工具替代人工操作。核心在于限制传统运维工作占比不超过50%，确保团队有精力进行研发改进。这一机制旨在打破运维规模随负载线性增长的魔咒，推动系统向无人化运行演进。</p>
+<h3 id="section-4">SRE方法论</h3>
+<p>SRE团队承担可用性、性能和变更管理等职责，并用沟通准则协调研发与运维。作者把SRE同时放在技术和组织层面讨论：人员可在研发与运维之间流动，双方也要共同承担生产结果。招聘和管理并不容易，但这种安排减少了部门之间的目标冲突。</p>
+<h3 id="section-5">确保长期关注研发工作</h3>
+<p>本节详述SRE如何通过限制运维工时在50%以内来保障研发精力。通过度量时间分配，管理层可将压力转移回研发部门，形成良性循环。同时规定On-call期间最多处理两个紧急事件，确保有足够时间进行事后总结。事后总结遵循“对事不对人”原则，旨在发现漏洞而非追责，从而提升系统可靠性。</p>
+<h3 id="section-6">监控系统</h3>
+<p>监控系统设计应避免依赖人工分析警报，而是由系统自动判断。作者将监控输出分为三类：紧急警报需立即行动，工单需非紧急处理，日志仅用于调试。这种分层机制确保用户只在需要执行操作时才被通知，提高了监控系统的效率与准确性，避免了警报疲劳。</p>
+<h3 id="section-7">紧急警报（alert）</h3>
+<p>紧急警报意味着用户需立即执行操作以解决已发生或即将发生的问题。这一类别强调时效性与行动必要性，区别于工单与日志。通过明确警报的紧急性质，SRE确保关键问题得到快速响应，同时避免非紧急事项干扰用户，维持系统运行的稳定性与响应效率。</p>
+<h3 id="section-8">工单（ticket）</h3>
+<p>工单表示用户应执行操作，但无需立即行动。系统无法自动解决当前情况，但短期内不影响运行。这一类别允许用户在几天内处理，平衡了响应速度与系统稳定性。通过区分工单与紧急警报，SRE优化了资源分配，确保紧急问题优先处理，非紧急问题有序跟进。</p>
+<h3 id="section-9">日志（logging）</h3>
+<p>日志平时无人关注，仅用于调试与事后分析。正确的做法是避免主动阅读日志，除非有特殊需要。这一类别强调日志的被动性与辅助性，防止信息过载。通过明确日志的定位，SRE确保监控系统的焦点集中在需要行动的警报与工单上，提升整体运维效率。</p>
+<h3 id="section-10">应急事件处理</h3>
+<p>可靠性取决于MTTF与MTTR，降低MTTR是关键。通过预案与运维手册，人工干预的恢复时间可缩短三倍。作者强调运维手册的重要性，结合“Wheel of Misfortune”等项目培训团队。这一机制确保在压力下，工程师能依据清晰步骤快速恢复服务，提升系统整体可用性。</p>
+<h3 id="section-11">变更管理</h3>
+<p>70%的生产事故由变更触发，因此变更管理至关重要。最佳实践包括渐进式发布、快速检测问题与安全回退。通过自动化排除人工因素，变更执行的速度与安全性得到提升。这一机制减少了因重复劳动导致的疲劳与错误，确保系统在变更过程中保持稳定，降低服务质量下降的风险。</p>
+<h3 id="section-12">需求预测和容量规划</h3>
+<p>容量规划需保障业务有足够的容量与冗余度应对未来需求。包括自然增长与非自然增长因素的预测，以及周期性压力测试。SRE主导这一过程，确保资源与业务需求匹配。通过准确预测与测试，SRE避免资源不足导致的可用性下降，为系统提供稳定的基础支撑。</p>
+<h3 id="section-13">资源部署</h3>
+<p>资源部署是变更管理与容量规划的结合，需迅速且准确完成。由于资源昂贵，部署仅在必要时执行，并确保配置正确。新资源部署涉及复杂配置修改与测试，需小心谨慎。SRE通过优化部署流程，确保新容量能正确服务用户，同时控制成本，提升资源利用效率。</p>
+<h3 id="section-14">效率与性能</h3>
+<p>SRE负责资源利用率改进，通过监控容量配置与软件效率降低总成本。系统负载上升导致延迟增加，SRE需根据预设延迟目标部署容量。通过共同监控与优化性能，SRE与研发团队提升系统效率与容量。这一机制确保系统在负载变化时保持稳定，提升用户体验与服务可靠性。</p>
+<h3 id="section-15">小结</h3>
+<p>本章总结SRE是对大型复杂服务管理的最佳实践突破。从软件工程师解决重复劳动的想法出发，SRE发展为包含指导思想、方法论与激励体系的独立职业。通过消除部门冲突与优化运维流程，SRE提升了产品部门的可靠性与创新能力，为后续章节讨论SRE实践奠定基础。</p>
+<h2 id="section-16">二、主题讲解：SRE核心机制：从冲突到协同</h2>
+<h3 id="section-17">Dev与Ops的目标冲突及其代价</h3>
+<p>传统运维模式中，研发部门追求快速发布新功能，而运维部门关注系统稳定，避免故障。这种目标差异导致沟通障碍与信任危机，甚至演变为部门间的政治斗争。运维团队通过长检查清单限制发布，研发则通过增量更新绕过流程。这种对立不仅增加直接成本，还导致间接成本上升，影响产品可靠性。理解这一冲突是引入SRE的前提，它揭示了传统人工运维在复杂系统中的局限性。</p>
+<h3 id="section-18">SRE的工程化思维与50%规则</h3>
+<p>SRE通过雇佣软件工程师，用自动化工具替代人工操作，解决运维问题。核心机制是限制传统运维工作占比不超过50%，确保团队有精力进行研发改进。这一规则通过度量时间分配来执行，管理层可将压力转移回研发部门，形成良性循环。SRE的目标是推动系统向无人化运行演进，而非仅自动化某些流程。这一机制打破了运维规模随负载线性增长的魔咒，提升了系统可靠性。</p>
+<h3 id="section-19">错误预算与迭代速度的平衡</h3>
+<p>SRE通过“错误预算”概念平衡迭代速度与产品稳定性。错误预算是1减去可靠性目标，如99.99%的可靠性对应0.01%的错误预算。研发团队可使用该预算上线新功能，SRE则确保在预算范围内保障服务质量。这一机制消除了部门冲突，将生产事故视为创新流程中的必要环节。通过协作管理错误预算，双方共同优化系统，提升整体可靠性与创新能力。</p>
+<h3 id="section-20">监控分层与应急处理机制</h3>
+<p>SRE监控系统分为紧急警报、工单与日志三类。紧急警报需立即行动，工单需非紧急处理，日志仅用于调试。这种分层机制确保用户只在需要行动时被通知，避免警报疲劳。应急处理通过运维手册与预案降低MTTR，确保在压力下快速恢复服务。通过自动化变更管理与容量规划，SRE提升系统稳定性，降低人工干预成本，实现高效运维。</p>
+<h2 id="section-21">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个在线支付系统，其可靠性目标为99.99%。近期因频繁发布新功能，系统故障率上升，运维团队抱怨压力过大，研发团队则抱怨发布流程繁琐。</p>
+<p><strong>问题</strong>：基于SRE的“错误预算”机制，你会如何调整团队的工作重点与协作方式，以平衡迭代速度与系统稳定性？请说明具体步骤。</p>
+<h3 id="section-22">核对思路（先作答再看）</h3>
+<p>首先，计算错误预算为0.01%，即允许每年约52分钟的不可用时间。其次，建立错误预算仪表盘，实时监控剩余预算。当预算接近耗尽时，暂停新功能发布，专注于修复故障与优化系统。同时，运维团队通过自动化工具减少人工干预，研发团队通过灰度发布降低风险。双方协作管理预算，确保在预算范围内最大化迭代速度，同时保障系统稳定性。</p>
+<h2 id="section-23">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 30-40。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：SRE模型是Google的具体实践，不自动适用于所有团队。</li>
+<li>边界：错误预算的具体数值需根据业务需求确定，非固定值。</li>
+<li>边界：自动化运维需结合具体技术栈，非通用解决方案。</li>
+<li>阅读连接：下一单元是“第2章 Google 生产环境：SRE视角”，继续回答：理解Google生产环境的硬件与软件基础设施架构。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../00-prefaces/index.html">上一篇 · 译者序、前言、序言与全书导读</a><a href="../02-chapter-2-google-sre/index.html">下一篇 · Google 生产环境：SRE视角</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

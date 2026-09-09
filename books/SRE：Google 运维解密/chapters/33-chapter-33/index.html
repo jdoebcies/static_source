@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第33章 其他行业的实践经验 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">有其他行业背景的资深SRE</a><a class="sub" href="#section-3">灾难预案与演习</a><a class="sub" href="#section-4">关注任何细节</a><a class="sub" href="#section-5">冗余容量</a><a class="sub" href="#section-6">模拟以及进行线上灾难演习</a><a class="sub" href="#section-7">培训与考核</a><a class="sub" href="#section-8">对详细的需求收集和系统设计的关注</a><a class="sub" href="#section-9">纵深防御</a><a class="sub" href="#section-10">事后总结的文化</a><a class="sub" href="#section-11">将重复性工作自动化，消除运维负载</a><a class="sub" href="#section-12">结构化和理性的决策</a><a class="sub" href="#section-13">小结</a><a class="" href="#section-14">二、主题讲解：跨行业可靠性实践的深层逻辑</a><a class="sub" href="#section-15">灾难预案中的冗余与演习策略</a><a class="sub" href="#section-16">事后总结中的归因与预防机制</a><a class="sub" href="#section-17">自动化决策中的风险权衡</a><a class="sub" href="#section-18">结构化决策中的文化与流程</a><a class="" href="#section-19">检验理解</a><a class="sub" href="#section-20">核对思路（先作答再看）</a><a class="" href="#section-21">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第33章</p><h1>其他行业的实践经验</h1>
+<p>本单元要回答：怎样理解并使用“其他行业的实践经验”，以及它在什么条件下不适用。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">有其他行业背景的资深SRE</h3>
+<p>本章开篇通过多位Google资深工程师的背景介绍，引出跨行业可靠性研究的必要性。Peter Dahl、Mike Doherty等人在国防、医疗、通信、核能等领域拥有丰富经验，这些行业对故障零容忍，且后果往往涉及人身安全或巨额损失。通过展示这些不同背景专家的共同点，作者确立了SRE思想在外部行业同样适用的前提，为后续讨论具体实践奠定案例基础。</p>
+<h3 id="section-3">灾难预案与演习</h3>
+<p>作者将可靠性思想归纳为四大类，首先聚焦灾难预案。Google的DiRT演习旨在生产环境中制造故障以发现弱点。其他行业同样重视预案，通过组织架构关注安全、关注细节、冗余容量、模拟演习、培训考核、详细设计及纵深防御等手段应对风险。这一部分概述了各行业在灾难应对上的通用策略，自然过渡到对具体策略的深入剖析。</p>
+<h3 id="section-4">关注任何细节</h3>
+<p>Jeff Stevenson回忆海军经历，指出小任务中的粗心可能导致潜艇事故。因系统紧密连接，小错误会引发连锁故障。核动力海军重视日常维护，防止小问题演变成大事故，强调细节对整体可靠性的关键影响。</p>
+<h3 id="section-5">冗余容量</h3>
+<p>通信行业系统容量难以预测，受自然灾害或大型活动影响。Gus Hartmann提到利用SOW移动通信平台提供冗余容量，以应对突发情况。此外，容量不仅指绝对值，还需应对如明星电话泄露导致的类DDoS攻击，防止路由错误。</p>
+<h3 id="section-6">模拟以及进行线上灾难演习</h3>
+<p>航空业因安全限制无法线上测试，故部署使用真实数据的逼真模拟器。通信行业则采用线上演习应对飓风，建设防水机房及长效发电机。核动力海军结合假想练习与每周实战演习，通过可控环境下的破坏确保响应机制熟练，防止灾难发生。</p>
+<h3 id="section-7">培训与考核</h3>
+<p>涉及人身安全的行业极为重视培训考核。救生员需通过健身、急救技巧及特定场景流程的严谨考核，并定期再考核。因游泳池与海洋环境差异，各地有特有课程，确保员工在不同环境下具备正确的应急响应能力与体能储备。</p>
+<h3 id="section-8">对详细的需求收集和系统设计的关注</h3>
+<p>医疗器械行业因使用场景多变，需从医生和工程师处获取详细需求。Erik Gross指出激光手术设备设计简单以防错。Peter Dahl提到国防系统重视设计，耗时一年设计仅三周编码。这与Google快速迭代文化不同，源于对风险承受能力的差异。</p>
+<h3 id="section-9">纵深防御</h3>
+<p>核能行业中，纵深防御是灾难预案关键。所有系统有冗余备份，主要系统强制备有后备系统。设计加入多层防护机制，包括最后的物理屏障。因对事故零容忍，该理念确保在故障发生时能层层阻断，防止灾难扩大，保障绝对安全。</p>
+<h3 id="section-10">事后总结的文化</h3>
+<p>事后总结（Postmortem）强调对事不对人，旨在根除故障根源。Google通过传阅总结让全员受益。其他行业如核能、制造业受政府监管或出于安全关注，也进行类似分析。例如，制造业关注“差点出事”的潜伏错误，救生员行业则对任何事故进行详细复盘。这些实践表明，无论行业如何，系统性反思是提升可靠性的关键动力。</p>
+<h3 id="section-11">将重复性工作自动化，消除运维负载</h3>
+<p>Google推崇自动化以消除重复性运维负载。然而，其他行业对自动化态度各异。核动力海军因担心自动化速度过快导致不可控风险，倾向于人工交叉管理；金融交易行业因自动化配置错误可能导致巨额损失而保持谨慎。相反，制造业和核能行业在追求效率或快速响应时，则广泛采用自动化。这揭示了自动化并非万能，需权衡风险与效率。</p>
+<h3 id="section-12">结构化和理性的决策</h3>
+<p>Google强调数据驱动的结构化决策，反对HiPPO（最高薪者意见）主导。其他行业决策方式多样：通信和核能行业倾向于“不坏不修”的保守策略，依赖手册流程；制造业通过实验验证变更；交易行业则通过独立风险控制部门隔离风险。这些差异反映了不同行业对变更速度和风险承受能力的不同权衡，为小结中的平衡观点提供依据。</p>
+<h3 id="section-13">小结</h3>
+<p>本章总结指出，Google的可靠性原则在其他行业得到验证。核心结论是Google更倾向于快速变更，而其他行业如核能、医疗更保守以规避人身风险。Google利用错误预算平衡可靠性与创新，其软件产品不直接造成人身伤亡的优势使其能采用独特文化。这一小结回顾了全章对比，强调了在扩展性、复杂度与可靠性间寻求平衡的重要性。</p>
+<h2 id="section-14">二、主题讲解：跨行业可靠性实践的深层逻辑</h2>
+<h3 id="section-15">灾难预案中的冗余与演习策略</h3>
+<p>在灾难预案中，冗余容量和演习是核心手段。通信行业利用SOW移动平台应对突发流量，如明星电话泄露导致的DDoS效应；核动力海军则通过每周实战演习和假想练习确保响应机制熟练。Google的DiRT演习在生产环境制造故障，旨在发现未预料弱点。不同行业根据风险承受能力选择模拟或线上演习，如航空业因安全限制仅使用逼真模拟器，而通信业可进行线上演练。这体现了预案需结合行业特性，确保在故障发生时系统能按预期响应。</p>
+<h3 id="section-16">事后总结中的归因与预防机制</h3>
+<p>事后总结要系统分析故障来源，不归责个人；Google通过传阅总结让其他团队也能学习。制造业和航空业还会记录“差点出事”的潜伏错误，例如CHIRP允许匿名汇报未遂事故；救生员行业则详细复盘事故，并关注人员心理状态。记录、分析和传播这些材料，能把一次故障转成后来可复用的预防经验。</p>
+<h3 id="section-17">自动化决策中的风险权衡</h3>
+<p>自动化在降低运维负载的同时，也带来风险权衡。核动力海军因担心自动化速度过快导致不可控风险，采用人工交叉管理；金融交易行业因配置错误可能导致巨额损失而保持谨慎。相反，制造业和核能行业在追求效率或快速响应时，广泛采用自动化。Google推崇自动化以节省工程师时间，但需意识到不同行业对自动化的信任度不同。决策时应评估自动化带来的效率提升与潜在风险，确保在可控范围内实施，避免速度成为危害。</p>
+<h3 id="section-18">结构化决策中的文化与流程</h3>
+<p>结构化决策强调数据驱动，反对HiPPO主导。Google通过数据支持决策，而其他行业则依赖不同机制。通信和核能行业倾向于“不坏不修”，依赖手册流程；制造业通过实验验证变更；交易行业通过独立风险控制部门隔离风险。这些差异反映了行业对变更速度和风险承受能力的权衡。例如，交易行业通过风险控制部门在异常时立即终止系统，确保不亏钱。这表明决策方式需适应行业特性，平衡创新速度与风险控制，确保系统在复杂环境中稳定运行。</p>
+<h2 id="section-19">检验理解</h2>
+<p><strong>情形</strong>：假设你正在为一个涉及患者生命安全的医疗物联网设备团队制定可靠性策略。该设备需要实时监测心率，并在异常时自动给药。团队面临两个选择：一是采用高度自动化的快速迭代开发，以迅速修复软件漏洞；二是采用保守的手动审批流程，每次代码变更都需经过多层人工验证和模拟测试。</p>
+<p><strong>问题</strong>：基于本章关于其他行业（如医疗、核能、航空）的实践经验，分析哪种策略更符合“纵深防御”和“事后总结文化”的要求？请说明理由，并指出如果选择快速迭代可能带来的具体风险。</p>
+<h3 id="section-20">核对思路（先作答再看）</h3>
+<p>应选择保守的手动审批流程。医疗行业对故障零容忍，因为后果涉及人身安全，类似核能和航空业。纵深防御要求多层防护，手动验证和模拟测试提供了额外的安全屏障，防止自动化错误导致致命后果。事后总结文化强调系统化反思，保守流程允许更详细的记录和复盘，便于追踪问题根源。快速迭代可能带来软件漏洞未及时修复的风险，导致设备误操作，危及患者生命。此外，快速变更可能引入未预见的弱点，增加灾难预案的复杂性，违背了其他行业对可靠性的高度重视。</p>
+<h2 id="section-21">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 476-487。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：本章内容基于Google SRE工程师的个人访谈，其他行业的实践可能因具体企业而异，不具普遍性。</li>
+<li>边界：自动化和决策策略的对比主要反映特定行业（如核能、金融、医疗）的经验，不能直接推广到所有软件行业。</li>
+<li>边界：事后总结的文化描述侧重于组织学习，未讨论法律或伦理层面的责任归属。</li>
+<li>边界：冗余容量和演习策略的具体实施细节因行业技术架构不同而存在差异，需结合具体场景调整。</li>
+<li>阅读连接：下一单元是“第34章 结语”，继续回答：怎样理解并使用“结语”，以及它在什么条件下不适用。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../32-chapter-32-sre/index.html">上一篇 · SRE参与模式的演进历程</a><a href="../34-chapter-34/index.html">下一篇 · 结语</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

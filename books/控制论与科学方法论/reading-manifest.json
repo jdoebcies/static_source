@@ -1,0 +1,65 @@
+{
+  "book_title": "控制论与科学方法论",
+  "content_generator_skill_version": "8.2.1",
+  "html_generator_skill_version": "8.2.2",
+  "html_format": "reading-package-v1",
+  "source_sha256": "d7e36856c845f065d60b2a5eba593b5b2a6b834f329091143bdc8218c52f469f",
+  "units": [
+    {
+      "id": "guide",
+      "label": "全书导读",
+      "title": "序言与全书路线",
+      "source_location": null,
+      "html": "chapters/guide/index.html",
+      "markdown": "chapters/guide/chapter.md"
+    },
+    {
+      "id": "01-control-feedback",
+      "label": "第一章",
+      "title": "控制和反馈",
+      "source_location": "PDF 18-52",
+      "html": "chapters/01-control-feedback/index.html",
+      "markdown": "chapters/01-control-feedback/chapter.md"
+    },
+    {
+      "id": "02-information-thinking-organization",
+      "label": "第二章",
+      "title": "信息、思维和组织",
+      "source_location": "PDF 53-94",
+      "html": "chapters/02-information-thinking-organization/index.html",
+      "markdown": "chapters/02-information-thinking-organization/chapter.md"
+    },
+    {
+      "id": "03-systems-evolution",
+      "label": "第三章",
+      "title": "系统及其演化",
+      "source_location": "PDF 95-150",
+      "html": "chapters/03-systems-evolution/index.html",
+      "markdown": "chapters/03-systems-evolution/chapter.md"
+    },
+    {
+      "id": "04-mathematical-model-of-qualitative-change",
+      "label": "第四章",
+      "title": "质变的数学模型",
+      "source_location": "PDF 151-195",
+      "html": "chapters/04-mathematical-model-of-qualitative-change/index.html",
+      "markdown": "chapters/04-mathematical-model-of-qualitative-change/chapter.md"
+    },
+    {
+      "id": "05-black-box-epistemology",
+      "label": "第五章",
+      "title": "黑箱认识论",
+      "source_location": "PDF 196-232",
+      "html": "chapters/05-black-box-epistemology/index.html",
+      "markdown": "chapters/05-black-box-epistemology/chapter.md"
+    },
+    {
+      "id": "06-appendix-twelve-ping-pong-balls",
+      "label": "附录",
+      "title": "关于12个乒乓球问题",
+      "source_location": "PDF 233-241",
+      "html": "chapters/06-appendix-twelve-ping-pong-balls/index.html",
+      "markdown": "chapters/06-appendix-twelve-ping-pong-balls/chapter.md"
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "book_title": "可观测性工程",
+  "content_generator_skill_version": "8.2.1",
+  "html_generator_skill_version": "8.2.2",
+  "html_format": "reading-package-v1",
+  "source_sha256": "78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787",
+  "units": [
+    {
+      "id": "guide",
+      "label": "全书导读",
+      "title": "序言与全书路线",
+      "source_location": null,
+      "html": "chapters/guide/index.html",
+      "markdown": "chapters/guide/chapter.md"
+    },
+    {
+      "id": "01-what-is-observability",
+      "label": "第1章",
+      "title": "什么是可观测性",
+      "source_location": "PDF 18-27",
+      "html": "chapters/01-what-is-observability/index.html",
+      "markdown": "chapters/01-what-is-observability/chapter.md"
+    },
+    {
+      "id": "02-debugging-practices",
+      "label": "第2章",
+      "title": "可观测性和监控之间的调试实践有何不同",
+      "source_location": "PDF 28-33",
+      "html": "chapters/02-debugging-practices/index.html",
+      "markdown": "chapters/02-debugging-practices/chapter.md"
+    },
+    {
+      "id": "03-scaling-without-observability",
+      "label": "第3章",
+      "title": "不通过可观测性扩展系统的经验教训",
+      "source_location": "PDF 34-41",
+      "html": "chapters/03-scaling-without-observability/index.html",
+      "markdown": "chapters/03-scaling-without-observability/chapter.md"
+    },
+    {
+      "id": "04-devops-sre-cloud-native",
+      "label": "第4章",
+      "title": "可观测性与DevOps、SRE和云原生的关联",
+      "source_location": "PDF 42-44",
+      "html": "chapters/04-devops-sre-cloud-native/index.html",
+      "markdown": "chapters/04-devops-sre-cloud-native/chapter.md"
+    },
+    {
+      "id": "05-structured-events",
+      "label": "第5章",
+      "title": "结构化事件——可观测性的构建块",
+      "source_location": "PDF 46-51",
+      "html": "chapters/05-structured-events/index.html",
+      "markdown": "chapters/05-structured-events/chapter.md"
+    },
+    {
+      "id": "06-traces",
+      "label": "第6章",
+      "title": "将事件拼接成链路",
+      "source_location": "PDF 52-59",
+      "html": "chapters/06-traces/index.html",
+      "markdown": "chapters/06-traces/chapter.md"
+    },
+    {
+      "id": "07-opentelemetry",
+      "label": "第7章",
+      "title": "遵照OpenTelemetry的探针",
+      "source_location": "PDF 60-66",
+      "html": "chapters/07-opentelemetry/index.html",
+      "markdown": "chapters/07-opentelemetry/chapter.md"
+    },
+    {
+      "id": "08-event-analysis",
+      "label": "第8章",
+      "title": "通过事件分析实现可观测性",
+      "source_location": "PDF 67-74",
+      "html": "chapters/08-event-analysis/index.html",
+      "markdown": "chapters/08-event-analysis/chapter.md"
+    },
+    {
+      "id": "09-monitoring-and-observability",
+      "label": "第9章",
+      "title": "可观测性和监控的融合",
+      "source_location": "PDF 75-80",
+      "html": "chapters/09-monitoring-and-observability/index.html",
+      "markdown": "chapters/09-monitoring-and-observability/chapter.md"
+    },
+    {
+      "id": "10-team-practice",
+      "label": "第10章",
+      "title": "在团队中应用可观测性实践",
+      "source_location": "PDF 82-86",
+      "html": "chapters/10-team-practice/index.html",
+      "markdown": "chapters/10-team-practice/chapter.md"
+    },
+    {
+      "id": "11-observability-driven-development",
+      "label": "第11章",
+      "title": "可观测性驱动开发",
+      "source_location": "PDF 87-92",
+      "html": "chapters/11-observability-driven-development/index.html",
+      "markdown": "chapters/11-observability-driven-development/chapter.md"
+    },
+    {
+      "id": "12-slo-reliability",
+      "label": "第12章",
+      "title": "使用SLO来提高可靠性",
+      "source_location": "PDF 93-100",
+      "html": "chapters/12-slo-reliability/index.html",
+      "markdown": "chapters/12-slo-reliability/chapter.md"
+    },
+    {
+      "id": "13-slo-alerts",
+      "label": "第13章",
+      "title": "处理和调试基于SLO的告警",
+      "source_location": "PDF 101-113",
+      "html": "chapters/13-slo-alerts/index.html",
+      "markdown": "chapters/13-slo-alerts/chapter.md"
+    },
+    {
+      "id": "14-software-supply-chain",
+      "label": "第14章",
+      "title": "可观测性与软件供应链",
+      "source_location": "PDF 114-124",
+      "html": "chapters/14-software-supply-chain/index.html",
+      "markdown": "chapters/14-software-supply-chain/chapter.md"
+    },
+    {
+      "id": "15-build-buy-roi",
+      "label": "第15章",
+      "title": "自建与购买以及投资回报率",
+      "source_location": "PDF 126-132",
+      "html": "chapters/15-build-buy-roi/index.html",
+      "markdown": "chapters/15-build-buy-roi/chapter.md"
+    },
+    {
+      "id": "16-data-storage",
+      "label": "第16章",
+      "title": "高效的数据存储",
+      "source_location": "PDF 133-146",
+      "html": "chapters/16-data-storage/index.html",
+      "markdown": "chapters/16-data-storage/chapter.md"
+    },
+    {
+      "id": "17-sampling",
+      "label": "第17章",
+      "title": "如何使采样精准且便宜",
+      "source_location": "PDF 147-161",
+      "html": "chapters/17-sampling/index.html",
+      "markdown": "chapters/17-sampling/chapter.md"
+    },
+    {
+      "id": "18-telemetry-pipelines",
+      "label": "第18章",
+      "title": "使用流水线进行遥测管理",
+      "source_location": "PDF 162-173",
+      "html": "chapters/18-telemetry-pipelines/index.html",
+      "markdown": "chapters/18-telemetry-pipelines/chapter.md"
+    },
+    {
+      "id": "19-business-case",
+      "label": "第19章",
+      "title": "可观测性的商业案例",
+      "source_location": "PDF 175-181",
+      "html": "chapters/19-business-case/index.html",
+      "markdown": "chapters/19-business-case/chapter.md"
+    },
+    {
+      "id": "20-stakeholders",
+      "label": "第20章",
+      "title": "可观测性利益相关方和联盟",
+      "source_location": "PDF 182-188",
+      "html": "chapters/20-stakeholders/index.html",
+      "markdown": "chapters/20-stakeholders/chapter.md"
+    },
+    {
+      "id": "21-maturity-model",
+      "label": "第21章",
+      "title": "可观测性成熟度模型",
+      "source_location": "PDF 189-196",
+      "html": "chapters/21-maturity-model/index.html",
+      "markdown": "chapters/21-maturity-model/chapter.md"
+    },
+    {
+      "id": "22-future",
+      "label": "第22章",
+      "title": "未来发展趋势",
+      "source_location": "PDF 197-204",
+      "html": "chapters/22-future/index.html",
+      "markdown": "chapters/22-future/chapter.md"
+    }
+  ]
+}

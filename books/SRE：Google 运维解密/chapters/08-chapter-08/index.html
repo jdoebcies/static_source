@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第8章 发布工程 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">发布工程师的角色</a><a class="sub" href="#section-3">发布工程哲学</a><a class="sub" href="#section-4">自服务模型</a><a class="sub" href="#section-5">追求速度</a><a class="sub" href="#section-6">密闭性</a><a class="sub" href="#section-7">强调策略和流程</a><a class="sub" href="#section-8">持续构建与部署</a><a class="sub" href="#section-9">构建</a><a class="sub" href="#section-10">分支</a><a class="sub" href="#section-11">测试</a><a class="sub" href="#section-12">打包</a><a class="sub" href="#section-13">Rapid系统</a><a class="sub" href="#section-14">部署</a><a class="sub" href="#section-15">配置管理</a><a class="sub" href="#section-16">小结</a><a class="sub" href="#section-17">不仅仅只对Google有用</a><a class="sub" href="#section-18">一开始就进行发布工程</a><a class="sub" href="#section-19">更多信息</a><a class="" href="#section-20">二、主题讲解：发布工程的核心机制与实践</a><a class="sub" href="#section-21">构建的密闭性与可重复性</a><a class="sub" href="#section-22">自动化发布流程中的分支与测试策略</a><a class="sub" href="#section-23">配置管理与部署的风险控制</a><a class="sub" href="#section-24">发布工程的早期介入与组织协作</a><a class="" href="#section-25">检验理解</a><a class="sub" href="#section-26">核对思路（先作答再看）</a><a class="" href="#section-27">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第8章</p><h1>发布工程</h1>
+<p>本单元要回答：发布工程是保障软件可靠交付的核心学科，涉及从源码到部署的全流程自动化。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">发布工程师的角色</h3>
+<p>本节界定发布工程师的职责，强调其需精通源码管理、编译及自动化构建工具。作者指出，SRE通过定义最佳实践，确保二进制文件可重现构建，避免“独特的雪花”。发布工程师利用数据工具监控发布速度与特性使用率，与SRE协作制定测试与回滚策略，保障服务可靠运行。</p>
+<h3 id="section-3">发布工程哲学</h3>
+<p>本节阐述指导发布工程师工作的四大哲学。核心在于通过自服务模型让团队掌控发布流程，利用自动化工具实现无需人工干预的快速发布。同时强调构建过程的密闭性，确保不同环境下的构建结果一致，并通过策略与流程控制访问权限，保障发布过程的安全与可追溯。</p>
+<h3 id="section-4">自服务模型</h3>
+<p>本节解释自服务模型如何应对大规模扩张。通过开发工具与制定最佳实践，使产品研发团队能自主执行发布流程。Google凭借此模型，让每个团队决定发布频率，实现高度自动化。工程师仅在出问题时干预，从而在数千工程师规模下保持快速发布新产品的能力。</p>
+<h3 id="section-5">追求速度</h3>
+<p>本节探讨如何通过高频发布提升效率。目标是将用户可见功能尽快上线，同时减少单次变更量以简化测试调试。文中提及两种模式：每小时构建并基于测试结果选择版本，或采用“测试通过即发布”模型。频繁发布有助于降低版本间差异，使调试更简单，提升整体交付速度。</p>
+<h3 id="section-6">密闭性</h3>
+<p>本节强调构建工具必须确保一致性与可重复性。密闭构建不受第三方库或环境软件影响，使用指定版本的编译器与依赖库。针对生产环境Bug修复，Google采用“摘樱桃”方式，将后续改动加入旧源码版本构建。构建工具本身也置于源码仓库，确保历史版本构建时调用当时的编译器，保证一致性。</p>
+<h3 id="section-7">强调策略和流程</h3>
+<p>本节说明如何通过多层安全机制控制发布操作。关键操作如批准源码改动、执行具体动作、创建版本及部署等，均需严格权限控制。自动化系统提供包含所有改动的报告，归档构建结果。SRE据此了解新发布内容，便于快速在线调试。代码评审与自动化报告结合，完善了发布流程的安全反馈链。</p>
+<h3 id="section-8">持续构建与部署</h3>
+<p>本节引入Google自动化发布系统Rapid，利用内部技术实现可扩展、密闭且可靠的流程。后续小节将详细描述软件生命周期及Rapid的管理方式。Rapid系统通过一系列组件执行发布，旨在解决大规模环境下的构建、测试与部署难题，确保发布流程的标准化与高效性。</p>
+<h3 id="section-9">构建</h3>
+<p>本节介绍Google构建工具Blaze，支持C++、Java等多种语言。工程师定义构建目标及其依赖，Blaze自动构建全部依赖。构建目标定义于Rapid配置文件中，传递特定功能开关。二进制文件支持显示构建时间、源码版本及标识符，便于将文件与构建过程对应，确保构建过程的可追溯性。</p>
+<h3 id="section-10">分支</h3>
+<p>本节阐述代码分支管理策略。代码默认提交至主分支，但发布通常基于主分支版本创建的新分支，新分支不再合并回主分支。Bug修复先提交至主分支，再摘樱桃至发布分支，避免引入无关改动。此方法明确每个发布版本包含的改动，确保发布内容的纯净性与可控性。</p>
+<h3 id="section-11">测试</h3>
+<p>本节描述持续测试系统的作用。主分支提交后运行单元测试，快速检测错误。建议使用测试通过的版本进行发布，降低主分支无关改动带来的风险。发布分支需重新运行全部单元测试并记录结果，确保在摘樱桃场景下测试确实通过。独立测试环境运行系统级测试，进一步保障构建质量。</p>
+<h3 id="section-12">打包</h3>
+<p>本节介绍通过Midas Package Manager分发软件。MPM基于Blaze规则构建包，记录哈希值并签名以确保完整性。包支持标签功能，标记发布位置如dev或production。应用新标签时，旧标签自动移除，确保安装最新版本。Rapid加入构建ID标签，使包能通过名称与标签唯一识别，简化版本管理。</p>
+<h3 id="section-13">Rapid系统</h3>
+<p>本节详解Rapid系统架构与工作流程。系统由Blueprint文件配置，定义构建、测试及部署规则。基于角色的访问控制决定操作权限。Rapid将请求分发至Borg服务器，支持数千并发发布。典型流程包括创建发布分支、并发编译与测试、运行系统级集成测试，并记录日志与改动报告，实现全流程自动化管理。</p>
+<h3 id="section-14">部署</h3>
+<p>本节说明Rapid驱动简单部署，利用任务执行器更新Borg任务。复杂部署由Sisyphus框架执行，支持逻辑工作单元与可扩展Python类。Sisyphus提供监控台控制发布流程。Rapid创建发布时指定MPM包标签，Sisyphus据此选择版本。部署策略结合服务风险，从每小时自动发布到指数级更新，适应不同服务需求。</p>
+<h3 id="section-15">配置管理</h3>
+<p>本节探讨配置管理作为不稳定来源的处理方式。发布工程师与SRE合作分发配置文件。主要模型包括：使用主分支版本配置文件，异步更新二进制与配置；将配置与二进制打包在同一MPM包；或将配置打包为独立MPM包，利用构建ID重新构建。这些方法确保配置与二进制版本的一致性，简化部署流程。</p>
+<h3 id="section-16">小结</h3>
+<p>本节总结发布工程实践不仅适用于Google，也适用于更广泛范围。通过合适工具与自动化，发布过程可简化为按按钮。作者强调，任何组织都应先定义发布政策，再指导工具创造。发布工程不应是事后诸葛亮，而应在开发初期投入资源，避免未来重构成本，降低整体系统复杂度。</p>
+<h3 id="section-17">不仅仅只对Google有用</h3>
+<p>本节指出发布工程问题具有普遍性，如包版本管理、构建频率及配置策略。Google开发自定义工具以适应海量规模，第三方工具难以满足。作者强调，政策必须先被正确定义，才能指导工具功能创造。无论政策是否自动化，组织都应花时间定义发布政策，以指导工具开发与流程优化，确保发布过程可控。</p>
+<h3 id="section-18">一开始就进行发布工程</h3>
+<p>本节呼吁团队在开发流程初期就投入发布工程资源。早期采用最佳实践可降低成本，避免未来系统重构。开发团队、SRE与发布工程师需紧密协作，互相了解构建与部署预期。发布工程师应理解代码开发需求，开发团队不应仅扔代码。管理层需在项目早期规划发布工程，考虑其在产品生命周期中的地位。</p>
+<h3 id="section-19">更多信息</h3>
+<p>本节提供额外学习资源，推荐四场关于发布工程的演讲视频。内容涵盖持续发布降低变更复杂性、大规模环境一致性维护、发布工程十诫及大规模环境软件分发。这些演讲来自USENIX及LISA等会议，为读者提供深入理解发布工程理论与实践的进一步途径。</p>
+<h2 id="section-20">二、主题讲解：发布工程的核心机制与实践</h2>
+<h3 id="section-21">构建的密闭性与可重复性</h3>
+<p>构建的密闭性（Hermeticity）是确保软件发布可靠性的基石。在大规模分布式环境中，构建结果的一致性直接决定了部署的安全。密闭构建意味着构建过程完全自包含，不依赖于构建机器上安装的第三方类库或外部软件工具。例如，Google使用指定版本的编译器和依赖库，确保无论在哪台机器上，基于同一源代码版本的构建结果都完全相同。这种机制消除了“环境差异”带来的不确定性，使得构建过程可重现。当需要修复生产环境Bug并重新构建旧版本时，密闭性保证了使用当时的编译器版本，而非当前最新的环境，从而维持了历史版本的一致性。</p>
+<h3 id="section-22">自动化发布流程中的分支与测试策略</h3>
+<p>自动化发布流程依赖于严格的分支管理与持续测试策略。代码默认提交至主分支，但发布通常基于主分支的特定版本创建新分支，且新分支不再合并回主分支。这种隔离策略避免了主分支上无关改动对发布版本的污染。Bug修复先提交至主分支，再通过“摘樱桃”方式引入发布分支，确保每个发布版本包含的改动明确且可控。同时，持续测试系统在每次提交后运行单元测试，快速检测错误。在发布前，必须在发布分支上重新运行全部测试，确保在摘樱桃场景下测试依然通过。这种策略降低了因主分支变动导致发布失败的风险，提高了发布的成功率。</p>
+<h3 id="section-23">配置管理与部署的风险控制</h3>
+<p>配置管理是发布工程中易被忽视但风险极高的环节。配置文件的不稳定常导致服务故障。Google采用多种模型分发配置文件：一是使用主分支版本，异步更新二进制与配置；二是将配置与二进制打包在同一MPM包，简化部署但限制灵活性；三是将配置打包为独立MPM包，利用构建ID重新构建，实现配置与二进制版本的解耦。部署策略则根据服务风险承受能力调整：开发环境可每小时自动发布，面向用户的服务采用指数级更新，敏感基础设施服务则扩展至数天完成。这种分层策略平衡了发布速度与系统稳定性，确保不同风险等级的服务得到适当保护。</p>
+<h3 id="section-24">发布工程的早期介入与组织协作</h3>
+<p>发布工程不应是项目后期的补救措施，而应在开发初期就介入。早期投入资源定义发布政策与最佳实践，能显著降低未来系统重构的成本。发布工程师、SRE与开发团队需紧密协作，互相理解构建与部署的预期。开发团队不应仅关注代码编写，而需考虑发布流程的需求；发布工程师需理解代码开发对构建与部署的影响。通过早期规划，组织可以建立标准化的发布流程，避免“事后诸葛亮”式的被动应对。这种协作模式确保了发布工程在整个产品生命周期中的有效性，提升了整体交付效率与系统可靠性。</p>
+<h2 id="section-25">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个高并发的在线支付服务，该服务对数据一致性要求极高，且近期频繁出现因配置变更导致的故障。同时，开发团队希望加快新功能上线速度，但测试团队抱怨构建环境不稳定导致测试结果不可靠。</p>
+<p><strong>问题</strong>：基于发布工程哲学，你将如何设计构建、配置与部署策略来解决上述问题？请说明具体步骤及理由。</p>
+<h3 id="section-26">核对思路（先作答再看）</h3>
+<ol>
+<li>构建策略：实施密闭构建，确保编译器与依赖库版本固定，消除环境差异，保证构建结果可重现，解决测试不可靠问题。2. 配置策略：采用独立MPM包管理配置文件，利用构建ID版本化配置，实现配置与二进制解耦，便于单独修改配置而不重新构建二进制，降低配置变更风险。3. 部署策略：根据支付服务的高风险特性，采用渐进式部署（如指数级更新或按地理位置交替），而非全量即时发布。结合自动化测试通过即发布模型，但增加人工审批环节以控制风险。4. 协作机制：建立早期介入机制，发布工程师与开发、测试团队共同定义发布政策，确保流程自动化且符合业务需求。</li>
+</ol>
+<h2 id="section-27">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 120-129。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：构建密闭性虽保证一致性，但可能增加构建配置复杂度，需平衡维护成本。</li>
+<li>边界：频繁发布与自动化测试依赖强大的基础设施支持，小团队可能难以复制Google规模。</li>
+<li>边界：配置管理策略的选择需根据项目复杂度权衡，过度解耦可能增加运维难度。</li>
+<li>边界：早期介入发布工程需管理层支持，否则可能因资源不足而流于形式。</li>
+<li>阅读连接：下一单元是“第9章 简单化”，继续回答：软件系统本质上是动态和不稳定的，SRE需要在系统的灵活性和稳定性之间维持平衡。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../07-chapter-7-google/index.html">上一篇 · Google 的自动化系统的演进</a><a href="../09-chapter-09/index.html">下一篇 · 简单化</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

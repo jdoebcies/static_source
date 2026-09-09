@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第8章 通过事件分析实现可观测性 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">8.1 从已有条件调试</a><a class="sub" href="#section-3">8.2 从第一性原理调试</a><a class="sub" href="#section-4">8.2.1 使用核心分析循环</a><a class="sub" href="#section-5">8.2.2 自动化核心分析循环的暴力破解部分</a><a class="sub" href="#section-6">8.3 AIOps的误导性承诺</a><a class="sub" href="#section-7">8.4 结论</a><a class="" href="#section-8">二、主题讲解：核心分析循环：从第一性原理调试的实践路径</a><a class="sub" href="#section-9">核心分析循环的迭代机制</a><a class="sub" href="#section-10">自动化暴力破解的优势与局限</a><a class="sub" href="#section-11">结构化事件数据的关键作用</a><a class="sub" href="#section-12">人机协作在调试中的角色分配</a><a class="" href="#section-13">检验理解</a><a class="sub" href="#section-14">核对思路（先作答再看）</a><a class="" href="#section-15">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第8章</p><h1>通过事件分析实现可观测性</h1>
+<p>本章要回答：怎样让每次查询结果决定下一问，并把未知问题逐步缩小。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">8.1 从已有条件调试</h3>
+<p>本节指出传统调试依赖工程师对系统的先验知识和直觉，通过运行手册或仪表盘匹配已知故障模式。作者认为这种方式在复杂分布式系统中效率低下，因为系统很少以相同方式重复失败。即使拥有遥测数据，若仍沿用这种“已知条件”思维，仅能发现已知问题。这引出了对未知问题调试方法的探索，即从第一性原理出发。</p>
+<h3 id="section-3">8.2 从第一性原理调试</h3>
+<p>本节提出可观测性的核心能力是从第一性原理调试，即不预设假设，而是基于观察形成假设并验证。这种方法通过科学、可重复的步骤，让不熟悉系统的工程师也能定位问题，取代依赖经验的模糊推断。随后将介绍实现这一方法的具体工具——核心分析循环。</p>
+<h3 id="section-4">8.2.1 使用核心分析循环</h3>
+<p>本节详细阐述了核心分析循环的四个阶段：从整体观点出发，验证性能变化，搜索驱动变化的维度，并迭代过滤。该循环通过系统性地遍历维度，无需先验知识即可识别异常关联。然而，手动执行此暴力破解过程耗时且不可扩展，因此需要自动化工具的支持。</p>
+<h3 id="section-5">8.2.2 自动化核心分析循环的暴力破解部分</h3>
+<p>本节介绍利用计算能力自动化核心分析循环，通过比较异常区域与基线区域的维度差异来快速定位根源。以Honeycomb的BubbleUp功能为例，展示如何自动排序维度差异。作者强调，这种自动化依赖于结构化事件数据，而非传统指标或日志，从而引出对AI在调试中作用的思考。</p>
+<h3 id="section-6">8.3 AIOps的误导性承诺</h3>
+<p>本节批判AIOps在异常检测中的局限性，指出AI难以适应频繁变化的系统基线，易产生误报或漏报。作者主张人机协作：机器负责处理海量数据识别模式，人类负责结合上下文赋予意义。这种融合比单纯依赖AI或人类更有效，为结论中的人机平衡做铺垫。</p>
+<h3 id="section-7">8.4 结论</h3>
+<p>本节总结指出，收集遥测数据仅是第一步，必须通过第一性原理分析才能有效定位问题。核心分析循环结合自动化筛选与人类上下文判断，是利用机器和人类优势的最佳实践。最后预告下一章将探讨可观测性与监控实践的共存关系。</p>
+<h2 id="section-8">二、主题讲解：核心分析循环：从第一性原理调试的实践路径</h2>
+<h3 id="section-9">核心分析循环的迭代机制</h3>
+<p>核心分析循环是一种系统化的调试方法，旨在通过数据而非直觉定位问题。其流程始于对整体性能变化的观察，随后进入维度搜索阶段。在此阶段，工程师需检查示例行以寻找异常值，并通过跨维度分割数据来识别规律。若当前信息不足以得出结论，则过滤视图以隔离性能区域，并重复搜索步骤。这种迭代机制确保了对系统行为的全面探索，避免了因单一视角导致的误判。</p>
+<h3 id="section-10">自动化暴力破解的优势与局限</h3>
+<p>手动执行核心分析循环在面对海量数据时效率低下，因此需要自动化工具辅助。自动化通过比较异常区域与基线区域的维度差异，快速排序出最具区分度的特征。例如，BubbleUp功能可自动计算维度在异常和基线中的出现频率差异。然而，自动化仅能处理数值模式，无法理解业务上下文。因此，它必须与人类判断结合，以区分统计显著性与实际业务影响。</p>
+<h3 id="section-11">结构化事件数据的关键作用</h3>
+<p>核心分析循环的有效执行依赖于结构化事件数据。传统指标缺乏足够的背景信息，难以进行多维切分；日志则需大量后处理才能重构为可用事件。只有具备丰富上下文的结构化事件，才能支持自动化的维度比较和过滤操作。这种数据基础使得从第一性原理调试成为可能，无需预先定义查询路径即可发现未知问题。</p>
+<h3 id="section-12">人机协作在调试中的角色分配</h3>
+<p>在调试过程中，机器与人类各有优势。机器擅长处理大规模数据，快速识别潜在的模式和异常；人类则擅长结合业务上下文，对机器发现的模式进行价值判断。AIOps试图替代人类判断，但在适应动态基线方面存在局限。因此，最佳实践是将自动化作为辅助工具，由人类最终确认问题的根源和意义，实现效率与准确性的平衡。</p>
+<h2 id="section-13">检验理解</h2>
+<p><strong>情形</strong>：假设你正在调试一个电商平台的支付服务，发现整体响应时间在过去一小时内显著增加。你拥有该服务的所有结构化事件数据，包括用户ID、支付网关、金额、地区等维度。</p>
+<p><strong>问题</strong>：请描述如何应用核心分析循环来定位问题根源。具体说明在“维度搜索”阶段，你会如何利用自动化工具区分“异常区域”与“基线”，并解释为什么仅靠AIOps的异常检测可能无法准确指出具体是哪个支付网关或地区的问题。</p>
+<h3 id="section-14">核对思路（先作答再看）</h3>
+<p>首先，通过可视化识别响应时间增加的特定时间段（异常区域），并选取之前正常时间段作为基线。利用自动化工具（如BubbleUp）计算各维度在异常区域与基线中的分布差异，按差异百分比排序。例如，可能发现某支付网关在异常区域占比极高，而基线中较低。AIOps可能仅标记整体异常，但无法自动关联具体维度组合；人类需结合业务逻辑（如该网关近期是否有变更）验证机器发现的统计显著性是否对应实际故障。</p>
+<h2 id="section-15">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 67-74。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：核心分析循环依赖于高质量的结构化事件数据，若数据缺失或噪声过大，自动化效果将受限。</li>
+<li>边界：自动化暴力破解虽能识别统计差异，但无法替代人类对业务上下文的理解，可能导致误报。</li>
+<li>边界：AIOps在动态变化的系统中可能产生误报或漏报，需结合人类判断进行验证。</li>
+<li>阅读连接：核心分析循环负责探索未知问题；第九章说明它不必取代监控，两者各自适合什么。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../07-opentelemetry/index.html">上一篇 · 遵照OpenTelemetry的探针</a><a href="../09-monitoring-and-observability/index.html">下一篇 · 可观测性和监控的融合</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

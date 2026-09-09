@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第6章 分布式系统的监控 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">术语定义</a><a class="sub" href="#section-3">监控（monitoring）</a><a class="sub" href="#section-4">白盒监控（white-box monitoring）</a><a class="sub" href="#section-5">黑盒监控（black-box monitoring）</a><a class="sub" href="#section-6">监控台页面（dashboard）</a><a class="sub" href="#section-7">警报（alert）</a><a class="sub" href="#section-8">根源问题（root cause）</a><a class="sub" href="#section-9">节点或者机器（node/machine）</a><a class="sub" href="#section-10">推送（push）</a><a class="sub" href="#section-11">为什么要监控</a><a class="sub" href="#section-12">分析长期趋势</a><a class="sub" href="#section-13">跨时间范围的比较，或者是观察实验组与控制组之间的区别</a><a class="sub" href="#section-14">报警某项东西出现故障了，需要有人立刻修复！或者某项东西可</a><a class="sub" href="#section-15">构建监控台页面</a><a class="sub" href="#section-16">临时性的回溯分析（也就是在线调试）</a><a class="sub" href="#section-17">对监控系统设置合理预期</a><a class="sub" href="#section-18">现象与原因</a><a class="sub" href="#section-19">黑盒监控与白盒监控</a><a class="sub" href="#section-20">4个黄金指标</a><a class="sub" href="#section-21">延迟</a><a class="sub" href="#section-22">流量</a><a class="sub" href="#section-23">错误</a><a class="sub" href="#section-24">饱和度</a><a class="sub" href="#section-25">关于长尾问题</a><a class="sub" href="#section-26">度量指标时采用合适的精度</a><a class="sub" href="#section-27">简化，直到不能再简化</a><a class="sub" href="#section-28">将上述理念整合起来</a><a class="sub" href="#section-29">监控系统的长期维护</a><a class="sub" href="#section-30">长跑</a><a class="sub" href="#section-31">小结</a><a class="" href="#section-32">二、主题讲解：分布式系统监控的核心原则与实践</a><a class="sub" href="#section-33">监控系统的核心目标与术语基础</a><a class="sub" href="#section-34">黄金指标与长尾问题的度量策略</a><a class="sub" href="#section-35">简化系统与长期维护的实践哲学</a><a class="" href="#section-36">检验理解</a><a class="sub" href="#section-37">核对思路（先作答再看）</a><a class="" href="#section-38">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第6章</p><h1>分布式系统的监控</h1>
+<p>本单元要回答：怎样理解并使用“分布式系统的监控”，以及它在什么条件下不适用。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">术语定义</h3>
+<p>本节确立了监控讨论的基础词汇表。作者指出术语缺乏通用性，列举了监控、白盒/黑盒监控、监控台、警报、根源问题、节点及推送等核心概念。通过明确这些定义，为后续区分内部指标与外部行为、理解故障定位逻辑奠定了统一语境，自然过渡到为何需要监控的深层动机。</p>
+<h3 id="section-3">监控（monitoring）</h3>
+<p>该节定义监控为收集、处理、汇总并显示系统实时量化数据的过程，如请求数量、错误类型及处理用时。它确立了本章讨论的基础对象，即通过数据化手段掌握系统状态，为后续具体的监控手段和指标分析提供概念框架。</p>
+<h3 id="section-4">白盒监控（white-box monitoring）</h3>
+<p>白盒监控依靠系统内部暴露的性能指标，如日志分析、JVM接口或HTTP统计接口。作者指出其能检测即将发生的问题及被重试掩盖的问题，适用于需要深入调试的场景。它在父节中作为深入系统内部、定位原因的主要手段，与黑盒监控形成互补。</p>
+<h3 id="section-5">黑盒监控（black-box monitoring）</h3>
+<p>黑盒监控通过测试外部用户可见的系统行为进行，面向现象而非预测。作者强调其保证系统仅在问题正在发生且造成现象时才发出紧急警报，适合用于确保服务可用性。它在父节中作为面向用户视角、快速发现故障现象的关键手段，弥补白盒监控在预测性上的不足。</p>
+<h3 id="section-6">监控台页面（dashboard）</h3>
+<p>监控台页面是提供核心指标一览的应用程序，主要功能是显示系统最重要指标，并附带工单、Bug列表及On-call工程师信息。作者指出其应回答服务基本问题，包含“黄金指标”。它在父节中作为可视化呈现监控数据的核心载体，帮助工程师快速掌握系统状态。</p>
+<h3 id="section-7">警报（alert）</h3>
+<p>警报是发给个人的通知，目的地包括工单、Email或传呼机，分为工单、Email及紧急警报。作者强调警报目标应明确，避免“狼来了”效应，要求误报率低且信息充分。它在父节中作为触发人工干预的关键机制，旨在平衡系统自动修复能力与人工调查需求，确保故障得到及时处理。</p>
+<h3 id="section-8">根源问题（root cause）</h3>
+<p>根源问题指系统中导致缺陷的某种因素，修复后可防止同类问题再次发生。作者举例说明一个故障可能由自动化不足、软件崩溃及脚本测试不足等多个根源问题共同导致。它在父节中作为故障分析的最终目标，强调需识别并修复所有根本因素，而非仅处理表面现象。</p>
+<h3 id="section-9">节点或者机器（node/machine）</h3>
+<p>该节定义节点或机器为物理机、虚拟机或容器内的运行实例，两者可互换。作者指出单台物理机可能运行多个相互关联或不相关的服务，需分别监控。它在父节中作为监控的基本物理单元，帮助理解服务与硬件资源的映射关系，为后续针对特定实例的监控提供基础。</p>
+<h3 id="section-10">推送（push）</h3>
+<p>该节将推送定义为关于服务运行软件或配置文件的任何改动。虽然定义简短，但结合上下文，它暗示了配置变更作为监控触发因素或数据源的重要性。它在父节中作为系统状态变化的一个具体维度，提醒监控需关注配置变更对系统行为的影响，确保变更可控。</p>
+<h3 id="section-11">为什么要监控</h3>
+<p>本节阐述监控的核心价值，包括分析长期趋势、跨时间比较、故障报警及构建监控台。作者强调监控不仅用于事后回溯，更在于通过数据发现潜在问题。这一部分从宏观目的出发，引出对监控系统本身合理预期的讨论，强调避免过度复杂化。</p>
+<h3 id="section-12">分析长期趋势</h3>
+<p>该节指出监控用于分析长期趋势，如数据库数据量增长速度或每日活跃用户增长。作者通过具体业务指标示例，说明监控不仅关注实时状态，还需洞察数据增长规律。它在父节中作为监控在容量规划和趋势预测方面的作用，帮助团队理解系统随时间演变的宏观行为。</p>
+<h3 id="section-13">跨时间范围的比较，或者是观察实验组与控制组之间的区别</h3>
+<p>该节强调通过比较不同时间范围或实验组与控制组来评估系统性能，如比较不同版本请求速度或缓存命中率变化。作者使用虚构系统名称举例，说明监控需支持对比分析以验证变更效果。它在父节中作为监控在评估优化效果和版本迭代中的关键作用，提供量化依据。</p>
+<h3 id="section-14">报警某项东西出现故障了，需要有人立刻修复！或者某项东西可</h3>
+<p>该节阐述报警的核心目的是在故障发生或即将发生时通知人工干预。作者强调警报应针对真实故障，避免无效信息导致“狼来了”效应，影响员工生活和工作流程。它在父节中作为监控系统的最终价值体现，即通过高效警报确保故障得到及时、有效的处理，保障系统稳定性。</p>
+<h3 id="section-15">构建监控台页面</h3>
+<p>该节指出监控台页面应回答服务基本问题，包含常见的4个“黄金指标”。作者强调其应提供过滤和选择功能，但核心是显示最重要指标。它在父节中作为可视化监控数据的具体实现指导，确保页面能直观反映系统健康状态，辅助工程师快速定位和解决问题。</p>
+<h3 id="section-16">临时性的回溯分析（也就是在线调试）</h3>
+<p>该节将临时性回溯分析视为在线调试手段，用于探究请求延迟增加等突发状况的伴随现象。作者指出监控在业务分析和安全入侵场景也有作用，但本书聚焦工程领域。它在父节中作为监控在故障排查中的深度应用，帮助工程师通过历史数据回溯原因，补充实时监控的不足。</p>
+<h3 id="section-17">对监控系统设置合理预期</h3>
+<p>作者指出监控是复杂工程，需避免“魔法”系统，坚持简单规则。强调信噪比至关重要，紧急警报应极少且高价值，防止“狼来了”效应。本节通过设定简单可靠的目标，为后续区分现象与原因、引入黄金指标提供方法论基础。</p>
+<h3 id="section-18">现象与原因</h3>
+<p>本节提出监控系统需解决“什么故障”与“为何故障”两个问题，区分现象与原因。通过表6-1示例说明二者关系，指出黑盒监控面向现象，白盒监控面向原因。这一区分是构建高信噪比监控系统的关键概念，直接引出对黑盒与白盒监控具体应用的讨论。</p>
+<h3 id="section-19">黑盒监控与白盒监控</h3>
+<p>本节详细对比黑盒与白盒监控。黑盒监控面向正在发生的现象，适合紧急警报；白盒监控依赖内部指标，可预测问题并辅助调试。作者指出在多层系统中，某服务的现象可能是另一服务的原因，强调白盒监控在调试中的必要性，为引入黄金指标做铺垫。</p>
+<h3 id="section-20">4个黄金指标</h3>
+<p>本节提出监控用户可见系统的四个黄金指标：延迟、流量、错误和饱和度。详细解释各指标含义及监控要点，如区分成功/失败请求延迟、饱和度作为前导现象等。这四个指标构成了监控系统的核心框架，后续章节将围绕如何度量这些指标展开讨论。</p>
+<h3 id="section-21">延迟</h3>
+<p>该节定义延迟为服务处理请求所需时间，区分成功与失败请求。作者指出计算总体延迟时需排除误导性结果，但监控错误回复延迟很重要，因为“慢”错误比“快”错误更糟。它在父节中作为黄金指标之一，强调需关注错误请求的延迟表现，以全面评估用户体验和系统性能。</p>
+<h3 id="section-22">流量</h3>
+<p>该节定义流量为针对系统负载需求的高层次指标度量，如Web服务器的每秒HTTP请求数或音频系统的网络I/O速率。作者举例说明不同系统流量指标的差异，强调按请求类型分类的重要性。它在父节中作为黄金指标之一，帮助量化系统负载，为容量规划和性能评估提供基础数据。</p>
+<h3 id="section-23">错误</h3>
+<p>该节定义错误为请求失败速率，包括显式失败（如HTTP 500）、隐式失败（如错误内容）及策略原因失败。作者指出监控方式需根据故障类型调整，如负载均衡器检测完全失败，端到端系统检测内容错误。它在父节中作为黄金指标之一，强调需全面捕捉各类失败，确保系统可靠性。</p>
+<h3 id="section-24">饱和度</h3>
+<p>该节定义饱和度为服务容量的“满”程度，通常度量最受限资源（如内存或I/O）。作者指出性能在达到100%利用率前可能下降，需设置利用率目标，并强调延迟增加是饱和度的前导现象。它在父节中作为黄金指标之一，通过预测性指标预警潜在故障，辅助容量规划。</p>
+<h3 id="section-25">关于长尾问题</h3>
+<p>本节指出平均值掩盖长尾问题，建议通过直方图分组展示请求分布。强调区分平均值的“慢”与长尾值的“慢”，通过指数型增长的边界直观展现分布。这一方法论指导了如何更精准地度量指标，自然过渡到关于度量精度的讨论。</p>
+<h3 id="section-26">度量指标时采用合适的精度</h3>
+<p>本节讨论度量精度设计，指出不同部分需不同精度，如CPU负载需避免高频采样成本，Web服务可用性无需每分钟检测。通过示例说明如何平衡数据价值与收集成本，建议采用内部采样与外部汇总结合的方式，为简化监控系统提供技术支撑。</p>
+<h3 id="section-27">简化，直到不能再简化</h3>
+<p>本节强调监控系统应避免过度复杂，追求简化。建议删除不常用数据，保持系统独立松耦合。通过Google经验说明独立运行监控系统的好处，防止与其他复杂系统耦合导致维护困难。这一理念整合了前文所有原则，引出最终的哲学总结。</p>
+<h3 id="section-28">将上述理念整合起来</h3>
+<p>本节整合前文理念，形成Google SRE的监控与警报设计哲学。通过五个问题指导新规则制定，确保警报紧急、可操作、反映用户影响。强调紧急警报应引发智力分析而非机械动作，鼓励多监控现象而非原因，为长期维护提供决策框架。</p>
+<h3 id="section-29">监控系统的长期维护</h3>
+<p>本节讨论监控系统需随软件演变，通过Bigtable和Gmail案例说明长期维护挑战。Bigtable案例展示通过调整SLO目标缓解警报压力，Gmail案例强调避免临时补丁导致技术债务。这些案例说明短期可用性与长期提升的冲突，引出长跑视角。</p>
+<h3 id="section-30">长跑</h3>
+<p>本节总结Bigtable与Gmail案例的共同点，强调短期与长期可用性冲突。指出暴力因素维持高可用性不可持续，需接受可控可用性降低以换取长期提升。通过季度紧急警报统计确保决策者理解运维压力，为小结提供实践依据。</p>
+<h3 id="section-31">小结</h3>
+<p>本节总结健康监控系统应简单易懂，紧急警报关注现象，原因分析用于调试。强调构建良好监控台页面显示非紧急异常，选择合理目标支持快速定位。通过回顾前文核心观点，强化监控系统的长期价值与实践原则。</p>
+<h2 id="section-32">二、主题讲解：分布式系统监控的核心原则与实践</h2>
+<h3 id="section-33">监控系统的核心目标与术语基础</h3>
+<p>分布式系统的监控要收集数据，也要把故障变成清晰的行动信号。白盒监控依赖日志、HTTP接口等内部指标，黑盒监控观察用户可见行为。监控可以分析长期趋势、比较不同时段、报告故障和构建监控台；监控台负责展示指标，警报则指向需要人工处理的情况。先区分这些对象，才能决定什么信息应该展示，什么情况应该叫醒值班人员。</p>
+<h3 id="section-34">黄金指标与长尾问题的度量策略</h3>
+<p>监控用户可见系统应聚焦四个黄金指标：延迟、流量、错误和饱和度。延迟需区分成功与失败请求，避免误导性结果；流量衡量系统负载需求；错误跟踪请求失败速率；饱和度反映资源受限情况，常作为前导现象。然而，平均值会掩盖长尾问题，如1%的请求可能占用5秒时间。因此，应采用直方图分组展示请求分布，区分平均值的“慢”与长尾值的“慢”。在度量精度上，需平衡数据价值与收集成本，如通过内部采样与外部汇总结合，避免高频采样带来的高昂成本。这些策略确保监控既能捕捉关键故障，又不会因数据过载而失效。</p>
+<h3 id="section-35">简化系统与长期维护的实践哲学</h3>
+<p>监控系统应追求简化，避免过度复杂导致维护困难。Google经验表明，独立运行监控系统、保持松耦合接口是更好策略。设计新规则时，需确保警报紧急、可操作、反映用户影响，并引发智力分析而非机械动作。长期维护中，需平衡短期可用性与长期提升，如Bigtable案例通过调整SLO目标缓解警报压力，Gmail案例避免临时补丁导致技术债务。紧急警报应关注现象，原因分析用于调试。通过季度统计紧急警报频率，确保决策者理解运维压力，从而构建简单、高效、可持续的监控系统。</p>
+<h2 id="section-36">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个高并发Web服务，近期发现用户反馈页面加载缓慢，但系统平均延迟指标正常。请结合本章内容，分析如何设计监控策略来定位问题。首先，考虑是否使用了平均值掩盖了长尾延迟，建议引入直方图展示请求分布。其次，检查四个黄金指标，特别是延迟和饱和度，区分成功与失败请求。若发现长尾延迟增加，需判断是黑盒监控（外部行为）还是白盒监控（内部指标）更能揭示原因。最后，设计警报规则时，确保其紧急、可操作，避免“狼来了”效应。通过这种权衡，你能构建更有效的监控系统。</p>
+<p><strong>问题</strong>：在上述场景中，如果平均延迟正常但用户感知缓慢，最可能的原因是什么？如何设计监控策略来定位问题？</p>
+<h3 id="section-37">核对思路（先作答再看）</h3>
+<p>最可能的原因是长尾延迟问题，即少数请求延迟极高，拉高了用户感知。设计监控策略时，应引入直方图展示请求分布，区分平均值的“慢”与长尾值的“慢”。检查四个黄金指标，特别是延迟和饱和度，区分成功与失败请求。若发现长尾延迟增加，需结合黑盒监控（外部行为）和白盒监控（内部指标）来定位原因。设计警报规则时，确保其紧急、可操作，避免“狼来了”效应，如针对长尾延迟设置特定百分位警报，而非平均延迟。</p>
+<h2 id="section-38">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 86-99。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：原书未提供具体代码实现或工具配置细节。</li>
+<li>边界：原书未涉及非Google环境的特定案例。</li>
+<li>边界：原书未讨论监控系统的自动化修复机制。</li>
+<li>阅读连接：下一单元是“第7章 Google 的自动化系统的演进”，继续回答：怎样理解并使用“Google 的自动化系统的演进”，以及它在什么条件下不适用。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../05-chapter-05/index.html">上一篇 · 减少琐事</a><a href="../07-chapter-7-google/index.html">下一篇 · Google 的自动化系统的演进</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

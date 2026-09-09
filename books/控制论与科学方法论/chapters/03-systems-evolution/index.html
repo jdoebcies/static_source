@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《控制论与科学方法论》第三章 系统及其演化 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>控制论与科学方法论 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">3.1 系统研究方法中的因果联系</a><a class="sub" href="#section-3">3.2 相对孤立系统</a><a class="sub" href="#section-4">3.3 系统的稳态结构</a><a class="sub" href="#section-5">3.4 稳态结构和预言</a><a class="sub" href="#section-6">3.5 均匀和稳定</a><a class="sub" href="#section-7">3.6 不稳定和周期性振荡</a><a class="sub" href="#section-8">3.7 超稳定系统</a><a class="sub" href="#section-9">3.8 系统的演化</a><a class="sub" href="#section-10">3.9 系统的崩溃：自繁殖现象</a><a class="sub" href="#section-11">3.10 自组织系统</a><a class="sub" href="#section-12">3.11 智力放大与超级放大器</a><a class="" href="#section-13">二、主题讲解：系统稳态与非稳态机制解析</a><a class="sub" href="#section-14">稳态结构的形成与维持</a><a class="sub" href="#section-15">不稳定与周期性振荡</a><a class="sub" href="#section-16">自组织与系统演化</a><a class="sub" href="#section-17">超稳定与自繁殖机制</a><a class="" href="#section-18">检验理解</a><a class="sub" href="#section-19">核对思路（先作答再看）</a><a class="" href="#section-20">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第三章</p><h1>系统及其演化</h1>
+<p>本章要回答：系统演化中的稳态与非稳态机制。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 80 1040 420" role="img" aria-label="系统在干扰、反馈和结构改变之间演化">
+      <defs>
+        <marker id="03-systems-evolution-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="03-systems-evolution-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="03-systems-evolution-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1040" height="560" fill="#f5f5f5"/>
+      <line x1="216" y1="284" x2="256" y2="284" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-systems-evolution-0-arrow)"/><rect x="228" y="268" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="240" y="282" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">建模</text><line x1="424" y1="268" x2="464" y2="196" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-systems-evolution-0-arrow)"/><rect x="436" y="212" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="448" y="226" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">调节</text><line x1="632" y1="168" x2="672" y2="252" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-systems-evolution-0-arrow)"/><rect x="644" y="196" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="656" y="210" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">恢复</text><line x1="424" y1="300" x2="464" y2="392" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#03-systems-evolution-0-arrow-accent)"/><rect x="436" y="332" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="448" y="346" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">失稳</text><line x1="632" y1="400" x2="672" y2="316" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#03-systems-evolution-0-arrow-accent)"/><rect x="636" y="336" width="40" height="20" rx="4" fill="#f5f5f5"/><text x="656" y="350" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">越过阈值</text><line x1="840" y1="284" x2="856" y2="284" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-systems-evolution-0-arrow)"/><rect x="836" y="268" width="32" height="20" rx="4" fill="#f5f5f5"/><text x="852" y="282" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">组织化</text><rect x="56" y="244" width="160" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="136" y="276" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">相对孤立系统</text><text x="136" y="292" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">暂时划定边界</text><rect x="264" y="244" width="160" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="344" y="276" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">稳态结构</text><text x="344" y="292" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">扰动后可恢复</text><rect x="472" y="128" width="160" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="552" y="160" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">负反馈</text><text x="552" y="176" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">回到稳定区</text><rect x="472" y="360" width="160" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="552" y="392" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">不稳定 / 振荡</text><text x="552" y="408" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">偏差继续放大</text><rect x="680" y="244" width="160" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="760" y="276" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">结构改变</text><text x="760" y="292" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">新的稳态</text><rect x="864" y="244" width="120" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="924" y="276" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">自组织</text><text x="924" y="292" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">新层级</text>
+    </svg></button><small>点击放大配图</small></figure><p class="caption">图3-1｜系统在恢复、失稳和结构改变之间的可能路径</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">3.1 系统研究方法中的因果联系</h3>
+<p>本节指出传统单向因果在复杂系统中失效，提出因果长链、概率因果、互为因果及因果网络四种形式。通过庄子游栗园的故事说明因果链的无限性与局部视角的局限，强调需从整体把握相互联系。这为后续引入相对孤立系统概念奠定基础，解决无限追溯的方法论难题。</p>
+<h3 id="section-3">3.2 相对孤立系统</h3>
+<p>基于前节因果分析，定义系统为相对孤立体系，即忽略微弱概率联系，聚焦主要互为因果变量。以凯巴伯森林鹿群为例，说明忽略土壤气候等外部因素可简化研究，但警告单向干预会破坏内部稳态，导致系统崩溃，引出需从整体角度研究互为因果。</p>
+<h3 id="section-4">3.3 系统的稳态结构</h3>
+<p>分析互为因果系统通过负反馈维持稳定平衡的机制，如温度调节器。指出稳态结构具有抗干扰能力，如岛屿物种数量均衡。强调稳态并非绝对有利，有时需通过控制破坏自然稳态以建立有利新结构，如农田除草，为讨论稳态预言做铺垫。</p>
+<h3 id="section-5">3.4 稳态结构和预言</h3>
+<p>阐述利用稳态结构预测系统发展趋势的方法，如地质学家通过储油稳态找石油，或大禹治水选择归海稳态。指出需比较不同稳态的稳定性，并说明当自然稳态不利时，需通过控制手段建立新稳态，如北鳟改变体型以适应江河，体现稳态的可控性。</p>
+<h3 id="section-6">3.5 均匀和稳定</h3>
+<p>探讨均匀性与稳定性的关系，指出孤立系统趋向均匀（熵增），但生命等开放系统通过汲取负熵维持有序不均匀结构。以金属空穴均匀化增强强度为例，说明利用均匀稳定关系可控制系统，同时指出生命体通过有序结构避免热力学平衡死亡。</p>
+<h3 id="section-7">3.6 不稳定和周期性振荡</h3>
+<p>讨论系统处于不稳定状态时的周期性振荡现象，如蚜虫与针枞的数量波动。指出振荡由子系统间正反馈耦合引起，可通过加入滤波器或切断反馈回路使系统稳定。强调改变系统结构或初始条件可控制稳定性，为后续超稳定系统讨论提供对比视角。</p>
+<h3 id="section-8">3.7 超稳定系统</h3>
+<p>介绍依靠不稳定修复机制维持长期稳定的超稳定系统，如内稳定器。以中医藏象学说为例，说明人体通过脏腑反馈调节维持健康，若偏离阈值则启动修复。指出超稳定系统具有周期性稳定-不稳定-稳定特征，能解释传统社会长期停滞现象。</p>
+<h3 id="section-9">3.8 系统的演化</h3>
+<p>分析系统从旧稳态向新稳态演化的过程，以引入猫破坏老鼠-蛇生态平衡为例，展示结构转化。介绍演化的分叉与汇流模式，指出初始条件微小差异可能导致演化路径巨大不同，如犀牛角的进化，强调演化过程中偶然性与决定论的复杂关系。</p>
+<h3 id="section-10">3.9 系统的崩溃：自繁殖现象</h3>
+<p>探讨系统崩溃时的自繁殖现象，如核爆炸、癌症，其特征为变量越大增长越快，存在临界值及自动增长链。指出自繁殖常由负反馈控制机制破坏引起，如癌症源于抑制因子反馈中断。通过消灭螺旋锥蝇和激光发明案例，说明利用或抑制自繁殖的应用价值。</p>
+<h3 id="section-11">3.10 自组织系统</h3>
+<p>阐述系统从无组织状态自动形成秩序的过程，即自组织。以磁针排列和晶体培养为例，说明自组织具备组织核心、不稳定前提、自动选择链、不可逆性及微小差别导致巨大结果等特征。指出可通过控制核心或改变系统状态来引导自组织方向。</p>
+<h3 id="section-12">3.11 智力放大与超级放大器</h3>
+<p>定义智力放大为选择能力的放大，通过组织核心实现，如刘邦用人。指出自组织系统可作为超级放大器，如威尔逊云室通过粒子轨迹自繁殖放大微观相互作用。总结系统理论在工程与社会科学研究中的广泛应用，强调数学工具在处理复杂系统问题中的重要性。</p>
+<h2 id="section-13">二、主题讲解：系统稳态与非稳态机制解析</h2>
+<h3 id="section-14">稳态结构的形成与维持</h3>
+<p>稳态结构是互为因果系统在相互作用下维持的稳定平衡状态。以负反馈为例，当系统偏离稳态时，相互作用会使其回归。例如，温度调节器通过室内温度影响火炉放热，维持恒温。稳态具有抗干扰能力，如岛屿物种数量在迁入与灭绝平衡下保持稳定。然而，稳态并非绝对有利，有时需通过控制破坏自然稳态以建立有利新结构，如农田除草防止杂草成为主导稳态。理解稳态结构有助于预测系统趋势，如地质学家通过储油稳态寻找石油。</p>
+<h3 id="section-15">不稳定与周期性振荡</h3>
+<p>当子系统间存在正反馈耦合时，系统可能进入不稳定状态，表现为周期性振荡。例如，蚜虫与针枞的数量波动，因食物减少导致蚜虫死亡，随后树木恢复，形成循环。振荡频率一定时可用于计时。控制振荡可通过改变系统结构，如在反馈回路中加入滤波器减弱作用，或切断影响通道。例如，纠正口吃时通过滤波器减弱声音反馈，使系统稳定。改变初始条件也可影响稳定性，如生态系统初始值低于临界点会导致灭绝。</p>
+<h3 id="section-16">自组织与系统演化</h3>
+<p>自组织系统在内部相互作用下形成新的秩序。原书用磁针排列、晶体形成和生物演化讨论组织核心、不稳定前提与自动选择链，并把某些演化概括为不可逆。这里应把它当作书中的系统论模型：不同系统能否逆转、初始差异会放大到什么程度，都需要具体机制和证据，不能从“自组织”三个字直接推出。</p>
+<h3 id="section-17">超稳定与自繁殖机制</h3>
+<p>超稳定系统依靠不稳定修复机制维持长期稳定，如内稳定器通过子系统反馈调节维持健康。中医藏象学说模型展示了人体通过脏腑相互作用维持稳态。自繁殖现象是系统崩溃时的快速变量增长，如核爆炸或癌症，其特征为存在临界值及自动增长链。自繁殖常由负反馈控制机制破坏引起，如癌症源于抑制因子反馈中断。通过理解自繁殖机制，可抑制有害过程或利用有利过程，如通过释放不育雄蝇消灭螺旋锥蝇。</p>
+<h2 id="section-18">检验理解</h2>
+<p><strong>情形</strong>：假设一个封闭的生态系统包含植物A和食草动物B。植物A的生长受B的数量抑制（负反馈），而B的数量受A的数量促进（正反馈）。初始状态下，系统处于稳态。现在，由于外部气候变暖，植物A的生长速率提高，但B的繁殖速率未变。</p>
+<p><strong>问题</strong>：请分析该系统在气候变暖后的短期和长期演化趋势，并说明是否可能出现周期性振荡或新的稳态结构。</p>
+<h3 id="section-19">核对思路（先作答再看）</h3>
+<p>短期看，植物A增多导致B的食物增加，B数量上升。B数量上升反过来抑制A，可能导致A减少。若B的抑制作用强于A的增长，系统可能进入振荡状态，表现为A和B数量的周期性波动。长期看，若系统能调整相互作用强度，可能达到新的稳态，其中A和B的数量均高于初始水平，但比例不同。若B的抑制作用过强，可能导致A灭绝，进而导致B灭绝，系统崩溃。</p>
+<h2 id="section-20">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 95-150。</li>
+<li>源文件 SHA-256：<code>d7e36856c845f065d60b2a5eba593b5b2a6b834f329091143bdc8218c52f469f</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：原书未提供具体数学模型证明稳态存在的充分必要条件，仅通过案例说明。</li>
+<li>边界：自繁殖现象的临界值计算依赖于具体系统参数，书中未给出通用公式。</li>
+<li>边界：超稳定系统的修复机制在复杂社会系统中的具体应用案例有限。</li>
+<li>阅读连接：稳定结构怎样换成另一种稳定结构，是下一章讨论质变模型的起点。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../02-information-thinking-organization/index.html">上一篇 · 信息、思维和组织</a><a href="../04-mathematical-model-of-qualitative-change/index.html">下一篇 · 质变的数学模型</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

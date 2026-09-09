@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第15章 自建与购买以及投资回报率 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">15.1 如何分析可观测性的投资回报率</a><a class="sub" href="#section-3">15.2 自建的真实成本</a><a class="sub" href="#section-4">15.2.1 开源软件的隐形成本</a><a class="sub" href="#section-5">15.2.2 自建的优势</a><a class="sub" href="#section-6">15.2.3 自建的风险</a><a class="sub" href="#section-7">15.3 购买软件的真实成本</a><a class="sub" href="#section-8">15.3.1 商业软件的隐形财务成本</a><a class="sub" href="#section-9">15.3.2 商业软件的隐形非财务成本</a><a class="sub" href="#section-10">15.3.3 购买商业软件的好处</a><a class="sub" href="#section-11">15.3.4 购买商业软件的风险</a><a class="sub" href="#section-12">15.4 购买与自建不是二元选择</a><a class="sub" href="#section-13">15.5 结论</a><a class="" href="#section-14">二、主题讲解：可观测性决策中的成本权衡与混合策略</a><a class="sub" href="#section-15">1. 机会成本在自建决策中的量化逻辑</a><a class="sub" href="#section-16">2. 供应商锁定与非财务成本的评估机制</a><a class="sub" href="#section-17">3. 混合策略下的团队角色与集成价值</a><a class="sub" href="#section-18">4. 总拥有成本（TCO）的综合评估框架</a><a class="" href="#section-19">检验理解</a><a class="sub" href="#section-20">核对思路（先作答再看）</a><a class="" href="#section-21">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第15章</p><h1>自建与购买以及投资回报率</h1>
+<p>本章要回答：怎样比较自建、购买和组合方案的真实成本与收益。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 80 1040 420" role="img" aria-label="规模化的目标：保留高价值细节，同时让查询足够快">
+      <defs>
+        <marker id="15-build-buy-roi-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="15-build-buy-roi-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="15-build-buy-roi-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1040" height="560" fill="#f5f5f5"/>
+      <line x1="196" y1="260" x2="228" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#15-build-buy-roi-0-arrow-link)"/><rect x="204" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="216" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">接入</text><line x1="380" y1="260" x2="412" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#15-build-buy-roi-0-arrow-link)"/><rect x="388" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="400" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">选择</text><line x1="564" y1="260" x2="596" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#15-build-buy-roi-0-arrow-link)"/><rect x="572" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="584" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">写入</text><line x1="748" y1="260" x2="780" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#15-build-buy-roi-0-arrow-link)"/><rect x="756" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="768" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">读取</text><line x1="868" y1="300" x2="868" y2="348" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#15-build-buy-roi-0-arrow-accent)"/><rect x="856" y="312" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="868" y="326" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">响应</text><rect x="52" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="124" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">遥测入口</text><text x="124" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">多团队多信号</text><rect x="236" y="220" width="144" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="308" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">流水线</text><text x="308" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">路由 / 过滤 / 增强</text><rect x="420" y="220" width="144" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="492" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">动态采样</text><text x="492" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">保留异常与稀有事件</text><rect x="604" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="676" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">列式存储</text><text x="676" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">按时间分段</text><rect x="788" y="220" width="160" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="868" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">并行查询</text><text x="868" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">分组与聚合</text><rect x="788" y="396" width="160" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="868" y="424" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">分析者</text><text x="868" y="440" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">在交互时间内得到答案</text>
+    </svg></button><small>点击放大配图</small></figure><p class="caption">图15-1｜流水线、采样、存储和查询分别控制不同成本</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">15.1 如何分析可观测性的投资回报率</h3>
+<p>作者指出分析ROI需从量化成本入手，承认供应商偏见但强调客观核算。通过对比商业账单与开源免费表象，揭示人们常低估维护成本和时间机会成本。本节确立分析框架，引出下文对自建与购买具体成本的拆解。</p>
+<h3 id="section-3">15.2 自建的真实成本</h3>
+<p>本节以机会成本为核心，指出工程时间是稀缺资源，自建会分散对核心业务的注意力。通过计算财务成本与收益对比，引出开源软件隐形成本的详细案例，为后续分析具体成本构成做铺垫。</p>
+<h3 id="section-4">15.2.1 开源软件的隐形成本</h3>
+<p>通过ELK堆栈案例，展示看似免费的开源方案实际包含硬件、人力及招聘培训成本，总成本远超商业方案。引用海蒂·沃特豪斯观点，强调需认清免费软件背后的非显著成本，为讨论自建优势提供对比基准。</p>
+<h3 id="section-5">15.2.2 自建的优势</h3>
+<p>阐述自建能平衡预算压力，并培养内部专业知识。通过深入整合解决方案，团队能深刻理解业务需求与技术限制，形成扎根于组织文化的竞争优势，为后续讨论自建风险提供平衡视角。</p>
+<h3 id="section-6">15.2.3 自建的风险</h3>
+<p>指出自建面临产品管理专业知识缺失、组件集成摩擦及采用率低的风险。强调自建非一劳永逸，需持续维护且易因优先级不足被放弃，引出购买软件作为另一种选择的成本分析。</p>
+<h3 id="section-7">15.3 购买软件的真实成本</h3>
+<p>从最明显的财务成本入手，指出供应商需盈利，价格包含利润率。本节确立购买成本的分析起点，引出对隐形财务成本如模糊定价策略的深入探讨，为全面评估购买成本奠定基础。</p>
+<h3 id="section-8">15.3.1 商业软件的隐形财务成本</h3>
+<p>分析按量付费等定价策略带来的预测困难，指出随着使用规模扩大，成本可能激增。建议要求供应商提供透明估算，避免锁定在预算膨胀的工具中，引出购买软件的非财务成本分析。</p>
+<h3 id="section-9">15.3.2 商业软件的隐形非财务成本</h3>
+<p>揭示时间成本背后的供应商锁定风险，指出迁移专用代理或探针库耗时费力。推荐OpenTelemetry标准以降低锁定风险，平衡购买带来的时间节省，引出购买商业软件的好处分析。</p>
+<h3 id="section-10">15.3.3 购买商业软件的好处</h3>
+<p>强调购买节省时间价值，提供现成解决方案和精简用户体验。指出可借助供应商的专业知识积累，避免重复造轮子，为讨论购买风险及最终平衡策略提供正面论据。</p>
+<h3 id="section-11">15.3.4 购买商业软件的风险</h3>
+<p>指出购买可能导致内部专业知识发展不足，商业产品难以完全适配特殊需求。提出通过建立对接团队来减轻风险，自然过渡到购买与自建非二元选择的结论部分。</p>
+<h3 id="section-12">15.4 购买与自建不是二元选择</h3>
+<p>提出在商业解决方案基础上自建的混合模式，推荐可观测性团队作为集成点。强调高绩效组织应聚焦核心业务，利用供应商API解决最后一公里问题，平衡成本与灵活性。</p>
+<h3 id="section-13">15.5 结论</h3>
+<p>总结需权衡自建与购买的总拥有成本，包括量化与隐形成本。重申购买通常是最佳选择，但需建立对接团队适应业务需求，为下一章数据存储优化做铺垫，完成本章论述。</p>
+<h2 id="section-14">二、主题讲解：可观测性决策中的成本权衡与混合策略</h2>
+<h3 id="section-15">1. 机会成本在自建决策中的量化逻辑</h3>
+<p>在评估自建可观测性方案时，核心难点在于量化“机会成本”。机会成本指因选择自建而放弃的其他高价值任务的价值。例如，工程师花费时间维护ELK堆栈，意味着他们无法开发核心业务功能。量化逻辑要求将工程师的时间成本（薪资+福利）乘以投入维护的时间，再与自建带来的潜在收益（如节省的软件许可费）进行对比。若维护成本高于许可费，且核心业务价值更高，则自建在经济上是不合理的。这种量化迫使团队从“能否构建”转向“是否应该构建”，避免陷入免费软件的陷阱。</p>
+<h3 id="section-16">2. 供应商锁定与非财务成本的评估机制</h3>
+<p>购买商业软件虽节省初期时间，但引入供应商锁定风险，这是一种非财务成本。锁定机制源于专用代理、探针库或数据格式的独特性，导致迁移成本极高。评估机制应关注数据可移植性：是否支持OpenTelemetry等开放标准？若使用专有格式，未来迁移需重写采集代码和重新配置仪表板，消耗大量工程时间。此外，还需评估供应商对路线图的控制权，若关键功能不在其规划中，业务响应速度将受限。因此，非财务成本评估需结合技术栈的开放程度与业务对灵活性的需求。</p>
+<h3 id="section-17">3. 混合策略下的团队角色与集成价值</h3>
+<p>混合策略主张在商业解决方案基础上进行自建，核心在于重新定义可观测性团队的角色。团队不再负责构建底层基础设施，而是作为集成点，负责将商业工具与业务需求对接。具体机制包括：编写标准化库以简化埋点，管理供应商API以实现数据可编程访问，以及优化数据查询以支持特定业务分析。这种模式利用商业软件的成熟度降低基础成本，同时通过自建集成层满足独特业务需求，实现成本与灵活性的平衡。团队价值从“构建工具”转向“优化工具使用效率”。</p>
+<h3 id="section-18">4. 总拥有成本（TCO）的综合评估框架</h3>
+<p>总拥有成本（TCO）评估需涵盖显性与隐性成本。显性成本包括自建的人力硬件支出与购买的软件许可费。隐性成本包括自建的机会成本（工程时间浪费）与购买的锁定风险（迁移成本）。综合框架要求：首先列出所有直接财务支出；其次估算维护所需的人力时间成本；再次评估因工具不适配导致的业务延迟成本；最后考虑长期演进中的升级与迁移风险。通过这一框架，团队可避免仅关注短期节省，从而做出符合长期商业价值的决策。</p>
+<h2 id="section-19">检验理解</h2>
+<p><strong>情形</strong>：一家初创公司计划自建可观测性平台以节省软件许可费。工程师团队每月投入40小时维护开源组件，同时因工具不稳定导致生产事故响应时间增加20%。公司核心业务正处于快速扩张期，急需工程师专注于新功能开发。</p>
+<p><strong>问题</strong>：基于TCO框架，分析该自建决策的隐性成本，并说明为何混合策略可能更优。</p>
+<h3 id="section-20">核对思路（先作答再看）</h3>
+<p>已知成本是每月40小时维护，以及事故响应时间增加20%；前者可按人力成本估算，后者需要再结合事故次数和用户影响，不能直接换算成客户流失或收入损失。还要比较商业许可费、迁移成本、数据可移植性与团队真正需要的定制能力。混合方案是候选项：购买通用底座、只自建必要集成可能减少维护，但是否更优仍要用这些数据比较。</p>
+<h2 id="section-21">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 126-132。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：TCO量化依赖准确的人力成本与业务价值估算，数据获取可能存在难度。</li>
+<li>边界：混合策略要求团队具备较强的API集成能力，对工程素质有较高要求。</li>
+<li>边界：供应商锁定风险评估具有前瞻性，实际迁移成本可能因技术架构差异而波动。</li>
+<li>阅读连接：自建或购买都必须满足同一工作负载；第十六章先分析高基数、低延迟查询对存储的要求。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../14-software-supply-chain/index.html">上一篇 · 可观测性与软件供应链</a><a href="../16-data-storage/index.html">下一篇 · 高效的数据存储</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

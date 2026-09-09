@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第16章 跟踪故障 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">Escalator</a><a class="sub" href="#section-3">Outalator</a><a class="sub" href="#section-4">打造你自己的Outalator</a><a class="sub" href="#section-5">聚合</a><a class="sub" href="#section-6">加标签</a><a class="sub" href="#section-7">分析</a><a class="sub" href="#section-8">报告和公告</a><a class="sub" href="#section-9">未预料到的好处</a><a class="" href="#section-10">二、主题讲解：故障跟踪与系统性改进</a><a class="sub" href="#section-11">从报警到故障的抽象</a><a class="sub" href="#section-12">标签系统与语义分析</a><a class="sub" href="#section-13">历史数据驱动的系统改进</a><a class="" href="#section-14">检验理解</a><a class="sub" href="#section-15">核对思路（先作答再看）</a><a class="" href="#section-16">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第16章</p><h1>跟踪故障</h1>
+<p>本单元要回答：如何从被动响应转向主动改进？</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">Escalator</h3>
+<p>本节介绍Escalator系统，它是Google用于管理报警升级的中央服务。其核心机制是透明接收on-call邮件副本，无需改变用户习惯即可实现报警响应追踪。若超时未回应，系统按预设规则将报警升级给副手。这为后续故障处理提供了基础的数据流入口，确保每个报警都有迹可循。</p>
+<h3 id="section-3">Outalator</h3>
+<p>基于Escalator，Outalator被创建以处理更高级的“故障”抽象概念。它允许用户在不切换视图的情况下，按时间顺序交叉列出多个队列的报警。系统保存原始通知及邮件记录，支持标记“重要”回复并折叠无关信息。这一功能解决了多服务报警分散的问题，提升了信息获取效率。</p>
+<h3 id="section-4">打造你自己的Outalator</h3>
+<p>本节指出许多组织可使用Slack等即时通讯系统构建类似Outalator的工具。重点在于利用这些平台接入报警流，实现内部沟通与Dashboard更新的整合。这强调了工具的可移植性，即核心逻辑在于聚合与标记，而非特定软件，鼓励团队根据自身基础设施进行适配。</p>
+<h3 id="section-5">聚合</h3>
+<p>针对单一故障触发多项报警的现象，本节提出“聚合”概念。通过将多个相关报警合并为一个故障，能有效消除重复信息和减少重复性工作。虽然完全过滤虚假报警存在风险，但聚合机制在保持信息完整性的同时，显著降低了界面噪音，使SRE能更专注于核心问题。</p>
+<h3 id="section-6">加标签</h3>
+<p>Outalator提供通用的标签机制以区分故障性质。标签无严格格式，但推荐使用前缀如“cause”构建层级结构，或链接至Bug系统。这种灵活性允许团队自定义元数据，快速识别虚假报警或特定客户问题。标签机制虽看似简单，却是快速定位服务问题的关键工具。</p>
+<h3 id="section-7">分析</h3>
+<p>本节强调历史数据对系统性分析的价值。除了基础计数，重点在于对比团队/服务及时间趋势，判断报警是否“太吵”。通过语义分析找出基础设施中的主要故障源，有助于确定改进优先级。例如，识别网络阻塞导致的延迟报警，可指导团队针对性提升稳定性或调整SLO。</p>
+<h3 id="section-8">报告和公告</h3>
+<p>Outalator支持将故障标题、标签及重要记录通过邮件发送给下一班on-call工程师，简化交接流程。其“报告模式”可展开所有重要评论，辅助周期性生产服务评审。这一功能确保了故障信息的连续性和透明度，使团队能基于完整上下文进行复盘和改进。</p>
+<h3 id="section-9">未预料到的好处</h3>
+<p>故障链接不仅加速检查，还能通过确认故障存在来降低其他团队压力。此外，Outalator可用于记录非故障事件，如高权限用户操作或周期性任务执行。通过设立虚设队列，团队能审计特权行为或记录非幂等任务，提供了超越传统故障跟踪的技术性审核功能。</p>
+<h2 id="section-10">二、主题讲解：故障跟踪与系统性改进</h2>
+<h3 id="section-11">从报警到故障的抽象</h3>
+<p>在SRE实践中，报警（Alert）与故障（Incident）是两个不同层级的概念。报警是监控系统发出的具体信号，而故障是对一系列相关报警的抽象概括。Outalator的核心价值在于这种抽象能力。当网络波动导致多个服务超时，系统会发出多条报警。Outalator通过聚合功能，将这些分散的信号合并为一个“故障”对象。这种机制避免了SRE在多个队列间切换的疲劳，并允许对同一根源问题进行统一标记和分析。理解这一抽象有助于区分“噪音”与“实质”，确保资源集中在真正影响服务的事件上。</p>
+<h3 id="section-12">标签系统与语义分析</h3>
+<p>标签是Outalator中最具灵活性的功能，它允许团队为故障添加元数据。不同于固定的字段，标签可以是任意单词，但推荐使用前缀（如cause:network）构建层级结构。这种设计支持语义分析，例如通过统计“cause:network”标签的频率，团队能识别出网络问题是主要瓶颈。标签还能链接到Bug系统或标记客户ID，使数据具备可操作性的上下文。关键在于，标签系统不预设标准，而是由团队定义，从而适应不同服务的特定需求，实现从通用报警到特定问题归因的转变。</p>
+<h3 id="section-13">历史数据驱动的系统改进</h3>
+<p>故障跟踪工具既承接响应，也积累可分析的历史。团队对比不同时段的报警频率，可以判断某项报警是否“太吵”；再结合故障语义，还能发现网络阻塞等反复出现的薄弱环节。周期性报告让团队据此调整SLO或架构，把零散响应转成有证据的改进。</p>
+<h2 id="section-14">检验理解</h2>
+<p><strong>情形</strong>：某团队发现‘数据库连接池满’报警频繁出现，但每次手动重启服务后问题暂时解决。Outalator中该报警被标记为‘cause:database’。</p>
+<p><strong>问题</strong>：如何利用Outalator的数据分析功能，判断这是系统性问题还是偶然故障？</p>
+<h3 id="section-15">核对思路（先作答再看）</h3>
+<p>查看‘cause:database’标签的历史频率和趋势。若频率随时间增加或呈周期性，可能是系统性瓶颈；若随机分布，可能是偶然负载。结合聚合视图，检查是否伴随其他相关报警（如网络超时）。若仅孤立出现，可能是配置问题；若与其他基础设施报警关联，则需深入分析底层稳定性。</p>
+<h2 id="section-16">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 198-203。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：Outalator的聚合功能依赖于人工或半自动的规则，可能无法完美区分所有相关报警。</li>
+<li>边界：标签系统的灵活性可能导致标签使用不一致，影响语义分析的准确性。</li>
+<li>边界：历史数据分析需要足够长的时间跨度，短期数据可能无法反映真实趋势。</li>
+<li>阅读连接：下一单元是“第17章 测试可靠性”，继续回答：测试是提升软件可靠性的核心手段，但如何平衡测试覆盖度、发布速度与系统稳定性？</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../15-chapter-15/index.html">上一篇 · 事后总结：从失败中学习</a><a href="../17-chapter-17/index.html">下一篇 · 测试可靠性</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第5章 结构化事件——可观测性的构建块 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">5.1 通过结构化事件进行调试</a><a class="sub" href="#section-3">5.2 指标作为构建块的局限性</a><a class="sub" href="#section-4">5.3 传统日志作为构建块的局限性</a><a class="sub" href="#section-5">5.3.1 非结构化日志</a><a class="sub" href="#section-6">5.3.2 结构化日志</a><a class="sub" href="#section-7">5.4 在调试中有用的事件属性</a><a class="sub" href="#section-8">5.5 结论</a><a class="" href="#section-9">二、主题讲解：结构化事件：可观测性的核心构建块</a><a class="sub" href="#section-10">从指标局限到事件重构</a><a class="sub" href="#section-11">结构化日志与机器可读性</a><a class="sub" href="#section-12">任意宽结构与高基数查询</a><a class="sub" href="#section-13">事件属性与调试实践</a><a class="" href="#section-14">检验理解</a><a class="sub" href="#section-15">核对思路（先作答再看）</a><a class="" href="#section-16">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第5章</p><h1>结构化事件——可观测性的构建块</h1>
+<p>本章要回答：指标和传统日志为什么不足以支撑开放式调查，结构化事件需要保留什么。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 80 1040 420" role="img" aria-label="从代码现场到可查询证据：数据必须一路保留上下文">
+      <defs>
+        <marker id="05-structured-events-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="05-structured-events-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="05-structured-events-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1040" height="560" fill="#f5f5f5"/>
+      <line x1="196" y1="260" x2="228" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#05-structured-events-0-arrow-link)"/><rect x="204" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="216" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">埋点</text><line x1="388" y1="260" x2="420" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#05-structured-events-0-arrow-link)"/><rect x="396" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="408" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">生成</text><line x1="580" y1="260" x2="612" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#05-structured-events-0-arrow-link)"/><rect x="588" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="600" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">拼接</text><line x1="764" y1="260" x2="796" y2="260" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#05-structured-events-0-arrow-link)"/><rect x="772" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="784" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">发送</text><line x1="876" y1="300" x2="876" y2="348" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#05-structured-events-0-arrow-accent)"/><rect x="864" y="312" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="876" y="326" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">查询</text><rect x="52" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="124" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">应用代码</text><text x="124" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">业务现场</text><rect x="236" y="220" width="152" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="312" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">OpenTelemetry</text><text x="312" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">自动 + 自定义探针</text><rect x="428" y="220" width="152" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="504" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">宽事件 / span</text><text x="504" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">高维上下文</text><rect x="620" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="692" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">trace</text><text x="692" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">父子关系</text><rect x="804" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="876" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">后端存储</text><text x="876" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">查询与分组</text><rect x="804" y="396" width="144" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="876" y="424" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">分析循环</text><text x="876" y="440" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">下一问</text>
+    </svg></button><small>点击放大配图</small></figure><p class="caption">图5-1｜从应用代码到可查询证据的数据链</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">5.1 通过结构化事件进行调试</h3>
+<p>本节定义事件为记录特定请求与服务交互全过程的Map数据，包含ID、参数、耗时等键值对。作者指出，通过对比不同事件的异常值并基于多维度过滤分组，可高效定位问题。这种结构化记录为后续深入分析奠定了数据基础。</p>
+<h3 id="section-3">5.2 指标作为构建块的局限性</h3>
+<p>作者界定指标为预聚合的标量值，指出其仅反映特定时间段内的系统状态聚合，缺乏事件上下文与请求级颗粒度。通过页面加载时间与请求数的例子，说明指标无法重建单个请求生命周期，且无限增加指标无法解决并发与关联问题，故不适合作为可观测性核心构建块。</p>
+<h3 id="section-4">5.3 传统日志作为构建块的局限性</h3>
+<p>本节先区分非结构化数据与结构化数据，再说明现代日志实践为什么要从方便人阅读的文字，转向可被机器查询的事件。作者随后分两小节展开，不能把“日志结构化”直接等同于“已经获得完整事件”。</p>
+<h3 id="section-5">5.3.1 非结构化日志</h3>
+<p>非结构化日志通常把一次工作拆成多行给人阅读的文字，包含时间、级别和若干上下文。生产日志量变大后，不同格式、跨行叙述和大量噪声会增加解析与关联成本；它更适合在已有怀疑后查证线索，难以独立支持开放式分组和比较。</p>
+<h3 id="section-6">5.3.2 结构化日志</h3>
+<p>结构化日志把字段写成机器可解析的键值对，但一行结构化日志仍可能只是一项工作的一部分。作者希望把同一工作单元的输入、运行条件、发现的属性和结果尽量合成一个宽事件；若仍拆成多条消息，就要依赖请求ID等字段重新拼接。JSON只是表示形式，工作单元是否完整才是判断重点。</p>
+<h3 id="section-7">5.4 在调试中有用的事件属性</h3>
+<p>作者强调事件需支持“任意宽”结构，容纳高基数维度以应对未知故障模式。通过根因分析案例，说明高基数查询能力对定位复杂分布式问题至关重要。限制字段预设的Schema约束与可观测性目标相悖，事件必须足够灵活以容纳运行时动态产生的各类属性。</p>
+<h3 id="section-8">5.5 结论</h3>
+<p>本章总结指出，可观测性的核心构建块是任意宽的结构化事件。它克服了指标颗粒度粗和日志非结构化的缺陷，支持任意维度切片以回答调试中的新问题。结构化事件通过记录完整工作单元信息，赋能调查人员深入理解系统内部状态。</p>
+<h2 id="section-9">二、主题讲解：结构化事件：可观测性的核心构建块</h2>
+<h3 id="section-10">从指标局限到事件重构</h3>
+<p>传统监控系统依赖指标，即预聚合的标量值。例如，页面加载时间指标仅反映某段时间内的平均值，丢失了单个请求的上下文。这种聚合导致无法重建特定请求的生命周期，也难以区分不同请求的行为差异。相比之下，结构化事件记录的是特定时间点发生的离散快照。即使在同一时间段内发生多个请求，每个事件仍保留独立的参数、耗时和状态码。这种颗粒度使得调查人员不仅能看到聚合结果，还能回溯到具体的请求实例，从而发现指标掩盖的异常模式。</p>
+<h3 id="section-11">结构化日志与机器可读性</h3>
+<p>传统日志旨在让人类阅读，通常是非结构化的文本，包含大量噪声且难以被机器解析。虽然非结构化日志包含时间戳和严重级别，但多行叙述使得关联同一工作单元的不同步骤变得困难。结构化日志通过JSON等格式，将事件定义为机器可解析的数据对象。它明确区分了输入、处理过程和输出结果，使得系统能够自动提取关键属性。这种机器可读性是实现自动化调试和复杂查询的前提，解决了非结构化日志在大规模生产环境中的解析瓶颈。</p>
+<h3 id="section-12">任意宽结构与高基数查询</h3>
+<p>可观测性要求事件支持“任意宽”结构，即不预设固定Schema，允许动态添加维度。现代分布式系统中，调试往往涉及高基数维度，如特定的用户ID、地理位置或固件版本。传统数据库难以高效处理此类高基数查询，而结构化事件系统需支持对这些细粒度维度的切片和聚合。例如，定位特定iOS版本用户的故障时，需跨多个高基数字段进行关联查询。这种灵活性确保系统能应对未知的故障模式，而非仅依赖预先定义的监控指标。</p>
+<h3 id="section-13">事件属性与调试实践</h3>
+<p>有效的结构化事件应包含请求上下文（如用户ID、购物车ID）和运行时信息（如容器版本、执行耗时）。在调试时，通过对比异常事件与正常事件的共同维度，可快速定位根因。例如，若某类错误仅在特定用户群体中出现，高基数查询能迅速筛选出该群体的共同特征。事件记录的完整性决定了调试的深度，任何缺失的关键上下文都可能导致调查中断。因此，事件设计需平衡信息密度与存储成本，确保捕获所有对后期调试有价值的细节。</p>
+<h2 id="section-14">检验理解</h2>
+<p><strong>情形</strong>：假设你正在调试一个电商系统的支付失败问题。系统提供了两种数据视图：视图A是每秒支付成功率的聚合指标；视图B是包含用户ID、支付网关响应时间、错误码和客户端版本的JSON结构化事件。</p>
+<p><strong>问题</strong>：如果支付失败率突然升高，但视图A显示整体成功率仍在阈值内，你应如何利用视图B区分是特定用户群体的问题还是全局性故障？请说明具体的查询思路。</p>
+<h3 id="section-15">核对思路（先作答再看）</h3>
+<p>首先，视图A的聚合性质可能掩盖局部异常。利用视图B的结构化特性，应执行高基数查询：按“用户ID”或“客户端版本”等维度切片，计算各子组的失败率。若发现仅“iOS 11.0.4”版本的用户失败率高，则定位为特定版本兼容性问题；若所有版本均失败，则可能是支付网关全局故障。通过对比不同维度的事件属性，可精准定位根因，这是聚合指标无法做到的。</p>
+<h2 id="section-16">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 46-51。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：保持语气克制，避免使用模板化连接词。</li>
+<li>边界：确保每个章节的字数限制在指定范围内。</li>
+<li>阅读连接：有了能保留上下文的事件，下一章继续说明怎样用父子关系把事件拼成一条请求链。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../04-devops-sre-cloud-native/index.html">上一篇 · 可观测性与DevOps、SRE和云原生的关联</a><a href="../06-traces/index.html">下一篇 · 将事件拼接成链路</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

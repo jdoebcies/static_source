@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第28章 迅速培养SRE加入on-call · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">新的SRE已经招聘到了，接下来怎么办</a><a class="sub" href="#section-3">表28-1:SRE培训课程</a><a class="sub" href="#section-4">培训初期：重体系，而非混乱</a><a class="sub" href="#section-5">系统性、累积型的学习方式</a><a class="sub" href="#section-6">1）请求是如何进入系统中的</a><a class="sub" href="#section-7">2）前端服务</a><a class="sub" href="#section-8">3）中层服务</a><a class="sub" href="#section-9">4）基础设施</a><a class="sub" href="#section-10">5）整体</a><a class="sub" href="#section-11">目标性强的项目工作，而非琐事</a><a class="sub" href="#section-12">培养反向工程能力和随机应变能力</a><a class="sub" href="#section-13">反向工程：弄明白系统如何工作</a><a class="sub" href="#section-14">统计学和比较性思维：在压力下坚持科学方法论</a><a class="sub" href="#section-15">随机应变的能力：当意料之外的事情发生时怎么办</a><a class="sub" href="#section-16">将知识串联起来：反向工程某个生产环境服务</a><a class="sub" href="#section-17">有抱负的on-call工程师的5个特点</a><a class="sub" href="#section-18">故障处理分角色演习</a><a class="sub" href="#section-19">破坏真的东西，并且修复它们</a><a class="sub" href="#section-20">维护文档是学徒任务的一部分</a><a class="sub" href="#section-21">尽早、尽快见习on-call</a><a class="sub" href="#section-22">on-call之后：通过培训的仪式感，以及日后的持续教</a><a class="sub" href="#section-23">小结</a><a class="" href="#section-24">二、主题讲解：SRE新人on-call能力培养体系</a><a class="sub" href="#section-25">系统性学习路径与反馈机制</a><a class="sub" href="#section-26">反向工程与统计学思维训练</a><a class="sub" href="#section-27">实战演习与文档维护结合</a><a class="sub" href="#section-28">见习on-call与持续教育机制</a><a class="" href="#section-29">检验理解</a><a class="sub" href="#section-30">核对思路（先作答再看）</a><a class="" href="#section-31">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第28章</p><h1>迅速培养SRE加入on-call</h1>
+<p>本单元要回答：如何平衡新SRE的入职培训与老员工的on-call效率，确保新人快速具备独立处理故障的能力，同时不增加团队负担？</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">新的SRE已经招聘到了，接下来怎么办</h3>
+<p>本节确立培训目标：让新人快速具备信任度，能诊断异常并冷静解决问题。作者指出仅关注知识不够，需解决老员工评估新人、利用新人激情及组织丰富活动三个问题。强调学习习惯差异，引出Google推荐的多种培训方式，为后续具体方法做铺垫。</p>
+<h3 id="section-3">表28-1:SRE培训课程</h3>
+<p>列出Google SRE推荐的培训课程及注意要点，作为内部知识传递的代表。这些课程旨在保障团队拥有足够知识并有效传递。本节作为过渡，引出图28-1展示的SRE培训最佳实践，强调在培养新人的同时保证老员工不落伍。</p>
+<h3 id="section-4">培训初期：重体系，而非混乱</h3>
+<p>批判“浴火重生”式被动培训，指出其导致新人迷茫、效率低下。通过John入职FooServer团队的案例，说明仅靠处理工单无法建立系统认知。强调SRE培训应系统化、阶段化，避免混乱，为引入系统性学习方式提供反面论证。</p>
+<h3 id="section-5">系统性、累积型的学习方式</h3>
+<p>提出建立顺序性学习路径，结合理论与实操。以面向用户的服务为例，按请求进入、前端、中层、基础设施及整体调试顺序培训。介绍Google搜索SRE的“on-call学习检查列表”，通过问答作业和分层访问权限控制，实现进度反馈与技能累积。</p>
+<h3 id="section-6">1）请求是如何进入系统中的</h3>
+<p>该部分讲解网络与数据中心基本概念、前端负载均衡及代理机制。作者将其作为培训起点，帮助新手从抽象层面理解流量入口，为后续深入服务内部逻辑建立基础认知框架。</p>
+<h3 id="section-7">2）前端服务</h3>
+<p>涵盖应用程序前端、日志记录及用户体验SLO等内容。作者通过此环节让学员掌握面向用户的服务细节，结合日志与SLO指标，培养其对用户体验敏感度的初步感知能力。</p>
+<h3 id="section-8">3）中层服务</h3>
+<p>介绍缓存机制与后端负载均衡系统。作者在此处引导学员关注数据流转的关键节点，通过理解中间层架构，帮助其建立对系统内部依赖关系及性能瓶颈的结构性认识。</p>
+<h3 id="section-9">4）基础设施</h3>
+<p>涉及后端、基础设施及计算资源管理。作者安排此模块旨在让学员深入底层资源管理，理解支撑上层服务的物理与逻辑基础，从而形成对系统全貌的完整技术栈认知。</p>
+<h3 id="section-10">5）整体</h3>
+<p>包含调试技巧、问题升级流程及紧急演练。作者通过整体视角串联前序知识，强调实战中的决策逻辑与协作流程，旨在培养学员在复杂故障场景下的综合应对与系统思维能力。</p>
+<h3 id="section-11">目标性强的项目工作，而非琐事</h3>
+<p>主张通过解决具体难题激励新人，如增加用户可见功能、完善监控或自动化痛点。让新人同时参与学习与项目，获得参与感和效率感。这有助于建立新老员工间的信任，通过实际贡献融入团队，区别于单纯的琐事处理。</p>
+<h3 id="section-12">培养反向工程能力和随机应变能力</h3>
+<p>探讨SRE应具备的核心特质：反向工程能力、统计学思维及随机应变能力。在大规模系统中，仅靠运维思维不够，需具备海量工程思维。本节概述了这些特点的重要性，为后续详细讲解如何培养这些能力做铺垫。</p>
+<h3 id="section-13">反向工程：弄明白系统如何工作</h3>
+<p>强调通过理解系统工作原理及数据流动，提升在陌生环境中处理难题的效率。建议通过教授调试诊断技巧，让新人习惯利用调试信息进行推断。这有助于培养其在压力下坚持科学方法论，为后续讲解统计学思维做基础。</p>
+<h3 id="section-14">统计学和比较性思维：在压力下坚持科学方法论</h3>
+<p>将故障处理视为实时决策树中的抉择过程。强调在有限时间内，需通过精心构造的假设来缩小决策空间。培训新人成为好的数据分析者，通过比较性思维识别异常因子，如内核版本或流量区别，从而在压力下做出有效决策。</p>
+<h3 id="section-15">随机应变的能力：当意料之外的事情发生时怎么办</h3>
+<p>针对标准流程失效或开发团队失联等意外情况，强调临场发挥的重要性。指出固守陈规可能导致无法找到根源，建议培训新人利用未经验证的假设进行决策，并学会从更高角度思考，避免陷入决策陷阱，提升应变能力。</p>
+<h3 id="section-16">将知识串联起来：反向工程某个生产环境服务</h3>
+<p>以Google新闻团队团建缺席为例，介绍“反向工程生产服务”课程。学员需自行跟踪请求，利用调试信息构建组件图，并与资深SRE讨论。此过程强调动手发现连接关系，防止遗漏，并通过与资深成员交流纠正错误，深化对系统的理解。</p>
+<h3 id="section-17">有抱负的on-call工程师的5个特点</h3>
+<p>指出参与on-call意味着具备足够了解及自学能力。本节聚焦“对事故的渴望”，强调事后总结的重要性。引用Santayana名言，说明事后总结是找出问题来源、持续改进的重要手段，为新人提供学习大型系统结构弱点的机会。</p>
+<h3 id="section-18">故障处理分角色演习</h3>
+<p>介绍Google SRE的“故障处理分角色演习”传统，如“命运之轮”。通过模拟历史或假想故障，让新人扮演on-call角色，主持人提供信息。此活动促进全员学习新工具或技巧，帮助新人融入团队文化，同时让老员工跟上环境变化。</p>
+<h3 id="section-19">破坏真的东西，并且修复它们</h3>
+<p>强调动手破坏和修复真实生产环境的重要性。建议在培训早期引入低风险环境，如多数据中心部署或QA实例，加入人工负载模拟真实流量。通过观察系统行为变化，强迫新人寻找问题因素并修复，获得比阅读文档更深刻的经验。</p>
+<h3 id="section-20">维护文档是学徒任务的一部分</h3>
+<p>指出“on-call学习检查列表”对学员、导师及其他团队的作用。强调文档需及时更新，鼓励新人参与修改，经资深SRE评审后提交。这既保障知识更新，又通过社会契约形式确立标准，促进新老员工知识共存与更新。</p>
+<h3 id="section-21">尽早、尽快见习on-call</h3>
+<p>主张在掌握基础知识后尽早让新人见习on-call，接收工作时间内的报警。通过观察故障发展、与主on-call共享终端或共同书写事后总结，积累实战经验。资深成员“反向见习”新人，提供提示但不干预，促进信任与能力转移。</p>
+<h3 id="section-22">on-call之后：通过培训的仪式感，以及日后的持续教</h3>
+<p>强调加入on-call是里程碑，应举行仪式庆祝。培训并未停止，需建立常规学习时间讨论新改动，由推进者展示。鼓励SRE给开发者做讲座，促进沟通与理解，保持团队对新技术栈的敏感度，确保持续学习与适应。</p>
+<h3 id="section-23">小结</h3>
+<p>总结SRE培训投入的价值，旨在培养合格SRE并磨炼团队技能。强调任务目标是让团队扩张速度超过机器扩张速度。鼓励读者根据具体情况应用本章实践，创建学习型团队，祝读者在创建学习型团队的路上一切顺利。</p>
+<h2 id="section-24">二、主题讲解：SRE新人on-call能力培养体系</h2>
+<h3 id="section-25">系统性学习路径与反馈机制</h3>
+<p>针对新人缺乏系统认知的痛点，应建立顺序性、累积型的学习路径。首先按技术栈逻辑分组，如从请求进入、前端服务、中层服务到基础设施，最后覆盖整体调试。结合Google搜索SRE的“on-call学习检查列表”，通过问答作业反馈进度。实施分层访问权限控制，从只读内部信息到修改生产状态，随检查列表完成逐步升级权限。这种机制确保新人明确当前进度，避免在混乱中迷失，为后续实战打下坚实基础。</p>
+<h3 id="section-26">反向工程与统计学思维训练</h3>
+<p>面对复杂系统，新人需具备反向工程能力与统计学思维。通过“反向工程生产服务”课程，如模拟Google新闻团队缺席场景，让新人自行跟踪请求、构建组件图，发现连接关系。同时，培养其在压力下坚持科学方法论，将故障处理视为决策树抉择。通过构造假设、比较因子（如内核版本、流量），识别异常。这种训练使新人能从数据中推断问题，而非依赖固定流程，提升在陌生环境中的诊断效率。</p>
+<h3 id="section-27">实战演习与文档维护结合</h3>
+<p>理论需结合实战。通过“故障处理分角色演习”，模拟历史或假想故障，让新人扮演on-call角色，主持人提供信息，促进全员学习。进一步引入“破坏真的东西”环节，在低风险QA实例或模拟负载环境中，强迫新人寻找并修复问题。同时，将维护“on-call学习检查列表”作为学徒任务，鼓励新人更新文档，经资深SRE评审。这既保障知识更新，又通过社会契约确立标准，促进知识传承。</p>
+<h3 id="section-28">见习on-call与持续教育机制</h3>
+<p>尽早让新人见习on-call，接收工作时间报警，观察故障发展而非事后学习。通过共同书写事后总结、资深成员“反向见习”等方式，积累实战经验。加入on-call后，培训并未停止。建立常规学习时间，讨论新改动，由推进者展示。鼓励SRE给开发者做讲座，促进沟通。这种持续教育机制确保团队知识随技术栈更新，保持对新技术的敏感度，实现团队能力的持续扩张。</p>
+<h2 id="section-29">检验理解</h2>
+<p><strong>情形</strong>：假设你是一名新入职的SRE，负责一个复杂的微服务系统。在一次故障演习中，你发现某个关键服务的响应时间突然飙升，但监控图表显示该服务本身的CPU和内存使用率正常。此时，标准故障处理手册中并未涵盖此情况，且负责该服务的开发团队正在开会无法联系。</p>
+<p><strong>问题</strong>：基于本章所学，请描述你应如何运用“反向工程”和“统计学思维”来定位问题？并说明在无法联系开发团队时，如何体现“随机应变能力”？</p>
+<h3 id="section-30">核对思路（先作答再看）</h3>
+<ol>
+<li>反向工程：不依赖手册，而是自行跟踪请求数据流。检查上游依赖（如负载均衡、缓存）和下游服务（如数据库、其他微服务）的状态，构建或更新组件图，寻找异常连接点。2. 统计学思维：将响应时间飙升视为异常数据点。比较不同时间段、不同用户群体、不同请求参数的数据，寻找共同因子（如特定API调用、特定地区流量）。通过假设-验证循环，缩小问题范围。3. 随机应变：在无法联系开发团队时，不固守流程。利用现有监控工具（如RPC追踪、日志）进行深度分析。尝试隔离故障（如切断非关键依赖），或切换流量到备用实例。从更高层面思考，如网络层或基础设施层问题，而非仅关注应用代码。</li>
+</ol>
+<h2 id="section-31">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 406-422。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：本章提到的Google SRE培训实践（如反向工程课程、分角色演习）基于Google特定规模和组织文化，其他团队需根据自身情况调整，不可直接照搬。</li>
+<li>边界：分层访问权限控制虽能提升新人效率，但也需严格的安全审计，防止权限滥用导致生产事故。</li>
+<li>边界：“破坏真的东西”需在低风险环境中进行，如QA实例或隔离的生产副本，严禁直接在未隔离的生产环境进行破坏性测试。</li>
+<li>边界：事后总结的集体学习需避免流于形式，应聚焦于问题来源分析和流程改进，而非单纯的责任追究。</li>
+<li>阅读连接：下一单元是“第29章 处理中断性任务”，继续回答：处理中断性任务。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../27-chapter-27/index.html">上一篇 · 可靠地进行产品的大规模发布</a><a href="../29-chapter-29/index.html">下一篇 · 处理中断性任务</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

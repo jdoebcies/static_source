@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第10章 在团队中应用可观测性实践 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">10.1 参与社区</a><a class="sub" href="#section-3">10.2 从最大的痛点着手</a><a class="sub" href="#section-4">10.3 购买代替自建</a><a class="sub" href="#section-5">10.4 反复完善你的探针</a><a class="sub" href="#section-6">10.5 温和改进，积极复用</a><a class="sub" href="#section-7">10.6 全力冲刺</a><a class="sub" href="#section-8">10.7 结论</a><a class="" href="#section-9">二、主题讲解：可观测性落地的策略与执行</a><a class="sub" href="#section-10">从痛点切入的价值证明机制</a><a class="sub" href="#section-11">工具选型与OpenTelemetry的战略意义</a><a class="sub" href="#section-12">探针迭代与数据复用的渐进策略</a><a class="sub" href="#section-13">项目冲刺与通用化抽象的闭环管理</a><a class="" href="#section-14">检验理解</a><a class="sub" href="#section-15">核对思路（先作答再看）</a><a class="" href="#section-16">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第10章</p><h1>在团队中应用可观测性实践</h1>
+<p>本章要回答：团队应从哪里开始采用可观测性，怎样控制成本并逐步扩大使用。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 80 1040 420" role="img" aria-label="生产反馈进入开发循环，可靠性才不只属于值班人员">
+      <defs>
+        <marker id="10-team-practice-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="10-team-practice-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="10-team-practice-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1040" height="560" fill="#f5f5f5"/>
+      <line x1="216" y1="260" x2="248" y2="260" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow)"/><rect x="224" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="236" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">提交</text><line x1="400" y1="260" x2="432" y2="260" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow)"/><rect x="408" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="420" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">交付</text><line x1="584" y1="260" x2="616" y2="260" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow)"/><rect x="592" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="604" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">发布</text><line x1="768" y1="260" x2="800" y2="260" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow)"/><rect x="776" y="244" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="788" y="258" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">衡量</text><line x1="880" y1="300" x2="880" y2="432" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow-accent)"/><rect x="868" y="352" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="880" y="366" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">调查</text><line x1="808" y1="440" x2="592" y2="440" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow-accent)"/><rect x="684" y="424" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="696" y="438" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">反馈</text><line x1="440" y1="440" x2="152" y2="440" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow-link)"/><rect x="280" y="424" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="292" y="438" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">左移</text><line x1="144" y1="440" x2="144" y2="308" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#10-team-practice-0-arrow-link)"/><rect x="132" y="352" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="144" y="366" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">改进</text><rect x="72" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="144" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">设计与编码</text><text x="144" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">定义有用字段</text><rect x="256" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="328" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">测试与 CI/CD</text><text x="328" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">观察供应链</text><rect x="440" y="220" width="144" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="512" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">渐进式发布</text><text x="512" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">限制影响面</text><rect x="624" y="220" width="144" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="696" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">生产运行</text><text x="696" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">用户体验</text><rect x="808" y="220" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="880" y="252" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">SLO 与告警</text><text x="880" y="268" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">触发调查</text><rect x="440" y="404" width="144" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="512" y="432" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">调查与复盘</text><text x="512" y="448" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">改代码 / 改实践</text>
+    </svg></button><small>点击放大配图</small></figure><p class="caption">图10-1｜把生产证据带回开发与交付</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">10.1 参与社区</h3>
+<p>本节指出可观测性作为新兴实践，加入志同道合社区是快速学习与建立人脉的最佳途径。作者强调社区不仅能提供双向帮助，还能揭示行业发展方向。建议通过CNCF技术咨询小组、Slack群组及Twitter等渠道积极参与，并在求助前先贡献价值。这为后续从具体痛点切入奠定了外部支持与知识基础。</p>
+<h3 id="section-3">10.2 从最大的痛点着手</h3>
+<p>作者反对从小型服务入手，主张从棘手痛点切入以快速证明价值。通过解决不稳定服务或数据库阻塞等难题，能激发团队好奇心并争取决策者支持。建议通过展示解决方案和分享文档来推动采用。这种高价值展示策略为后续选择具体工具提供了紧迫性和必要性依据。</p>
+<h3 id="section-4">10.3 购买代替自建</h3>
+<p>本节论证了购买商用方案优于自建的理由，旨在最小化投入以快速证明ROI。作者指出开源工具如Prometheus、ELK和Jaeger各有局限，难以单独提供完整可观测性。推荐使用OpenTelemetry进行探测以避免供应商锁定，并强调需验证工具是否具备高维度调试能力，而非仅具备传统监控功能。</p>
+<h3 id="section-5">10.4 反复完善你的探针</h3>
+<p>作者强调探针需个性化定制，建议从困难服务试点开始，将最佳实践推广至团队。通过值班工程师使用新工具调试问题，能直观感受其高效性。随着探针成长，需引入命名约定以规范数据。这一迭代过程为后续温和改进和复用现有数据流提供了操作基础。</p>
+<h3 id="section-6">10.5 温和改进，积极复用</h3>
+<p>本节针对沉没成本谬误，建议抓住机会将现有数据流整合至可观测性工具。通过复用ELK、结构化日志或APM数据，降低用户适应门槛。混合使用新旧工具可帮助团队在熟悉环境中探索新价值，避免从零开始的阻力。这种渐进式整合策略为最终全力冲刺完成项目做好了铺垫。</p>
+<h3 id="section-7">10.6 全力冲刺</h3>
+<p>作者指出解决痛点后需制定计划完成剩余工作，避免项目长期未完成。建议设立里程碑如黑客马拉松来推动全员参与，并通过创建通用代码库实现可观测性抽象，避免重复造轮子。这一冲刺策略旨在将方案转化为团队首选，确保项目闭环并为后续章节关于驱动开发的讨论奠定基础。</p>
+<h3 id="section-8">10.7 结论</h3>
+<p>本节总结可观测性实施需结合团队具体情况，强调参与社区、解决痛点、快速迭代及避免虎头蛇尾的重要性。通过展示高价值ROI和持续改进，帮助团队开阔视野。结论指出本章技巧旨在启动旅程，后续章节将深入探讨可观测性如何驱动开发，彻底改变传统编码观念。</p>
+<h2 id="section-9">二、主题讲解：可观测性落地的策略与执行</h2>
+<h3 id="section-10">从痛点切入的价值证明机制</h3>
+<p>在团队中引入可观测性时，最大的障碍往往不是技术难度，而是如何证明其价值。作者建议从最大的痛点着手，例如解决长期困扰团队的不稳定服务或数据库阻塞问题。这种策略的核心在于通过解决高难度问题来快速展示可观测性的能力，从而获得管理层和团队的支持。相比之下，从小型服务入手难以体现可观测性在复杂调试中的优势。通过解决棘手问题，团队能直观看到可观测性在发现未知问题上的价值，进而激发好奇心并推动更广泛的采用。这一机制强调了在实施初期，价值证明比技术完美性更为关键。</p>
+<h3 id="section-11">工具选型与OpenTelemetry的战略意义</h3>
+<p>在工具选型上，作者主张购买商用解决方案而非自建，以快速证明投资回报。自建方案往往需要大量精力且难以满足完整可观测性需求，而开源工具如Prometheus、ELK和Jaeger各有局限，无法单独提供高维度调试能力。OpenTelemetry（OTel）被推荐为关键中间层，它允许应用程序独立于具体后端进行探测，从而避免供应商锁定。这种策略使得团队可以灵活尝试多种解决方案，选择最能满足需求的工具。OTel的前期少量投资将在后续工具评估中带来最大投入产出比，确保最终方案具备真正的可观测性而非仅是传统监控。</p>
+<h3 id="section-12">探针迭代与数据复用的渐进策略</h3>
+<p>探针的完善是一个迭代过程，需结合团队最佳实践进行个性化定制。作者建议从困难服务试点开始，将成功经验推广至团队，并通过值班工程师的实际使用来验证其高效性。随着探针的成熟，需引入命名约定以规范数据。在推进过程中，应温和改进并积极复用现有数据流，如将ELK日志或结构化日志整合至可观测性工具。这种策略降低了用户适应门槛，通过混合新旧工具帮助团队在熟悉环境中探索新价值。渐进式整合避免了从零开始的阻力，使可观测性更容易被团队接受和采用。</p>
+<h3 id="section-13">项目冲刺与通用化抽象的闭环管理</h3>
+<p>在解决主要痛点后，团队需制定全力冲刺计划以完成剩余工作，避免项目长期未完成。作者建议设立里程碑如黑客马拉松来推动全员参与，并通过创建通用代码库实现可观测性抽象，避免重复造轮子。这一策略旨在将方案转化为团队首选，确保项目闭环。通过抽象总结，可观测性变得更加通用化，便于在其他应用程序中复用。这种闭环管理不仅提升了团队士气，还为后续章节探讨可观测性如何驱动开发奠定了坚实基础，确保技术实践能持续产生价值。</p>
+<h2 id="section-14">检验理解</h2>
+<p><strong>情形</strong>：假设你所在团队已初步引入可观测性工具，但部分老员工因习惯传统监控仪表盘而抵触新工具，且团队面临多个非核心服务的简单故障，缺乏展示高价值的机会。</p>
+<p><strong>问题</strong>：基于本章策略，你应如何调整实施重点以克服阻力并证明价值？</p>
+<h3 id="section-15">核对思路（先作答再看）</h3>
+<p>首先，应避免从简单故障入手，转而寻找团队中最大的痛点（如不稳定服务）进行调试，以快速展示可观测性在复杂问题排查中的价值，从而争取支持。其次，针对老员工的抵触，可采用温和改进策略，复用现有数据流（如将传统日志整合至新工具），降低适应门槛。最后，通过试点团队的成功案例推广最佳实践，并在项目后期设立冲刺里程碑，确保项目闭环，避免虎头蛇尾。</p>
+<h2 id="section-16">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 82-86。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：未提供具体工具性能数据。</li>
+<li>边界：未提供具体ROI数值。</li>
+<li>边界：未提供具体社区成员数量。</li>
+<li>阅读连接：采用路径确定后，第十一章把可观测性放进开发、测试、发布和生产反馈。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../09-monitoring-and-observability/index.html">上一篇 · 可观测性和监控的融合</a><a href="../11-observability-driven-development/index.html">下一篇 · 可观测性驱动开发</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

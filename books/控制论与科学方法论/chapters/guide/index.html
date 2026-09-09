@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《控制论与科学方法论》｜书镜 V8.2 导航 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>控制论与科学方法论 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：序言与全书路线</a><a class="sub" href="#section-2">原书未分小节：写作位置与阅读边界</a><a class="" href="#section-3">二、主题讲解：怎样使用这套书镜</a><a class="" href="#section-4">检验理解</a><a class="" href="#section-5">来源、范围与阅读连接</a><a class="" href="#section-6">章节入口</a></details></aside>
+<main><p class="chapter-label">全书导读</p><h1>序言与全书路线</h1>
+<p>这套书镜面向：不要求高等数学背景；目标是把控制、信息、系统、质变和认识论连成一套可用于判断的语言。</p>
+<h2 id="section-1">一、原书回顾：序言与全书路线</h2>
+<h3 id="section-2">原书未分小节：写作位置与阅读边界</h3>
+<p>2025年版序言回看了本书从20世纪70年代讲义、1983年出版到2025年重版的路径；1988年台湾版序说明书中若干概念包含作者自己的构造；1983年版序用聚合反应釜案例交代写作起点，并明确本书只从方法论角度介绍控制论，不能替代控制论全貌。</p>
+<p>原书的推进路线如下：</p>
+<ul>
+<li><strong>第一章｜控制和反馈</strong>：从可能性空间出发，说明选择、控制能力和反馈。</li>
+<li><strong>第二章｜信息、思维和组织</strong>：说明知道、传递、滤波、储存、加工与组织怎样相连。</li>
+<li><strong>第三章｜系统及其演化</strong>：从相对孤立系统走向稳态、振荡、崩溃与自组织。</li>
+<li><strong>第四章｜质变的数学模型</strong>：用稳态与突变模型区分飞跃、渐变及其条件。</li>
+<li><strong>第五章｜黑箱认识论</strong>：把认识写成可控制输入、可观察输出与模型修正的反馈过程。</li>
+<li><strong>附录｜关于12个乒乓球问题</strong>：用可能性空间和选择率检查称量策略的上限。</li>
+</ul>
+<h2 id="section-3">二、主题讲解：怎样使用这套书镜</h2>
+<p>先读每章的“原书回顾”，核对作者怎样从问题走到结论；再读“主题讲解”，把同章材料按理解顺序重新走一遍。遇到作者的历史判断、行业主张或跨领域类比时，以“作者观点”阅读，不把它自动当作今天仍成立的事实。</p>
+<p>阅读时可以一直追问三个问题：当前对象有哪些可能状态？我们能观察和控制什么？一次行动后的信息，怎样改变下一次选择？《可观测性工程》中的事件、trace、SLO与核心分析循环，也可以放回这三个问题下理解。</p>
+<h2 id="section-4">检验理解</h2>
+<p>拿一个你熟悉的生产问题，写出它的可能状态、现有可观察变量、现有可控制变量，以及一次调查如何改变下一次查询。如果只能列工具名，说明还没有把书中的方法用起来。</p>
+<h2 id="section-5">来源、范围与阅读连接</h2>
+<ul>
+<li>书名：控制论与科学方法论</li>
+<li>作者/译者：金观涛、华国凡</li>
+<li>版本：广东人民出版社，2025年3月第1版，2025年5月第4次印刷</li>
+<li>源文件：<code>控制论与科学方法论扫描版带完整目录_金观涛_美_华国凡_z_library_sk,_1lib_sk,_z_lib.pdf</code></li>
+<li>源文件 SHA-256：<code>d7e36856c845f065d60b2a5eba593b5b2a6b834f329091143bdc8218c52f469f</code></li>
+<li>物理页数：241页</li>
+<li>正文血缘：<code>fresh_from_source</code>；旧产物只用于查重、覆盖检查和回归比较。</li>
+</ul>
+<h2 id="section-6">章节入口</h2>
+<ul>
+<li><a href="https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/452fc6e3-8c21-42a2-b86a-c699142d5f56">第一章 控制和反馈</a></li>
+<li><a href="https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/523e5c40-b4ce-4beb-bdb5-c0f84bf9d969">第二章 信息、思维和组织</a></li>
+<li><a href="https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/5dbcf944-4669-4adb-954c-1d1fa752deea">第三章 系统及其演化</a></li>
+<li><a href="https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/3ef40620-8636-4480-8190-269218c0180a">第四章 质变的数学模型</a></li>
+<li><a href="https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/58079f2f-b925-4555-bd50-930e5b4c17da">第五章 黑箱认识论</a></li>
+<li><a href="https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/b15aa4a1-d080-42d5-989f-21717302952a">附录 关于12个乒乓球问题</a></li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><span></span><a href="../01-control-feedback/index.html">下一篇 · 控制和反馈</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

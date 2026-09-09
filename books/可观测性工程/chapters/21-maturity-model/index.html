@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第21章 可观测性成熟度模型 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">21.1 关于成熟度模型的说明</a><a class="sub" href="#section-3">21.2 为什么可观测性需要成熟度模型</a><a class="sub" href="#section-4">21.3 关于可观测性成熟度模型</a><a class="sub" href="#section-5">21.4 可观测性成熟度模型中的能力参考</a><a class="sub" href="#section-6">21.4.1 用弹性应对系统故障</a><a class="sub" href="#section-7">21.4.2 交付高质量代码</a><a class="sub" href="#section-8">21.4.3 管理复杂性和技术债务</a><a class="sub" href="#section-9">21.4.4 以可预测的节奏发布</a><a class="sub" href="#section-10">21.4.5 理解用户行为</a><a class="sub" href="#section-11">21.5 在你的组织中使用可观测性成熟度模型</a><a class="sub" href="#section-12">21.6 结论</a><a class="" href="#section-13">二、主题讲解：可观测性成熟度模型的核心能力解析</a><a class="sub" href="#section-14">弹性与故障响应的社会技术平衡</a><a class="sub" href="#section-15">代码质量的生产环境验证机制</a><a class="sub" href="#section-16">技术债务管理的可观测性驱动</a><a class="sub" href="#section-17">发布节奏与用户行为理解的闭环</a><a class="" href="#section-18">检验理解</a><a class="sub" href="#section-19">核对思路（先作答再看）</a><a class="" href="#section-20">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第21章</p><h1>可观测性成熟度模型</h1>
+<p>本章要回答：怎样用成熟度模型定位当前能力并选择下一项可观察改进。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">21.1 关于成熟度模型的说明</h3>
+<p>本节回顾CMM起源，指出成熟度模型虽能辅助评估与对标，但并非完美静态标准。作者强调实践是动态发展的，模型存在局限性且带有作者偏见，不能通用评分。读者需批判性权衡自身需求，将模型视为起点而非终点，通过测试假设来构建适合组织的路径。这为后续引入针对可观测性的特定模型奠定了方法论基础。</p>
+<h3 id="section-3">21.2 为什么可观测性需要成熟度模型</h3>
+<p>作者指出工程知识常依赖非正式传承，导致文化隔阂。通过对比采用与未采用可观测性的团队，发现前者在软件质量信心上是后者的三倍，且后者花费过半时间于非创新工作。模型旨在量化这些社会技术趋势，帮助团队识别病态模式，将分散的功能联系为面向结果的目标，从而解决仅靠个人努力无法克服的系统性问题。</p>
+<h3 id="section-4">21.3 关于可观测性成熟度模型</h3>
+<p>本节确立OMM的核心目标：可持续系统与工程师生活质量，以及满足业务需求的客户满意度。作者强调可观测性是技术与社会因素的结合，工具质量影响团队安全感。模型提供结构化工具，帮助组织定位现状并设定目标，强调可观测性不仅是技术属性，更是改善运维效率、降低倦怠、提升员工稳定性的社会技术问题。</p>
+<h3 id="section-5">21.4 可观测性成熟度模型中的能力参考</h3>
+<p>本节列出影响可观测性实践质量的关键能力，指出执行路径无固定顺序，需根据业务影响判断优先级。作者强调建立这些能力是持续改进的过程，直至成为组织肌肉记忆。通过参考Liz Fong-Jones的文章，引导读者关注卓越生产原则，并提醒团队需及时评估每一步对业务的影响，而非仅关注技术实现。</p>
+<h3 id="section-6">21.4.1 用弹性应对系统故障</h3>
+<p>本节定义弹性为快速恢复服务并最小化用户影响的能力，涵盖技术成果与社会成果。通过DORA报告数据，指出精英团队MTTR小于一小时。作者强调需衡量检测、缓解及根本解决的时间，同时关注值班人员的压力与稳定性。良好的弹性表现为告警有效、压力可控；反之则导致疲劳、响应缓慢及士气低落，需通过丰富上下文和共享数据来改善。</p>
+<h3 id="section-7">21.4.2 交付高质量代码</h3>
+<p>作者指出代码质量需通过生产环境中的可运维性衡量，而非仅靠测试套件。高质量代码表现为生产错误少、部署后专注客户解决方案、调试直观且故障孤立。反之，高支持成本、长时间修复及部署恐惧是负面信号。可观测性通过提供端到端追踪和上下文，使工程师能轻松验证修复效果，在问题可见前发现并解决漏洞，确保代码适应业务变化。</p>
+<h3 id="section-8">21.4.3 管理复杂性和技术债务</h3>
+<p>本节探讨技术债务的双面性，指出若缺乏具体计划，短期收益会导致长期成本激增。良好管理表现为工程师聚焦核心业务，被动工作占比小，无需寻找代码变更位置。负面情况包括边缘案例导致重建、连锁反应及“闹鬼的墓地”效应。可观测性通过提供系统性能视图和线索追踪，帮助工程师精准定位瓶颈，避免随机猜测，从而有效管理复杂性。</p>
+<h3 id="section-9">21.4.4 以可预测的节奏发布</h3>
+<p>作者强调发布节奏需满足客户需求，CI/CD仅是基础。良好发布表现为节奏符合预期、代码快速投产、支持特性开关及快速回滚。负面情况包括发布不频繁、大量更改堆积及部署犹豫。可观测性通过监控构建流水线、验证新功能影响及分析错误维度，提供发布信心，确保部署平滑，使团队能按可预测节奏交付价值，避免干扰生活质量。</p>
+<h3 id="section-10">21.4.5 理解用户行为</h3>
+<p>本节强调了解软件对用户影响的重要性，关乎产品市场契合度。良好实践表现为探针易添加、KPI可视化、支持快速迭代及产品经理获得有用视图。负面情况包括缺乏数据支撑决策、开发人员感到无影响及反馈滞后。可观测性通过提供事件驱动的数据可见性，鼓励开放式问题，使产品经理能调查变更如何满足业务目标，实现真正迭代。</p>
+<h3 id="section-11">21.5 在你的组织中使用可观测性成熟度模型</h3>
+<p>本节指导如何将OMM作为审查工具，优先处理影响业务瓶颈的能力。作者建议使用Wardley mapping理解能力间的依赖关系，并明确改进负责人的职责与所有权。强调需高管赞助以打破孤岛，确保资源投入。通过形成以结果为导向的检测方式，组织能确定推进路径，避免依赖少数关键人物，从而实现整体高绩效状态的成熟。</p>
+<h3 id="section-12">21.6 结论</h3>
+<p>结论总结OMM为衡量期望结果的起点，列出五大关键能力：弹性应对故障、交付高质量代码、管理技术债务、可预测发布节奏及理解用户行为。作者重申模型是基于定性趋势与定量分析的快照，将随行业普及而发展。强调走向成熟的路径对每个组织独一无二，本章内容为创建可行方法提供了基础，引导读者进入下一章的额外提示。</p>
+<h2 id="section-13">二、主题讲解：可观测性成熟度模型的核心能力解析</h2>
+<h3 id="section-14">弹性与故障响应的社会技术平衡</h3>
+<p>弹性同时包括系统恢复速度和团队应对压力的能力。复杂系统的故障响应既有技术修复，也有社会协作。只看MTTR会漏掉值班负荷、告警质量和交接成本；具体指标仍要根据业务目标和团队条件确定。</p>
+<h3 id="section-15">代码质量的生产环境验证机制</h3>
+<p>测试覆盖和生产可运维性回答不同问题。测试在受控条件下检查已定义行为；生产遥测帮助观察真实流量、依赖和长尾状态。端到端追踪与上下文字段可以补充测试证据，但不能保证在用户受影响前发现所有缺陷，也不可能回答没有采集到的信息。</p>
+<h3 id="section-16">技术债务管理的可观测性驱动</h3>
+<p>技术债务管理依赖对系统复杂性的可视化理解。可观测性通过提供端到端性能视图，帮助工程师精准定位瓶颈，避免随机猜测导致的连锁反应。机制包括线索追踪、性能分析及代码变更影响评估。这使团队能区分短期收益与长期成本，优先处理高影响债务。限制在于，若缺乏清晰的目标导向，可观测数据可能泛滥，反而增加认知负担，需结合业务目标筛选关键指标。</p>
+<h3 id="section-17">发布节奏与用户行为理解的闭环</h3>
+<p>可预测发布节奏与用户行为理解相互依存。发布节奏需通过可观测性验证构建质量与新功能影响，确保平滑部署。用户行为理解则依赖探针数据与KPI可视化，支持快速迭代。机制包括特性开关、错误维度分析及事件驱动数据分析。这使团队能验证产品市场契合度，调整功能方向。限制在于，数据获取需平衡隐私与可见性，且需确保数据能直接关联业务目标，否则难以指导决策。</p>
+<h2 id="section-18">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个微服务架构的电商平台，近期频繁出现支付超时故障，且产品经理抱怨无法获取用户支付失败的具体原因数据。团队目前仅依赖基础监控告警，MTTR较长，且开发人员因频繁救火而士气低落。</p>
+<p><strong>问题</strong>：基于可观测性成熟度模型，分析当前团队在“弹性”、“代码质量”和“用户行为理解”三个能力维度上的具体缺失表现，并推演引入可观测性实践后，如何逐步改善这些状况？请说明推理步骤。</p>
+<h3 id="section-19">核对思路（先作答再看）</h3>
+<p>现象分别提示三类缺口，但还不能直接确定原因：MTTR长可能来自告警、职责或数据上下文；支付超时需要链路证据区分代码、依赖与容量；缺少失败原因则要检查事件字段、采样和查询权限。可以先选一个高频支付问题补充端到端关联字段，记录调查时间和用户影响，再决定是否扩展告警与产品分析。成熟度模型提供排查方向，不替代逐项验证。</p>
+<h2 id="section-20">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 189-196。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：原书未提供具体实施OMM的详细步骤，仅给出框架和原则。</li>
+<li>边界：原书未提供具体行业数据，仅引用DORA报告等通用标准。</li>
+<li>边界：原书未证明OMM适用于所有类型组织，强调需批判性应用。</li>
+<li>阅读连接：成熟度模型给出能力坐标；第二十二章回看定义的变化，并提出仍待验证的未来判断。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../20-stakeholders/index.html">上一篇 · 可观测性利益相关方和联盟</a><a href="../22-future/index.html">下一篇 · 未来发展趋势</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

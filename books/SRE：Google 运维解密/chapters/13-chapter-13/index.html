@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第13章 紧急事件响应 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">当系统出现问题时怎么办</a><a class="sub" href="#section-3">测试导致的紧急事故</a><a class="sub" href="#section-4">细节</a><a class="sub" href="#section-5">响应</a><a class="sub" href="#section-6">做得不好的地方</a><a class="sub" href="#section-7">变更部署带来的紧急事故</a><a class="sub" href="#section-8">事故响应</a><a class="sub" href="#section-9">我们从中学到的</a><a class="sub" href="#section-10">流程导致的严重事故</a><a class="sub" href="#section-11">灾难响应</a><a class="sub" href="#section-12">所有的问题都有解决方案</a><a class="sub" href="#section-13">向过去学习，而不是重复它</a><a class="sub" href="#section-14">为事故保留记录</a><a class="sub" href="#section-15">鼓励主动测试</a><a class="sub" href="#section-16">小结</a><a class="" href="#section-17">二、主题讲解：紧急事件响应机制与心态</a><a class="sub" href="#section-18">紧急响应的心态与流程</a><a class="sub" href="#section-19">测试与变更引发的事故应对</a><a class="sub" href="#section-20">自动化故障与事后学习</a><a class="" href="#section-21">检验理解</a><a class="sub" href="#section-22">核对思路（先作答再看）</a><a class="" href="#section-23">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第13章</p><h1>紧急事件响应</h1>
+<p>本单元要回答：怎样理解并使用“紧急事件响应”，以及它在什么条件下不适用。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">当系统出现问题时怎么办</h3>
+<p>本章开篇确立核心心态：系统故障是常态，关键在于冷静应对。作者强调避免惊慌，利用既定灾难应急流程，并在必要时扩大参与范围。这为后续通过具体案例展示如何在压力下保持秩序、调动资源奠定了基调，引出对具体事故类型的深入剖析。</p>
+<h3 id="section-3">测试导致的紧急事故</h3>
+<p>通过SRE主动破坏系统的案例，展示测试如何暴露依赖弱点。测试意外导致服务中断，团队迅速终止测试并回滚，最终在一小时内恢复。此案例引出对事故处理细节的复盘，说明即使计划周密，实际结果也可能偏离预期，需深入分析响应过程。</p>
+<h3 id="section-4">细节</h3>
+<p>详细描述测试目标为屏蔽特定数据库，却引发大规模服务不可用。SRE识别出测试关联，立即终止并尝试回滚。这一部分具体化了前文提到的“意外结果”，展示了从故障发生到初步识别原因的快速反应，为后续描述恢复手段和代码修复提供事实背景。</p>
+<h3 id="section-5">响应</h3>
+<p>描述SRE在回滚失败后，利用灾备系统恢复访问，并协同开发者修复代码。一小时后服务完全恢复。该段落展示了多手段并行的恢复策略，引出对此次事故中做得好与不好的地方进行结构化复盘，强调流程执行与工具测试的重要性。</p>
+<h3 id="section-6">做得不好的地方</h3>
+<p>指出对系统了解不足、未严格遵守刚建立的应急流程，以及未在测试环境验证回滚机制导致恢复延迟。这些教训促使SRE优化流程工具，并规定大型测试前必须验证回滚。这为后续讨论其他类型事故（如变更部署）提供了改进视角。</p>
+<h3 id="section-7">变更部署带来的紧急事故</h3>
+<p>转向配置文件变更引发的事故。新版配置触发Bug导致对外服务崩溃循环，进而影响内部应用。监控报警后，工程师进入安全屋，发布修正配置并回滚。此案例展示复杂基础设施中变更风险，引出对事故响应过程及事后总结的详细回顾。</p>
+<h3 id="section-8">事故响应</h3>
+<p>描述监控报警、工程师集结、配置回滚及后续服务逐步恢复的过程。部分服务因遗留问题延迟一小时恢复。该段落具体化了变更部署的风险，引出对响应过程中监控系统、通信系统及架构保护机制的得失分析，强调带外通信的重要性。</p>
+<h3 id="section-9">我们从中学到的</h3>
+<p>反思事故根源：特定关键词组合未充分测试，且变更风险被低估。事故促使提高部署测试优先级，并暴露监控系统重复报警干扰沟通的问题。这强调了严格测试和可靠通信的价值，自然过渡到下一类由自动化流程引发的严重事故。</p>
+<h3 id="section-10">流程导致的严重事故</h3>
+<p>讲述自动化测试中隐蔽Bug导致全球机器被加入磁盘销毁队列的事故。自动化效率过高反而加剧灾难。此案例展示自动化双刃剑效应，引出对灾难响应的详细描述，包括流量切换、工具停止及后续恢复挑战，强调手动干预的必要性。</p>
+<h3 id="section-11">灾难响应</h3>
+<p>描述工程师迅速将流量导向其他地区，停止自动化工具，并在三小时内重建首个数据中心。随后通过团队协作在三天内恢复大部分服务。该段落展示了在极端故障下的恢复流程，引出对事故中做得好与不好的地方进行复盘，特别是流量切换与恢复效率。</p>
+<h3 id="section-12">所有的问题都有解决方案</h3>
+<p>总结事故教训：自动化缺乏合理性检查，重装过程存在性能瓶颈。尽管恢复艰难，但通过提升优先级和修复代码，问题得以解决。这引出核心观点：所有问题都有解决方案，关键在于快速寻求帮助和聚焦解决，而非陷入恐慌。</p>
+<h3 id="section-13">向过去学习，而不是重复它</h3>
+<p>强调事后报告的重要性，要求诚实记录细节并提出关键问题，如“假如大楼断电”。通过模拟极端场景，检验应急计划的有效性。这为后续鼓励主动测试提供理论支撑，说明从历史中学习是避免重复错误的关键。</p>
+<h3 id="section-14">为事故保留记录</h3>
+<p>主张公开维护事后报告，确保全员学习，并切实完成待办事项以避免重复事故。通过记录失败模式，团队能更好地避免未来风险。这引出对主动测试的鼓励，强调理论与实践的差异，只有通过测试才能验证系统真实行为。</p>
+<h3 id="section-15">鼓励主动测试</h3>
+<p>指出理论无法替代实践，建议在可控环境下测试系统失败反应，而非在凌晨无人时遭遇故障。通过主动测试发现弱点，确保修改有效。这为章节小结做铺垫，总结三种事故类型的共同点：冷静响应、记录学习与主动测试。</p>
+<h3 id="section-16">小结</h3>
+<p>总结三种事故（测试、变更、自动化）的共同应对模式：冷静、求助、记录与学习。强调Google经验虽具特色，但其对待紧急事件的模式适用于各类组织。随着系统发展，事故与测试推动流程进步，最终实现更可靠的故障排除与系统加固。</p>
+<h2 id="section-17">二、主题讲解：紧急事件响应机制与心态</h2>
+<h3 id="section-18">紧急响应的心态与流程</h3>
+<p>面对系统故障，首要原则是保持冷静，避免惊慌失措。作者强调，无论组织规模多大，紧急事件的处理能力取决于平时的实战训练。当系统出现问题时，专业人员应依据既定的灾难应急流程行事，并在必要时扩大参与范围，寻求更多帮助。这种心态和流程的结合，确保了在压力下仍能有序调动资源，有效应对紧急情况，而非陷入混乱。</p>
+<h3 id="section-19">测试与变更引发的事故应对</h3>
+<p>主动测试和配置变更是常见的事故触发源。在测试导致的事故中，SRE需迅速识别测试关联，终止测试并尝试回滚，同时利用灾备系统恢复服务。在配置变更引发的事故中，监控报警后需迅速集结工程师，发布修正配置并回滚。这两种场景均强调快速识别问题、并行恢复手段以及事后对流程执行情况的复盘，以优化未来的应急响应。</p>
+<h3 id="section-20">自动化故障与事后学习</h3>
+<p>自动化系统的高效性在故障时可能加剧灾难，如自动化Bug导致全球机器被销毁。应对此类事故需迅速停止自动化工具，手动切换流量，并通过团队协作重建服务。事后，必须诚实记录事故细节，提出关键问题，如极端场景下的应对计划。通过公开维护事后报告和鼓励主动测试，团队能从历史中学习，避免重复错误，提升系统可靠性。</p>
+<h2 id="section-21">检验理解</h2>
+<p><strong>情形</strong>：假设你的系统在凌晨两点因配置变更导致服务中断，且监控报警频繁重复。请思考：此时你应如何调整沟通策略以避免信息过载？如果自动化工具无法停止，你将采取哪些手动步骤来最小化损失？结合本章内容，列出三条确保在类似场景中保持冷静并有效响应的具体行动。</p>
+<p><strong>问题</strong>：假设你的系统在凌晨两点因配置变更导致服务中断，且监控报警频繁重复。请思考：此时你应如何调整沟通策略以避免信息过载？如果自动化工具无法停止，你将采取哪些手动步骤来最小化损失？结合本章内容，列出三条确保在类似场景中保持冷静并有效响应的具体行动。</p>
+<h3 id="section-22">核对思路（先作答再看）</h3>
+<ol>
+<li>使用带外通信系统（如专线）进行关键沟通，避免在主要报警通道中产生垃圾信息干扰。2. 手动停止或暂停自动化工具，防止故障扩大，并手动切换流量至正常区域。3. 迅速集结更多团队成员，利用集体智慧寻找解决方案，并诚实记录事故细节以便事后复盘。</li>
+</ol>
+<h2 id="section-23">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 174-183。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：Google规模和组织实践属于书中经验，不自动写成所有团队的通则。</li>
+<li>阅读连接：下一单元是“第14章 紧急事故管理”，继续回答：怎样理解并使用“紧急事故管理”，以及它在什么条件下不适用。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../12-chapter-12/index.html">上一篇 · 有效的故障排查手段</a><a href="../14-chapter-14/index.html">下一篇 · 紧急事故管理</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

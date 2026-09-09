@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》附录E 发布协调检查列表 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">架构</a><a class="sub" href="#section-3">物理机与数据中心</a><a class="sub" href="#section-4">流量预估、容量以及性能</a><a class="sub" href="#section-5">系统可靠性与灾难恢复</a><a class="sub" href="#section-6">监控与服务器管理</a><a class="sub" href="#section-7">安全</a><a class="sub" href="#section-8">自动化与人工任务</a><a class="sub" href="#section-9">增长问题</a><a class="sub" href="#section-10">外部依赖</a><a class="sub" href="#section-11">发布时间与发布计划</a><a class="" href="#section-12">二、主题讲解：发布协调检查列表的核心逻辑</a><a class="sub" href="#section-13">架构与资源基线</a><a class="sub" href="#section-14">性能验证与可靠性设计</a><a class="sub" href="#section-15">监控、安全与自动化流程</a><a class="sub" href="#section-16">扩展性、外部依赖与发布计划</a><a class="" href="#section-17">检验理解</a><a class="sub" href="#section-18">核对思路（先作答再看）</a><a class="" href="#section-19">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">附录E</p><h1>发布协调检查列表</h1>
+<p>本单元要回答：发布协调检查列表。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">架构</h3>
+<p>本节确立发布前的基础架构认知，要求明确服务器类型及客户端请求特征，特别是编程性客户端的行为模式。这为后续物理资源评估提供边界条件，自然过渡到对物理机与数据中心具体规格的审查。</p>
+<h3 id="section-3">物理机与数据中心</h3>
+<p>本节聚焦基础设施的硬性指标，涵盖物理机数量、带宽、N+2冗余及网络QoS，并提及新域名与DNS负载均衡策略。这些资源细节是评估系统承载能力的前提，进而引出对流量预估与性能指标的深入分析。</p>
+<h3 id="section-4">流量预估、容量以及性能</h3>
+<p>本节强调发布时的峰值流量预测，包括HTTP带宽、流量组成及六个月趋势，并指出需进行压力测试与端到端测试，关注存储容量及对其它服务的影响。性能验证的结果直接关联到系统可靠性与灾难恢复能力的构建。</p>
+<h3 id="section-5">系统可靠性与灾难恢复</h3>
+<p>本节详述故障场景下的服务行为，包括物理机、机柜或集群故障，以及双数据中心网络中断。它进一步规定后端故障检测、服务器重启策略及负载均衡机制，确保在异常情况下数据备份与恢复流程的有效执行。</p>
+<h3 id="section-6">监控与服务器管理</h3>
+<p>本节关注运行时的可见性，要求监控内部状态、端到端行为及警报管理，同时强调监控监控系统本身。此外，涉及财务日志及集群运行技巧，警告避免代码引发邮件服务器崩溃，为后续安全审查提供运维视角的支持。</p>
+<h3 id="section-7">安全</h3>
+<p>本节涵盖安全设计评审、代码审查及SSL验证，特别指出垃圾邮件风险与发布前的访问控制及黑名单策略。安全措施的落实是发布流程合规性的关键，直接导向对自动化与人工任务执行规范的讨论。</p>
+<h3 id="section-8">自动化与人工任务</h3>
+<p>本节规范服务器、数据及配置文件的更新方式，强调变更管理的重要性。它详细阐述发布流程，包括可重复构建、金丝雀测试及分阶段发布策略，确保变更可控，从而为应对增长问题奠定流程基础。</p>
+<h3 id="section-9">增长问题</h3>
+<p>本节探讨系统扩展性，涉及空余容量、十倍增长预测及增长型警报。它分析扩展瓶颈、线性扩展能力与硬件同步性，并提及缓存与数据分片策略，这些扩展性考量直接影响对外部依赖管理的策略制定。</p>
+<h3 id="section-10">外部依赖</h3>
+<p>本节关注第三方系统、监控、网络条件及流量配比，强调优雅降级以避免对第三方服务造成过载。它要求与合作伙伴及内部服务良好对接，确保外部交互稳定，进而引出对发布时间与发布计划的具体安排。</p>
+<h3 id="section-11">发布时间与发布计划</h3>
+<p>本节确定不可改变的截止日期，考虑外部事件及星期几的影响。它规定服务标准运维流程及其他服务运维流程的协调，确保发布时机合理，完成从技术准备到执行计划的反馈链。</p>
+<h2 id="section-12">二、主题讲解：发布协调检查列表的核心逻辑</h2>
+<h3 id="section-13">架构与资源基线</h3>
+<p>发布协调始于对系统架构与物理资源的清晰定义。架构草图需明确服务器类型与客户端请求特征，特别是编程性客户端的行为模式，这决定了负载性质。物理机数量、带宽及N+2冗余配置构成了系统的硬性边界。DNS负载均衡与新域名策略则影响流量分发。若缺乏这些基线数据，后续的容量预估将失去依据，导致资源分配失衡或性能瓶颈无法提前识别。</p>
+<h3 id="section-14">性能验证与可靠性设计</h3>
+<p>流量预估需涵盖发布峰值及六个月趋势，通过压力测试与端到端测试验证系统极限。性能不仅关乎速度，更涉及对其他服务的影响及存储容量。可靠性设计则针对物理机、机柜或集群故障，以及双数据中心网络中断等场景。后端故障检测、服务器重启策略及负载均衡机制确保服务连续性。数据备份与恢复流程是灾难恢复的核心，防止数据丢失。</p>
+<h3 id="section-15">监控、安全与自动化流程</h3>
+<p>监控体系需覆盖内部状态、端到端行为及警报管理，并监控监控系统本身以防盲区。财务日志与集群运行技巧辅助运维决策，需避免代码引发邮件服务器崩溃等次生灾害。安全方面，设计评审、代码审查及SSL验证重要，发布前的访问控制与黑名单策略防范恶意访问。自动化与人工任务需规范变更管理，通过金丝雀测试与分阶段发布确保变更可控。</p>
+<h3 id="section-16">扩展性、外部依赖与发布计划</h3>
+<p>增长问题涉及空余容量、十倍增长预测及扩展瓶颈分析，线性扩展能力与硬件同步性决定系统弹性。缓存与数据分片策略应对数据增长。外部依赖管理需关注第三方系统、网络条件及流量配比，通过优雅降级避免对第三方造成过载。发布时间需考虑不可改变截止日期及外部事件，协调标准运维流程，确保发布时机合理，完成技术到执行的反馈链。</p>
+<h2 id="section-17">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个核心搜索服务的发布，该服务依赖一个第三方推荐引擎。发布前，你发现推荐引擎的API响应时间在过去一周内波动较大，且其SLA未包含发布期间的峰值保障。同时，你的服务架构中未明确编程性客户端的请求特征。</p>
+<p><strong>问题</strong>：基于发布协调检查列表的逻辑，分析此时应优先采取哪些行动？请说明理由，并指出若忽略这些步骤可能导致的连锁反应。</p>
+<h3 id="section-18">核对思路（先作答再看）</h3>
+<p>应优先暂停发布或重新评估架构基线。首先，未明确编程性客户端请求特征会导致流量预估失真，进而影响容量规划。其次，第三方推荐引擎响应波动且无峰值保障，违反外部依赖管理中的优雅降级原则，可能导致级联故障。应重新进行架构评审，明确客户端行为，并与第三方协商SLA或实施降级策略，同时加强监控与压力测试，确保可靠性。</p>
+<h2 id="section-19">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 508-510。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：Google规模和组织实践属于书中经验，不自动写成所有团队的通则。</li>
+<li>阅读连接：下一单元是“附录F 生产环境会议记录示范”，继续回答：生产环境会议记录的结构化复盘与价值转化。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../38-appendix-d/index.html">上一篇 · 事后总结示范</a><a href="../40-appendix-f/index.html">下一篇 · 生产环境会议记录示范</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

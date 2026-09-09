@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《控制论与科学方法论》第四章 质变的数学模型 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>控制论与科学方法论 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">4.1 哲学家和数学家共同的难题</a><a class="sub" href="#section-3">4.2 质变可以通过飞跃和渐变两种方式实现</a><a class="sub" href="#section-4">4.3 事物为什么具有确定的性质</a><a class="sub" href="#section-5">4.4 稳定机制：稳态结构的数学表达</a><a class="sub" href="#section-6">4.5 事物性质的不变、渐变和突变</a><a class="sub" href="#section-7">4.6 怎样判别飞跃</a><a class="sub" href="#section-8">4.7 飞跃和渐变的条件</a><a class="sub" href="#section-9">4.8 节点：蝴蝶、燕尾及其他</a><a class="sub" href="#section-10">4.9 矫枉必须过正吗</a><a class="sub" href="#section-11">4.10 极端共存</a><a class="sub" href="#section-12">4.11 共同的使命</a><a class="" href="#section-13">二、主题讲解：质变数学模型：稳态、突变与判别</a><a class="sub" href="#section-14">稳态结构与势函数洼</a><a class="sub" href="#section-15">飞跃与渐变的判别原则</a><a class="sub" href="#section-16">节点分布与极端共存</a><a class="" href="#section-17">检验理解</a><a class="sub" href="#section-18">核对思路（先作答再看）</a><a class="" href="#section-19">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第四章</p><h1>质变的数学模型</h1>
+<p>本章要回答：质变（系统结构演化）的数学模型是什么？质变是通过飞跃还是渐变实现？如何判别和解释这些现象？。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 80 1040 420" role="img" aria-label="飞跃还是渐变，要看中间状态能否稳定存在">
+      <defs>
+        <marker id="04-mathematical-model-of-qualitative-change-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="04-mathematical-model-of-qualitative-change-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="04-mathematical-model-of-qualitative-change-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1040" height="560" fill="#f5f5f5"/>
+      <line x1="248" y1="288" x2="316" y2="288" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#04-mathematical-model-of-qualitative-change-0-arrow)"/><rect x="264" y="272" width="40" height="20" rx="4" fill="#f5f5f5"/><text x="284" y="286" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">进入变化</text><line x1="500" y1="264" x2="580" y2="192" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#04-mathematical-model-of-qualitative-change-0-arrow)"/><rect x="532" y="208" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="544" y="222" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">是</text><line x1="500" y1="312" x2="580" y2="384" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#04-mathematical-model-of-qualitative-change-0-arrow-accent)"/><rect x="532" y="336" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="544" y="350" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">否</text><line x1="764" y1="168" x2="828" y2="168" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#04-mathematical-model-of-qualitative-change-0-arrow)"/><rect x="788" y="152" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="800" y="166" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">连续</text><line x1="764" y1="408" x2="828" y2="408" stroke="#eb6c36" stroke-width="1.6" marker-end="url(#04-mathematical-model-of-qualitative-change-0-arrow-accent)"/><rect x="788" y="392" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="800" y="406" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">突变</text><rect x="80" y="248" width="168" height="80" rx="24" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="164" y="280" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">控制变量改变</text><text x="164" y="296" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">稳定结构变形</text><polygon points="412,248 500,288 412,328 324,288" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="412" y="280" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">中间状态</text><text x="412" y="296" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">稳定吗？</text><rect x="588" y="128" width="176" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="676" y="160" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">稳定</text><text x="676" y="176" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">连续经过中间态</text><rect x="588" y="368" width="176" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="676" y="400" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">不稳定</text><text x="676" y="416" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">中间态无法停留</text><rect x="836" y="128" width="144" height="80" rx="24" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="908" y="160" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">渐变</text><text x="908" y="176" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">性质连续改变</text><rect x="836" y="368" width="144" height="80" rx="24" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="908" y="400" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">飞跃</text><text x="908" y="416" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">跳到另一稳态</text>
+    </svg></button><small>点击放大配图</small></figure><p class="caption">图4-1｜用中间状态的稳定性区分渐变与飞跃</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">4.1 哲学家和数学家共同的难题</h3>
+<p>本节指出质变是系统结构演化的核心环节，并回顾了哲学界关于质变方式的长期争论。作者梳理了“飞跃论”、“渐进论”及苏联学界的“两种飞跃论”，指出后者存在逻辑同语反复的缺陷。随后引出法国数学家托姆的突变理论，该理论通过数学推导证明，当条件变量少于4个时，自然界突变仅有7种基本方式，为研究质变提供了统一的数学模型。</p>
+<h3 id="section-3">4.2 质变可以通过飞跃和渐变两种方式实现</h3>
+<p>本节通过水的相变案例，论证质变既可通过飞跃也可通过渐变实现。作者利用尖点型突变模型，展示水在常压下加热至沸点发生沸腾（飞跃），而在绕过临界点时则通过连续变化的中间状态实现气液转化（渐变）。这打破了质变必须通过不连续飞跃的传统观念，强调质变方式依赖于具体的条件控制路径。</p>
+<h3 id="section-4">4.3 事物为什么具有确定的性质</h3>
+<p>本节探讨物质确定性质的来源，将其归结为系统的稳态结构。作者指出，在内外干扰下，只有满足稳定性条件的结构才能存在。质的稳定性包含三种含义：抵抗干扰保持状态不变、偏离后自动回归、以及自动趋向更稳定状态的总趋势。这一概念为后续用数学模型描述质变奠定了物理基础。</p>
+<h3 id="section-5">4.4 稳定机制：稳态结构的数学表达</h3>
+<p>本节将稳态结构转化为数学表达，引入势函数洼的概念。通过弹簧与电荷小球的对比实验，说明势函数曲线或曲面的洼底对应系统的稳态，洼越深越稳定。动态图箭头指向与势函数洼底一致，表明势函数洼能普遍描述从微观粒子到宏观物体的稳定机制，为解释质变过程中的稳定性变化提供工具。</p>
+<h3 id="section-6">4.5 事物性质的不变、渐变和突变</h3>
+<p>本节以木块翻倒为例，解释势函数洼的变化如何导致不变、渐变或突变。当条件改变使旧洼变浅时发生渐变；当旧洼消失，状态跃迁至新洼时发生突变。作者据此提出判别飞跃的新原则：若中间过渡态不稳定，则为飞跃；若中间态稳定，则为渐变。这一原则克服了仅凭变化速度判定的缺陷。</p>
+<h3 id="section-7">4.6 怎样判别飞跃</h3>
+<p>本节深化飞跃的判别标准，强调中间过渡态的稳定性是关键。通过酸碱滴定、燃料氧化及生物进化等案例，说明即使变化迅速，若中间态稳定（如滴定过程），仍属渐变；若中间态不稳定（如多米诺骨牌），则为飞跃。作者指出，社会变革如法国大革命与明治维新的区别，也在于社会结构是否经历不稳定阶段，而非仅看暴力与否。</p>
+<h3 id="section-8">4.7 飞跃和渐变的条件</h3>
+<p>本节分析质变方式的条件依赖性。指出质变是飞跃还是渐变，取决于维持旧质与新质稳定性的因素对比。若新质增强而旧质未明显减弱，易发生飞跃；若两者均减弱，则易渐变。此外，偶次势函数模型（如尖点型）允许通过控制条件选择飞跃或渐变方式，而奇次模型（如燕尾型）则存在不可逆性，限制了方式的选择。</p>
+<h3 id="section-9">4.8 节点：蝴蝶、燕尾及其他</h3>
+<p>本节探讨节点的性质，指出节点并非固定点，而是随条件变化的分布区域。以尖点型和蝴蝶型模型为例，说明节点分布区对应两态或三态共存区。蝴蝶型模型能解释水的三相点及氢氧化物酸碱性的分布。此外，还介绍了燕尾型等奇次模型，用于描述死亡等不可逆过程，展示了不同突变模型对节点分布的几何描述。</p>
+<h3 id="section-10">4.9 矫枉必须过正吗</h3>
+<p>本节研究滞后现象（矫枉过正），指出其仅发生在质变为飞跃时。以水的过热过冷及生态系统为例，说明由于节点分布区的存在，系统恢复原状需跨越滞后差距。但作者强调，矫枉过正并非绝对，当干扰较大时，系统可能无需过正即可恢复。这一现象严格受限于突变模型的节点分布区域。</p>
+<h3 id="section-11">4.10 极端共存</h3>
+<p>本节解释极端共存现象，即不同质态在同一条件下共存。指出该现象仅发生在节点分布区域内，如水的三相点或昆虫翅膀的极端性状。突变理论通过共存区模型，解释了为何中间状态不稳定而被淘汰，极端状态得以共存。这一理论为理解自然界中复杂共存现象提供了几何依据。</p>
+<h3 id="section-12">4.11 共同的使命</h3>
+<p>本节总结突变理论对哲学与科学的意义。指出该理论为描述质变、量变规律提供了更精确的数学模型，推动了唯物主义形式的发展。作者强调，尽管突变理论尚处初期，需进一步实践检验，但它启发了对质变规律的深入探讨，体现了科学与哲学在揭示客观世界质态转化规律上的共同使命。</p>
+<h2 id="section-13">二、主题讲解：质变数学模型：稳态、突变与判别</h2>
+<h3 id="section-14">稳态结构与势函数洼</h3>
+<p>质变的基础是系统的稳态结构。在突变理论中，稳态由势函数的洼底表示。势函数洼越深，系统越稳定，抵抗干扰的能力越强。例如，氢分子的稳定结构对应势能曲线的最低点。当外界干扰存在时，系统状态会在洼底附近波动，但不会轻易跳出。势函数洼不仅描述物理位置，也抽象表示化学、生物等系统的稳定性质。理解势函数洼是理解后续质变机制的关键，因为在该模型里，质变表现为势函数洼形态随条件变化的结果。</p>
+<h3 id="section-15">飞跃与渐变的判别原则</h3>
+<p>质变方式取决于中间过渡态的稳定性。若质变过程中经历的中间状态是不稳定的，则为飞跃；若中间状态是稳定的，则为渐变。例如，水在常压下沸腾时，液态与气态之间的中间密度状态不稳定，故为飞跃；而绕过临界点时，中间状态稳定，故为渐变。判别飞跃不看变化速度，而看中间态是否稳定。这一原则适用于物理、化学及社会系统，如社会变革若经历动荡不稳定期，即为飞跃；若社会结构基本稳定过渡，则为渐变。</p>
+<h3 id="section-16">节点分布与极端共存</h3>
+<p>节点并非固定点，而是随条件变化的分布区域。在尖点型模型中，节点分布区对应势函数折叠区的投影，表现为尖角形区域。在此区域内，系统可能发生飞跃或极端共存。极端共存指不同质态在同一条件下共存，如水的三相点。该现象仅发生在节点分布区内，因为中间状态不稳定而被淘汰，极端状态得以稳定存在。理解节点分布有助于预测质变发生的条件及可能出现的共存现象。</p>
+<h2 id="section-17">检验理解</h2>
+<p><strong>情形</strong>：考虑一个生态系统，其中捕食者A和猎物B的数量相互制约。假设系统存在两个稳态：稳态1为A少B多，稳态2为A多B少。现引入外部干扰，使A的数量逐渐增加。</p>
+<p><strong>问题</strong>：若A数量增加导致B数量急剧减少，系统从稳态1跃迁至稳态2，且中间过程中B的数量处于不稳定状态（如易受其他因素影响而波动），请判断此质变过程是飞跃还是渐变？并说明理由。</p>
+<h3 id="section-18">核对思路（先作答再看）</h3>
+<p>此过程为飞跃。理由：根据判别原则，质变方式取决于中间过渡态的稳定性。题目指出中间过程中B的数量处于不稳定状态，符合飞跃的定义（中间态不稳定）。若中间态稳定，则为渐变。此处因中间态不稳定，系统无法停留在中间状态，故发生飞跃。</p>
+<h2 id="section-19">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 151-195。</li>
+<li>源文件 SHA-256：<code>d7e36856c845f065d60b2a5eba593b5b2a6b834f329091143bdc8218c52f469f</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：突变理论主要适用于控制变量少于4个的情况，超过此限制模型复杂性剧增。</li>
+<li>边界：势函数洼的抽象表示需结合具体系统特性，不同领域势函数物理意义不同。</li>
+<li>边界：节点分布区域的具体形状依赖于突变模型类型，不同模型有不同几何特征。</li>
+<li>边界：极端共存现象仅发生在节点分布区内，超出此范围可能不存在共存。</li>
+<li>阅读连接：质变模型说明结构如何变化；第五章进一步追问，我们怎样从有限观察中认识这些结构。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../03-systems-evolution/index.html">上一篇 · 系统及其演化</a><a href="../05-black-box-epistemology/index.html">下一篇 · 黑箱认识论</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

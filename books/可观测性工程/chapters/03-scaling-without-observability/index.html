@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第3章 不通过可观测性扩展系统的经验教训 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">3.1 关于Parse的介绍</a><a class="sub" href="#section-3">3.2 Parse的扩展实践</a><a class="sub" href="#section-4">3.3 向现代系统演进</a><a class="sub" href="#section-5">3.4 向现代化实践变革</a><a class="sub" href="#section-6">3.5 在Parse的转变实践</a><a class="sub" href="#section-7">3.6 结论</a><a class="" href="#section-8">二、主题讲解：从传统监控到可观测性的范式转移</a><a class="sub" href="#section-9">传统监控的局限性：预设与被动</a><a class="sub" href="#section-10">可观测性的核心机制：数据驱动与主动探索</a><a class="sub" href="#section-11">组织与文化变革：从英雄主义到工程化</a><a class="sub" href="#section-12">实践挑战与未来展望：持续演进</a><a class="" href="#section-13">检验理解</a><a class="sub" href="#section-14">核对思路（先作答再看）</a><a class="" href="#section-15">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第3章</p><h1>不通过可观测性扩展系统的经验教训</h1>
+<p>本章要回答：Parse扩展时哪些问题暴露了传统监控的局限，以及团队怎样转变。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">3.1 关于Parse的介绍</h3>
+<p>作者Charity Majors回顾在Parse公司从初创到被收购的经历。早期团队为追求开发速度，采用MongoDB和Ruby on Rails构建微服务架构，虽成功快速进入市场，但面临流量激增导致的系统崩溃。这一阶段确立了“先关注速度”的决策背景，并引出后续因架构限制引发的扩展难题，为阐述传统工具失效做铺垫。</p>
+<h3 id="section-3">3.2 Parse的扩展实践</h3>
+<p>详述Parse在扩展中遇到的具体技术困境。Ruby单线程特性导致后端延迟引发全系统饱和，传统监控工具如Nagios和Ganglia仅能在已知问题出现时报警，无法应对不可预测的多租户负载和复杂故障。作者指出这些工具是为“可预知问题”设计的，无法解决现代平台化服务中未知的、指数级增长的复杂性。</p>
+<h3 id="section-4">3.3 向现代系统演进</h3>
+<p>分析从LAMP单体架构向现代分布式系统演进的必然性。技术层面涉及从单体到微服务、从单一数据库到多存储系统的转变；社会层面则体现为运维与开发壁垒打破、部署方式从“大爆炸”转向渐进式交付。这种演进使得传统二元可用性监控失效，系统状态变得动态且复杂，预发环境难以复现生产问题。</p>
+<h3 id="section-5">3.4 向现代化实践变革</h3>
+<p>探讨技术变革对团队文化和工程实践的影响。现代分布式系统要求将注意力重心从预生产硬化转向生产环境，因为预发环境无法模拟真实世界的复杂性。传统监控产生大量噪声，而现代系统需要关注用户体验症状而非简单阈值。团队需改变对生产环境“易碎玻璃城堡”的认知，适应生产即主要调试场所的新范式。</p>
+<h3 id="section-6">3.5 在Parse的转变实践</h3>
+<p>描述Parse从依赖“英雄文化”和模式匹配的传统故障排查，转向基于Scuba实时分析的可观测性实践。传统方法依赖工程师记忆和预设指标，效率低下且不可扩展；新实践通过实时切片和切块数据，允许从症状出发逆向追踪根源。这种转变 democratize 了故障排查能力，使团队能高效处理跨运行时、多租户的复杂问题。</p>
+<h3 id="section-7">3.6 结论</h3>
+<p>总结Parse案例揭示的核心教训：组织必须从传统监控过渡到可观测性以应对现代分布式系统的扩展挑战。可观测性通过提供实时数据分析和用户体验视角，解决了传统工具在未知故障面前的局限性。这一转变解释了可观测性在现代软件行业中的核心价值，并为后续章节探讨其具体方面奠定基础。</p>
+<h2 id="section-8">二、主题讲解：从传统监控到可观测性的范式转移</h2>
+<h3 id="section-9">传统监控的局限性：预设与被动</h3>
+<p>Nagios、Ganglia等传统监控工具依靠预设阈值和已知模式告警，这对已知条件和基础设施趋势仍有价值。Parse案例显示，随着多租户流量、分片和服务依赖增加，仅靠这些聚合视图很难解释新的故障组合，工程师容易退回个人经验和猜测。</p>
+<h3 id="section-10">可观测性的核心机制：数据驱动与主动探索</h3>
+<p>可观测性（Observability）并非单一工具，而是一种系统能力，其核心机制是通过收集遥测数据（指标、日志、链路追踪）支持主动探索。与传统监控不同，可观测性不预设问题，而是允许工程师从任意维度（如用户ID、服务、时间）对数据进行切片和切块。这种机制基于“系统行为可被数据解释”的假设，通过实时分析能力，工程师可以从症状出发，逆向追踪根源，无需预先知道问题所在。它解决了传统监控无法处理高基数、多维关联问题的局限。</p>
+<h3 id="section-11">组织与文化变革：从英雄主义到工程化</h3>
+<p>工具变化只有进入团队日常调查方式，才会改变结果。Parse案例主张把故障线索和分析过程从少数资深工程师的记忆中移到共享数据里，让其他人能够复查并继续追问。它降低了知识单点风险，但不能保证新工程师只靠工具就能解决问题。</p>
+<h3 id="section-12">实践挑战与未来展望：持续演进</h3>
+<p>Parse的经验不能直接推广成所有团队的迁移方案。是否值得增加事件字段、存储成本和新的调查工具，要看系统复杂度、现有故障代价与团队能力；采用后也要随着代码和业务变化继续调整埋点与查询习惯。</p>
+<h2 id="section-13">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个微服务架构的电商平台，近期发现部分用户在结算页面加载缓慢，但整体系统指标（CPU、内存、网络）均在正常阈值内。传统监控未发出任何告警。</p>
+<p><strong>问题</strong>：请描述如何利用可观测性思维，而非传统监控思维，来定位这一特定用户群体的性能问题。</p>
+<h3 id="section-14">核对思路（先作答再看）</h3>
+<p>传统监控会因指标正常而忽略问题，或仅告警整体延迟。可观测性思维应首先收集该特定用户群体的链路追踪数据，按用户ID或会话ID进行切片。通过可视化请求链路，定位具体是哪个微服务（如库存服务、支付网关）或数据库查询导致延迟。进一步，可结合日志和指标，分析该服务在高负载下的行为模式，识别是否存在资源争用或代码逻辑缺陷。关键在于从“用户视角”出发，主动探索数据，而非依赖预设阈值。</p>
+<h2 id="section-15">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 34-41。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：传统监控工具无法处理未知故障。</li>
+<li>边界：可观测性依赖高质量遥测数据。</li>
+<li>边界：组织文化变革需时间。</li>
+<li>边界：实施成本较高。</li>
+<li>阅读连接：Parse案例把技术债和调试成本具体化；第四章再把变化放进DevOps、SRE和云原生的行业背景。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../02-debugging-practices/index.html">上一篇 · 可观测性和监控之间的调试实践有何不同</a><a href="../04-devops-sre-cloud-native/index.html">下一篇 · 可观测性与DevOps、SRE和云原生的关联</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

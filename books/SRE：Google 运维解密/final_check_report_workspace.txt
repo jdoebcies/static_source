@@ -1,4 +1,0 @@
-PASS
-Book Mirror V8.2 fidelity: 41/41
-ljg-present static validation: 41/41
-Browser visual verification: DEFERRED (Interceptor unavailable)

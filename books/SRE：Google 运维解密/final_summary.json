@@ -1,9 +1,0 @@
-{
-  "status": "pass",
-  "version": "Book Mirror V8.2",
-  "chapters": 41,
-  "slides": 4487,
-  "fidelity_passed": 41,
-  "static_validation_passed": 41,
-  "visual_verification": "deferred: Interceptor is unavailable in this runtime"
-}

@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》SRE：Google运维解密 · 译者序、前言与序言 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">译者序</a><a class="sub" href="#section-3">前言</a><a class="sub" href="#section-4">序言</a><a class="" href="#section-5">二、主题讲解：SRE运维理念与工程思维</a><a class="sub" href="#section-6">SRE的工程化定义</a><a class="sub" href="#section-7">可靠性与错误预算</a><a class="sub" href="#section-8">从历史案例看运维价值</a><a class="" href="#section-9">检验理解</a><a class="sub" href="#section-10">核对思路（先作答再看）</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">进入本书</p><h1>译者序、前言、序言与全书导读</h1>
+<p>本单元要回答：怎样理解并使用“SRE：Google运维解密 · 译者序、前言与序言”，以及它在什么条件下不适用。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 80 1040 480" role="img" aria-label="SRE把可靠性目标、工程工作和组织责任连成一套系统">
+      <defs>
+        <marker id="00-prefaces-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="00-prefaces-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="00-prefaces-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1040" height="560" fill="#f5f5f5"/>
+      <rect x="120" y="120" width="800" height="72" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.14)" stroke-width="1.2"/><text x="144" y="164" fill="#7a8399" font-size="8" font-family="Geist Mono, monospace">L5</text><text x="240" y="164" fill="#2d3142" font-size="16" font-weight="600" font-family="Geist, PingFang SC, sans-serif">用户与业务结果</text><text x="896" y="164" fill="#4f5d75" font-size="8" text-anchor="end" font-family="Geist Mono, PingFang SC, monospace">可接受的体验、风险与成本</text><rect x="120" y="204" width="800" height="72" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="144" y="248" fill="#7a8399" font-size="8" font-family="Geist Mono, monospace">L4</text><text x="240" y="248" fill="#2d3142" font-size="16" font-weight="600" font-family="Geist, PingFang SC, sans-serif">SLI / SLO / 错误预算</text><text x="896" y="248" fill="#4f5d75" font-size="8" text-anchor="end" font-family="Geist Mono, PingFang SC, monospace">把目标写成可度量边界</text><rect x="120" y="288" width="800" height="72" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.14)" stroke-width="1.2"/><text x="144" y="332" fill="#7a8399" font-size="8" font-family="Geist Mono, monospace">L3</text><text x="240" y="332" fill="#2d3142" font-size="16" font-weight="600" font-family="Geist, PingFang SC, sans-serif">监控、自动化与发布</text><text x="896" y="332" fill="#4f5d75" font-size="8" text-anchor="end" font-family="Geist Mono, PingFang SC, monospace">减少手工操作并控制变更风险</text><rect x="120" y="372" width="800" height="72" rx="6" fill="rgba(45,49,66,0.025)" stroke="rgba(45,49,66,0.14)" stroke-width="1.2"/><text x="144" y="416" fill="#7a8399" font-size="8" font-family="Geist Mono, monospace">L2</text><text x="240" y="416" fill="#2d3142" font-size="16" font-weight="600" font-family="Geist, PingFang SC, sans-serif">事故响应、测试与学习</text><text x="896" y="416" fill="#4f5d75" font-size="8" text-anchor="end" font-family="Geist Mono, PingFang SC, monospace">从故障中修正系统和流程</text><rect x="120" y="456" width="800" height="72" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.14)" stroke-width="1.2"/><text x="144" y="500" fill="#7a8399" font-size="8" font-family="Geist Mono, monospace">L1</text><text x="240" y="500" fill="#2d3142" font-size="16" font-weight="600" font-family="Geist, PingFang SC, sans-serif">团队责任与协作</text><text x="896" y="500" fill="#4f5d75" font-size="8" text-anchor="end" font-family="Geist Mono, PingFang SC, monospace">研发与SRE共同承担生产结果</text>
+    </svg></button><small>点击放大配图</small></figure><p class="caption">图0-1｜SRE把可靠性目标、工程工作和组织责任连成一套系统</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">译者序</h3>
+<p>译者孙宇聪回顾在Google SRE的八年经历，指出SRE团队通过务实态度和工匠精神，利用传统软件工程方法解决大规模运维难题。他强调书中无“魔法系统”，而是对问题本质的讨论，旨在将体系化的运维理念分享给国内读者，并感谢同事与家人的支持。</p>
+<h3 id="section-3">前言</h3>
+<p>Mark Burgess指出Google的发展史是对传统运维理念的革命，SRE将运维定义为人与计算机共同参与的工程。本书记录了工程师团队在解决利益冲突中的思考过程，强调真实的设计过程比最终架构更有价值。作者呼吁读者以谦逊态度旁观，从他人的成功与失败中汲取经验，指引未来。</p>
+<h3 id="section-4">序言</h3>
+<p>序言定义SRE为关注可靠性的工程师，通过Margaret Hamilton在阿波罗计划中因忽视软件状态检查导致危机的故事，强调灾难预案的重要性。书中将SRE工作分为理念、实践与管理三部分，推荐从第2、3章开始阅读，并介绍了字体约定及代码使用许可，旨在共享经验并促进跨行业交流。</p>
+<h2 id="section-5">二、主题讲解：SRE运维理念与工程思维</h2>
+<h3 id="section-6">SRE的工程化定义</h3>
+<p>SRE（站点可靠性工程师）并非传统运维的简单延伸，而是将软件工程方法应用于运维领域的职业。其核心在于使用编程和自动化工具来管理大规模分布式系统，而非依赖人工操作。SRE工程师需深度参与开发，负责系统架构设计与资源优化，确保系统在扩展时仍能保持高可靠性。这种工程化思维要求运维人员具备编程能力，通过代码解决重复性问题，从而将精力从琐事中解放出来，专注于系统稳定性的提升。</p>
+<h3 id="section-7">可靠性与错误预算</h3>
+<p>可靠性是SRE关注的核心，指系统在指定环境下成功执行功能的概率。SRE并不追求100%的完美可用性，因为成本远超价值。相反，他们引入“错误预算”概念，允许系统在达到一定容错率后，将精力转向新功能开发。这种平衡机制避免了过度追求稳定而阻碍创新，确保业务迭代速度与用户体验之间的最佳平衡。可靠性管理是一种动态过程，需根据业务需求不断调整容错阈值。</p>
+<h3 id="section-8">从历史案例看运维价值</h3>
+<p>阿波罗计划中Margaret Hamilton的故事说明，即使团队掌握了系统原理，人为错误仍不可避免。SRE因此把软件状态检查和灾难预案放进系统设计，不只依赖人员训练，也不等事故发生后再补救。现代SRE团队沿用这种思路，把可靠性当作产品设计的一部分，让运维更早参与工程决策。</p>
+<h2 id="section-9">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个初创公司的核心API服务，目前可用性为99.9%，但业务增长迅速，团队面临巨大的新功能开发压力。</p>
+<p><strong>问题</strong>：请结合SRE的“错误预算”理念，分析此时是否应继续投入资源将可用性提升至99.99%？并说明你的决策依据及可能采取的工程化措施。</p>
+<h3 id="section-10">核对思路（先作答再看）</h3>
+<p>不应盲目提升至99.99%。依据是SRE强调可靠性与创新的平衡，当系统“足够可靠”时，应转向新功能开发。决策依据是错误预算已消耗殆尽或性价比极低。工程化措施包括：自动化监控以快速发现故障、引入容错机制而非单纯增加冗余、优化发布流程以减少变更风险，而非单纯追求零故障。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 2-29、54-55、137-141、404-405、475。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：SRE实践基于Google大规模分布式系统经验，中小型企业需根据实际规模调整，不可直接套用。</li>
+<li>边界：书中案例多为Google内部实践，其他团队需结合自身体制与文化进行类比，而非机械复制。</li>
+<li>边界：可靠性定义侧重于Web服务，不直接适用于核电、医疗等极高安全要求领域。</li>
+<li>阅读连接：下一单元是“第1章 介绍”，继续回答：传统运维模式下的Dev/Ops冲突与SRE的引入。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><span></span><a href="../01-chapter-01/index.html">下一篇 · 介绍</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

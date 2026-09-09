@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第15章 事后总结：从失败中学习 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">Google的事后总结哲学</a><a class="sub" href="#section-3">指责</a><a class="sub" href="#section-4">对事不对人</a><a class="sub" href="#section-5">协作和知识共享</a><a class="sub" href="#section-6">1.实时协作</a><a class="sub" href="#section-7">2.开放的评论系统</a><a class="sub" href="#section-8">3.邮件通知</a><a class="sub" href="#section-9">建立事后总结文化</a><a class="sub" href="#section-10">本月最佳事后总结</a><a class="sub" href="#section-11">事后总结阅读俱乐部</a><a class="sub" href="#section-12">命运之轮（wheel of misfortune）</a><a class="sub" href="#section-13">最佳实践：公开奖励做正确事的人</a><a class="sub" href="#section-14">小结以及不断优化</a><a class="" href="#section-15">二、主题讲解：构建高效的事后总结机制</a><a class="sub" href="#section-16">界定复盘触发标准与心理安全</a><a class="sub" href="#section-17">实施结构化协作与评审流程</a><a class="sub" href="#section-18">培育文化与持续优化反馈</a><a class="" href="#section-19">检验理解</a><a class="sub" href="#section-20">核对思路（先作答再看）</a><a class="" href="#section-21">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第15章</p><h1>事后总结：从失败中学习</h1>
+<p>本单元要回答：如何从事故中有效学习以避免重复失败？</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">Google的事后总结哲学</h3>
+<p>本节确立事后总结的核心目标是记录事故、理清根源并降低未来风险，而非惩罚。Google设定了严格的触发标准，如用户可见宕机、数据丢失或人工介入等，确保资源用于高价值复盘。其核心哲学是“对事不对人”，假设参与者基于当时信息做出了善意判断。这种文化源于医疗航空业，旨在通过改善系统而非指责个人来增强可靠性，防止因恐惧指责而掩盖问题。</p>
+<h3 id="section-3">指责</h3>
+<p>该部分通过对比“指责”与“对事不对人”两种事后总结的写法，说明应避免公开羞辱个人。作者指出指责会导致人们逃避报告，而聚焦系统改进能建立更好的预防措施，从而确立事后总结的核心文化原则。</p>
+<h3 id="section-4">对事不对人</h3>
+<p>本节通过对比案例阐释“对事不对人”的具体实践。指责性总结往往充满情绪且无建设性，而建设性总结则聚焦于系统改进和降低维护成本。作者指出，排除指责因素能提升工程师汇报问题的自信，避免形成相互指责的封闭文化。这种逻辑性讨论有助于发现信息获取中的系统性缺陷，从而建立更有效的预防措施，确保事后总结成为修复问题的机会而非负担。</p>
+<h3 id="section-5">协作和知识共享</h3>
+<p>本节强调事后总结是团队协作与知识共享的过程。推荐使用支持实时协作、开放评论和邮件通知的工具，以快速收集数据和想法。文档需经过内部评审，检查数据完整性、根源深度及任务优先级，确保质量。评审后，文档将在更大范围内公开，但严格管控个人身份信息。这一流程旨在最大化知识传播，让所有相关部门都能从事故中学习，防止类似错误再次发生。</p>
+<h3 id="section-6">1.实时协作</h3>
+<p>作者指出使用Google Docs等工具进行实时协作，能在事后总结早期快速收集数据和想法。这一功能旨在促进团队协作和知识共享，确保写作过程高效，是构建良好事后总结工作流程的基础技术手段。</p>
+<h3 id="section-7">2.开放的评论系统</h3>
+<p>作者强调开放的评论系统允许更多人参与提供解决方案，提高对事故处理细节的覆盖程度。这一机制促进了集体智慧的融入，确保文档完整性，是协作和知识共享在事后总结流程中的具体体现。</p>
+<h3 id="section-8">3.邮件通知</h3>
+<p>作者提到邮件通知功能可在文档中向其他用户发消息或引入新人共同填写。这一机制扩大了参与范围，确保关键信息及时触达相关人员，有助于在事后总结过程中实现更广泛的团队协作和信息同步。</p>
+<h3 id="section-9">建立事后总结文化</h3>
+<p>本节探讨如何通过集体活动培育事后总结文化。Google通过“本月最佳事后总结”、“Google+事后总结小组”和“事后总结阅读俱乐部”等形式，鼓励跨部门分享与讨论。针对阻力，建议逐步引入流程证明价值，并通过公开奖励（如TGIF大会上的表彰）肯定正确行为。管理层参与和绩效考核中的体现能强化这一文化，使事后总结从被动任务转变为主动的学习机制，提升整体系统可靠性。</p>
+<h3 id="section-10">本月最佳事后总结</h3>
+<p>作者描述通过每周新闻邮件与全组织共享一篇高质量事后总结。这一活动旨在通过展示优秀案例来培育事后总结文化，利用公开分享激励团队，使组织成员能从高质量的学习材料中获益。</p>
+<h3 id="section-11">事后总结阅读俱乐部</h3>
+<p>作者介绍团队定期组织阅读俱乐部，共同开发式讨论过往或近期的事后总结。该活动涵盖事件过程、教训及善后处理，旨在通过集体讨论深化学习，特别是帮助新工程师理解历史事故，强化组织记忆。</p>
+<h3 id="section-12">命运之轮（wheel of misfortune）</h3>
+<p>作者描述SRE工程师通过角色扮演重现历史事故场景，邀请原负责人参与以确保真实。这一活动旨在通过模拟演练加深理解，将事后总结中的经验转化为实际的应急能力，是建立事后总结文化的具体实践之一。</p>
+<h3 id="section-13">最佳实践：公开奖励做正确事的人</h3>
+<p>作者以Larry Page在TGIF大会上表扬SRE为例，说明公开奖励能激励员工。通过Peer Bonus和高层认可，肯定工程师在事故处理中的正确行为，从而强化“对事不对人”的文化，鼓励更多人积极参与事后总结。</p>
+<h3 id="section-14">小结以及不断优化</h3>
+<p>本节总结事后总结已成为Google文化的一部分，显著降低了事故率并提升了用户体验。通过“事后总结”小组协调各部门流程，利用自动化工具收集元数据以进行趋势分析。团队定期调查流程有效性，收集反馈以优化工作流。未来计划引入机器学习预测系统弱点，进一步降低重复事故。这种持续优化的机制确保了知识在不同产品部门间有效共享，实现了从个体经验到组织智慧的转化。</p>
+<h2 id="section-15">二、主题讲解：构建高效的事后总结机制</h2>
+<h3 id="section-16">界定复盘触发标准与心理安全</h3>
+<p>事后总结并非适用于所有故障，需设定客观触发标准，如用户可见宕机、数据丢失或人工介入等，以聚焦高价值复盘。核心在于建立“对事不对人”的心理安全环境，假设参与者基于当时信息做出了善意判断。这要求将焦点从指责个人转向分析系统缺陷和信息获取中的问题。通过改善流程和系统来协助工程师做出正确判断，而非惩罚个体，从而避免员工因恐惧而掩盖问题，确保复盘能真实反映问题来源。</p>
+<h3 id="section-17">实施结构化协作与评审流程</h3>
+<p>事后总结应作为团队协作过程，利用支持实时协作、开放评论和通知的工具，确保数据快速收集和多视角参与。文档需经过严格评审，检查数据完整性、根源深度及任务优先级，确保质量。评审后，文档应在更大范围内公开以传播知识，同时严格管控个人身份信息。这一结构化流程旨在最大化知识共享，让相关部门从事故中学习，防止类似错误重复发生，并将个人经验转化为组织资产。</p>
+<h3 id="section-18">培育文化与持续优化反馈</h3>
+<p>通过集体活动如最佳案例分享、阅读俱乐部和角色扮演演习，培育主动学习的文化。针对阻力，应逐步引入流程证明价值，并通过公开奖励和管理层参与强化正向行为。定期调查流程有效性，收集反馈以优化工作流，利用自动化工具进行趋势分析。未来可引入机器学习预测系统弱点。这种持续优化机制确保事后总结从被动任务转变为主动学习机制，显著提升系统可靠性。</p>
+<h2 id="section-19">检验理解</h2>
+<p><strong>情形</strong>：某团队在一次重大事故后，事后总结中详细列出了负责该模块工程师的操作失误，并建议对其进行绩效扣分。同时，文档未包含任何关于系统监控盲区或流程缺陷的分析。</p>
+<p><strong>问题</strong>：根据书中“对事不对人”的哲学，该事后总结存在哪些主要问题？请指出其违背的核心原则，并说明这种写法对团队长期可靠性的潜在危害。</p>
+<h3 id="section-20">核对思路（先作答再看）</h3>
+<p>该总结违背了“对事不对人”的核心原则，将焦点放在指责个人而非分析系统缺陷。潜在危害包括：工程师因恐惧惩罚而隐瞒问题，导致问题来源无法被发现；团队文化变得封闭，阻碍知识共享；长期来看，系统问题得不到解决，事故可能重复发生，降低整体可靠性。</p>
+<h2 id="section-21">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 191-197。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：Google的具体触发标准（如宕机时间阈值）可能不适用于所有团队，需根据实际业务影响调整。</li>
+<li>边界：“对事不对人”文化依赖于高度的心理安全感，在高压或问责文化浓厚的组织中实施难度较大。</li>
+<li>边界：书中提到的Google内部工具（如Google Docs）和特定活动（如TGIF）可能无法直接复制到其他组织。</li>
+<li>边界：事后总结的有效性依赖于后续改进措施的落实，仅记录而不行动无法实现学习目的。</li>
+<li>阅读连接：下一单元是“第16章 跟踪故障”，继续回答：如何从被动响应转向主动改进？</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../14-chapter-14/index.html">上一篇 · 紧急事故管理</a><a href="../16-chapter-16/index.html">下一篇 · 跟踪故障</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

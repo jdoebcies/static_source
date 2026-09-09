@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第17章 如何使采样精准且便宜 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">17.1 使用采样策略来优化数据采集</a><a class="sub" href="#section-3">17.2 使用不同的采样策略</a><a class="sub" href="#section-4">17.2.1 恒定概率采样</a><a class="sub" href="#section-5">17.2.2 近期流量采样</a><a class="sub" href="#section-6">17.2.3 基于事件内容采样</a><a class="sub" href="#section-7">17.2.4 键和历史相结合的方法</a><a class="sub" href="#section-8">17.2.5 选择动态采样选项</a><a class="sub" href="#section-9">17.2.6 对链路追踪进行采样</a><a class="sub" href="#section-10">17.3 将采样策略转化为代码</a><a class="sub" href="#section-11">17.3.1 基本案例</a><a class="sub" href="#section-12">17.3.2 固定速率采样</a><a class="sub" href="#section-13">17.3.3 记录采样率</a><a class="sub" href="#section-14">17.3.4 一致的采样</a><a class="sub" href="#section-15">17.3.5 目标速率采样</a><a class="sub" href="#section-16">17.3.6 具有多个静态采样率</a><a class="sub" href="#section-17">17.3.7 按键和目标速率采样</a><a class="sub" href="#section-18">17.3.8 任意多的键上的动态速率采样</a><a class="sub" href="#section-19">17.3.9 把它们放到一起：每个关键目标速率采样的头和尾</a><a class="sub" href="#section-20">17.4 结论</a><a class="" href="#section-21">二、主题讲解：采样策略的核心逻辑与实现</a><a class="sub" href="#section-22">恒定概率与加权重建</a><a class="sub" href="#section-23">动态采样与链路一致性</a><a class="sub" href="#section-24">代码实现与目标速率</a><a class="sub" href="#section-25">头部与尾部采样的结合</a><a class="" href="#section-26">检验理解</a><a class="sub" href="#section-27">核对思路（先作答再看）</a><a class="" href="#section-28">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第17章</p><h1>如何使采样精准且便宜</h1>
+<p>本章要回答：数据无法全量保留时，怎样通过采样控制成本并保留稀有问题。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">17.1 使用采样策略来优化数据采集</h3>
+<p>本节指出大规模系统中全量存储观测数据成本过高，采样是平衡资源与数据真实性的关键。作者认为采样能保留代表性事件，相比粗粒度的聚合指标，采样保留了完整维度数据，便于发现异常。这为后续介绍具体采样策略奠定了必要性基础。</p>
+<h3 id="section-3">17.2 使用不同的采样策略</h3>
+<p>本节澄清采样术语歧义，指出不同策略效果各异。作者通过对比恒定概率、近期流量、基于内容等策略，说明采样不仅是丢弃数据，更是通过加权重建分布。这引导读者关注如何根据流量特征选择合适策略，而非盲目使用固定比例。</p>
+<h3 id="section-4">17.2.1 恒定概率采样</h3>
+<p>本节介绍最基础的恒定概率采样，即保留固定百分比数据。作者指出其适用于流量大且错误重复出现的情况，但无法保证捕获罕见错误。这揭示了固定采样的局限性，自然过渡到能动态调整概率的近期流量采样策略。</p>
+<h3 id="section-5">17.2.2 近期流量采样</h3>
+<p>本节提出根据近期流量动态调整采样率，以应对流量激增或低谷。作者强调此时需使用加权算法重建数据分布，而非简单乘以常数。这解决了恒定采样在流量波动时的失真问题，引出更复杂的基于事件内容的采样方法。</p>
+<h3 id="section-6">17.2.3 基于事件内容采样</h3>
+<p>本节介绍根据事件字段（如HTTP状态码）动态分配采样率。作者指出错误事件比成功事件更重要，需更高采样率。这解决了恒定采样无法区分事件价值的问题，但假设关键字比率固定可能失效，从而引出结合历史的动态方法。</p>
+<h3 id="section-7">17.2.4 键和历史相结合的方法</h3>
+<p>本节提出根据键的历史流量动态调整采样率，避免高频键淹没低频重要键。作者通过示例说明如何基于过去30秒的键组合次数调整概率。这进一步优化了内容采样，引出如何根据具体业务场景选择策略。</p>
+<h3 id="section-8">17.2.5 选择动态采样选项</h3>
+<p>本节指导读者根据流量特征选择策略，如首页应用与数据库代理的不同需求。作者强调没有通用策略，需针对缓存前后后端等不同场景优化。这为后续链路追踪采样中复杂的决策时机问题做了铺垫。</p>
+<h3 id="section-9">17.2.6 对链路追踪进行采样</h3>
+<p>本节讨论链路追踪中采样决策的时机，区分基于头部（启动时）和基于尾部（结束时）的采样。作者指出基于尾部采样需缓冲数据，成本高，而基于头部采样需传播决策以确保链路完整。这引出将策略转化为代码的具体实现。</p>
+<h3 id="section-10">17.3 将采样策略转化为代码</h3>
+<p>本节通过Go代码示例展示采样策略的实现。作者从基本案例入手，说明全量记录产生噪声，引出固定速率采样代码。这使抽象策略具体化，为后续记录采样率和实现一致采样提供代码基础。</p>
+<h3 id="section-11">17.3.1 基本案例</h3>
+<p>本节展示无条件记录所有事件的代码，指出其在大规模下产生噪声和资源消耗。作者通过对比引出采样必要性，为后续引入固定速率采样代码做铺垫，强调采样是优化资源的手段。</p>
+<h3 id="section-12">17.3.2 固定速率采样</h3>
+<p>本节展示固定速率采样代码，即每1000个事件保留1个。作者强调后端需乘以采样率以重构数据，否则计数错误。这解决了基本案例的噪声问题，但需手动管理采样率，引出记录采样率的改进。</p>
+<h3 id="section-13">17.3.3 记录采样率</h3>
+<p>本节建议在事件中显式传递采样率，以便后端精确加权计算。作者指出这允许动态调整采样率而不重新编译，解决了固定采样率难以变更的问题。这为后续实现一致采样和动态采样奠定基础。</p>
+<h3 id="section-14">17.3.4 一致的采样</h3>
+<p>本节强调链路追踪中采样决策的一致性，通过TraceID传播采样概率，确保父子Span采样状态一致。作者指出这避免了链路断裂，引出目标速率采样以自动化调整采样率。</p>
+<h3 id="section-15">17.3.5 目标速率采样</h3>
+<p>本节展示通过追踪传入请求率自动计算采样率，无需手动调整。作者指出这提供了可预测的资源成本，但缺乏按键区分采样率的灵活性，引出多静态采样率方法。</p>
+<h3 id="section-16">17.3.6 具有多个静态采样率</h3>
+<p>本节介绍设置多个静态采样率，对异常事件使用高采样率，对正常事件使用低采样率。作者指出这能捕获长尾事件，但易受错误峰值影响，引出按键和目标速率结合的动态方法。</p>
+<h3 id="section-17">17.3.7 按键和目标速率采样</h3>
+<p>本节结合前两种技术，对异常请求指定保证速率，对正常请求限制在预算内。作者指出这解决了静态采样率易受峰值影响的问题，但代码冗长，引出任意多键的动态速率采样。</p>
+<h3 id="section-18">17.3.8 任意多的键上的动态速率采样</h3>
+<p>本节展示使用映射管理任意键的目标速率和事件数量，动态调整采样率。作者指出这比手动指定更现实，并提及dynsampler-go库简化实现。这为结合头部和尾部采样做最后准备。</p>
+<h3 id="section-19">17.3.9 把它们放到一起：每个关键目标速率采样的头和尾</h3>
+<p>本节将基于头部的采样决策传播给下游，结合基于尾部的启发式捕获错误。作者指出这允许在尾部发现错误后回溯调整头部采样率，实现灵活且完整的链路追踪。这总结了采样策略的代码实现。</p>
+<h3 id="section-20">17.4 结论</h3>
+<p>本节总结采样是优化观测数据成本的有效技术，强调了解采样机制的重要性。作者指出即使使用第三方库，也需理解静态/动态、头部/尾部策略的适用场景，以平衡数据保真和资源约束。</p>
+<h2 id="section-21">二、主题讲解：采样策略的核心逻辑与实现</h2>
+<h3 id="section-22">恒定概率与加权重建</h3>
+<p>恒定概率采样通过固定比例保留数据，如每1000个请求保留1个。其核心机制是假设大流量下错误会重复出现，但无法保证捕获罕见异常。在数据分析时，需将每个事件乘以采样率以重建原始分布，例如将计数器乘以1000。对于p99等标量分布，因采样不改变相对顺序，无需调整。然而，当流量波动时，固定比例可能导致后端过载或数据失真，因此需引入动态调整机制。</p>
+<h3 id="section-23">动态采样与链路一致性</h3>
+<p>动态采样根据近期流量或事件内容调整概率，如基于HTTP状态码或键的历史频率。其机制是通过加权算法重建数据，确保高频键不淹没低频重要键。在链路追踪中，采样决策需保持一致，通过TraceID传播采样概率，确保父子Span状态同步。基于头部采样在请求开始时决策，基于尾部采样在结束时决策，后者需缓冲数据，成本较高。结合两者可优化资源使用，同时捕获完整链路。</p>
+<h3 id="section-24">代码实现与目标速率</h3>
+<p>代码实现中，固定速率采样需在后端乘以采样率以准确计数。记录采样率允许动态调整，避免重新编译。目标速率采样通过追踪传入请求率自动计算采样率，无需手动干预。结合多个静态采样率，可对异常事件使用高概率，正常事件使用低概率。最终，通过映射管理任意键的目标速率，实现动态调整，如dynsampler-go库所示，平衡资源成本与数据保真。</p>
+<h3 id="section-25">头部与尾部采样的结合</h3>
+<p>头部采样在请求开始时决策，通过传播采样概率确保下游Span被采样，避免链路断裂。尾部采样在请求结束时决策，基于响应状态或延迟捕获异常，需缓冲数据。结合两者，可在头部基于静态字段（如端点）采样，在尾部基于动态字段（如错误状态）调整采样率。这种混合策略允许在资源限制下，通过回溯调整头部采样概率，捕获更多异常上下文，实现精准且便宜的采样。</p>
+<h2 id="section-26">检验理解</h2>
+<p><strong>情形</strong>：假设一个电商系统，90%的请求是浏览商品（成功），10%是下单（可能失败）。浏览请求流量极大，下单请求流量较小但错误率高。</p>
+<p><strong>问题</strong>：如果采用恒定概率采样（如1/1000），可能会丢失哪些关键信息？如何结合动态采样和链路一致性策略来优化？</p>
+<h3 id="section-27">核对思路（先作答再看）</h3>
+<p>恒定概率采样可能因下单请求流量小，导致错误样本极少，难以发现异常。优化策略：1. 基于事件内容采样：对下单请求（关键键）使用更高采样率（如1/100），对浏览请求使用低采样率（如1/10000）。2. 动态采样：根据近期下单错误率动态调整采样率，错误率高时提高采样率。3. 链路一致性：通过TraceID传播采样决策，确保下单请求的父子Span都被采样，避免链路断裂。4. 头部与尾部结合：头部基于下单键采样，尾部基于错误状态调整采样率，捕获更多异常上下文。</p>
+<h2 id="section-28">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 147-161。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：采样策略的选择依赖于具体业务场景，无通用最优解。</li>
+<li>边界：动态采样和加权重建增加了后端计算的复杂性。</li>
+<li>边界：基于尾部采样需要缓冲数据，可能增加内存成本和延迟。</li>
+<li>边界：链路追踪中采样决策的一致性管理较为复杂，需仔细设计TraceID传播机制。</li>
+<li>阅读连接：采样决定保留哪些事件；第十八章用遥测流水线统一处理路由、过滤、增强、隔离和质量。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../16-data-storage/index.html">上一篇 · 高效的数据存储</a><a href="../18-telemetry-pipelines/index.html">下一篇 · 使用流水线进行遥测管理</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

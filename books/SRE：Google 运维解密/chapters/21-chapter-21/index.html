@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第21章 应对过载 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">QPS陷阱</a><a class="sub" href="#section-3">给每个用户设置限制</a><a class="sub" href="#section-4">客户端侧的节流机制</a><a class="sub" href="#section-5">请求数量（requests）</a><a class="sub" href="#section-6">请求接受数量（accepts）</a><a class="sub" href="#section-7">重要性</a><a class="sub" href="#section-8">最重要 CRITICAL_PLUS</a><a class="sub" href="#section-9">重要 CRITICAL</a><a class="sub" href="#section-10">可丢弃的SHEDDABLE_PLUS</a><a class="sub" href="#section-11">可丢弃的SHEDDABLE</a><a class="sub" href="#section-12">资源利用率信号</a><a class="sub" href="#section-13">处理过载错误</a><a class="sub" href="#section-14">决定何时重试</a><a class="sub" href="#section-15">连接造成的负载</a><a class="sub" href="#section-16">小结</a><a class="" href="#section-17">二、主题讲解：应对过载的核心策略</a><a class="sub" href="#section-18">从QPS到资源感知的容量规划</a><a class="sub" href="#section-19">用户配额与客户端自适应节流</a><a class="sub" href="#section-20">重要性分级与过载错误处理</a><a class="sub" href="#section-21">连接负载与代理隔离策略</a><a class="" href="#section-22">检验理解</a><a class="sub" href="#section-23">核对思路（先作答再看）</a><a class="" href="#section-24">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第21章</p><h1>应对过载</h1>
+<p>本单元要回答：应对过载。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">QPS陷阱</h3>
+<p>本章开篇指出，单纯依据QPS或静态属性规划容量往往失效，因为请求成本随时间波动。作者主张以CPU等可用资源作为容量建模的核心信号，利用内存压力自然转化为CPU压力的特性简化配给逻辑。这为后续基于资源的动态限流奠定了理论基础，引出如何具体实施限制的话题。</p>
+<h3 id="section-3">给每个用户设置限制</h3>
+<p>面对不可避免的全局过载，作者提出通过协商用户配额来保护核心业务。以Google内部服务为例，不同客户端拥有不同的CPU配额总和，且允许超额配置以应对并发峰值。后端通过实时计算资源消耗并推送配额信息，实现了对不同用户的差异化资源控制，解决了全局资源分配难题。</p>
+<h3 id="section-4">客户端侧的节流机制</h3>
+<p>仅靠后端拒绝无法完全避免过载，因为发送拒绝回复本身也消耗资源。为此引入客户端自适应节流，通过监控本地请求数与后端接受数的比例，动态调整本地丢弃概率。这种机制利用本地信息快速响应后端状态，既稳定了请求速率，又避免了因大量拒绝回复导致的资源浪费，解决了后端拒绝效率低下的问题。</p>
+<h3 id="section-5">请求数量（requests）</h3>
+<p>该标题定义了客户端应用层代码发出的所有请求总数。在自适应节流算法中，它作为核心监控指标，用于与后端接受的请求数进行对比。当后端开始拒绝请求时，该数值会持续上升，从而触发客户端本地的节流机制，通过概率性丢弃请求来降低发往后端的负载，防止过载扩散。</p>
+<h3 id="section-6">请求接受数量（accepts）</h3>
+<p>该指标指后端任务实际接受的请求数量。在常规情况下它与请求数量相等，但在过载时变小。作者利用这一差值作为信号，当请求数超过接受数的K倍时，客户端启动自适应节流。这使客户端能基于本地信息快速感知后端状态，并通过增加本地拒绝概率来平衡负载，避免后端资源耗尽。</p>
+<h3 id="section-7">重要性</h3>
+<p>在配额与节流基础上，引入请求重要性分级（CRITICAL_PLUS至SHEDDABLE）以细化过载处理。该属性作为RPC一级字段自动传递，确保在资源受限时，低优先级请求优先被拒，而高优先级请求得到保障。这一机制解决了不同业务场景对可用性要求的差异，为后续处理过载错误提供了决策依据。</p>
+<h3 id="section-8">最重要 CRITICAL_PLUS</h3>
+<p>这是为最重要请求预留的类型，拒绝会导致严重的用户可见问题。作者将其作为优先级最高的保护对象，要求服务必须为其配置资源。在全局配额不足或任务过载时，系统会按优先级分级拒绝，确保此类请求最后被丢弃，从而保障核心业务在极端压力下的可用性，防止关键功能失效。</p>
+<h3 id="section-9">重要 CRITICAL</h3>
+<p>这是生产任务发出的默认请求类型，拒绝也会造成用户可见问题，但严重程度低于CRITICAL_PLUS。作者要求服务必须为所有CRITICAL流量配置资源。在过载处理中，它享有高优先级保护，仅在极高负载下才会被拒绝。这确保了日常生产流量的稳定性，平衡了系统资源分配与用户体验。</p>
+<h3 id="section-10">可丢弃的SHEDDABLE_PLUS</h3>
+<p>该类型流量可容忍一定程度的不可用性，是批量任务的默认值，通常可稍后重试。作者将其列为低优先级，在过载时优先被拒绝。这种分类允许系统在资源紧张时牺牲非关键批量任务，以保护核心服务。它体现了通过重要性分级来应对过载的策略，确保资源向高价值请求倾斜。</p>
+<h3 id="section-11">可丢弃的SHEDDABLE</h3>
+<p>此类流量经常面临部分不可用，偶尔完全不可用。作者将其视为最低优先级，在过载时最先被丢弃。通过这种细粒度分类，系统能更灵活地应对压力，允许非关键数据在极端情况下被忽略。这减少了因处理低价值请求而消耗的资源，防止过载恶化，同时避免了增加过多分类带来的系统复杂性。</p>
+<h3 id="section-12">资源利用率信号</h3>
+<p>后端过载保护依赖于本地计算的资源利用率信号，主要基于CPU消耗及执行器负载均值。通过统计活跃线程数并结合指数衰减平滑突发流量，系统能在负载超过阈值时拒绝请求。这种基于本地信息的信号机制，确保了任务在资源紧张时能迅速自我保护，防止系统崩溃，为处理过载错误提供了触发条件。</p>
+<h3 id="section-13">处理过载错误</h3>
+<p>针对客户端收到的过载错误，作者区分了大规模过载与小部分任务过载两种情形。前者应停止重试并向上报错，后者则倾向于立即重试。由于重试请求与新请求同等对待可形成天然负载均衡，系统无需额外逻辑即可将负载转移至空闲任务，有效利用了剩余容量，解决了局部过载时的请求分发问题。</p>
+<h3 id="section-14">决定何时重试</h3>
+<p>为避免重试爆炸，系统实施了多重重试限制：单次请求最多重试3次，且客户端整体重试比例低于10%时才允许重试。此外，通过请求元数据中的重试计数直方图，后端可判断其他节点是否同样过载，从而返回“无须重试”错误。这些机制共同作用，防止了依赖栈中多层级联重试导致的系统崩溃。</p>
+<h3 id="section-15">连接造成的负载</h3>
+<p>除了处理逻辑，连接维护本身也消耗资源。作者指出健康检查及突发连接可能引发过载，建议通过调节健康检查频率或引入批处理代理来优化。代理作为“保险丝”隔离了后端，减少了连接数量并提高了负载均衡效率。这一补充措施解决了连接层面的资源消耗问题，完善了过载保护的最后一环。</p>
+<h3 id="section-16">小结</h3>
+<p>小结回顾本章技术，强调后端不应在过载时完全崩溃，而应优雅拒绝多余请求。作者指出负载均衡需深入理解系统语义，无万能药。通过严肃对待降级情况，避免资源竞争导致的级联失败，确保了系统在极端压力下的稳定性。这为后续章节探讨更复杂的系统故障处理提供了总结性视角。</p>
+<h2 id="section-17">二、主题讲解：应对过载的核心策略</h2>
+<h3 id="section-18">从QPS到资源感知的容量规划</h3>
+<p>传统负载均衡常陷入QPS陷阱，即假设每个请求成本固定。然而，实际请求成本受客户端类型、数据量及时间影响巨大，导致基于QPS的容量规划极易失效。作者指出，更稳健的做法是直接以可用资源（如CPU内核数）衡量容量。在多数编程环境中，内存压力会转化为CPU压力（如GC增加），因此CPU可作为主要信号。这种资源感知的规划方式，能够动态适应负载变化，避免因静态指标滞后导致的系统过载，为后续的资源配给提供了准确的基础。</p>
+<h3 id="section-19">用户配额与客户端自适应节流</h3>
+<p>当全局过载发生时，系统需通过用户配额区分对待。通过协商为不同客户端分配CPU配额，后端可优先保障核心业务。然而，仅靠后端拒绝不足以应对过载，因为发送拒绝回复本身也消耗资源。为此引入客户端自适应节流机制：客户端监控本地请求数与后端接受数的比例，当后端开始拒绝时，客户端动态提高本地丢弃概率。这种基于本地信息的反馈机制，能快速抑制请求速率，避免后端陷入发送拒绝回复的资源泥潭，实现了端到端的流量控制。</p>
+<h3 id="section-20">重要性分级与过载错误处理</h3>
+<p>在资源受限时，系统需依据请求重要性进行分级处理。将请求标记为CRITICAL_PLUS至SHEDDABLE，确保高优先级请求在过载时不被丢弃。对于过载错误，需区分大规模与小规模过载：前者停止重试，后者立即重试。为避免重试爆炸，系统限制单次重试次数及客户端整体重试比例，并利用重试计数直方图判断其他节点状态。若发现普遍过载，则返回“无须重试”错误，防止依赖栈中的级联重试导致系统崩溃。</p>
+<h3 id="section-21">连接负载与代理隔离策略</h3>
+<p>过载不仅源于处理逻辑，还来自连接维护成本。健康检查及突发连接可能消耗大量CPU和内存。为解决此问题，建议调节健康检查频率，并引入批处理代理。代理作为“保险丝”，隔离了后端与大量客户端，减少了后端连接数量，同时提高了负载均衡效率。这种架构优化，有效降低了连接层面的资源压力，保护了核心后端任务，确保了系统在极端负载下的稳定性。</p>
+<h2 id="section-22">检验理解</h2>
+<p><strong>情形</strong>：假设一个核心搜索服务在后端过载时，大量客户端开始重试请求。此时，部分重试请求携带了较高的重试计数，且后端检测到其他节点也处于过载状态。</p>
+<p><strong>问题</strong>：在这种情况下，后端应如何响应这些重试请求？请结合重要性分级和重试限制机制说明理由。</p>
+<h3 id="section-23">核对思路（先作答再看）</h3>
+<p>后端应返回“过载；无须重试”错误。理由：1. 重试计数高表明请求已多次失败，继续重试可能无效；2. 其他节点过载表明全局性问题，重试无法解决问题；3. 结合重要性，若请求非CRITICAL_PLUS，拒绝重试可避免资源浪费；若为CRITICAL_PLUS，可能需降级而非重试。这避免了重试爆炸，保护了系统稳定性。</p>
+<h2 id="section-24">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 262-274。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：QPS陷阱。</li>
+<li>边界：给每个用户设置限制。</li>
+<li>边界：客户端侧的节流机制。</li>
+<li>边界：重要性。</li>
+<li>阅读连接：下一单元是“第22章 处理连锁故障”，继续回答：怎样理解并使用“处理连锁故障”，以及它在什么条件下不适用。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../20-chapter-20/index.html">上一篇 · 数据中心内部的负载均衡系统</a><a href="../22-chapter-22/index.html">下一篇 · 处理连锁故障</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

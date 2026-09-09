@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第7章 遵照OpenTelemetry的探针 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">7.1 探针简介</a><a class="sub" href="#section-3">7.2 开源探针标准</a><a class="sub" href="#section-4">7.3 使用基于代码的示例的探针</a><a class="sub" href="#section-5">7.3.1 自动化探针</a><a class="sub" href="#section-6">7.3.2 增加自定义探针</a><a class="sub" href="#section-7">7.3.3 发送探针数据到后端系统</a><a class="sub" href="#section-8">7.4 结论</a><a class="" href="#section-9">二、主题讲解：OpenTelemetry探针机制详解</a><a class="sub" href="#section-10">自动化探针的上下文传播机制</a><a class="sub" href="#section-11">自定义Span与属性的动态关联</a><a class="sub" href="#section-12">多后端导出策略与OTLP协议</a><a class="sub" href="#section-13">指标记录的限制与最佳实践</a><a class="" href="#section-14">检验理解</a><a class="sub" href="#section-15">核对思路（先作答再看）</a><a class="" href="#section-16">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第7章</p><h1>遵照OpenTelemetry的探针</h1>
+<p>本章要回答：怎样在降低厂商锁定的同时生成、丰富并发送遥测数据。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">7.1 探针简介</h3>
+<p>本节回顾应用埋点历史，指出传统方式依赖特定后端库导致厂商锁定。作者强调宽事件和链路是理想构建块，但手动埋点繁琐。通过对比过去安装特定探针库的弊端，引出对通用、灵活探针方法的需求，为引入开源标准做铺垫。</p>
+<h3 id="section-3">7.2 开源探针标准</h3>
+<p>本节介绍OpenTracing和OpenCensus合并为OpenTelemetry（OTel）的过程。作者在成书时把它视为厂商中立的主要开放标准，用来生成链路、指标等遥测数据并发送到不同后端。这个判断反映2022年前后的生态位置，具体支持范围要按当前版本另查。</p>
+<h3 id="section-4">7.3 使用基于代码的示例的探针</h3>
+<p>本节概述OTel支持多语言，选用Go语言演示因其在云原生领域的通用性。作者速成介绍OTel核心组件：API用于规范，SDK实现逻辑，Tracer管理Span，Meter报告指标，Exporter导出数据，Collector处理数据流。强调理解这些术语对掌握探针机制的重要性。</p>
+<h3 id="section-5">7.3.1 自动化探针</h3>
+<p>本节阐述自动化探针通过拦截或中间件自动为HTTP、gRPC等框架生成Span，减少手动摩擦。作者以Go语言为例，说明如何通过包装HTTP处理器或注册gRPC拦截器，自动读取上下文并创建Span，从而快速建立服务间调用关系的可视化，为后续自定义埋点奠定基础。</p>
+<h3 id="section-6">7.3.2 增加自定义探针</h3>
+<p>本节讲解在自动化基础上增加自定义字段和Span以丰富上下文。作者说明如何通过Tracer获取当前活跃Span并添加属性（如HTTP状态码），或记录Process-wide指标。强调自定义探针能关联业务逻辑，帮助调试，但警告避免过度使用僵硬的程序级指标。</p>
+<h3 id="section-7">7.3.3 发送探针数据到后端系统</h3>
+<p>本节演示如何将遥测数据发送到后端。作者介绍两种方法：通过OTel Collector代理或直接实例化Exporter。强调OTLP协议作为默认标准的重要性，并展示如何配置多个Exporter同时发送数据至不同后端，以支持多系统并行测试或冗余备份，确保数据不中断。</p>
+<h3 id="section-8">7.4 结论</h3>
+<p>本节总结OTel作为厂商中立标准，能灵活发送遥测数据至任意后端。作者重申Go语言示例的概念适用于所有支持语言，并预告后续章节将深入探讨事件和指标的用法及局限性，引导读者思考指标数据的固有约束，为下一章做铺垫。</p>
+<h2 id="section-9">二、主题讲解：OpenTelemetry探针机制详解</h2>
+<h3 id="section-10">自动化探针的上下文传播机制</h3>
+<p>自动化探针的核心在于自动捕获服务间的调用关系。以HTTP框架为例，OTel通过中间件拦截请求，从请求头中还原TraceContext或B3M等序列化上下文。Tracer组件利用该上下文创建新的Span，并更新线程局部存储中的活跃Span引用。这一机制确保了请求从上游到下游的链路连续性，无需开发者手动传递Context对象，从而在微服务网络中自动构建出清晰的调用拓扑。</p>
+<h3 id="section-11">自定义Span与属性的动态关联</h3>
+<p>在自动化生成的Span基础上，开发者可通过代码动态增加业务上下文。利用Trace.SpanFromContext获取当前活跃Span后，可调用AddEvent或SetAttributes方法注入如用户ID、错误码等关键字段。这些属性与Span的生命周期绑定，仅在Span结束前有效。此机制允许将离散的遥测数据关联到具体的业务逻辑片段，增强数据的可解释性，但需注意属性类型需符合OTel规范以保证性能。</p>
+<h3 id="section-12">多后端导出策略与OTLP协议</h3>
+<p>OTel通过Exporter组件将内存中的遥测数据转换为特定格式并发送至后端。默认推荐使用OTLP协议，因其兼容性强且支持gRPC传输。开发者可在程序启动时实例化多个Exporter，分别指向不同的Telemetry Sink（如Jaeger或Honeycomb）。这种多路复用策略不仅支持数据冗余备份，还允许在测试不同后端性能时保持生产环境数据的持续采集，避免单一后端故障导致的数据丢失。</p>
+<h3 id="section-13">指标记录的限制与最佳实践</h3>
+<p>虽然OTel支持记录Process-wide指标，但作者建议谨慎使用。指标数据通常用于聚合统计，缺乏细粒度的上下文信息，容易陷入僵硬的监控视角。相比之下，基于Span的属性或事件能提供更丰富的业务逻辑上下文。因此，最佳实践是优先利用链路追踪中的宽事件来承载指标信息，仅在需要高精度、非采样计数且与请求无关的场景下，才考虑使用独立的指标记录机制，以避免数据孤岛。</p>
+<h2 id="section-14">检验理解</h2>
+<p><strong>情形</strong>：假设你正在调试一个微服务系统，发现某个特定用户的请求在网关层耗时正常，但在后端数据库层出现超时。你希望追踪该请求在数据库层的详细执行过程，并记录数据库返回的错误码。</p>
+<p><strong>问题</strong>：基于OTel机制，你应如何结合自动化探针与自定义探针来实现这一目标？请说明上下文传播的作用及自定义属性的添加时机。</p>
+<h3 id="section-15">核对思路（先作答再看）</h3>
+<p>首先，自动化探针应在网关层自动创建Span并传播上下文（如TraceID）至后端服务。当请求到达数据库层时，自动化探针应再次自动创建子Span。此时，开发者需通过代码获取当前活跃的Span（利用Context），并在Span结束前（如defer中）添加自定义属性（如错误码）。上下文传播确保了从网关到数据库的链路连续性，而自定义属性则在Span生命周期内注入业务细节，两者结合才能完整复现故障路径。</p>
+<h2 id="section-16">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 60-66。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：原书未提供具体的性能基准测试数据，仅定性描述自动化探针减少摩擦。</li>
+<li>边界：原书未详细展开Collector内部处理逻辑，仅提及作为代理或sidecar的角色。</li>
+<li>边界：原书未提供非Go语言的具体代码实现，仅说明概念通用。</li>
+<li>边界：OpenTelemetry的组件、语言与后端支持描述来自2022年前后的原书语境，不作为当前版本清单。</li>
+<li>阅读连接：探针解决怎样生成数据；第八章转向怎样让查询结果决定下一问。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../06-traces/index.html">上一篇 · 将事件拼接成链路</a><a href="../08-event-analysis/index.html">下一篇 · 通过事件分析实现可观测性</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

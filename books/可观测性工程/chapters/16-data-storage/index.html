@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第16章 高效的数据存储 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">16.1 可观测性的功能要求</a><a class="sub" href="#section-3">16.1.1 时序数据库不能完全胜任可观测性</a><a class="sub" href="#section-4">16.1.2 其他可能的数据存储</a><a class="sub" href="#section-5">16.1.3 数据存储策略</a><a class="sub" href="#section-6">16.2 案例研究：Honeycomb的列式数据存储实现</a><a class="sub" href="#section-7">16.2.1 按时间分区存储</a><a class="sub" href="#section-8">16.2.2 按段列式存储</a><a class="sub" href="#section-9">16.2.3 执行查询工作负载</a><a class="sub" href="#section-10">16.2.4 查询链路追踪数据</a><a class="sub" href="#section-11">16.2.5 实时查询数据</a><a class="sub" href="#section-12">16.2.6 利用存储分层降低成本</a><a class="sub" href="#section-13">16.2.7 利用并行加速</a><a class="sub" href="#section-14">16.2.8 处理好高基数数据</a><a class="sub" href="#section-15">16.2.9 扩展与持久化策略</a><a class="sub" href="#section-16">16.2.10 构建专属高效数据存储的注意事项</a><a class="sub" href="#section-17">16.3 结论</a><a class="" href="#section-18">二、主题讲解：高效数据存储的核心机制与权衡</a><a class="sub" href="#section-19">列式存储与高基数数据的处理机制</a><a class="sub" href="#section-20">时间分区与混合存储的架构权衡</a><a class="sub" href="#section-21">实时查询与存储分层的性能优化</a><a class="sub" href="#section-22">可扩展性与持久性的工程实践</a><a class="" href="#section-23">检验理解</a><a class="sub" href="#section-24">核对思路（先作答再看）</a><a class="" href="#section-25">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第16章</p><h1>高效的数据存储</h1>
+<p>本章要回答：怎样让高基数、高维数据在大规模下仍能快速查询。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">16.1 可观测性的功能要求</h3>
+<p>本节指出可观测性数据查询必须极速返回，支持任意字段的高基数高维度分析，且需兼顾历史与实时数据。作者强调传统TSDB因时间线爆炸无法胜任，引出对存储功能的深层需求。这为后续探讨TSDB局限及替代方案奠定了逻辑基础。</p>
+<h3 id="section-3">16.1.1 时序数据库不能完全胜任可观测性</h3>
+<p>作者分析TSDB通过聚合指标降低存储成本，但面对结构化事件时，每个独特标签组合都会创建新时间序列，导致存储开销线性增长。这种高基数引发的时间线爆炸问题，证明了TSDB不适合存储复杂的链路追踪数据，需寻找新方案。</p>
+<h3 id="section-4">16.1.2 其他可能的数据存储</h3>
+<p>本节评估NoSQL数据库在预索引查询上的局限，指出其难以支持任意维度的灵活切分。同时提及Facebook Scuba依赖昂贵内存，以及开源方案如Elasticsearch或ClickHouse的潜力。作者旨在说明单一通用存储难以兼顾性能与成本，需特定优化。</p>
+<h3 id="section-5">16.1.3 数据存储策略</h3>
+<p>作者对比行存储与列存储的权衡，指出Bigtable等行存储在处理“一写多读”及任意字段查询时存在压缩开销大、I/O浪费等问题。列存储虽能减少扫描量，但重建行数据困难。由此引出混合存储策略，为引入Honeycomb Retriever架构做铺垫。</p>
+<h3 id="section-6">16.2 案例研究：Honeycomb的列式数据存储实现</h3>
+<p>本节以Honeycomb Retriever为例，展示如何通过混合列式存储满足可观测性需求。作者强调该架构并非唯一解，但能具体呈现设计权衡。通过此案例，旨在说明如何在实际工程中平衡速度、成本与可靠性，解决前文提出的功能挑战。</p>
+<h3 id="section-7">16.2.1 按时间分区存储</h3>
+<p>作者提出按时间戳划分数据段，假设到达时间与产生时间相近，实现仅追加写入。通过记录段的时间窗口元数据，查询时可快速排除无关段。这种策略简化了写入开销，并解决了无序到达数据的分区问题，为后续列式存储奠定基础。</p>
+<h3 id="section-8">16.2.2 按段列式存储</h3>
+<p>在时间分区基础上，作者描述将事件分解为字段并独立存储，利用字典压缩和稀疏编码减少空间。每列文件存储序列号与值，支持独立查询。这种设计避免了预聚合，允许任意字段查询，同时通过压缩降低存储成本，优化了读取性能。</p>
+<h3 id="section-9">16.2.3 执行查询工作负载</h3>
+<p>作者详细阐述六步查询流程：确定重叠段、扫描相关列、重构行、段内聚合、跨段聚合及排序。通过仅读取相关列和处理匹配行，实现高效过滤。该方法支持任意复杂组合过滤，无需预先聚合，确保了高基数数据下的查询速度与准确性。</p>
+<h3 id="section-10">16.2.4 查询链路追踪数据</h3>
+<p>本节说明链路追踪查询是列式存储的特殊退化形式，通过查询parent_id为null找到根span，并按trace_id组装链路。作者指出，虽然特殊索引可加速单链路可视化，但列式存储更利于将链路分解为Span进行跨链路分析，提供了更高的灵活性。</p>
+<h3 id="section-11">16.2.5 实时查询数据</h3>
+<p>作者强调数据需在几秒内可查，避免陈旧数据误导调查。Retriever通过允许查询未压缩的开放列文件，实现采集与查询分离。这种设计使采集专注于写入，查询专注于读取，提升了系统容错性，确保实时数据快速可用，无需等待分段最终确定。</p>
+<h3 id="section-12">16.2.6 利用存储分层降低成本</h3>
+<p>作者提出存储分层策略，近期数据保留在本地SSD以加速查询，旧数据压缩后上传至S3等低成本存储。查询旧数据时再加载解压。这种分层平衡了性能与成本，利用云存储的弹性，解决了大规模历史数据的存储经济性问题。</p>
+<h3 id="section-13">16.2.7 利用并行加速</h3>
+<p>作者介绍利用无服务器Mapper-Reducer模式并行处理数据段，通过云提供商的分布式存储加速查询。针对尾部延迟，采用不耐烦重试策略，优先返回最快结果。这种并行机制确保了查询在几秒内返回，即使面对大规模数据也能保持高效。</p>
+<h3 id="section-14">16.2.8 处理好高基数数据</h3>
+<p>面对高基数分组，作者建议通过哈希将组均衡分布到多个Reduce Worker，限制返回组数以节省内存。若组数过多，则估计最可能结果或放弃返回。这种策略防止内存耗尽，确保图表可用性，在高基数场景下平衡了准确性与性能。</p>
+<h3 id="section-15">16.2.9 扩展与持久化策略</h3>
+<p>作者描述使用Kafka实现流式数据模式，确保有序持久缓冲。通过分离无状态接收器与有状态索引工作者，实现水平扩展与容错。Kafka分区对应数据段，查询时合并各分区结果。该策略保障了数据不丢失，并支持大规模并发查询与写入。</p>
+<h3 id="section-16">16.2.10 构建专属高效数据存储的注意事项</h3>
+<p>作者总结Retriever通过时间分段混合列式存储，满足了可观测性的速度、成本与可靠性要求。强调正确数据抽象的重要性，指出传统存储难以应对任意基数查询。本节旨在确认该架构作为解决可观测性挑战的有效范例，为结论做铺垫。</p>
+<h3 id="section-17">16.3 结论</h3>
+<p>本章总结可观测性数据存储面临高基数、低延迟及实时性挑战，传统系统难以胜任。Retriever案例展示了通过混合列式存储解决这些问题的权衡与方法。作者建议参考ClickHouse等方案，并预告下一章将探讨遥测数据的网络传输管理。</p>
+<h2 id="section-18">二、主题讲解：高效数据存储的核心机制与权衡</h2>
+<h3 id="section-19">列式存储与高基数数据的处理机制</h3>
+<p>列式存储将数据按字段而非行存储，每个字段独立成文件。在处理高基数数据时，这种结构允许仅读取查询所需的列，大幅减少I/O。通过字典压缩和稀疏编码，重复值被高效存储，降低了空间开销。然而，重建原始行数据需要扫描所有相关列，这可能增加计算复杂度。因此，列式存储适合“一写多读”且查询维度任意的场景，但不适合频繁更新单行数据的场景。</p>
+<h3 id="section-20">时间分区与混合存储的架构权衡</h3>
+<p>时间分区将数据按时间窗口划分为段，简化了写入过程，实现仅追加模式。混合存储结合行与列的优点，通过时间戳索引快速定位数据段，再在段内按列存储。这种架构解决了行存储在任意字段查询时的I/O浪费问题，同时避免了纯列存储在重建行时的扫描开销。权衡在于需要维护时间窗口元数据，并在查询时处理段间的聚合，但整体提升了查询效率与存储经济性。</p>
+<h3 id="section-21">实时查询与存储分层的性能优化</h3>
+<p>实时查询要求数据在写入后几秒内可查，这通过允许查询未压缩的开放列文件实现，分离了采集与查询流程。存储分层则将近期数据保留在高速存储（如SSD），旧数据移至低成本对象存储（如S3）。这种分层平衡了性能与成本，利用云存储的弹性应对历史数据。并行处理通过Mapper-Reducer模式加速查询，即使面对大规模数据也能保证低延迟，但需处理分布式系统的尾部延迟问题。</p>
+<h3 id="section-22">可扩展性与持久性的工程实践</h3>
+<p>可扩展性通过水平扩展与流式数据模式（如Kafka）实现，确保数据有序持久缓冲。分离无状态接收器与有状态索引工作者，提升了系统容错性，允许独立重启而不丢失数据。持久性通过多副本与快照机制保障，防止单点故障。工程实践中，需平衡分区数量与查询复杂度，确保在高并发下仍能快速合并结果，满足生产环境的可靠性要求。</p>
+<h2 id="section-23">检验理解</h2>
+<p><strong>情形</strong>：假设你正在设计一个可观测性后端，需要支持对任意字段的高基数查询，同时要求数据在写入后5秒内可查，且存储成本需控制在合理范围。</p>
+<p><strong>问题</strong>：在上述场景下，如何结合列式存储、时间分区与存储分层策略，设计一个既能满足实时查询又能控制成本的架构？请说明各组件的作用及潜在权衡。</p>
+<h3 id="section-24">核对思路（先作答再看）</h3>
+<p>架构应包含：1. 时间分区：按时间窗口划分数据段，实现仅追加写入，简化元数据管理。2. 列式存储：在段内按字段独立存储，支持任意字段查询，通过压缩降低空间。3. 实时查询：允许查询未压缩的开放列文件，分离采集与查询，确保低延迟。4. 存储分层：近期数据存于SSD，旧数据移至S3，平衡性能与成本。潜在权衡包括：重建行数据的计算开销、未压缩数据的I/O压力、以及分层查询的延迟增加。需通过并行处理与不耐烦重试优化查询性能。</p>
+<h2 id="section-25">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 133-146。</li>
+<li>源文件 SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</li>
+<li>“原书回顾”只归纳本章作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>边界：原书未提供具体性能基准测试数据，仅提及Retriever集群的规模与延迟指标。</li>
+<li>边界：原书未详细讨论其他存储方案（如ClickHouse）的具体实现细节，仅作为对比提及。</li>
+<li>边界：原书未涉及存储硬件故障的具体恢复流程，仅提及容错性设计。</li>
+<li>阅读连接：存储回答怎样快速查；第十七章处理数据量过大时怎样采样而不丢掉稀有问题。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../15-build-buy-roi/index.html">上一篇 · 自建与购买以及投资回报率</a><a href="../17-sampling/index.html">下一篇 · 如何使采样精准且便宜</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

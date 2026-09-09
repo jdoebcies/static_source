@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第3章 拥抱风险 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">管理风险</a><a class="sub" href="#section-3">冗余物理服务器/计算资源的成本</a><a class="sub" href="#section-4">机会成本</a><a class="sub" href="#section-5">度量服务的风险</a><a class="sub" href="#section-6">服务的风险容忍度</a><a class="sub" href="#section-7">辨别消费者服务的风险容忍度</a><a class="sub" href="#section-8">可用性目标</a><a class="sub" href="#section-9">故障的类型</a><a class="sub" href="#section-10">成本（原书第1处）</a><a class="sub" href="#section-11">成本（原书第2处）</a><a class="sub" href="#section-12">其他服务指标</a><a class="sub" href="#section-13">基础设施服务的风险容忍度</a><a class="sub" href="#section-14">可用性目标水平</a><a class="sub" href="#section-15">故障类型</a><a class="sub" href="#section-16">例子：前端基础设施</a><a class="sub" href="#section-17">使用错误预算的目的</a><a class="sub" href="#section-18">软件对故障的容忍度</a><a class="sub" href="#section-19">测试</a><a class="sub" href="#section-20">发布频率</a><a class="sub" href="#section-21">金丝雀测试（Canary）的持续时间和大小</a><a class="sub" href="#section-22">错误预算的构建过程</a><a class="sub" href="#section-23">好处</a><a class="sub" href="#section-24">关键点</a><a class="" href="#section-25">二、主题讲解：理解服务风险与错误预算</a><a class="sub" href="#section-26">风险与可靠性的权衡</a><a class="sub" href="#section-27">度量服务风险的方法</a><a class="sub" href="#section-28">错误预算的构建与应用</a><a class="sub" href="#section-29">基础设施服务的风险策略</a><a class="" href="#section-30">检验理解</a><a class="sub" href="#section-31">核对思路（先作答再看）</a><a class="" href="#section-32">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第3章</p><h1>拥抱风险</h1>
+<p>本单元要回答：怎样理解并使用“拥抱风险”，以及它在什么条件下不适用。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 80 1040 420" role="img" aria-label="错误预算让发布速度随可靠性结果调整">
+      <defs>
+        <marker id="03-chapter-03-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="03-chapter-03-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="03-chapter-03-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+      <rect width="1040" height="560" fill="#f5f5f5"/>
+      <line x1="192" y1="248" x2="224" y2="248" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="192" y="232" width="40" height="20" rx="4" fill="#f5f5f5"/><text x="212" y="246" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">转成指标</text><line x1="376" y1="248" x2="408" y2="248" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="380" y="232" width="32" height="20" rx="4" fill="#f5f5f5"/><text x="396" y="246" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">定目标</text><line x1="560" y1="248" x2="592" y2="248" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="568" y="232" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="580" y="246" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">换算</text><line x1="744" y1="248" x2="776" y2="248" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="752" y="232" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="764" y="246" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">检查</text><line x1="856" y1="288" x2="856" y2="336" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="844" y="300" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="856" y="314" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">否</text><line x1="784" y1="420" x2="568" y2="420" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="648" y="404" width="48" height="20" rx="4" fill="#f5f5f5"/><text x="672" y="418" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">修复后重评</text><line x1="784" y1="288" x2="496" y2="376" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="624" y="320" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="636" y="334" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">是</text><line x1="416" y1="420" x2="128" y2="420" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="232" y="404" width="72" height="20" rx="4" fill="#f5f5f5"/><text x="268" y="418" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">结果进入下一周期</text><line x1="120" y1="420" x2="120" y2="296" stroke="#4f5d75" stroke-width="1.6" marker-end="url(#03-chapter-03-0-arrow)"/><rect x="108" y="336" width="24" height="20" rx="4" fill="#f5f5f5"/><text x="120" y="350" fill="#7a8399" font-size="8" text-anchor="middle" font-family="Geist Mono, PingFang SC, monospace">反馈</text><rect x="48" y="208" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="120" y="240" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">业务与用户</text><text x="120" y="256" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">风险容忍度</text><rect x="232" y="208" width="144" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="304" y="240" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">选择 SLI</text><text x="304" y="256" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">定义测量</text><rect x="416" y="208" width="144" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="488" y="240" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">设定 SLO</text><text x="488" y="256" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">允许误差</text><rect x="600" y="208" width="144" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/><text x="672" y="240" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">计算错误预算</text><text x="672" y="256" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">当前余量</text><polygon points="856,208 928,248 856,288 784,248" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="856" y="240" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">预算还有</text><text x="856" y="256" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">余量？</text><rect x="784" y="384" width="144" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="856" y="412" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">放慢发布</text><text x="856" y="428" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">补可靠性工作</text><rect x="416" y="384" width="144" height="72" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/><text x="488" y="412" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">继续发布</text><text x="488" y="428" fill="#2d3142" font-size="12" font-weight="600" text-anchor="middle" font-family="Geist, PingFang SC, sans-serif">观察真实错误</text>
+    </svg></button><small>点击放大配图</small></figure><p class="caption">图3-1｜错误预算怎样在可靠性与发布速度之间形成反馈</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">管理风险</h3>
+<p>本章开篇指出极致的可靠性往往伴随高昂成本且用户难以感知，SRE的核心在于平衡创新与运营风险。作者通过成本收益分析，强调应将运维风险与业务风险对应，避免过度追求可靠性而牺牲新功能开发。这一观点为后续量化风险指标奠定了基调，引出如何具体度量服务风险的话题。</p>
+<h3 id="section-3">冗余物理服务器/计算资源的成本</h3>
+<p>该部分指出通过投入冗余设备可实现离线维护及数据持久性保证。作者认为提升可靠性的成本非线性增加，极端可靠性带来成本大幅上升，限制新功能开发并增加成本，而用户难以感知高可靠性与极端可靠性的差异，因此需平衡创新与运营风险。</p>
+<h3 id="section-4">机会成本</h3>
+<p>作者指出当组织分配工程资源构建减险系统而非用户直接可用功能时需承担机会成本。因工程师无法从事设计新功能工作，导致新功能数量减少。这体现了在构建减险系统时，资源被占用从而牺牲了直接面向用户的功能开发，是可靠性提升带来的隐性代价。</p>
+<h3 id="section-5">度量服务的风险</h3>
+<p>作者提出通过单一客观指标量化风险，首选计划外停机时间。书中对比了基于时间的可用性公式与基于请求成功率的合计可用性，指出后者更适合全球分布式服务。这一度量方法的转变，自然过渡到如何根据服务特性设定具体的风险容忍度目标。</p>
+<h3 id="section-6">服务的风险容忍度</h3>
+<p>本节探讨如何辨别服务风险容忍度，强调需将商业目标转化为工程目标。作者区分了消费者服务与基础设施服务在风险定义上的差异，指出前者有明确产品负责人，后者则缺乏清晰的所有权结构。这种分类为后续分别讨论两类服务的具体风险考量因素提供了框架。</p>
+<h3 id="section-7">辨别消费者服务的风险容忍度</h3>
+<p>针对消费者服务，作者列出可用性目标、故障类型、成本及其他指标四个考量维度。通过Google Apps for Work和YouTube的案例，说明不同市场定位和生命周期阶段决定了不同的可用性目标。这种基于业务影响的评估方法，进一步细化到对故障类型的具体分析。</p>
+<h3 id="section-8">可用性目标</h3>
+<p>本节讨论可用性目标的设定依据，包括用户期望、收入关联性及竞争对手水平。以Google Apps for Work为例，说明企业级服务需兼顾外部目标与内部协议。这一部分强调了业务定位对技术目标的决定性作用，为后续分析故障类型对业务的影响做铺垫。</p>
+<h3 id="section-9">故障的类型</h3>
+<p>作者指出不同类型的故障对业务影响迥异，通过联系人管理应用的案例，对比了体验故障与数据泄露风险。对于Ads前端服务，作者提出计划内停机可被接受。这种对故障性质的区分，引出了成本因素在可用性目标决策中的关键作用。</p>
+<h3 id="section-10">成本（原书第1处）</h3>
+<p>本节通过广告服务的收入与可靠性权衡，展示了成本在设定可用性目标中的重要性。作者提出将误差率控制在ISP背景误差率以下的策略，以降低用户感知的故障影响。这一成本效益分析逻辑，自然延伸至其他服务指标如延迟对风险容忍度的影响。</p>
+<h3 id="section-11">成本（原书第2处）</h3>
+<p>本节强调通过分割基础设施服务来优化成本，以Bigtable为例说明高可靠集群与高吞吐量集群的成本差异。作者指出，明确划分服务水平可将部分成本转移给用户，促使其做出合理选择。这一策略在前端基础设施中同样适用，引出具体案例。</p>
+<h3 id="section-12">其他服务指标</h3>
+<p>除了可用性，延迟等指标也影响风险容忍度。作者以AdWords和AdSense为例，说明不同服务对延迟的敏感度不同，从而允许在资源分配上做出权衡。这种基于指标差异的权衡策略，进一步扩展到基础设施服务特有的风险容忍度讨论。</p>
+<h3 id="section-13">基础设施服务的风险容忍度</h3>
+<p>基础设施服务因客户多样而需求复杂，作者以Bigtable为例，说明低延迟与高吞吐量需求的冲突。通过分割基础设施为不同集群，作者展示了如何在满足竞争性约束的同时控制成本。这种分割策略的核心在于明确划分服务水平，从而引出错误预算的应用。</p>
+<h3 id="section-14">可用性目标水平</h3>
+<p>本节分析Bigtable不同用户群体对可用性目标的差异化需求，指出单一高可靠性目标往往成本过高。通过分析用户队列期望，作者提出通过分割服务来满足多样化需求。这一成本效益分析逻辑，进一步延伸到前端基础设施的风险容忍度评估。</p>
+<h3 id="section-15">故障类型</h3>
+<p>针对基础设施，作者指出低延迟用户与离线分析用户对成功和失败的定义相反。通过Bigtable案例，说明如何通过调整冗余度和资源配置来平衡不同用户需求。这种对故障类型的细致区分，为前端基础设施的具体风险案例提供了理论支撑。</p>
+<h3 id="section-16">例子：前端基础设施</h3>
+<p>以前端基础设施为例，作者说明反向代理和负载均衡系统因直接处理用户连接而需超高可靠性。由于无法掩盖后端不可用，任何请求丢失都意味着服务完全失败。这一极端案例验证了前文风险容忍度评估原则的普适性，并过渡到错误预算的应用。</p>
+<h3 id="section-17">使用错误预算的目的</h3>
+<p>本节引入错误预算以解决SRE与产品研发团队间的紧张关系。通过指出双方绩效指标的差异，作者强调需要客观指标来指导谈判。错误预算作为共同接受的可靠性指标，旨在排除政治因素，为后续构建过程提供客观依据。</p>
+<h3 id="section-18">软件对故障的容忍度</h3>
+<p>作者探讨软件对故障的容忍度，指出过度追求稳定可能导致产品无人问津，而过度脆弱则导致尴尬故障。这一平衡点的寻找，需要结合测试和发布频率的综合考量，从而引出错误预算在调节发布速度中的具体作用。</p>
+<h3 id="section-19">测试</h3>
+<p>本节讨论测试在风险平衡中的作用，指出不足测试可能导致严重故障，而过度测试可能错失市场先机。这一矛盾凸显了寻找最佳平衡点的必要性，为错误预算作为调节发布速度和测试投入的工具提供了背景支持。</p>
+<h3 id="section-20">发布频率</h3>
+<p>作者指出每次发布都有风险，需权衡减少风险的时间投入。通过引入错误预算，团队可以基于数据而非谈判能力做出决策。这一客观指标的确立，为后续错误预算的具体构建过程奠定了方法论基础。</p>
+<h3 id="section-21">金丝雀测试（Canary）的持续时间和大小</h3>
+<p>本节以金丝雀测试为例，说明如何通过小范围测试来评估新代码的风险。作者指出，测试的持续时间和范围需根据服务特性调整，以避免因测试不足或过度而影响发布节奏。这一具体实践是错误预算调节发布速度的重要手段。</p>
+<h3 id="section-22">错误预算的构建过程</h3>
+<p>作者详细描述了错误预算的构建过程：产品管理层定义SLO，监控系统测算实际在线时间，差值即为剩余预算。只要预算未耗尽，即可发布新版本。这一流程将风险量化，为团队提供了明确的决策依据，并引出错误预算带来的好处。</p>
+<h3 id="section-23">好处</h3>
+<p>本节总结错误预算的主要好处，即激励团队在创新与可靠性间找到平衡。通过调节发布速度，错误预算促使团队自我监管，并在SLO违规时暂停发布。这一机制有效减少了关于事故的争论，强调了共同责任，为章节总结做铺垫。</p>
+<h3 id="section-24">关键点</h3>
+<p>本章最后总结，管理可靠性即管理风险，100%可靠性既不可行也不经济。错误预算通过调整激励，使SRE与研发团队在风险承担上达成一致。这一观点强调了将服务风险与业务风险匹配的重要性，完成了对拥抱风险主题的反馈链。</p>
+<h2 id="section-25">二、主题讲解：理解服务风险与错误预算</h2>
+<h3 id="section-26">风险与可靠性的权衡</h3>
+<p>在构建服务时，追求极致的可靠性往往伴随着不成比例的成本上升，且用户难以感知细微差异。SRE的核心任务并非单纯最大化在线时间，而是平衡快速创新与高效运营之间的风险。这意味着我们需要将运维风险与业务风险明确对应，避免为了超出用户需求的可靠性而牺牲新功能的开发速度。理解这一权衡是制定合理服务目标的前提，它要求我们认识到可靠性提升的非线性成本特征，从而在资源分配上做出更明智的决策。</p>
+<h3 id="section-27">度量服务风险的方法</h3>
+<p>为了量化风险，Google采用基于请求成功率的可用性指标，而非单纯的时间可用性。这种方法通过计算滚动窗口内的成功请求比例，更准确地反映了分布式服务的实际表现。对于非服务型系统，如批处理进程，则通过定义成功与非成功的工作单元来估算可用性。这种度量方式使得风险指标具有客观性和一致性，便于团队追踪系统表现的变化，并为设定具体的风险容忍度目标提供数据支持。</p>
+<h3 id="section-28">错误预算的构建与应用</h3>
+<p>错误预算是基于服务水平目标（SLO）定义的季度不可靠性额度，用于调节发布速度与系统可靠性之间的平衡。当实际在线时间高于SLO时，剩余预算允许团队发布新版本；一旦预算耗尽，发布暂停，团队需专注于提升系统弹性。这一机制将政治谈判转化为数据驱动的决策，促使产品研发与SRE团队共同承担风险责任，并在创新与稳定之间找到可持续的平衡点。</p>
+<h3 id="section-29">基础设施服务的风险策略</h3>
+<p>基础设施服务因客户需求的多样性而面临复杂的风险容忍度挑战。通过分割基础设施为不同服务水平，如低延迟集群和高吞吐量集群，可以在满足竞争性约束的同时优化成本。这种策略将部分成本转移给用户，促使其根据需求选择合适的基础设施。明确划分服务水平不仅提高了资源利用效率，还使得不同用户群体能够根据自身风险偏好进行权衡，从而实现了整体系统的最优配置。</p>
+<h2 id="section-30">检验理解</h2>
+<p><strong>情形</strong>：假设你负责一个面向内部开发者的API服务，其SLO设定为99.9%的可用性。当前季度已消耗80%的错误预算，但产品团队希望发布一个可能引入轻微延迟但能显著提升开发效率的新功能。</p>
+<p><strong>问题</strong>：基于错误预算机制，你应该如何决策？请说明你的推理步骤，并解释如果忽略错误预算限制直接发布，长期可能对团队协作产生的影响。</p>
+<h3 id="section-31">核对思路（先作答再看）</h3>
+<p>首先，检查剩余20%的错误预算是否足以覆盖新功能可能引入的风险。如果新功能风险可控且在预算内，可发布；若风险超出预算，应暂停发布或要求产品团队增加测试以缩小风险范围。忽略错误预算直接发布可能导致SLO违规，耗尽剩余预算，迫使后续发布暂停，甚至引发SRE与产品团队的信任危机。长期来看，这会破坏基于数据的协作机制，使风险管理退回到主观谈判，降低团队效率。</p>
+<h2 id="section-32">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 56-68。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：错误预算的具体数值（如99.999%）仅适用于书中案例，实际应用中需根据业务需求定制。</li>
+<li>边界：书中提到的成本效益分析（如900美元阈值）基于特定广告业务场景，不具普遍适用性。</li>
+<li>边界：错误预算机制假设SLO准确反映业务风险，若SLO设定不当，可能导致错误的决策。</li>
+<li>阅读连接：下一单元是“第4章 服务质量目标”，继续回答：如何构建可运维的服务质量目标体系。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../02-chapter-2-google-sre/index.html">上一篇 · Google 生产环境：SRE视角</a><a href="../04-chapter-04/index.html">下一篇 · 服务质量目标</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

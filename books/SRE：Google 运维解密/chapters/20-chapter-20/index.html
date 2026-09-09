@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第20章 数据中心内部的负载均衡系统 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">理想情况</a><a class="sub" href="#section-3">识别异常任务：流速控制和跛脚鸭任务</a><a class="sub" href="#section-4">异常任务的简单应对办法：流速控制</a><a class="sub" href="#section-5">健康</a><a class="sub" href="#section-6">拒绝连接</a><a class="sub" href="#section-7">跛脚鸭状态</a><a class="sub" href="#section-8">利用划分子集限制连接池大小</a><a class="sub" href="#section-9">子集选择算法一：随机选择</a><a class="sub" href="#section-10">负载均衡策略</a><a class="sub" href="#section-11">简单轮询算法</a><a class="sub" href="#section-12">子集过小</a><a class="sub" href="#section-13">请求处理成本不同</a><a class="sub" href="#section-14">物理服务器的差异</a><a class="sub" href="#section-15">无法预知的性能因素</a><a class="sub" href="#section-16">坏邻居</a><a class="sub" href="#section-17">任务重启</a><a class="sub" href="#section-18">最闲轮询策略</a><a class="sub" href="#section-19">活跃请求的数量并不一定是后端容量的代表</a><a class="sub" href="#section-20">每个客户端的活跃请求不包括其他客户端发往同一个后端的请求</a><a class="sub" href="#section-21">加权轮询策略</a><a class="" href="#section-22">二、主题讲解：数据中心负载均衡的核心挑战与演进</a><a class="sub" href="#section-23">负载均衡的理想目标与现实偏差</a><a class="sub" href="#section-24">异常任务识别与连接管理</a><a class="sub" href="#section-25">子集选择算法的演进</a><a class="sub" href="#section-26">负载均衡策略的局限性与优化</a><a class="" href="#section-27">检验理解</a><a class="sub" href="#section-28">核对思路（先作答再看）</a><a class="" href="#section-29">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第20章</p><h1>数据中心内部的负载均衡系统</h1>
+<p>本单元要回答：怎样理解并使用“数据中心内部的负载均衡系统”，以及它在什么条件下不适用。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">理想情况</h3>
+<p>本节确立了负载均衡的目标：让所有后端任务消耗相同的CPU资源，避免资源浪费。作者通过对比两种负载分布场景，指出糟糕的策略会导致大量CPU闲置。这为后续讨论如何识别异常任务以实现均匀负载奠定了理论基础。</p>
+<h3 id="section-3">识别异常任务：流速控制和跛脚鸭任务</h3>
+<p>在路由请求前，必须先识别并避开不健康的后端。本节介绍了通过跟踪活跃请求数进行流速控制的简单方法，但指出其无法区分真正过载与暂时慢速。因此，引入了更可靠的“跛脚鸭”状态机制来优雅地处理任务下线。</p>
+<h3 id="section-4">异常任务的简单应对办法：流速控制</h3>
+<p>本节详细分析了基于活跃请求数的流速控制机制。虽然简单，但它只能应对极端过载，且容易因长连接请求导致误判。作者指出，根本问题在于无法区分任务是真的不健康还是仅仅回复缓慢，从而引出更精细的状态管理需求。</p>
+<h3 id="section-5">健康</h3>
+<p>本节定义了后端任务的“健康”状态，即初始化成功且正在处理请求。这是负载均衡的基础前提，确保客户端只将请求发送给具备服务能力的后端，排除那些尚未就绪或已停止的任务。</p>
+<h3 id="section-6">拒绝连接</h3>
+<p>本节定义了“拒绝连接”状态，通常由任务启动、停止或异常引起。这种状态表明后端无响应，客户端应避免向其发送请求。这是识别异常任务的一种基本表现形式，与跛脚鸭状态形成对比。</p>
+<h3 id="section-7">跛脚鸭状态</h3>
+<p>本节重点介绍“跛脚鸭”状态，即后端仍可服务但要求客户端停止发送新请求。通过SIGTERM信号和UDP健康检查，该状态能快速广播给所有客户端，实现无缝停机，避免中断正在处理的请求，提升系统稳定性。</p>
+<h3 id="section-8">利用划分子集限制连接池大小</h3>
+<p>除了健康管理，负载均衡还需限制客户端连接的后端数量，即子集划分。这能避免连接过多导致的资源消耗。本节讨论了子集大小的选择依据，如客户端数量比例和突发流量需求，旨在平衡资源利用率与连接维护成本。</p>
+<h3 id="section-9">子集选择算法一：随机选择</h3>
+<p>本节分析了最简单的随机子集选择算法。虽然实现简单且能处理重启，但实际负载分布极不均匀。通过Google的模拟数据展示，随机算法导致负载最高与最低后端差异巨大，证明其在大规模部署中效果不佳。</p>
+<h3 id="section-10">负载均衡策略</h3>
+<p>本节从子集选择过渡到具体的负载均衡策略，即客户端如何在子集中选择具体后端。策略分为不考虑后端状态的简单算法（如轮询）和基于状态的算法（如最小负载轮询）。重点在于解决分布式决策中的实时性与信息滞后问题。</p>
+<h3 id="section-11">简单轮询算法</h3>
+<p>本节介绍简单轮询策略，即按顺序将请求发送给子集中的后端。尽管广泛使用，但其负载效果往往很差。作者指出，由于请求处理成本、物理服务器差异及不可预知因素，轮询可能导致负载最高的任务消耗两倍的CPU资源。</p>
+<h3 id="section-12">子集过小</h3>
+<p>本节分析简单轮询效果差的原因之一：子集过小。当客户端数量少或请求速率不同时，部分后端可能接收过多请求。这导致负载分布不均，因为轮询无法感知不同客户端的实际发送速率差异，从而造成后端负载失衡。</p>
+<h3 id="section-13">请求处理成本不同</h3>
+<p>本节指出请求处理成本的巨大差异是轮询失效的另一原因。某些请求可能消耗其他请求上千倍的CPU资源。在无法预知成本的情况下，轮询会将高成本请求随机分配，导致特定后端过载，而其他后端闲置，破坏负载均衡。</p>
+<h3 id="section-14">物理服务器的差异</h3>
+<p>本节讨论物理服务器性能差异对负载均衡的影响。同一数据中心内服务器性能不同，导致相同请求负载不同。Google通过引入虚拟CPU单位（GCU）来建模不同性能，试图在调度时考虑硬件差异，以优化资源分配。</p>
+<h3 id="section-15">无法预知的性能因素</h3>
+<p>本节探讨无法预知的性能因素，如“坏邻居”效应和任务重启。其他进程竞争共享资源或重启时的性能波动，会导致后端性能剧烈变化。这些因素难以通过统计学衡量，使得简单的负载均衡策略难以应对实际性能波动。</p>
+<h3 id="section-16">坏邻居</h3>
+<p>本节具体解释“坏邻居”效应，即同一物理机上的其他无关进程竞争内存缓存或带宽，导致性能波动达20%。这种竞争使得后端性能不稳定，简单的负载均衡策略无法感知这种底层资源竞争，从而导致负载分配不均。</p>
+<h3 id="section-17">任务重启</h3>
+<p>本节分析任务重启期间的性能问题，特别是Java平台需要动态优化代码。重启初期性能较差，Google通过让任务进入跛脚鸭状态并预热来解决。这强调了负载均衡策略需考虑任务生命周期中的性能变化，避免在重启期分配过多负载。</p>
+<h3 id="section-18">最闲轮询策略</h3>
+<p>本节介绍最闲轮询策略，即跟踪活跃请求数并在最少负载的任务中轮询。该策略旨在将负载从忙碌任务迁走。然而，它存在“地漏效应”风险，即不健康任务可能因快速返回错误而被误认为可用，导致负载进一步集中。</p>
+<h3 id="section-19">活跃请求的数量并不一定是后端容量的代表</h3>
+<p>本节指出最闲轮询的局限：活跃请求数不代表后端容量。等待I/O的请求消耗极少CPU，导致快速后端看似负载高。最闲轮询无法区分等待时间与处理时间，从而错误地分配负载，无法反映真实的处理能力差异。</p>
+<h3 id="section-20">每个客户端的活跃请求不包括其他客户端发往同一个后端的请求</h3>
+<p>本节指出最闲轮询的另一缺陷：客户端仅能看到自身发往后端的请求。它无法感知其他客户端对该后端的负载，导致视图片面。这种局部视角使得全局负载均衡失效，造成最忙任务比最闲任务消耗两倍的CPU资源。</p>
+<h3 id="section-21">加权轮询策略</h3>
+<p>本节介绍加权轮询策略，通过后端反馈的能力值（如CPU利用率、错误率）调节负载分配。该策略结合了后端状态信息，显著降低了最高与最低负载任务的差距。Google的实践证明，加权轮询能有效应对复杂负载场景，提升整体效率。</p>
+<h2 id="section-22">二、主题讲解：数据中心负载均衡的核心挑战与演进</h2>
+<h3 id="section-23">负载均衡的理想目标与现实偏差</h3>
+<p>负载均衡的核心目标是实现后端任务间CPU消耗的绝对均匀，避免资源浪费。然而，现实系统中负载分布往往极不均匀。例如，糟糕的策略可能导致最忙任务消耗的资源远超平均，而其他任务闲置。这种偏差不仅降低了数据中心的整体容量利用率，还可能导致服务过载。理解这一理想与现实的差距，是设计有效负载均衡算法的前提。</p>
+<h3 id="section-24">异常任务识别与连接管理</h3>
+<p>在路由请求前，必须准确识别后端任务的状态。简单的流速控制通过限制活跃请求数来保护后端，但难以区分真正过载与暂时慢速。更可靠的方法是引入“跛脚鸭”状态，允许后端在停止前广播停止接收新请求的信号。这种机制结合UDP健康检查，能实现无缝停机，避免中断正在处理的请求，同时保持连接池的高效管理。</p>
+<h3 id="section-25">子集选择算法的演进</h3>
+<p>子集选择决定了客户端连接哪些后端。随机选择算法虽然简单，但导致负载严重不均，不适合大规模部署。确定性算法通过轮次和随机重排，实现了更均匀的负载分布。然而，仅靠子集选择不足以解决所有问题，还需结合具体的负载均衡策略，如轮询或加权轮询，以应对请求处理成本差异和物理服务器性能波动等复杂因素。</p>
+<h3 id="section-26">负载均衡策略的局限性与优化</h3>
+<p>简单轮询和最闲轮询策略存在显著局限。前者忽略请求处理成本和服务器差异，后者受限于局部视图和“地漏效应”。加权轮询策略通过引入后端反馈的能力值，如CPU利用率和错误率，实现了更精细的负载分配。尽管复杂度高，但它能有效应对不可预知的性能因素，如坏邻居效应和任务重启，显著提升负载均衡效果。</p>
+<h2 id="section-27">检验理解</h2>
+<p><strong>情形</strong>：假设你正在设计一个负载均衡系统，后端任务分为两类：一类是计算密集型任务，处理时间长且CPU消耗大；另一类是I/O密集型任务，大部分时间等待网络响应，CPU消耗极低。当前系统采用“最闲轮询”策略，即根据活跃请求数选择负载最低的后端。</p>
+<p><strong>问题</strong>：在这种场景下，最闲轮询策略可能会导致什么问题？请结合“活跃请求数不代表后端容量”和“局部视图”两个概念进行分析。</p>
+<h3 id="section-28">核对思路（先作答再看）</h3>
+<p>最闲轮询策略会错误地将大量请求分配给I/O密集型任务。因为I/O任务大部分时间等待，活跃请求数少，看似负载低。但实际上，它们可能已接近容量上限，只是等待I/O。同时，客户端只能看到自身发出的请求，无法感知其他客户端对该I/O任务的负载，导致该任务过载。而计算密集型任务可能因活跃请求数多而被误认为负载高，实际负载较低。这导致负载分布不均，降低整体效率。</p>
+<h2 id="section-29">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 250-261。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：本章讨论的负载均衡算法主要适用于Google数据中心内部，针对同质化、可互换的后端任务。</li>
+<li>边界：实际应用中，负载均衡策略的选择需根据服务的具体特性（如请求处理成本、服务器性能差异）进行调整。</li>
+<li>边界：加权轮询策略虽然效果较好，但实现复杂度较高，需后端任务提供准确的反馈信息。</li>
+<li>阅读连接：下一单元是“第21章 应对过载”，继续回答：应对过载。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../19-chapter-19/index.html">上一篇 · 前端服务器的负载均衡</a><a href="../21-chapter-21/index.html">下一篇 · 应对过载</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《SRE：Google运维解密》第32章 SRE参与模式的演进历程 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>SRE：Google运维解密 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">SRE 参与模式：是什么、怎么样以及为什么</a><a class="sub" href="#section-3">PRR 模型</a><a class="sub" href="#section-4">SRE参与模型</a><a class="sub" href="#section-5">替代性支持</a><a class="sub" href="#section-6">文档</a><a class="sub" href="#section-7">咨询工作</a><a class="sub" href="#section-8">PRR：简单PRR模型</a><a class="sub" href="#section-9">参与</a><a class="sub" href="#section-10">分析</a><a class="sub" href="#section-11">改进和重构</a><a class="sub" href="#section-12">培训</a><a class="sub" href="#section-13">“接手”服务</a><a class="sub" href="#section-14">持续改进</a><a class="sub" href="#section-15">参与“莎士比亚”项目</a><a class="sub" href="#section-16">简单PRR模型的演进：早期参与模型</a><a class="sub" href="#section-17">早期参与模型的适用对象</a><a class="sub" href="#section-18">早期参与模型的优势</a><a class="sub" href="#section-19">设计阶段</a><a class="sub" href="#section-20">构建和实现</a><a class="sub" href="#section-21">发布</a><a class="sub" href="#section-22">发布之后</a><a class="sub" href="#section-23">从服务脱离</a><a class="sub" href="#section-24">不断发展的服务：框架和SRE平台</a><a class="sub" href="#section-25">经验教训</a><a class="sub" href="#section-26">影响SRE的外部因素</a><a class="sub" href="#section-27">结构化的解决方案：框架</a><a class="sub" href="#section-28">最佳实践代码化</a><a class="sub" href="#section-29">可重复使用的解决方案</a><a class="sub" href="#section-30">带有通用控制界面的通用生产操作平台</a><a class="sub" href="#section-31">更简易的自动化和更智能的系统</a><a class="sub" href="#section-32">新服务和管理优势</a><a class="sub" href="#section-33">显著降低运维开销</a><a class="sub" href="#section-34">设计中自带的通用性支持</a><a class="sub" href="#section-35">更快、更低的参与成本</a><a class="sub" href="#section-36">一种基于共同责任的新型参与模型</a><a class="sub" href="#section-37">小结</a><a class="" href="#section-38">二、主题讲解：SRE参与模式的演进逻辑</a><a class="sub" href="#section-39">简单PRR模型的局限性与早期介入的价值</a><a class="sub" href="#section-40">框架模型：从人工评审到代码化标准</a><a class="sub" href="#section-41">共同责任模型：平台与应用的分工</a><a class="" href="#section-42">检验理解</a><a class="sub" href="#section-43">核对思路（先作答再看）</a><a class="" href="#section-44">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第32章</p><h1>SRE参与模式的演进历程</h1>
+<p>本单元要回答：怎样理解并使用“SRE参与模式的演进历程”，以及它在什么条件下不适用。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">SRE 参与模式：是什么、怎么样以及为什么</h3>
+<p>本节确立SRE介入服务的核心逻辑：早期介入能显著提升质量并降低后期修复成本。作者指出，除直接运维外，通过SRE验证的基础设施平台可避免认知过载，让研发聚焦应用创新。这为后续讨论不同参与模型奠定了“尽早介入”和“平台化”的理论基础。</p>
+<h3 id="section-3">PRR 模型</h3>
+<p>本节引入生产就绪程度评审（PRR）作为SRE接管的典型门槛。PRR旨在通过评审发现可靠性缺陷，确保服务符合运维标准。作者强调PRR可在生命周期任意阶段启动，但本章重点介绍基于此演进的简单PRR模型，引出后续对模型局限性的讨论。</p>
+<h3 id="section-4">SRE参与模型</h3>
+<p>本节定义SRE关注的“生产方面”，包括架构、监控、容量规划及性能等。目标是改善这些方面以降低运维难度。这为后续PRR流程中具体检查这些维度提供了评估框架，说明SRE介入的核心价值在于系统性提升生产环境的可维护性。</p>
+<h3 id="section-5">替代性支持</h3>
+<p>本节说明并非所有服务都需SRE紧密参与。对于低可靠性需求或超出SRE支持能力的服务，采用文档和咨询作为替代。这解释了SRE资源的有限性，并引出文档和咨询作为轻量级支持手段的具体形式，为后续深入参与模型做对比铺垫。</p>
+<h3 id="section-6">文档</h3>
+<p>本节阐述生产指南的作用，由经验丰富的SRE和研发共同维护，记录最佳实践。开发者通过遵循指南提升服务质量。这是咨询工作的基础，也为后续PRR中检查列表的标准化提供了知识来源，体现了知识沉淀的价值。</p>
+<h3 id="section-7">咨询工作</h3>
+<p>本节描述发布前咨询流程，SRE帮助识别风险并提供解决方案。但指出咨询存在局限：对于规模巨大或依赖复杂的服务，仅靠咨询不足以解决深层运维问题。这自然过渡到需要长期SRE参与的“简单PRR模型”。</p>
+<h3 id="section-8">PRR：简单PRR模型</h3>
+<p>本节详细定义简单PRR模型，适用于已发布服务。其目标是验证服务符合生产标准并最小化故障。该模型包含参与、分析、改进、培训和接手五个阶段，是后续讨论模型演进和局限性的基础对象。</p>
+<h3 id="section-9">参与</h3>
+<p>本节描述简单PRR的第一阶段：SRE管理层确定接管团队并与研发建立共识。重点包括制定SLO/SLA、规划破坏性变更及交接计划。这一阶段旨在统一目标，为后续深入的技术分析奠定协作基础。</p>
+<h3 id="section-10">分析</h3>
+<p>本节进入PRR的核心分析阶段，SRE通过审阅设计文档和实现来评估服务成熟度。重点在于建立针对该服务的PRR检查列表，涵盖依赖合理性、监控覆盖及日志规范等。此阶段依赖领域专业知识，旨在发现潜在的生产缺陷。</p>
+<h3 id="section-11">改进和重构</h3>
+<p>本节讲述基于分析结果的改进阶段。SRE与研发协商优先级，共同实施重构或新功能开发。这一阶段强调协作，旨在消除分析中发现的可靠性隐患，确保服务在接手前达到生产就绪标准，为后续培训做准备。</p>
+<h3 id="section-12">培训</h3>
+<p>本节描述培训阶段，SRE评审者组织团队进行设计概述、处理流探讨及手动练习。目的是确保整个SRE团队具备接管能力。培训结合研发帮助，形成知识转移反馈链，为正式接手服务做好人员准备。</p>
+<h3 id="section-13">“接手”服务</h3>
+<p>本节说明“接手”阶段，SRE逐步接管运维职责和权限，研发提供后备支持。这一阶段确立双方未来的协作基础。随后进入持续改进阶段，SRE通过日常运维和事后总结深化对服务的理解，反哺研发改进。</p>
+<h3 id="section-14">持续改进</h3>
+<p>本节阐述服务上线后的持续改进机制。SRE通过处理紧急事件和书写事后总结，将运维经验转化为最佳实践并分享给研发。这种反馈循环确保服务能应对新需求，同时优化生产指南，形成良性迭代。</p>
+<h3 id="section-15">参与“莎士比亚”项目</h3>
+<p>本节以“莎士比亚”搜索服务为例，展示简单PRR模型的实际应用。SRE在发布后启动PRR，修复监控指标缺失等问题后接管On-call职责。案例显示开发者仍参与运维会议，体现了过渡期的协作模式及潜在风险。</p>
+<h3 id="section-16">简单PRR模型的演进：早期参与模型</h3>
+<p>本节指出简单PRR模型的主要限制：介入时机过晚，导致修复成本高且沟通开销大。作者提出将SRE引入开发早期的“早期参与模型”，旨在通过早期介入增加修复机会，提高服务成功率，从而引出对早期模型的详细探讨。</p>
+<h3 id="section-17">早期参与模型的适用对象</h3>
+<p>本节界定早期参与模型的适用范围：具有高商业价值、显著新功能或大规模潜力的服务。通过确定服务重要性，SRE在研发早期介入。这改变了改善生产质量的手段，但仍聚焦于可靠性，为后续分阶段讨论介入优势做铺垫。</p>
+<h3 id="section-18">早期参与模型的优势</h3>
+<p>本节概述早期参与模型的整体益处：将SRE经验应用于全生命周期。虽然存在风险，但通过预防事故和优化设计，能显著降低后期成本。这引出了对设计、构建、发布等具体阶段优势的详细分解。</p>
+<h3 id="section-19">设计阶段</h3>
+<p>本节阐述设计阶段SRE介入的价值：预防事故并最小化设计分歧。SRE参与权衡取舍决策，确保设计符合生产要求。早期介入避免了后期高昂的变更成本，体现了“最好的事故是未发生的事故”这一核心理念。</p>
+<h3 id="section-20">构建和实现</h3>
+<p>本节讨论构建阶段，SRE通过建议现有组件或直接构建控制系统来优化实现。这有助于优化指标选择和资源效率，使未来运维更便利。SRE在此阶段获得运维经验，为发布后的平稳运行奠定基础。</p>
+<h3 id="section-21">发布</h3>
+<p>本节描述发布阶段，SRE帮助实现“隐形发布”等机制，在不影响用户的情况下验证新服务。这减少了发布后的紧急更改风险，保持运维负载低。平稳发布有助于维持研发势头，避免优先级冲突。</p>
+<h3 id="section-22">发布之后</h3>
+<p>本节说明发布后，早期经验有助于重构和设计优化。SRE通过长期协作更快接管服务，建立互助关系。这种紧密合作促进了团结，使SRE能更早介入生产环境，相比简单PRR模型更具优势。</p>
+<h3 id="section-23">从服务脱离</h3>
+<p>本节讨论服务脱离SRE管理的情况。若服务可靠且维护成本低，可由研发运维；若未达预期规模，SRE精力投入视为业务风险的一部分。这体现了资源的灵活调配，经验可反馈至新参与过程。</p>
+<h3 id="section-24">不断发展的服务：框架和SRE平台</h3>
+<p>本节指出早期参与模型仍有局限，引出向框架和SRE平台的演进。随着服务数量增加和微服务趋势，传统PRR模型难以满足快速部署需求。SRE需通过结构化解决方案应对规模挑战，为后续框架模型做铺垫。</p>
+<h3 id="section-25">经验教训</h3>
+<p>本节总结传统模型的痛点：PRR耗时过长、重复实现生产功能、经验难以复用。这些问题导致服务交接顺序进行，且SRE贡献局限于本地。这促使SRE寻求更高效的解决方案，即通过框架实现最佳实践的代码化。</p>
+<h3 id="section-26">影响SRE的外部因素</h3>
+<p>本节分析外部压力：微服务增加服务数量，招聘SRE成本高且培训周期长。SRE需支持大量无SRE支持的开发团队。这些外部因素迫使SRE扩展支持模型，超越原有概念，寻求可扩展的解决方案。</p>
+<h3 id="section-27">结构化的解决方案：框架</h3>
+<p>本节提出框架模型的指导思想：最佳实践代码化、解决方案可复用、通用控制界面及更简易自动化。通过建立SRE支持平台，服务可共享基础设施代码，研发聚焦业务逻辑。这解决了重复实现和知识复用的难题。</p>
+<h3 id="section-28">最佳实践代码化</h3>
+<p>本节阐述将生产最佳实践代码化的价值。服务通过直接使用代码自然成为“生产就绪”。框架封装了常见生产问题，如日志、监控和流量控制。这使得研发无需重复造轮子，直接利用SRE标准化的基础设施组件。</p>
+<h3 id="section-29">可重复使用的解决方案</h3>
+<p>本节强调框架提供可重复使用的技术实现，改善可扩展性和可靠性。框架模块封装了特定领域的解决方案，如负载抛弃和过载保护。这确保了跨服务的一致性，降低了SRE人工评审定制代码的负担。</p>
+<h3 id="section-30">带有通用控制界面的通用生产操作平台</h3>
+<p>本节描述通用生产操作平台的作用：提供统一接口、监控、日志和配置。SRE通过统一视图获取故障信息，无需收集多源数据。这种标准化使得自动化和智能化成为可能，提升了运维效率。</p>
+<h3 id="section-31">更简易的自动化和更智能的系统</h3>
+<p>本节说明通用接口如何促进自动化。SRE可利用统一视图进行故障分析，无需手动整合数据。框架使服务行为一致，便于SRE使用标准工具管理。这降低了认知负担，提高了整体运维的智能水平。</p>
+<h3 id="section-32">新服务和管理优势</h3>
+<p>本节总结框架模型带来的新优势：降低运维开销、提升部署速度、支持大规模微服务管理。框架内置了部署、监控和自动化功能，使得服务构建更快速。这突破了SRE编制限制，让所有团队受益。</p>
+<h3 id="section-33">显著降低运维开销</h3>
+<p>本节详述框架如何降低运维开销：通过强合规性测试提高安全性和隐私度；内置服务部署和监控；简化大量微服务的管理。框架使得部署在数天内完成，显著提升了研发效率和生产环境的稳定性。</p>
+<h3 id="section-34">设计中自带的通用性支持</h3>
+<p>本节指出框架支持的服务即使无SRE直接参与，也能从SRE开发的生产功能中受益。所有框架服务自动从改进中获益，突破了SRE编制障碍。这提高了Google整体服务质量，实现了SRE知识的规模化复用。</p>
+<h3 id="section-35">更快、更低的参与成本</h3>
+<p>本节说明框架模型使PRR执行更快，接手通常由一个SRE在季度内完成。SRE认知负担降低，因为服务行为标准化。这减少了评估和认证工作，同时保持高标准，体现了框架模型在效率上的优势。</p>
+<h3 id="section-36">一种基于共同责任的新型参与模型</h3>
+<p>本节提出新型参与模型：SRE支持平台基础设施，研发负责应用代码错误。SRE承担控制系统开发，研发负责业务逻辑。这改变了传统二元模式，建立了新的关系模型和人员配置模型，实现了责任共担。</p>
+<h3 id="section-37">小结</h3>
+<p>本节总结SRE参与模式的演进：从简单PRR到早期参与，再到基于框架的平台模型。框架成为构建生产完备服务的主要力量，降低了管理成本，提高了整体服务水平。这标志着SRE贡献领域的深入扩展。</p>
+<h2 id="section-38">二、主题讲解：SRE参与模式的演进逻辑</h2>
+<h3 id="section-39">简单PRR模型的局限性与早期介入的价值</h3>
+<p>简单PRR模型适用于已发布服务，但存在介入时机晚、沟通开销大等局限。SRE在发布后介入，修复设计缺陷成本高，且易造成认知过载。早期参与模型将SRE引入开发周期早期，通过预防性设计减少事故，降低后期修复成本。例如，在设计阶段介入可优化架构决策，避免后期大规模重构。早期介入不仅提升服务可靠性，还通过长期协作建立信任，使SRE能更平滑地接管运维。</p>
+<h3 id="section-40">框架模型：从人工评审到代码化标准</h3>
+<p>随着服务规模扩大，传统PRR模型难以满足快速部署需求。框架模型将最佳实践代码化，封装常见生产问题如日志、监控和流量控制。服务通过框架自然成为“生产就绪”，无需重复实现基础设施。SRE提供通用控制界面，实现统一监控和自动化。这种结构化方案降低了SRE的认知负担，提高了运维效率，使SRE能支持更多服务，突破编制限制。</p>
+<h3 id="section-41">共同责任模型：平台与应用的分工</h3>
+<p>新型参与模型基于共同责任：SRE负责平台基础设施和控制系统，研发负责应用业务逻辑。SRE通过框架提供标准化组件，如负载抛弃和过载保护，确保服务可靠性。研发利用框架快速构建应用，专注于业务创新。这种分工明确了责任边界，SRE支持平台，研发支持服务功能。通过平台化，SRE经验得以规模化复用，提高了整体服务质量，降低了运维开销。</p>
+<h2 id="section-42">检验理解</h2>
+<p><strong>情形</strong>：某团队开发一个新的高并发微服务，采用框架模型。SRE在构建阶段提供了标准化的日志和监控框架。服务上线后，出现性能瓶颈。</p>
+<p><strong>问题</strong>：在共同责任模型下，SRE和研发应如何协作解决此问题？SRE的框架在此过程中发挥了什么作用？</p>
+<h3 id="section-43">核对思路（先作答再看）</h3>
+<p>SRE负责检查平台基础设施（如框架提供的监控数据）是否准确反映负载，研发负责优化应用代码。框架通过标准化监控和日志，使SRE能快速定位是平台问题还是应用问题，减少了排查时间。SRE不直接修复应用代码，而是确保平台工具有效支持研发优化。</p>
+<h2 id="section-44">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 457-474。</li>
+<li>源文件 SHA-256：<code>75611d407c657cfcbe2079507dc6957df46836ad8cdf6bea30912fdeab4f3a96</code>。</li>
+<li>“原书回顾”只归纳本单元作者的展开；“主题讲解”和理解检查属于书镜重构。</li>
+<li>版本边界：书中工具、Google组织结构和规模数字来自2016年中文版及更早实践，不作为当前产品或组织现状。</li>
+<li>边界：简单PRR模型仅适用于已发布服务，介入晚，成本高。</li>
+<li>边界：早期参与模型需SRE在开发早期介入，对SRE资源要求高。</li>
+<li>边界：框架模型依赖SRE构建和维护框架，需标准化基础设施。</li>
+<li>边界：共同责任模型需明确SRE和研发的责任边界，避免推诿。</li>
+<li>阅读连接：下一单元是“第33章 其他行业的实践经验”，继续回答：怎样理解并使用“其他行业的实践经验”，以及它在什么条件下不适用。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../31-chapter-31-sre/index.html">上一篇 · SRE与其他团队的沟通与协作</a><a href="../33-chapter-33/index.html">下一篇 · 其他行业的实践经验</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

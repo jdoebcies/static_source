@@ -37,10 +37,13 @@ python3 scripts/preview.py --open
   books/                # 一本书或一组章节化学习材料
     <书名>/
       index.html
-      README.md
-      CHAPTER_INDEX.md
-      chapter_manifest.json
-      chapters/
+      全书导航.md
+      reading-manifest.json
+      html-reading-verification.json
+      images/
+      chapters/<阅读单元>/
+        chapter.md
+        index.html
 
   topics/               # 单篇专题、独立知识点或非书籍型材料
     <专题名>/
@@ -62,3 +65,5 @@ python3 scripts/preview.py --open
 3. 图片、附件、Markdown、JSON 等静态文件可以直接保留，但对外阅读入口优先提供 HTML。
 4. 生成检查报告、摘要 JSON 等过程产物放入 `archive/`，避免干扰学习入口。
 5. 所有链接优先使用相对路径，避免仓库名变化后链接失效。
+
+书镜 HTML 统一使用 [BOOK_LAYOUT.md](BOOK_LAYOUT.md) 规定的章节式阅读包。全书导航、章节页、移动端目录、前后翻页和配图放大必须作为一套验收；逐页演示稿不作为书镜 HTML。
