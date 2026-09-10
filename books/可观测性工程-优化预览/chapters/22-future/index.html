@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第22章｜未来发展趋势 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：一套仍在变化的实践</a><a class="sub" href="#section-2">22.1 可观测性的过去与现在</a><a class="sub" href="#section-3">22.2 其他资源</a><a class="sub" href="#section-4">22.3 可观测性发展方向的预测</a><a class="" href="#section-5">二、主题讲解：读预测时，把方向拆成可以核验的问题</a><a class="sub" href="#section-6">用两种前端数据解释同一个现象</a><a class="sub" href="#section-7">这本书留下的稳定方法</a><a class="" href="#section-8">检验理解</a><a class="" href="#section-9">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第22章</p><h1>未来发展趋势</h1>
+<p>本章要回答：本书最终如何界定可观测性，作者为何提出这些预测，又该怎样看待其时间边界？</p>
+<p>全书最后回到同一个能力目标：无需事先定义或预测某个新问题，也无需为理解它重新发布代码，就能跨高基数、高维度的数据及其组合进行比较调试。作者进一步把核心分析循环写入定义：按调查需要切分视图、比较并继续追问，快速定位问题来源；保存了多种数据类型本身还不够。本章既总结成书过程，也提出未来方向。<strong>其中预测明确写于2022年3月，“三年后”指约2025年；本版没有把这些预测改写成已经核验的现状。</strong></p>
+<h2 id="section-1">一、原书回顾：一套仍在变化的实践</h2>
+<h3 id="section-2">22.1 可观测性的过去与现在</h3>
+<p>作者先重申对“三大支柱”观点的批评：它只谈数据类型，忽略获得新洞见所需的分析和实践；这不等于反对收集这些数据。作者解释为何写作持续三年多：概念经常与监控、遥测混用，OTel还在发展；随着实际采用增加，章节从基础扩展到规模和组织实践；来自不同立场的审稿人与案例作者又促使其修订观点。</p>
+<p>最终增加的社会技术内容很重要：购买工具不自动改变工作方式。团队需要逐步理解变更怎样影响真实用户，并形成可以持续使用的调查习惯。作者承认自己都与Honeycomb有关，也强调希望概念能独立于具体产品使用。（PDF 197—198）</p>
+<h3 id="section-3">22.2 其他资源</h3>
+<p>作者将本书没有深入的主题连接到几类材料：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>原书推荐</th>
+<th>用来继续解决什么问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>《Site Reliability Engineering》</td>
+<td>大规模生产系统的可靠性、运行及管理实践</td>
+</tr>
+<tr>
+<td>Alex Hidalgo《Implementing Service Level Objectives》</td>
+<td>SLO概念、数学实现、目标与组织实践</td>
+</tr>
+<tr>
+<td>Alex Boten《Cloud Native Observability with OpenTelemetry》</td>
+<td>OTel组件、信号与Collector的更细实现</td>
+</tr>
+<tr>
+<td>Austin Parker等《Distributed Tracing in Practice》</td>
+<td>探针、span选择、采集与链路分析</td>
+</tr>
+<tr>
+<td>Honeycomb博客及本书脚注</td>
+<td>作者持续发展的实践与其他来源观点</td>
+</tr>
+</tbody></table></div>
+<p>这些是原书的延伸阅读定位，不是本版已经阅读并重新评估的全部材料。具体SDK接入还应检查所用版本的官方文档。（PDF 198—199）</p>
+<h3 id="section-4">22.3 可观测性发展方向的预测</h3>
+<p><strong>OTel与可观测性更紧密结合。</strong> 作者的依据来自2022年的观察：开发和采用OTel的人，与推进本书所定义工具的人群有较大重叠；当时追踪数据支持最成熟，推动OTel成为常见探针方案，而指标、日志和性能剖析仍处于较早阶段。作者预测这些信号会趋于成熟，少量配置切换后端的能力会增强，供应商切换指南也会增加。</p>
+<p>作者还预测自动探针将追平专有方案，理由是开放源码与活跃开发者生态。其前提是当时支持程度仍随语言而异，部分语言的自动探针不及专有产品。与此同时，自定义业务探针仍然必要；自动化不会知道每个业务工作应该记录什么。这些成熟度描述与预测均保持2022年语境。（PDF 199—200）</p>
+<p><strong>前端的真实与模拟观察更容易结合。</strong> 原书区分真实用户监控RUM与模拟监控：前者来自实际用户的浏览器或客户端行为，能暴露未预料到的设备与网络条件。原书举出团队从未听说的小众浏览器中的新版本回归，以及特定国家或地区某些IP地址的网络延迟；这些发生在真实用户环境中的问题，属于它要处理的“最后一公里”。模拟监控则在受控环境运行预先维护的路径，适合检查已知条件和回归。作者指出，当时RUM常用采样或聚合管理数据量，这种整合通常意味着无法按任意用户下钻详细性能；模拟脚本也不能呈现用户所有真实行为。</p>
+<p>作者预测更高保真事件可以同时承载两种场景，并通过标记测试请求，把端到端脚本与真实用户路径放到可关联的观察中。<strong>本版说明：</strong>这是一种方向判断，不等于本轮已证明所有RUM产品无法下钻，或所有前端工具已完成这种融合。（PDF 199—200）</p>
+<p><strong>交付更快，反馈更早。</strong> 作者预测构建流水线末端自动投产会更普遍。一个关键条件是将功能部署与功能发布分离：代码进入生产，不等于立即把功能开放给全部用户；功能标志和渐进式交付提供这种控制。工程师从编写到看到生产结果的间隔也会缩短。这里依赖第11章描述的可控变更与及时反馈，不是把单纯提高发布频率当作最终目标。</p>
+<p>作者还报告已经听到或观察到的收益：开发者反馈这种能力很难放弃，行动更快、浪费时间更少、犯错更少，错误出现时也发现得更及时。<strong>本版证据说明：</strong>这些属于作者报告的经验收益；本章未提供量化数据或研究设计，不能把它们直接当作所有团队的普遍因果效果。</p>
+<p>作者最后保留开放问题：怎样让更多开发者获得这种理解能力，怎样降低组织采用门槛。它们尚待实践回答，不能由书中乐观判断直接宣告解决。（PDF 200—201）</p>
+<h2 id="section-5">二、主题讲解：读预测时，把方向拆成可以核验的问题</h2>
+<p><strong>本版补充例子：</strong>已有事件保存租户ID、版本和耗时，调查者临时按“租户＋版本”分组，再比较异常与正常请求，按结果改变下一问。这体现核心分析循环与比较调试；租户ID的许多不同取值是高基数，一条事件同时保留的多种字段是高维度。若缺少区域字段，必须重新发版再等待后续数据，针对这个问题就还没有达到作者的能力要求；已有数据的缺口不能靠名称或新查询补回。</p>
+<p>假设你想检查“OTel已经使供应商切换很容易”是否适用于自己的服务。先不要把2022年的预测直接当配置依据，而是写出具体范围：一种语言、当前SDK版本、实际使用的信号、两个目标后端。</p>
+<p>然后分别验证：探针是否能保留，出口能否接收，属性和父子关系是否一致，采样语义是否改变，原有查询与工作流需要迁移多少。只验证“新后端收到一条span”，并不能证明全部业务需求已经可切换。本章提出方向，第7、15、18章提供拆分这个问题的方法。</p>
+<h3 id="section-6">用两种前端数据解释同一个现象</h3>
+<p>假设模拟脚本每五分钟在固定浏览器成功结账，但某区域的真实移动用户仍失败。两份结果不矛盾：脚本验证的是已选路径和环境，真实用户携带不同网络、设备、语言与业务条件。</p>
+<p>应先按第8章的方法查看受影响群体，再让模拟测试覆盖可重现的条件，并为测试请求留下明确标记。若之后合并分析而忘了区分合成流量，持续成功的测试请求还可能稀释真实用户失败比例。这个例子说明融合需要保留身份与语义，不只是把数据放到同一个页面。</p>
+<h3 id="section-7">这本书留下的稳定方法</h3>
+<p>新工具和标准会变化，仍可以用几个问题检验：事件是否保留实际工作与上下文，查询能否沿新线索继续，采样与聚合会丢掉什么，反馈是否回到能采取行动的人，结果怎样体现用户和组织目标。遇到数据无法回答的问题，就把缺口显式记录，再决定补数据或改变调查方式。</p>
+<p>这些问题不是永远不变的验收清单。第21章已经说明，应随着新的失败、业务需求与实践证据修订。</p>
+<h2 id="section-8">检验理解</h2>
+<p>一本2022年写成的书预测三年后自动探针会与专有Agent相当，能否作为2026年某Java框架无需手工埋点的证明？核对：不能。必须检查当前具体框架、版本与业务语义；原书也明确自定义探针仍然必要。</p>
+<p>模拟交易全成功，真实用户投诉却增加，是否可以直接判定投诉无效？核对：不能。先比较覆盖人群、环境、请求路径和时间，保留实际用户与合成请求身份，再寻找差异。</p>
+<h2 id="section-9">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：第22章PDF物理197—201页；202页作者介绍、203页封面动物说明及204页封底属于附属材料，不伪作第22章新增小节。</p>
+</li>
+<li><p>预测时点为2022年3月，本版未逐项开展截至2026年的兑现调查。前端和切换案例均为讲解假设。</p>
+</li>
+<li><p>本章回接第1章能力定义、第7章探针、第8章调查、第11章反馈及第21章可修订模型，可据自己的实际问题重读对应章节。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../21-maturity-model/index.html">上一篇 · 可观测性成熟度模型</a><span></span></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第8章｜通过事件分析实现可观测性 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：让已有知识接受数据检验</a><a class="sub" href="#section-2">8.1 从已有条件调试</a><a class="sub" href="#section-3">8.2 从第一性原理调试</a><a class="sub" href="#section-4">8.2.1 使用核心分析循环</a><a class="sub" href="#section-5">8.2.2 自动化核心分析循环的暴力破解部分</a><a class="sub" href="#section-6">8.3 AIOps的误导性承诺</a><a class="sub" href="#section-7">8.4 结论</a><a class="" href="#section-8">二、主题讲解：用16条事件走完两轮调查</a><a class="sub" href="#section-9">初始材料：同一服务、同一路由、同一分钟</a><a class="sub" href="#section-10">第一轮：哪些条件在慢请求中更常见</a><a class="sub" href="#section-11">第二轮：在同一区域，版本差异还在吗</a><a class="sub" href="#section-12">下一轮缺什么，就明确写出来</a><a class="sub" href="#section-13">把体力计算交给机器，保留对问题的判断</a><a class="" href="#section-14">检验理解</a><a class="" href="#section-15">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第8章</p><h1>通过事件分析实现可观测性</h1>
+<p>本章要回答：怎样依据事件数据反复提出并检验问题，让每次结果决定下一问？</p>
+<p>收集了宽事件，仍可能沿用旧习惯：先猜数据库有问题，再从数据里找支持；或者把事件画成几十张仪表盘，继续凭曲线形状猜原因。本章把调查动作拆开，让下一问由刚看到的结果决定。</p>
+<h2 id="section-1">一、原书回顾：让已有知识接受数据检验</h2>
+<h3 id="section-2">8.1 从已有条件调试</h3>
+<p>资深工程师能快速判断，有时是因为记得某组曲线对应过什么故障。团队想把这些经验写进运行手册，但快速变化的系统可能组合出从未见过的故障条件；照旧答案操作，反而会误把症状当原因。</p>
+<p>作者没有否定所有文档。对于反复出现、等待正式修复的问题，运行手册仍可记录临时缓解办法。服务负责人、联系方式、升级路径、依赖与查询入口，是应当维护的基本资料；试图枚举所有故障及解法，则容易过时。即便已经收集宽事件，若仍只用 <code>grep</code> 找已知字符串，也没有发挥开放式调查的能力。</p>
+<p>Honeycomb团队早期同样依赖已有条件：关心新前端功能就看CSS和JS资源大小，再按 <code>build_id</code> 分解；关心新客户就按 <code>team_id</code> 过滤，计算p95响应时间。这些查询有价值，但问题已事先明确。下一节面对的是“知道用户很慢，却连从哪里问起都不知道”。（PDF 67—68）</p>
+<h3 id="section-3">8.2 从第一性原理调试</h3>
+<p>作者称之为从第一性原理调试：先检查自己确信的事情，再提出能被观察支持或推翻的假设。目标是减少对某个人记忆的依赖，让不熟悉系统的人也能沿数据逐步调查。</p>
+<p>这不意味着没有任何前提。事件要已采集、字段含义要能理解、查询要能继续细分；资料不足时，只能说明未知。本版将作者的强目标理解为持续改善调查能力的标准，不承诺拿到任意有限数据就一定能诊断任何问题。（PDF 68—69）</p>
+<h3 id="section-4">8.2.1 使用核心分析循环</h3>
+<p><strong>核心分析循环（core analysis loop）</strong>从客户投诉或告警出发：先明确要解释的现象，验证数据中是否确实有变化，再查看异常区域的示例行，按字段分组或过滤。若仍不能解释，就把当前发现作为下一轮起点，继续比较。</p>
+<p>重点是保留调查上下文，并让假设有可能被推翻。分组既可以找到“共同点”，也应该寻找同样条件下的正常事件。只在失败集合中不断筛选，很容易把普通背景特征误当原因。（PDF 69；正常对照的使用见8.2.2）</p>
+<h3 id="section-5">8.2.2 自动化核心分析循环的暴力破解部分</h3>
+<p>机器适合比较大量字段。对选中的异常区域与区域外基线，分别计算每个字段值出现的比例，再按差异排序。例如原书的说明中，<code>request.endpoint=batch</code>在所选区域占100%，在基线占20%；<code>handler_route=/1/markers/</code>分别为100%与10%。这些差异帮助决定下一问。</p>
+<p>Honeycomb的BubbleUp案例具体展示了这一过程：在热图上圈选慢请求区域，工具比较63个维度。其中 <code>global.availability_zone=us-east-1a</code>在异常集合中占98%，在基线中占17%，某种实例类型也更集中。团队据此怀疑该可用区的网络问题，联系云提供商，并结合其他客户同区域的报告，独立验证了该区域存在未报告的可用性问题。材料没有证明具体的网络故障机制。（PDF 70—72）</p>
+<p>这里的98%是“选中异常事件里，有多少来自该AZ”，不是“该AZ的所有请求中98%异常”。自动比较给出了相关条件；后续验证使解释更可信。两步不能省成“AZ富集，所以AZ故障”。</p>
+<p>作者还明确给出数据条件：核心分析循环依赖任意宽的结构化事件。指标缺少供继续切分的背景；日志需要先附加请求ID、链路ID及其他上下文，经过后处理重构为事件，再支持读取时聚合与复杂自定义查询。手动和自动循环都依赖这些基础，自动排序不能补回未保留的上下文。（PDF 72）</p>
+<h3 id="section-6">8.3 AIOps的误导性承诺</h3>
+<p>作者把异常检测比作自动选择基线并画出判定边界。<strong>本版为解释误报与漏报，采用明确约定：边界之内判为正常，之外判为异常。</strong> 正常范围太窄，会把正常发布、新功能或性能优化当异常；太宽则会漏掉真正问题。这里不要与BubbleUp中由人圈出的“异常事件区域”混用，两种框表达的对象不同。机器能迅速找峰值和差异，却难单凭这些数字判断变化是否有意、是否损害用户。</p>
+<p>作者因此主张分工：机器负责遍历大量事件与维度，人提供目标、发布背景和业务含义，再指导下一轮分析。这是成书时对AIOps承诺的批评，不应写成对2026年所有AI工具能力的实测结论。无论工具如何发展，差异检测与价值判断、根因验证仍是不同任务。（PDF 72—73）</p>
+<h3 id="section-7">8.4 结论</h3>
+<p>正确的事件只是基础，调查方法决定能从中理解什么。核心分析循环让人提出和修正问题，让机器比较海量数据；第9章继续说明这套调查方法怎样与监控共存。（PDF 73—74）</p>
+<h2 id="section-8">二、主题讲解：用16条事件走完两轮调查</h2>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 740" role="img" aria-label="调查不是直奔答案，而是逐步让解释接受检验">
+<defs><marker id="08-event-analysis-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#4f5d75"/></marker><marker id="08-event-analysis-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#eb6c36"/></marker><marker id="08-event-analysis-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Noto Sans CJK SC',sans-serif}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+<rect width="1120" height="740" fill="#f5f5f5"/>
+<text x="40" y="56" font-size="32" fill="#2d3142" font-weight="600" text-anchor="start">调查不是直奔答案，而是逐步让解释接受检验</text><text x="40" y="96" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">依据原书 8.2.1—8.2.2 重构｜箭头表示调查推进，保留既有循环的有效关系</text>
+<line x1="320" y1="216" x2="400" y2="216" stroke="#4f5d75" stroke-width="2" marker-end="url(#08-event-analysis-0-arrow)"/><line x1="680" y1="216" x2="760" y2="216" stroke="#4f5d75" stroke-width="2" marker-end="url(#08-event-analysis-0-arrow)"/><line x1="900" y1="268" x2="900" y2="364" stroke="#4f5d75" stroke-width="2" marker-end="url(#08-event-analysis-0-arrow)"/><line x1="760" y1="428" x2="680" y2="428" stroke="#4f5d75" stroke-width="2" marker-end="url(#08-event-analysis-0-arrow)"/><path d="M900 492 V568 H180 V480" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#08-event-analysis-0-arrow)"/><path d="M180 380 V316 H540 V268" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#08-event-analysis-0-arrow)"/><rect x="40" y="164" width="280" height="104" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="180" y="204" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">明确现象</text><text x="180" y="244" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">投诉或告警说了什么</text><rect x="400" y="164" width="280" height="104" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="540" y="204" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">验证变化</text><text x="540" y="244" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">时间窗、对象、选区</text><rect x="760" y="164" width="280" height="104" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="900" y="204" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">比较异常与对照</text><text x="900" y="244" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">按字段分组、查看个例</text><path d="M900 364 L1040 428 L900 492 L760 428 Z" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="900" y="420" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">证据足够支持</text><text x="900" y="452" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">当前解释吗？</text><rect x="400" y="380" width="280" height="100" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="540" y="420" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">验证原因及修复</text><text x="540" y="460" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">保留适用范围</text><rect x="40" y="380" width="280" height="100" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="180" y="420" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">改查询、补对照</text><text x="180" y="460" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">必要时扩大范围</text><rect x="708" y="392" width="28" height="32" rx="8" fill="#f5f5f5" stroke="#f5f5f5" stroke-width="2"/><text x="720" y="416" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">是</text><rect x="908" y="516" width="32" height="32" rx="8" fill="#f5f5f5" stroke="#f5f5f5" stroke-width="2"/><text x="924" y="540" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">否</text><text x="40" y="624" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">新线索改变下一问；如果所需字段根本没有保留，就明确报告缺口。</text><line x1="40" y1="668" x2="1080" y2="668" stroke="#4f5d75" stroke-width="2"/><text x="40" y="708" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">异常中富集的条件只是线索；对照、上下文与后续验证决定结论能走多远。</text></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图8-A｜依据原书核心分析循环重构。箭头表示调查推进；证据不足时修改查询或补对照，差异本身不能直接越过验证。</p>
+<h3 id="section-9">初始材料：同一服务、同一路由、同一分钟</h3>
+<p>下面为本版构造的小样本，没有经过采样。仅为演示，定义 <code>duration_ms&gt;500</code> 为慢请求；它不是SLO阈值，也不是生产推荐值。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>请求ID</th>
+<th>版本</th>
+<th>区域</th>
+<th align="right">耗时/毫秒</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>r01</td>
+<td>v2</td>
+<td>west</td>
+<td align="right">800</td>
+</tr>
+<tr>
+<td>r02</td>
+<td>v2</td>
+<td>west</td>
+<td align="right">900</td>
+</tr>
+<tr>
+<td>r03</td>
+<td>v2</td>
+<td>west</td>
+<td align="right">850</td>
+</tr>
+<tr>
+<td>r04</td>
+<td>v2</td>
+<td>west</td>
+<td align="right">950</td>
+</tr>
+<tr>
+<td>r05</td>
+<td>v2</td>
+<td>west</td>
+<td align="right">80</td>
+</tr>
+<tr>
+<td>r06</td>
+<td>v2</td>
+<td>west</td>
+<td align="right">90</td>
+</tr>
+<tr>
+<td>r07</td>
+<td>v1</td>
+<td>west</td>
+<td align="right">820</td>
+</tr>
+<tr>
+<td>r08</td>
+<td>v1</td>
+<td>west</td>
+<td align="right">880</td>
+</tr>
+<tr>
+<td>r09</td>
+<td>v1</td>
+<td>west</td>
+<td align="right">100</td>
+</tr>
+<tr>
+<td>r10</td>
+<td>v2</td>
+<td>east</td>
+<td align="right">100</td>
+</tr>
+<tr>
+<td>r11</td>
+<td>v1</td>
+<td>east</td>
+<td align="right">70</td>
+</tr>
+<tr>
+<td>r12</td>
+<td>v1</td>
+<td>east</td>
+<td align="right">80</td>
+</tr>
+<tr>
+<td>r13</td>
+<td>v1</td>
+<td>east</td>
+<td align="right">90</td>
+</tr>
+<tr>
+<td>r14</td>
+<td>v1</td>
+<td>east</td>
+<td align="right">100</td>
+</tr>
+<tr>
+<td>r15</td>
+<td>v1</td>
+<td>east</td>
+<td align="right">110</td>
+</tr>
+<tr>
+<td>r16</td>
+<td>v1</td>
+<td>east</td>
+<td align="right">120</td>
+</tr>
+</tbody></table></div>
+<p>客户说“新版变慢了”。第一步不接受或否定这个说法，先在此窗口划出6条慢请求与10条非慢请求。以下SQL表示查询逻辑，不绑定某一产品语法。</p>
+<h3 id="section-10">第一轮：哪些条件在慢请求中更常见</h3>
+<pre><code class="language-sql">SELECT version, region,
+       COUNT(*) AS requests,
+       SUM(CASE WHEN duration_ms &gt; 500 THEN 1 ELSE 0 END) AS slow
+FROM events
+GROUP BY version, region;
+</code></pre>
+<p>从数据得到：慢请求中，v2占 <code>4/6≈66.7%</code>，west占 <code>6/6=100%</code>；非慢请求中，v2占 <code>3/10=30%</code>，west也占 <code>3/10=30%</code>。版本与区域都富集，必须同时保留两个候选解释。</p>
+<p>如果转而按版本的全部请求为分母，v2的慢比例是 <code>4/7≈57.1%</code>，v1是 <code>2/9≈22.2%</code>。这个差异仍不能证明新版本导致，因为v2流量更集中在west。下一问因此要把区域固定住。</p>
+<h3 id="section-11">第二轮：在同一区域，版本差异还在吗</h3>
+<pre><code class="language-sql">SELECT version, COUNT(*) AS requests,
+       SUM(CASE WHEN duration_ms &gt; 500 THEN 1 ELSE 0 END) AS slow
+FROM events
+WHERE region = &#39;west&#39;
+GROUP BY version;
+</code></pre>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>条件</th>
+<th align="right">请求数</th>
+<th align="right">慢请求数</th>
+<th align="right">慢比例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>west、v2</td>
+<td align="right">6</td>
+<td align="right">4</td>
+<td align="right">66.7%</td>
+</tr>
+<tr>
+<td>west、v1</td>
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">66.7%</td>
+</tr>
+<tr>
+<td>east、v2</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0%</td>
+</tr>
+<tr>
+<td>east、v1</td>
+<td align="right">6</td>
+<td align="right">0</td>
+<td align="right">0%</td>
+</tr>
+</tbody></table></div>
+<p>固定west后，两版本的慢比例相同，削弱了“v2本身造成这次差异”的解释。当前证据把注意力转向west共享的条件，而非直接转成“west的基础设施就是根因”。样本很小，east的v2只有一条，不能据此证明版本在所有条件下都没有影响。</p>
+<h3 id="section-12">下一轮缺什么，就明确写出来</h3>
+<p>现在应比较west内的慢请求与非慢请求对照的下游、实例、错误、输入大小和trace。当前表没有这些字段，所以本次调查到此只能定位受影响群体，不能替材料补造数据库、网络或代码原因。</p>
+<p>若另有可靠trace，可从r01与r05这类相同版本、相同区域但表现不同的请求出发，检查时间落在哪个工作阶段；若多个字段始终一起变化，则需要更有区分力的对照或可控验证。新版回退后延迟下降也要检查流量、时间与区域是否同时改变，不能只凭前后相邻就断言因果。</p>
+<p>到这里，读者已经实际走过：投诉→确认慢请求→比较异常与对照→发现两个候选条件→固定一个条件复查→收窄解释并指出缺口。<strong>没有得出根因，也可以完成一轮有结果的调查；结果可以是排除一个过强结论并明确下一份证据。</strong></p>
+<h3 id="section-13">把体力计算交给机器，保留对问题的判断</h3>
+<p>当字段从4个变成数百个时，人逐个分组成本很高。机器可以按同样方法列出“异常内比例、对照内比例、样本数、差异”，人决定哪些条件值得追问。若选区只是一次计划中的批任务，峰值可能符合预期；若对照窗口包含不同业务人群，差异也可能来自选择方式。先核对选区与基线，往往比继续增加算法更直接。</p>
+<h2 id="section-14">检验理解</h2>
+<p><strong>情形</strong>：某字段在失败事件中出现90%，在成功事件中也出现90%。它能解释失败群体的独特性吗？</p>
+<p>核对：当前比例没有显示区分能力。不能仅因“多数失败都有它”就称为原因；它可能是普遍背景条件。仍需检查样本量、字段缺失与更细条件，不能把一次无差异判断扩展为永不相关。</p>
+<p><strong>情形</strong>：你圈选一段高延迟区域，发现新版本与某实例类型同时富集，但两者在这批数据中总是一起出现。下一步怎样做？</p>
+<p>核对：当前无法区分两者。寻找同版本不同实例、同实例不同版本的对照，或设计其他能区分解释的检查；对照不存在就报告不可辨识，不凭熟悉程度选择一个原因。</p>
+<h2 id="section-15">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理67—74页；图8-1至8-3已实际核对，98%与17%的分母按原图保留。</p>
+</li>
+<li><p>16条事件、SQL与阈值是本版假设演示；没有把它们写成Honeycomb案例的原始数据，也没有假称找到真实故障根因。</p>
+</li>
+<li><p>运行手册的保留项、机器与人的分工及AIOps批评均保留作者立场与成书时边界。</p>
+</li>
+<li><p>第1、2章建立调查观念，第5—7章提供数据和关联，第9章讨论与监控的配合，第13章从SLO告警进入同一循环。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../07-opentelemetry/index.html">上一篇 · 遵照OpenTelemetry的探针</a><a href="../09-monitoring-and-observability/index.html">下一篇 · 可观测性和监控的融合</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

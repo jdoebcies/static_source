@@ -7,7 +7,7 @@
 在 Mac 上双击根目录的 **本地预览.command**，会启动预览服务并打开浏览器。也可以在终端运行：
 
 ```bash
-cd ~/code_sunjingyun_home/static_source
+cd /path/to/static_source
 python3 scripts/preview.py --open
 ```
 

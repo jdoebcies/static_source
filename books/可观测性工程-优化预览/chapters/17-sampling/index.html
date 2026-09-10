@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第17章｜如何使采样精准且便宜 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：从单个事件走到整条链路</a><a class="sub" href="#section-2">17.1 使用采样策略来优化数据采集</a><a class="sub" href="#section-3">17.2 使用不同的采样策略</a><a class="sub" href="#section-4">17.2.1 恒定概率采样</a><a class="sub" href="#section-5">17.2.2 近期流量采样</a><a class="sub" href="#section-6">17.2.3 基于事件内容采样</a><a class="sub" href="#section-7">17.2.4 键和历史相结合的方法</a><a class="sub" href="#section-8">17.2.5 选择动态采样选项</a><a class="sub" href="#section-9">17.2.6 对链路追踪进行采样</a><a class="sub" href="#section-10">17.3 将采样策略转化为代码</a><a class="sub" href="#section-11">17.3.1 基本案例</a><a class="sub" href="#section-12">17.3.2 固定速率采样</a><a class="sub" href="#section-13">17.3.3 记录采样率</a><a class="sub" href="#section-14">17.3.4 一致的采样</a><a class="sub" href="#section-15">17.3.5 目标速率采样</a><a class="sub" href="#section-16">17.3.6 具有多个静态采样率</a><a class="sub" href="#section-17">17.3.7 按键和目标速率采样</a><a class="sub" href="#section-18">17.3.8 任意多的键上的动态速率采样</a><a class="sub" href="#section-19">17.3.9 把它们放到一起：每个关键目标速率采样的头和尾</a><a class="sub" href="#section-20">17.4 结论</a><a class="" href="#section-21">二、主题讲解：用一组样本和一条请求检查方案</a><a class="sub" href="#section-22">先把样本算对，再谈“节省了多少”</a><a class="sub" href="#section-23">同一个r，为什么仍可能只留下一半链路</a><a class="sub" href="#section-24">尾部知道错误时，历史数据还在不在</a><a class="sub" href="#section-25">错误激增时，优先级与保留概率可能反向变化</a><a class="" href="#section-26">检验理解</a><a class="" href="#section-27">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第17章</p><h1>如何使采样精准且便宜</h1>
+<p>本章要回答：怎样减少遥测数据量，同时说明哪些上下文还能调查、样本怎样参与统计？</p>
+<p>一次故障留下了一条报错 span，但它的调用者早已被丢弃。报错仍能告诉你“这里出了问题”，却不能回答“什么请求、经过哪些服务，走到了这里”。与此同时，若为避免遗漏而保存所有请求，观测系统的开销又可能接近业务系统。</p>
+<p>本章沿着作者的代码改进过程，解释怎样在两者之间做选择。始终分开三个问题：<strong>哪些事件值得保留，什么时候作决定，留下的样本怎样参与统计。</strong>第16章解决保存和查询的成本，本章开始减少需要保存的数据量。</p>
+<h2 id="section-1">一、原书回顾：从单个事件走到整条链路</h2>
+<h3 id="section-2">17.1 使用采样策略来优化数据采集</h3>
+<p>大量请求产生近似的正常事件，逐条保存的边际收益很低；排障时又不能只保留错误，因为判断异常需要成功请求作为对照。作者因此选择一部分有代表性的事件，并附带统计重建所需的元数据。</p>
+<p>这里保留的是被选中事件的完整字段。预先聚合可能把“用户、端点、版本、耗时”压成一个总数，之后再也无法沿这些字段细分；事件采样减少记录条数，却让已保留的记录仍能被过滤、分组和查看。代价是没有被保留的具体事件无法逐条找回。小系统也可以采样，但样本少时，遗漏罕见故障的风险更明显。（PDF 147）</p>
+<h3 id="section-3">17.2 使用不同的采样策略</h3>
+<p>“采样”并非一个完整方案。接下来先改变选择标准，再处理 trace 的决策时机：同样是保留一成，随机保留、按错误类型保留和按整条链路保留，会留下不同的调查材料。</p>
+<h3 id="section-4">17.2.1 恒定概率采样</h3>
+<p>每个事件按固定概率保留，例如 <code>p=1/1000</code>。这里统一用 <code>p</code> 表示保留概率，用 <code>w=1/p</code> 表示每条样本在统计上代表的事件数量。本书示例字段 <code>sampleRate</code> 指后者，即代表倍数；这不是所有 SDK 的通用命名。</p>
+<p>若服务实际接收约100000次请求，留下约100条样本，只报“100次请求”就少算了。估计请求数应为 <code>100×1000=100000</code>；延迟总和也逐条乘1000后求和。全部样本权重相同时，计算分位数无需把延迟数值乘1000。分位数是样本分布的估计，仍有抽样误差，不能保证稀有慢请求必定出现。</p>
+<p>恒定概率简单，但不适合直接满足三个目标：偏重错误、照顾流量差几个数量级的不同用户、在流量暴涨时保护分析后端。后两个目标引出了流量和内容感知。（PDF 148）</p>
+<h3 id="section-5">17.2.2 近期流量采样</h3>
+<p>近期流量少就提高 <code>p</code>，流量激增就降低 <code>p</code>。问题随即变成：不同时间留下的样本代表数量不同，不能再用一个固定倍数处理全部事件。</p>
+<p>作者给出三对“值、代表数量”：<code>(1,5)、(3,2)、(7,9)</code>。等权看三个样本，中位数是3；按权重展开，它们代表16个值：前5个为1，接着2个为3，后9个为7。第8和第9个都为7，所以加权中位数为7。算分位数时增加的是每个值的出现次数，<strong>不是把值本身乘权重后排序</strong>。</p>
+<p>同一份数据还可估计数量 <code>5+2+9=16</code>，总量 <code>1×5+3×2+7×9=74</code>，加权平均 <code>74/16=4.625</code>。这些是按采样机制估计总体，不能据此逐条恢复未保留的原始事件。（PDF 148；数量、总量和均值为对原书例子的补充演算）</p>
+<h3 id="section-6">17.2.3 基于事件内容采样</h3>
+<p>按字段或字段组合决定保留概率。例如HTTP错误、创建订单、付费用户请求，可能比普通成功请求更值得保留。分类键可以只用HTTP方法，也可以组合方法、请求大小和用户代理。</p>
+<p>作者指出，仅按内容配置固定比例，更适合键的取值种类较少、各类相对比例较稳定的情况；例如HTTP方法只有有限几种。这是适用性判断，不是算法能否运行的绝对门槛。其中一个会在故障时翻转的假设是：错误通常比成功少。若错误突然大量出现，固定保留所有错误就可能压垮后端。因此业务优先级决定资源如何分配，具体 <code>p</code> 还得结合流量与预算，不能用“更重要”直接推出“任何时候都提高概率”。（PDF 149）</p>
+<h3 id="section-7">17.2.4 键和历史相结合的方法</h3>
+<p>作者把前两种思路结合：以 <code>[客户ID，数据集ID，错误代码]</code> 等组合为键，观察过去30秒该键出现多少次，再分别调整保留概率。高频组合少留一些，低频组合尽量保留；流量结构变化后再更新。关键是按键统计，避免一个大客户的正常流量吞掉其他客户的调查材料。（PDF 149）</p>
+<h3 id="section-8">17.2.5 选择动态采样选项</h3>
+<p>作者比较三种工作负载：九成请求近似相同的首页、查询模式重复的数据库代理，以及通读缓存之后的后端。缓存已过滤掉许多重复访问，剩下的请求可能更独特。对前三者机械使用同一策略，会对“重复”和“重要”作出错误判断。应先看具体事件和查询需求，再决定用哪些键及怎样分配预算。（PDF 149）</p>
+<h3 id="section-9">17.2.6 对链路追踪进行采样</h3>
+<p>trace由多个服务的span组成。各服务独立随机丢弃span，即便每一层都留下了一些数据，也很难拼出同一条完整trace。</p>
+<p><strong>头部采样</strong>在请求开始时，利用端点、客户ID等已知字段作决定，并向下游传播已选中的决定。<strong>局部尾部选择</strong>在一个span结束后才利用错误、耗时决定保留该span，已经结束或被丢弃的其他span不会因此回来。若要依照结束属性保留<strong>完整trace</strong>，作者要求先收集并缓冲相关span，再作整条链路的决策；通常需要外部收集器，付出接收、内存、等待和计算成本。（PDF 149—150）</p>
+<h3 id="section-10">17.3 将采样策略转化为代码</h3>
+<p>本节代码行为据原始PDF150—160页的代码图片补读，由本版转述为伪代码；它与可直接提取的原书正文、后面的新增算例分开。作者不断修改同一个Go请求处理程序：调用下游服务，记录开始时间、结果及错误，再决定是否发送事件。下面保留每一步新增的行为，用等价伪代码替代重复的HTTP和计时器样板。伪代码解释机制，不是生产SDK接入方案。</p>
+<h3 id="section-11">17.3.1 基本案例</h3>
+<p>起点是不作选择，每次调用结束都发送：</p>
+<pre><code class="language-text">start = now()
+result, error = callAnotherService()
+writeResponse(result)
+RecordEvent(request, start, error)
+</code></pre>
+<p>观察量随请求量增长。要减轻发送和存储成本，下一步在记录动作前增加判断。（PDF 150）</p>
+<h3 id="section-12">17.3.2 固定速率采样</h3>
+<pre><code class="language-text">sampleRate = 1000              # 本书的代表倍数 w
+r = uniformRandom(0, 1)
+if r &lt; 1 / sampleRate:
+    RecordEvent(request, start, error)
+</code></pre>
+<p>这是每个事件有 <code>1/1000</code> 的概率保留，长期数量才接近千分之一；不是保证每1000次正好挑一个。接收端若不知道这个倍数，便无法正确估计数量。（PDF 150—151）</p>
+<h3 id="section-13">17.3.3 记录采样率</h3>
+<p>改为 <code>RecordEvent(request, sampleRate, start, error)</code>，把作决定时实际使用的倍数与样本一起发送。策略从1000改成100之后，旧样本仍代表1000，新样本代表100，不能统一拿最新100重算。</p>
+<p>原图17-1中，1:00留下两个 <code>ok,w=100</code> 和一个 <code>err,w=1</code>；1:01留下三个 <code>ok,w=80</code> 和一个 <code>err,w=1</code>。图17-2把它们重建为200次成功、1次错误，以及240次成功、1次错误。7条记录估计代表442次事件。过滤错误后，也应只对符合条件的样本权重求和。（PDF 151—152）</p>
+<h3 id="section-14">17.3.4 一致的采样</h3>
+<p>将每层重新抽随机数改成：从上游 <code>Sampling-ID</code> 取得同一个判定值 <code>r∈[0,1)</code>，没有可用ID时才生成，再传向下游。各层使用 <code>r&lt;p</code> 判断。</p>
+<p>相同 <code>r</code>、相同 <code>p</code>，结果一致。若父 <code>p=1/10</code>、Redis子 <code>p=1/1000</code>，子保留的集合包含在父保留的集合里：子留下时父必留下，父留下时子可能不留。反过来，子概率比父大时，就可能只留下子。共享ID提供共同判定值，并不会自动让任意不同门槛变得相同。</p>
+<p>原书还保留了运行时调节途径：改变外部采样配置或特征标志，可调整代表倍数而不重新编译；下一节再把手工调节变成按流量自动计算。</p>
+<p>这还不同于17.3.9的“显式传播已选中决定，要求下游遵从”。前者比较各自门槛，后者让选中决定覆盖下游本来的选择规则。（PDF 152—153）</p>
+<h3 id="section-15">17.3.5 目标速率采样</h3>
+<p>作者设每秒目标保留5个事件，初始代表倍数为1。请求处理时增加计数，定时读取上一分钟的数量、计算下一窗口倍数，再重置计数：</p>
+<pre><code class="language-text">sampleRate = max(1, requestsInPastMinute / (60 * targetEventsPerSec))
+p = 1 / sampleRate
+</code></pre>
+<p>例如上一分钟有30000次请求，目标一分钟保留300条，得到 <code>w=100,p=0.01</code>；上一分钟只有120次，则 <code>w=1,p=1</code>，全部保留也达不到300条。这种调节令输出更可预测，但上一窗口不等于下一窗口，突增与随机波动仍可能超出目标。代码也注明生产计数器要处理竞态，因此这是估计与调节示例，不是硬限流器。（PDF 154—155；具体数字演算为补充）</p>
+<h3 id="section-16">17.3.6 具有多个静态采样率</h3>
+<p>给正常与异常使用不同概率，可以提高错误、慢请求和低流量群体出现的机会。原书演示在调用结束后检查“有错误或耗时超过500毫秒”，然后选异常倍数，否则选普通倍数。</p>
+<p>这里500毫秒只是本例条件。正文以普通 <code>1/1000</code>、异常 <code>1/1</code> 或 <code>1/5</code> 说明思想，可见代码普通代表倍数为1000，与正文的1/1000一致；当前代码的异常倍数为5，对应1/5。不要将这些示例值当通用配置。无论取哪个值，若错误突然占据大量流量，固定异常概率仍可能产生过量输出。（PDF 155—156）</p>
+<h3 id="section-17">17.3.7 按键和目标速率采样</h3>
+<p>作者为普通请求分配每秒4条，为异常请求分配每秒1条目标输出。分别维护两类计数，按各自上一窗口流量更新倍数，再按结束时的分类选择对应倍数。这样异常有自己的份额，成功对照也保留。</p>
+<p>两类的计数、更新和判断代码重复；若再加第三类，请求处理程序会继续膨胀。下一步将按类别复制代码改成按键查表。（PDF 156—157）</p>
+<h3 id="section-18">17.3.8 任意多的键上的动态速率采样</h3>
+<p>作者使用三张映射：<code>counts[k]</code> 记录数量，<code>sampleRates[k]</code> 记录当前代表倍数，<code>targetRates[k]</code> 记录目标速率。示例 <code>SampleKey</code> 由错误消息 <code>ErrMsg</code>、后端分片 <code>BackendShard</code>、延迟桶 <code>LatencyBucket</code> 组成；按100毫秒划延迟桶，避免每个毫秒都变成新键。新键默认倍数1；明确排除的键返回负哨兵；其他键查表并按窗口更新。</p>
+<p>把关键分支展开，可见每一步怎样影响当前事件（据158—159页图页补读转述，沿用17.3.5的倍数下限；目标速率假设大于0）：</p>
+<pre><code class="language-text">// 窗口更新，interval以秒计，targetRates[k]以事件/秒计
+sampleRates[k] = max(1, counts[k] / (interval * targetRates[k]))
+
+// 请求结束后，以错误、分片和延迟桶组成k
+if neverSample(k):             # 原书默认实现为false
+    sampleRate = -1            # 明确排除，不进行1/sampleRate比较
+else:
+    counts[k] += 1
+    sampleRate = sampleRates.get(k, 1)  # 新键默认全留
+if sampleRate &gt; 0 and r &lt; 1 / sampleRate:
+    RecordEvent(request, sampleRate, start, error)
+</code></pre>
+<p>例如一个键上一窗口60秒有600次请求，目标每秒2条，下一窗口倍数为5，保留概率为0.2。新键尚无历史倍数时默认1；明确排除键返回−1而不发送。这些分支仍依赖正确的窗口与并发实现，并非已验证的生产代码。</p>
+<p>这把重复分支收进同一套机制，也把复杂性移到了键设计、窗口更新与资源管理上。作者提到成书时的 <code>dynsampler-go</code> 可承担这类逻辑；理解键和概率的含义，仍是正确选用库的前提。（PDF 158—159）</p>
+<h3 id="section-19">17.3.9 把它们放到一起：每个关键目标速率采样的头和尾</h3>
+<p>头部能看到请求入口的属性，尾部能看到执行结果。原书组合它们时，先检查 <code>Upstream-Sample-Rate</code> 携带的上游决定；若已选中，沿用其决定与代表倍数。否则本层作头部判断，并把共享ID及头部结果传给下游。结束时，头部选中的事件直接记录；未选中的事件才尝试本层尾部判断：</p>
+<pre><code class="language-text">r = obtainSharedSamplingValue()
+headDecision = inheritedSelectedDecisionOrLocalHeadDecision(request, r)
+result, error = callAnotherService(r, headDecision)
+if headDecision.selected:
+    recordWithHeadMetadata(result, error, headDecision)
+else:
+    tailDecision = decideUsingCompletedSpan(result, error, r)
+    if tailDecision.selected:
+        recordThisSpanWithTailMetadata(tailDecision)
+</code></pre>
+<p>代码注释明确：最后这个局部尾部决定无法再向下游传播。它可以多留一条有用的span，但不等于完整trace。原书随后另提收集器缓冲，才能将整条链路的选择推迟到结果已知时。提高后续请求的头部保留概率与保存当前请求已经发生的历史，是两件不同的事。（PDF 159—160）</p>
+<p>此伪代码保留分支与时序，省略原图中的类型、作用域及边界判断瑕疵。头尾选择合并后的有效纳入概率也需要按实际规则核算，不能把某个局部分支的倍数自动当成所有组合策略的正确权重。</p>
+<h3 id="section-20">17.4 结论</h3>
+<p>采样库可以代替重复实现，无法替你决定哪些业务字段重要、需要哪些成功对照，以及何时愿意付出整链路缓冲的成本。作者把选择什么、何时选择和怎样选择，都归到业务问题与资源约束之下。第18章接着讨论：选出的遥测数据怎样经流水线处理与路由。（PDF 160—161）</p>
+<h2 id="section-21">二、主题讲解：用一组样本和一条请求检查方案</h2>
+<h3 id="section-22">先把样本算对，再谈“节省了多少”</h3>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 716" role="img" aria-label="同样三个样本，权重改变中间落点">
+<defs><marker id="17-sampling-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#4f5d75"/></marker><marker id="17-sampling-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#eb6c36"/></marker><marker id="17-sampling-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Noto Sans CJK SC',sans-serif}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+<rect width="1120" height="716" fill="#f5f5f5"/>
+<text x="40" y="56" font-size="32" fill="#2d3142" font-weight="600" text-anchor="start">同样三个样本，权重改变中间落点</text><text x="40" y="96" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">原书 PDF 148 页算例｜横向刻度是排序位置，不是时间</text>
+<text x="40" y="164" font-size="24" fill="#2d3142" font-weight="600" text-anchor="start">等权看三个样本</text><text x="360" y="164" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">1、3、7 → 中位数 3</text><text x="40" y="228" font-size="24" fill="#2d3142" font-weight="600" text-anchor="start">按权重看代表数量</text><text x="360" y="228" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">(1,5)、(3,2)、(7,9) → 共 16 个位置</text><rect x="80" y="292" width="52" height="64" rx="8" fill="#e2e5ea" stroke="#4f5d75" stroke-width="2"/><text x="106" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">1</text><text x="106" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">1</text><rect x="140" y="292" width="52" height="64" rx="8" fill="#e2e5ea" stroke="#4f5d75" stroke-width="2"/><text x="166" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">1</text><text x="166" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">2</text><rect x="200" y="292" width="52" height="64" rx="8" fill="#e2e5ea" stroke="#4f5d75" stroke-width="2"/><text x="226" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">1</text><text x="226" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">3</text><rect x="260" y="292" width="52" height="64" rx="8" fill="#e2e5ea" stroke="#4f5d75" stroke-width="2"/><text x="286" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">1</text><text x="286" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">4</text><rect x="320" y="292" width="52" height="64" rx="8" fill="#e2e5ea" stroke="#4f5d75" stroke-width="2"/><text x="346" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">1</text><text x="346" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">5</text><rect x="380" y="292" width="52" height="64" rx="8" fill="#ccd2dc" stroke="#4f5d75" stroke-width="2"/><text x="406" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">3</text><text x="406" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">6</text><rect x="440" y="292" width="52" height="64" rx="8" fill="#ccd2dc" stroke="#4f5d75" stroke-width="2"/><text x="466" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">3</text><text x="466" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">7</text><rect x="500" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="526" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="526" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">8</text><rect x="560" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="586" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="586" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">9</text><rect x="620" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="646" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="646" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">10</text><rect x="680" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="706" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="706" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">11</text><rect x="740" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="766" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="766" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">12</text><rect x="800" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="826" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="826" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">13</text><rect x="860" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="886" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="886" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">14</text><rect x="920" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="946" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="946" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">15</text><rect x="980" y="292" width="52" height="64" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="1006" y="332" font-size="24" fill="#2d3142" font-weight="400" text-anchor="middle">7</text><text x="1006" y="388" font-size="16" fill="#4f5d75" font-weight="400" text-anchor="middle">16</text><text x="80" y="432" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">累计代表数量的位置 →</text><line x1="512" y1="448" x2="572" y2="448" stroke="#eb6c36" stroke-width="2"/><text x="416" y="496" font-size="28" fill="#eb6c36" font-weight="600" text-anchor="start">第 8、9 个位置都为 7</text><text x="40" y="556" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">数量：5 + 2 + 9 = 16    总量：1×5 + 3×2 + 7×9 = 74</text><text x="40" y="600" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">加权增加的是每个值占据的位置数，不是把延迟值乘权重后排序。</text><line x1="40" y1="644" x2="1080" y2="644" stroke="#4f5d75" stroke-width="2"/><text x="40" y="684" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">统计重建保留代表比例；不能还原每一条被丢弃事件的身份。</text></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图17-A｜依据原书148页重画。方格表示累计代表数量的位置，不表示请求时间；第8、9个位置落在值7这一组。</p>
+<p>对保留下来的第 <code>i</code> 条事件，记值为 <code>x_i</code>，有效保留概率为 <code>p_i&gt;0</code>，权重为 <code>w_i=1/p_i</code>：</p>
+<ul>
+<li>估计事件数：<code>N̂=Σw_i</code>。</li>
+<li>估计总量：<code>T̂=Σ(w_i×x_i)</code>。若 <code>x_i</code> 是毫秒，结果仍以毫秒计。</li>
+<li>加权平均：<code>T̂/N̂</code>。</li>
+<li>加权分位数：按 <code>x_i</code> 从小到大排序，对权重累计，寻找目标百分位落入的值组。</li>
+</ul>
+<p><strong>补充演算</strong>：三个样本为 <code>(20毫秒,w=4)、(50毫秒,w=2)、(200毫秒,w=1)</code>。累计权重为4、6、7；估计事件数7，延迟总和 <code>80+100+200=380毫秒</code>，平均约54.29毫秒。中间第4个位置落在20毫秒这一组，所以加权中位数是20毫秒，直接对三条样本取中位数却是50毫秒。</p>
+<p>生产工具的分位数插值规则可能不同；本章采用原书“按权重展开”的直观定义。它展示的是如何恢复代表比例，不能消除抽样波动，也无法发现样本中完全没有出现的事件类型。若某类 <code>p=0</code>，便没有这一类的样本，不能拿 <code>1/p</code> 来补救。多个独立丢弃环节或头尾联合选择存在时，先核对事件最终被纳入的实际概率，再谈权重。</p>
+<h3 id="section-23">同一个r，为什么仍可能只留下一半链路</h3>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 732" role="img" aria-label="共享同一个 r，不等于任意门槛下都同留同弃">
+<defs><marker id="17-sampling-1-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#4f5d75"/></marker><marker id="17-sampling-1-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#eb6c36"/></marker><marker id="17-sampling-1-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Noto Sans CJK SC',sans-serif}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+<rect width="1120" height="732" fill="#f5f5f5"/>
+<text x="40" y="56" font-size="32" fill="#2d3142" font-weight="600" text-anchor="start">共享同一个 r，不等于任意门槛下都同留同弃</text><text x="40" y="96" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">基本规则：每层用 r &lt; p 比较｜此图没有加入强制下游遵从规则</text>
+<rect x="40" y="144" width="652" height="356" rx="8" fill="#e9edf3" stroke="#4f5d75" stroke-width="2"/><text x="64" y="188" font-size="28" fill="#2d3142" font-weight="600" text-anchor="start">父保留集合：r &lt; 0.1</text><rect x="64" y="224" width="348" height="128" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="88" y="272" font-size="24" fill="#eb6c36" font-weight="600" text-anchor="start">子保留集合：r &lt; 0.001</text><text x="88" y="316" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">子保留 → 父必保留</text><text x="440" y="296" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">仅父保留区</text><text x="440" y="332" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">0.001 ≤ r &lt; 0.1</text><text x="64" y="460" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">集合示意，面积不代表概率大小。</text><text x="752" y="188" font-size="28" fill="#2d3142" font-weight="600" text-anchor="start">两层都丢弃</text><text x="752" y="236" font-size="28" fill="#4f5d75" font-weight="400" text-anchor="start">r ≥ 0.1</text><line x1="724" y1="144" x2="724" y2="500" stroke="#4f5d75" stroke-width="2"/><text x="40" y="556" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">r = 0.0004：父子都留    r = 0.04：仅父留    r = 0.4：都丢弃</text><text x="40" y="612" font-size="24" fill="#eb6c36" font-weight="400" text-anchor="start">若改成子 p=0.5、父 p=0.1，r=0.2 就会只保留子。</text><line x1="40" y1="660" x2="1080" y2="660" stroke="#4f5d75" stroke-width="2"/><text x="40" y="700" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">依据 PDF 152—153 页；要强制下游保留，需另外传播已选中的头部决定。</text></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图17-B｜按原书一致采样机制构造的集合图。父子共享同一个r，但各自比较自己的p；本图没有加入强制下游遵从规则。</p>
+<p>父 <code>p=0.1</code>、子 <code>p=0.001</code>，取三个实际判定值走一遍：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>共享r</th>
+<th>父：r&lt;0.1</th>
+<th>子：r&lt;0.001</th>
+<th>留下什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.0004</td>
+<td>是</td>
+<td>是</td>
+<td>父子都留</td>
+</tr>
+<tr>
+<td>0.04</td>
+<td>是</td>
+<td>否</td>
+<td>仅父保留</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>否</td>
+<td>否</td>
+<td>都丢弃</td>
+</tr>
+</tbody></table></div>
+<p>若将子概率改成0.5，<code>r=0.2</code> 就会仅留下子。关键关系是门槛集合的包含方向，不能概括为“用了Trace ID就永不断链”。</p>
+<p>若你的目标要求父一旦选中，全部下游都留下，就要加上17.3.9的传播规则，并核对各层都能收到和遵守决定。即使选中，采集遗漏、传播断开、传输丢失也可能导致缺span；采样策略本身不是交付完整性的证明。</p>
+<h3 id="section-24">尾部知道错误时，历史数据还在不在</h3>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 824" role="img" aria-label="错误出现后，能否保住当前请求的完整历史？">
+<defs><marker id="17-sampling-2-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#4f5d75"/></marker><marker id="17-sampling-2-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#eb6c36"/></marker><marker id="17-sampling-2-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Noto Sans CJK SC',sans-serif}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+<rect width="1120" height="824" fill="#f5f5f5"/>
+<text x="40" y="56" font-size="32" fill="#2d3142" font-weight="600" text-anchor="start">错误出现后，能否保住当前请求的完整历史？</text><text x="40" y="96" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">三行是不同机制；横向箭头表示阶段推进，间距不表示等长耗时</text>
+<text x="364" y="156" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">请求开始</text><text x="640" y="156" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">执行及返回</text><text x="916" y="156" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">结果已知</text><text x="40" y="248" font-size="24" fill="#2d3142" font-weight="600" text-anchor="start">头部选中</text><line x1="476" y1="248" x2="528" y2="248" stroke="#4f5d75" stroke-width="2" marker-end="url(#17-sampling-2-arrow)"/><line x1="752" y1="248" x2="804" y2="248" stroke="#4f5d75" stroke-width="2" marker-end="url(#17-sampling-2-arrow)"/><rect x="252" y="204" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="364" y="256" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">用已知字段选择</text><rect x="528" y="204" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="640" y="256" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">向下游传播决定</text><rect x="804" y="204" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="916" y="256" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">各层发送已选 span</text><text x="40" y="404" font-size="24" fill="#2d3142" font-weight="600" text-anchor="start">局部尾部</text><line x1="476" y1="404" x2="528" y2="404" stroke="#4f5d75" stroke-width="2" marker-end="url(#17-sampling-2-arrow)"/><line x1="752" y1="404" x2="804" y2="404" stroke="#4f5d75" stroke-width="2" marker-end="url(#17-sampling-2-arrow)"/><rect x="252" y="360" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="364" y="412" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">头部未选中</text><rect x="528" y="360" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="640" y="412" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">其他 span 可能已丢</text><rect x="804" y="360" width="224" height="88" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="916" y="412" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">结束时只留本 span</text><text x="40" y="560" font-size="24" fill="#2d3142" font-weight="600" text-anchor="start">收集器缓冲</text><line x1="476" y1="560" x2="528" y2="560" stroke="#4f5d75" stroke-width="2" marker-end="url(#17-sampling-2-arrow)"/><line x1="752" y1="560" x2="804" y2="560" stroke="#4f5d75" stroke-width="2" marker-end="url(#17-sampling-2-arrow)"/><rect x="252" y="516" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="364" y="568" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">先收集相关 span</text><rect x="528" y="516" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="640" y="568" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">按 trace 保存在缓冲</text><rect x="804" y="516" width="224" height="88" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="916" y="568" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">再决定整条的去留</text><text x="252" y="656" font-size="24" fill="#eb6c36" font-weight="600" text-anchor="start">事后决定能影响什么，取决于数据此刻还保留在哪里。</text><text x="252" y="704" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">缓冲需要接收、内存与等待；晚到、超限仍可能造成不完整。</text><line x1="40" y1="752" x2="1080" y2="752" stroke="#4f5d75" stroke-width="2"/><text x="40" y="792" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">依据 PDF 150、159—160 页重构；已经丢弃的 span 不能靠提高概率恢复。</text></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图17-C｜原书150、159—160页机制的时序重构。横向箭头只表示时间推进；三行是三种数据保留机制，不是同一请求连续经历的三个阶段。</p>
+<p><strong>假设请求</strong>：网关A调用服务B，B调用C；A在响应处理的最后才发现错误。下面三种对照情形采用不同的数据保留机制，分别判断历史信息是否还在。</p>
+<ol>
+<li>若A在开始时选中并传播了“保留”决定，B、C遵从该决定，结束后各自发送span，可以保住这次选中的上下文。</li>
+<li>若开始时未选中，而且B、C结束后已经丢弃各自span，A结束时才局部保留，新增的只有A当前仍掌握的span。B、C已经丢弃的内容不能由A的一个标记恢复。</li>
+<li>若全链路数据先送入收集器并缓冲，错误结果到达后，收集器才有材料决定保留A、B、C。缓冲需要内存和等待窗口，还要处理晚到span、超时和超限；“作了尾部决定”本身不能证明所有span已到齐。</li>
+</ol>
+<p>所以检查尾部方案时，应沿真实数据路径问：哪些span在何处暂存，何时可能被丢弃，最终决策能影响哪个缓冲区。仅提高下一次请求的 <code>p</code>，不会改变当前缺失的历史。</p>
+<h3 id="section-25">错误激增时，优先级与保留概率可能反向变化</h3>
+<p>下面是讲解用的假设窗口，资源单位为“事件/秒”，不把它等同于字节或内存成本。总目标输出100条/秒，给错误60、成功40；先假设窗口内流量稳定，且每类采用独立、已知概率：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>窗口</th>
+<th align="right">输入错误/秒</th>
+<th align="right">输入成功/秒</th>
+<th>错误p及w</th>
+<th>成功p及w</th>
+<th>期望输出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>平稳期</td>
+<td align="right">20</td>
+<td align="right">8000</td>
+<td>p=1，w=1</td>
+<td>p=0.005，w=200</td>
+<td>20+40=60条/秒</td>
+</tr>
+<tr>
+<td>故障期</td>
+<td align="right">6000</td>
+<td align="right">4000</td>
+<td>p=0.01，w=100</td>
+<td>p=0.01，w=100</td>
+<td>60+40=100条/秒</td>
+</tr>
+</tbody></table></div>
+<p>错误仍有更高的预算份额，故障时其保留概率却从1降到0.01，因为输入增加了300倍。如果反过来“错误越多，概率越高”，全量错误输出就会达到6000条/秒。</p>
+<p>这是一种固定分配示例，空闲的40条预算没有自动转移；也可以另设计重分配规则，但须说明规则。按上一窗口估计时，突增的第一个窗口仍可能超预算；若需要硬上限，限流与丢弃会改变纳入概率及调查能力，必须单独记账。整条trace的span数不同，按trace条数配额也不等于按事件数或字节数控制成本。</p>
+<h2 id="section-26">检验理解</h2>
+<p><strong>一组新样本。</strong> <code>(延迟毫秒,w)</code> 为 <code>(8,3)、(40,1)、(90,2)</code>。估计请求数和延迟总和是多少？按展开后两个中间位置取平均，中位数是多少？</p>
+<p>核对：数量6，总和 <code>8×3+40+90×2=244毫秒</code>。排序后是8、8、8、40、90、90，中间两个位置为8和40，中位数24毫秒。若工具采用“累计权重首次达到50%”的约定，则返回8毫秒；因此比较分位数前要先统一定义，不能把算法约定差异误当采样错误。逐条原始请求仍不能恢复。</p>
+<p><strong>两层门槛。</strong> 父 <code>p=0.2</code>、子 <code>p=0.02</code>，共享 <code>r=0.015</code> 和 <code>r=0.15</code> 时分别留下谁？若另有“父选中则下游强制保留”的规则，第二种结果有什么不同？</p>
+<p>核对：只按门槛，前者都留，后者仅父留；加入并实际传播强制保留规则后，第二种也都留。必须先说清使用哪套规则。</p>
+<p><strong>末端错误。</strong> 最下游C结束时才发现错误，头部未选中，其兄弟span已丢弃。单独保留C能否补回完整trace？</p>
+<p>核对：不能。C只保留自己仍掌握的信息；若要求完整上下文，就要在作最终决定前保留相关span，例如送入可按trace汇集的收集器缓冲，并承担相应资源与等待成本。</p>
+<h2 id="section-27">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书正文：第17章，原始PDF物理147—161页；加权分位数位于148页可提取文字。</p>
+</li>
+<li><p>图页补读：150—160页代码、表格和图17-1至17-4由本版实际查看页图后记录于《第17章代码与图表的逐页补读记录》，本章对其中代码行为及数值差异作视觉转述，不是原书逐字源码。17.3各段页码指向相应原始页面。</p>
+</li>
+<li><p>本书中文标题、章节顺序及关键字段沿用原书；<code>p</code>、<code>w</code>、<code>r</code>是本版为消除“采样率”歧义而统一的讲解记号。伪代码为保留行为与时序的改写，不是可部署代码。</p>
+</li>
+<li><p>原书算例与本版构造的数字、请求时序已就近区分。500毫秒、4/1条每秒等是书中示例，不是通用阈值。</p>
+</li>
+<li><p>本章承接第16章的数据存储成本，连接第6章的上下文传播与第18章的遥测流水线。组合策略的有效纳入概率、生产并发控制及SDK接入需按具体实现另行验证。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../16-data-storage/index.html">上一篇 · 高效的数据存储</a><a href="../18-telemetry-pipelines/index.html">下一篇 · 使用流水线进行遥测管理</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

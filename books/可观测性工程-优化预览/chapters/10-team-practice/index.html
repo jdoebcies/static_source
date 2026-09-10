@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第10章｜在团队中应用可观测性实践 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：从一个真实痛点建立使用习惯</a><a class="sub" href="#section-2">10.1 参与社区</a><a class="sub" href="#section-3">10.2 从最大的痛点着手</a><a class="sub" href="#section-4">10.3 购买代替自建</a><a class="sub" href="#section-5">10.4 反复完善你的探针</a><a class="sub" href="#section-6">10.5 温和改进，积极复用</a><a class="sub" href="#section-7">10.6 全力冲刺</a><a class="sub" href="#section-8">10.7 结论</a><a class="" href="#section-9">二、主题讲解：把试点写成一次能验收的调查</a><a class="" href="#section-10">检验理解</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第10章</p><h1>在团队中应用可观测性实践</h1>
+<p>本章要回答：团队怎样从真实痛点开始试点，逐步把可观测性变成日常实践？</p>
+<p>团队可能愿意试用可观测性，却仍不知道先接哪个服务、如何证明价值、怎样让试点不半途而废。本章给出采用路径，作者也明确没有适合所有团队的统一起点：痛点、工具差距、人员经验和组织规模都会改变选择。</p>
+<h2 id="section-1">一、原书回顾：从一个真实痛点建立使用习惯</h2>
+<h3 id="section-2">10.1 参与社区</h3>
+<p>社区能让团队遇到相近技术栈、规模和问题的人，比较不同处理方式，减少重复摸索。作者强调关系是双向的：在求助前也参与讨论、回答能力范围内的问题。CNCF、OTel及产品社区是书中的入口例子，使用时应按当前渠道查找；本章不承诺历史群组和链接仍保持原状。（PDF 82）</p>
+<h3 id="section-3">10.2 从最大的痛点着手</h3>
+<p>一般新工具试点偏向简单、低重要性服务，作者认为这可能掩盖可观测性的价值：服务本来就稳定，做完接入也没有机会展示新方法能解释什么。</p>
+<p>更合适的是一个范围可控、但调查困难的问题，例如持续阻塞的数据库调用、几周未解的不稳定服务、无法解释的用户负载。先在一两个服务上取得可以展示的调查结果，再将查询、过程和发现带到团队会议或文档中。选择有价值的问题，不等于一次改动整个关键系统。（PDF 83、84）</p>
+<h3 id="section-4">10.3 购买代替自建</h3>
+<p>作者明确倾向先购买或试用现成方案，以最小实现投入尽快证明ROI，避免先花很长时间建设整个平台。筛选标准应是第1章的实际能力：能否处理高基数、高维数据，能否快速连续地改变查询，而不是是否贴着“可观测性”标签。</p>
+<p>作者在成书时分别说明三类局部能力。Prometheus擅长指标监控，但预聚合的粗粒度测量限制细分请求调查；ELK擅长日志存储和已知文本搜索，对“谁在何时遇到问题”等复合条件分析与聚合有取舍；Jaeger能展示链路并支持部分数据过滤，但作者认为它缺少分析、切分全部链路数据的复杂能力。不能把“Jaeger并非完整方案”写成“Jaeger完全不能过滤”。把这些部分拼起来仍需要额外整合工作。</p>
+<p>这些是历史工具判断，不是本版对当前产品的测评。作者也建议使用OTel：起步可能较慢，需要前期投入，却能换取以后选择和切换后端的空间；工具投入与调查收益应一起判断。实际后端能否支持目标工作流仍需验证，第15章再展开长期成本。（PDF 83—84）</p>
+<h3 id="section-5">10.4 反复完善你的探针</h3>
+<p>自动探针提供起点，真正有用的字段取决于应用。先让试点团队在真实调查中发现缺口，再补字段、改查询，并把成功经验传给其他人。遇到新问题便完善探针，比在开始时追求完美字段表更实际。</p>
+<p>推广后要引入自定义遥测的命名约定，避免同一业务在不同服务里无法关联。（PDF 84—85）</p>
+<p><strong>本版补充：</strong>增加的新字段只能帮助后续请求；原故障没记录的内容不能因此补回。</p>
+<h3 id="section-6">10.5 温和改进，积极复用</h3>
+<p>已投入的时间与习惯会影响采用。作者给出几种具体过渡：从Logstash已有日志流分出副本，保留旧去向同时进入新工具；已有结构化日志可补唯一ID关联整个堆栈，继续存于旧日志分析工具，同时作为链路事件送入可观测性工具。也可让新旧探针并行，边使用边比较。</p>
+<p>Ganglia用户可解析 <code>/var/tmp</code> 中的XML，再用每分钟一次的cronjob把数据作为事件推入新工具。作者明确说它不是可观测性最佳实践，却符合使用者原有习惯。少量重要仪表盘也可在新工具中重建，作为能够继续探索的查询入口。</p>
+<p>这些是过渡办法，并非全部都是理想终态。重点是让成员能在熟悉材料中比较新方法的作用，再逐步减少不必要的重复和上下文切换。沉没成本不应替未来价值作决定，已有内容的实际用途则应保留。（PDF 85—86）</p>
+<h3 id="section-7">10.6 全力冲刺</h3>
+<p>随着主要痛点解决，采用容易停在一半。作者经验中，随值班和开发迭代接入常能覆盖一半到三分之二，低变更区域却一直未补。这个范围是经验描述，不是保证完成率。</p>
+<p>最后阶段需要明确剩余边界、负责人和完成时间，可用集中活动推动低活动区域；再将反复出现的接入动作收进共享库，降低后续服务的重复工作。统一方案的完成目标要先定义，不能把“某几个服务已能用”当成整条链路完成。（PDF 86）</p>
+<h3 id="section-8">10.7 结论</h3>
+<p>找到真实痛点，尽快展示调查价值，迭代数据与习惯，再补齐剩余范围，是本章的采用主线。它依赖团队条件，不能机械复制别人的采购清单。（PDF 86）</p>
+<h2 id="section-9">二、主题讲解：把试点写成一次能验收的调查</h2>
+<p>假设团队常收到“报表偶尔慢”的投诉，现有工具只能看到整体延迟。选择报表API和它的关键下游作为首轮范围，学习问题是：能否区分输入大小、版本与后端分片造成的不同表现，并保留查询路径供其他人复查？</p>
+<p>先读一次旧事故留下的数据，记录哪个问题答不出。然后接入自动span与报表类型、输入规模、分片等必要字段；用可控制的请求验证关联和输出。接下来拿真实出现的慢请求做调查，保存筛选条件、对照结果与未解决事项。</p>
+<p><strong>本版讲解补充。</strong> span表示一段有开始和结束的工作；高基数关注某个字段的不同取值数，例如每个请求可能有不同ID；高维度关注一条事件保留多少种字段，例如版本、分片、报表类型与输入规模。字段多与单字段取值多不能互相替代。</p>
+<p>调查中临时提出一个新问题：“同一版本、同一报表类型的大输入请求，是否只在某个分片变慢？”工具应能对已经保留的字段临时组合过滤、分组并继续查看个例。预设查询很多、切换很快，仍不足以证明这种能力；还应在具有高基数、复杂组合和代表性数据量的困难条件下，核对查询是否仍能支持连续调查。这个验收示例是本版补充，不是作者报告的试点实测。</p>
+<p>成功证据不只是“上报了十万条span”。更有意义的是：另一位未参与接入的同事能否用这些材料复现调查步骤，是否能回答此前回答不了的问题，哪些阶段仍缺数据。若输入规模字段存在但值含义不一致，就先修字段；若查询很快却始终不能定位用户群体，就重新看粒度。</p>
+<p>试点有结果后，将相同接入方式推广到相邻服务，同时登记未覆盖的离线任务、异常路径和低活动模块。集中补齐这些范围后再核对整条用户路径，避免只因前台接口都接入就宣布完成。</p>
+<h2 id="section-10">检验理解</h2>
+<p>一个几乎从不出问题的测试服务已经接入，团队却看不出收益。下一步应增加更多仪表盘，还是调整试点问题？</p>
+<p>核对：先找具有真实调查缺口的有界问题，按它检验工具和数据。接入本身没有证明可观测性价值；也不必直接扩大到全部生产服务。</p>
+<p>主要服务都能查，但很少修改的结算任务始终不可见，是否可以宣布全栈完成？核对：不能。说明剩余范围，安排负责人和完成计划；若用户路径依赖它，这个缺口会继续影响调查。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理82—86页。采购偏好、社区建议、过渡办法与完成比例保留作者经验归属。</p>
+</li>
+<li><p>报表试点是本版假设方案，不是已执行的团队项目，也不是某产品的推荐。</p>
+</li>
+<li><p>接第9章的责任与共存选择；第11章把探针纳入日常开发，第14章讨论共享约定，第15章计算长期投入。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../09-monitoring-and-observability/index.html">上一篇 · 可观测性和监控的融合</a><a href="../11-observability-driven-development/index.html">下一篇 · 可观测性驱动开发</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第18章｜使用流水线进行遥测管理 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：管理数据去向，也管理理解能力</a><a class="sub" href="#section-2">18.1 遥测流水线的属性</a><a class="sub" href="#section-3">18.1.1 路由</a><a class="sub" href="#section-4">18.1.2 安全与合规</a><a class="sub" href="#section-5">18.1.3 工作负载隔离</a><a class="sub" href="#section-6">18.1.4 数据缓冲</a><a class="sub" href="#section-7">18.1.5 容量管理</a><a class="sub" href="#section-8">18.1.6 数据过滤和增强</a><a class="sub" href="#section-9">18.1.7 数据转换</a><a class="sub" href="#section-10">18.1.8 确保数据质量和一致性</a><a class="sub" href="#section-11">18.2 管理一个遥测流水线：解剖</a><a class="sub" href="#section-12">18.3 管理遥测流水线时的挑战</a><a class="sub" href="#section-13">18.3.1 性能</a><a class="sub" href="#section-14">18.3.2 正确性</a><a class="sub" href="#section-15">18.3.3 可用性</a><a class="sub" href="#section-16">18.3.4 可靠性</a><a class="sub" href="#section-17">18.3.5 隔离</a><a class="sub" href="#section-18">18.3.6 数据时效性</a><a class="sub" href="#section-19">18.4 用例：Slack的遥测管理</a><a class="sub" href="#section-20">18.4.1 指标聚合</a><a class="sub" href="#section-21">18.4.2 日志和链路追踪事件</a><a class="sub" href="#section-22">18.5 开源替代方案</a><a class="sub" href="#section-23">18.6 管理遥测流水线：自建与购买</a><a class="sub" href="#section-24">18.7 结论</a><a class="" href="#section-25">二、主题讲解：同一批四条事件，逐步看它们去了哪里</a><a class="sub" href="#section-26">为什么这些选择影响调查</a><a class="" href="#section-27">检验理解</a><a class="" href="#section-28">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第18章</p><h1>使用流水线进行遥测管理</h1>
+<p>本章要回答：多来源、多去向的遥测数据，怎样通过流水线管理去向、质量与成本？</p>
+<p>本章由Slack的Suman Karumuri与Ryan Katkov撰写。应用少、后端少时，直接发送遥测很简单；当同一批数据要进入多个后端，且各有留存、访问、成本与质量要求，配置散在每个应用里就越来越难改。遥测流水线把接收、缓冲、处理和导出放到可管理的中间层。</p>
+<h2 id="section-1">一、原书回顾：管理数据去向，也管理理解能力</h2>
+<h3 id="section-2">18.1 遥测流水线的属性</h3>
+<p>作者先说明流水线能承担哪些职责，再讨论组件及运行挑战。以下属性可以按实际需求组合，不要求小团队一次建设全套。</p>
+<h3 id="section-3">18.1.1 路由</h3>
+<p>集中配置目的地，让同一事件流进入不同后端，避免每次改变分析工具都发布全部应用。trace、日志可以各有出口，同一数据也可以为实时分析与长期查询分流。路由提供选择，但不同出口的转换和过滤可能让结果不再等同。（PDF 163）</p>
+<h3 id="section-4">18.1.2 安全与合规</h3>
+<p>访问主体、存储地点、保留和删除要求可能不同。作者以敏感个人信息及当时的合规需求说明集中检查、编校、告警与自助删除的用途。本章讲数据处理能力，不替特定组织判断其法律义务；需要处理哪些字段仍须有明确政策。（PDF 163）</p>
+<h3 id="section-5">18.1.3 工作负载隔离</h3>
+<p>把高吞吐与低吞吐流放在同一集群，可能让大量写入或查询挤占其他用途。按工作负载分区或分后端，可以分别设定容量与留存，减少一个日志风暴影响所有用户。隔离改变资源边界，不等于删除低流量的数据。（PDF 163）</p>
+<h3 id="section-6">18.1.4 数据缓冲</h3>
+<p>后端不可用时，磁盘或消息队列暂存数据，恢复后重放；流量峰值时也能平滑输入。Slack用Kafka并配合生产者有限磁盘缓冲，书中Kafka最多保留三天，目的是跨越一定范围的中断。</p>
+<p>缓冲有容量与期限。如果持续输入高于输出，积压仍会增长；本版将它理解为有限的恢复能力，不把“有Kafka”当成不会丢数据的保证。（PDF 163—164）</p>
+<h3 id="section-7">18.1.5 容量管理</h3>
+<p>作者区分速率限制、采样和排队。短时超量可以等待；长期超量则可能需要丢弃或按策略选择，软限制与硬限制也可能组合。事故时优先最新数据有助于判断当前状态，较旧数据在空闲后回填。</p>
+<p><strong>跨章补充：</strong>流量增大时，若要压低输出，通常降低保留概率p；第17章中的代表倍数w随之提高。丢弃、采样与排队影响不同：前两者减少材料，后者推迟可见。还要保留成功对照和有效权重，不能假定被删内容必定没有异常信号。（PDF 164；统计边界见第17章）</p>
+<h3 id="section-8">18.1.6 数据过滤和增强</h3>
+<p>对于指标，作者给出删除含高基数字段的时间序列、预聚合这些字段，或删除时间戳格式错误等无效数据的选择；这些操作改变保留粒度，不能只概括为无损“处理”。日志可以清理敏感字段，trace可按需要选择高价值记录或过滤低价值span。流水线还可增加进程外信息，如区域、容器、主机或地理信息。</p>
+<p><strong>本版分析：</strong>新增字段应说明来源，过滤应说明丢掉什么。增加区域标签可以帮助分组，却不能补回应用从未产生的业务结果；删除字段后也会失去沿它调查的能力。（PDF 164—165）</p>
+<h3 id="section-9">18.1.7 数据转换</h3>
+<p>作者承认转换为通用事件格式可能有较高计算成本，但认为选择技术更灵活、减少同一事件的格式重复、方便进一步增强等收益值得这项成本。将多种输入转成通用事件格式，也能减少重复接入并方便连接后端。Slack把Zipkin、Jaeger等格式转成自己的SpanEvent，再用于实时工具和数据仓库。</p>
+<p><strong>本版分析：</strong>共同格式要保留字段的意义、类型与关联。换成同一种JSON结构，不自动得到相同的业务语义，也不能把缺少工作完成信息的日志变成完整事件。（PDF 165）</p>
+<h3 id="section-10">18.1.8 确保数据质量和一致性</h3>
+<p>异常时间戳可能污染查询。作者举出Candy Crush用户调整设备时间导致未来时间戳的例子，讨论删除、纠正异常时间戳或转存其他位置的处理。原文“上报时的时间戳”等替换措辞不够清楚，本版不据此指定精确的替换规则。处理方式改变了后续能回答的问题，需要保留依据。</p>
+<p>质量管理还包括类型与结构检查、敏感信息处理，以及低价值日志或span过滤。作者另举尾部采样：根据已经报告的高延迟等所需属性，只选择一部分追踪记录进入后端。它与单纯删除低价值span是不同选择；完整trace的保留条件另见第17章。原书给的是可选机制，不是宣称任何未来时间都应无条件删除。（PDF 165）</p>
+<h3 id="section-11">18.2 管理一个遥测流水线：解剖</h3>
+<p>receiver从应用或其他缓冲读取，buffer暂存，processor转换与处理，exporter把数据送往后端。简单形态是接收→缓冲→导出；复杂形态可在中间加入处理及第二段缓冲。source、sink这些别名不应掩盖组件还能继续串联。</p>
+<p>表18-1分别列出指标、日志与trace能执行的操作：不同数据类型的过滤和变换规则不一样，所以需要清楚划分流水线和责任。（PDF 166—167；图表已补读）</p>
+<h3 id="section-12">18.3 管理遥测流水线时的挑战</h3>
+<p>规模增加后，不仅要让组件能运行，还要证明输入到输出保持预期行为。作者接着分开六种关注点，不能用单个“服务存活”状态代替全部验收。</p>
+<h3 id="section-13">18.3.1 性能</h3>
+<p>输入数量、格式及处理开销都可能变化。某段处理变慢会积压，恢复时又可能把峰值推给下一段；扩容应先定位瓶颈，而非只看总吞吐。（PDF 167—168）</p>
+<h3 id="section-14">18.3.2 正确性</h3>
+<p>多组件、多格式让端到端变换难以核对。需要确认字段是否正确转换、计划删除的是否正是那些数据，并监测处理错误与质量问题。<strong>本版分析：</strong>返回成功只证明一次动作，不证明整批事件没有被错误过滤。（PDF 168）</p>
+<h3 id="section-15">18.3.3 可用性</h3>
+<p>后端和组件可能中断。receiver、buffer和exporter需具备合适的恢复方式，让短时故障不立即切断全部观测。本版保留其设计目标，也明确故障持续时间超出缓冲能力时仍可能产生缺口。（PDF 168）</p>
+<h3 id="section-16">18.3.4 可靠性</h3>
+<p>代码或配置变更期间，要看端到端延迟与饱和度。作者的具体例子是PII漏滤：先从日志搜索系统清理已经落地的相关数据，再重新处理并回填。只修改未来规则，不能自动清除已保存内容。重处理需要缓冲中仍有足够历史数据，系统也须能承受大量历史回填；若缓冲中已没有所需历史，就不能凭重跑命令恢复。回填本身也会竞争资源，需要核对容量及正确性。（PDF 168）</p>
+<h3 id="section-17">18.3.5 隔离</h3>
+<p>高吞吐客户或流可能让共享集群饱和。隔离输入、处理或目的地，让不同流的容量与故障影响有边界，而不是由最吵的流决定所有人的体验。（PDF 168）</p>
+<h3 id="section-18">18.3.6 数据时效性</h3>
+<p>作者认为端到端可查询延迟通常应在秒量级，最坏为几十秒；业务仍在运行，遥测却可能迟迟不可查。Slack用固定速率的合成消息检查端到端路径，书中示例每分钟100条、每10秒查询，并从多个区域发出。合成消息需要标识或从正常业务查询中排除，避免污染结果。</p>
+<p>原书还以过去5分钟内、给定1分钟收齐所有消息的次数来描述时效性SLO；没有在本节给出完整的窗口对齐及迟到处理实现。</p>
+<p><strong>本版分析：</strong>合成数据验证它所经过的路径；没有覆盖的流或区域仍需另查。队列消费速度只是中间信号，产生至可查询的时间才更接近实际时效性。（PDF 168—169）</p>
+<h3 id="section-19">18.4 用例：Slack的遥测管理</h3>
+<p>Slack把开源组件与内部Murron结合，统一入口、格式及流定义。这是逐步演进的历史架构，不是本版要求照搬的部署拓扑。（PDF 169）</p>
+<h3 id="section-20">18.4.1 指标聚合</h3>
+<p>作者把Slack当时的PHP/Hack需求归因于每请求一个进程的模型：直接使用Prometheus的pull方式，只有主机上下文，缺少所需的进程上下文。因此其部署按请求产生数据，先推送到本地Go守护进程，按窗口聚合，再由Prometheus抓取该进程的指标端点。Go、Java服务则可直接暴露抓取端点。图18-3中Prometheus发起pull，不能把方向画成应用把每次请求直接推给Prometheus。（PDF 169）</p>
+<h3 id="section-21">18.4.2 日志和链路追踪事件</h3>
+<p>Murron接收多种编码，将消息包在含流名、主机、容器和进程元数据的封装中，方便路由与后续增强。SpanEvent保留ID、时间、持续时间、父ID、Trace ID、名称、类型与标签，让事件不仅能被Trace UI查看，也能进入更通用分析。SpanEvent之间仍用有向无环因果图表达关系；统一格式保留了追踪结构。作者以CI/CD系统的探测说明，这种表示也能支持传统探针之外的数据分析。</p>
+<p>Wallace在核心云基础设施之外接收客户端遥测，减少核心系统中断时一起失去数据的风险；适配器将Zipkin、Jaeger格式转成SpanEvent，再经Murron写入Kafka。三个出口服务不同目的：Elasticsearch用于实时显示和告警，Secor经S3进入Presto仓库，Honeycomb出口过滤部分span并转到相应数据集。</p>
+<p>作者报告实时路径约数秒，仓库典型约两小时；当时Elasticsearch通常保留7天，Honeycomb最多保留60天，Presto后端Hive最长保留两年。Murron处理每秒数百万消息、120多个流，使用20个Kafka集群的200多个主题。这些是当时Slack的部署数据，不是这些产品今天的限制或必需规模。（PDF 169—171）</p>
+<h3 id="section-22">18.5 开源替代方案</h3>
+<p>作者从Scribe的磁盘缓冲与多级转发讲到模块化日志、指标和trace工具，再讨论更高效实现语言的价值。可迁移的是使用现有组件和插件形成流水线，具体项目的当前维护与能力需另查，不能把书中的清单直接当现时选型结果。（PDF 172）</p>
+<h3 id="section-23">18.6 管理遥测流水线：自建与购买</h3>
+<p>作者明确认为，在当时已有大量可扩展、模块化工具可用的背景下，再投入工程资源重写遥测流水线基础，在经济上没有意义；自定义需求可以通过扩展现有工具满足。Slack历史上自建的理由也不一定仍适用。成熟组件能提供基础能力，商业服务可能减少运行与界面成本；开源也要维护。按第15章比较总成本、内部能力与变化需求，再决定自建哪部分。（PDF 172）</p>
+<h3 id="section-24">18.7 结论</h3>
+<p>从当前需求出发，保留接收、缓冲、处理与导出的模块边界；不要为尚未出现的所有未来需求先实现一套系统。规模越大，越要把数据含义、时效性与恢复行为作为运行工作的一部分。（PDF 172—173）</p>
+<h2 id="section-25">二、主题讲解：同一批四条事件，逐步看它们去了哪里</h2>
+<p>这是独立的讲解场景，每条为单独工作事件；本例不承诺完整trace。策略已经明确：健康检查事件不进入调查后端，敏感字段在导出前移除，未来时间异常的事件送入隔离区，其余事件进入实时分析和归档。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>收到的内容</th>
+<th>需要处理的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>e1</td>
+<td>健康检查成功</td>
+<td>本例认定无需送调查后端</td>
+</tr>
+<tr>
+<td>e2</td>
+<td>下单失败，含一个应移除的字段</td>
+<td>保留失败上下文，删除该字段</td>
+</tr>
+<tr>
+<td>e3</td>
+<td>客户请求，设备时间在未来</td>
+<td>暂不当作真实发生时间进入主数据集</td>
+</tr>
+<tr>
+<td>e4</td>
+<td>下单成功</td>
+<td>保留成功对照</td>
+</tr>
+</tbody></table></div>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 816" role="img" aria-label="同一批事件的去向，需要分别记清">
+<defs><marker id="18-telemetry-pipelines-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#4f5d75"/></marker><marker id="18-telemetry-pipelines-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#eb6c36"/></marker><marker id="18-telemetry-pipelines-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Noto Sans CJK SC',sans-serif}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+<rect width="1120" height="816" fill="#f5f5f5"/>
+<text x="40" y="56" font-size="32" fill="#2d3142" font-weight="600" text-anchor="start">同一批事件的去向，需要分别记清</text><text x="40" y="96" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">依据本章receiver、buffer、processor、exporter关系构造｜箭头表示数据流</text>
+<line x1="284" y1="260" x2="376" y2="260" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-telemetry-pipelines-0-arrow)"/><line x1="672" y1="260" x2="764" y2="260" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-telemetry-pipelines-0-arrow)"/><path d="M440 356 V448 H260 V484" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-telemetry-pipelines-0-arrow)"/><path d="M608 356 V448 H856 V484" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-telemetry-pipelines-0-arrow)"/><rect x="40" y="172" width="244" height="184" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="162.0" y="220" font-size="28" fill="#2d3142" font-weight="600" text-anchor="middle">接收＋缓冲</text><text x="162.0" y="264" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">e1、e2、e3、e4</text><text x="162.0" y="300" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">标记流与接收时间</text><text x="162.0" y="336" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">尚未导出≠已丢失</text><rect x="376" y="172" width="296" height="184" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="524.0" y="220" font-size="28" fill="#2d3142" font-weight="600" text-anchor="middle">按规则处理</text><text x="524.0" y="264" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">e2移除指定字段</text><text x="524.0" y="300" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">e4保留成功上下文</text><text x="524.0" y="336" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">e1/e3分别走下面分支</text><rect x="764" y="172" width="316" height="184" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="922.0" y="220" font-size="28" fill="#2d3142" font-weight="600" text-anchor="middle">实时＋归档出口</text><text x="922.0" y="264" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">各自收到e2、e4</text><text x="922.0" y="300" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">每个出口2个事件</text><text x="922.0" y="336" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">两路发送≠4个业务事件</text><rect x="88" y="484" width="344" height="108" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="260" y="528" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">e1：主动丢弃</text><text x="260" y="568" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">健康检查，按本例策略计数</text><rect x="684" y="484" width="344" height="108" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="856" y="528" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">e3：隔离待核对</text><text x="856" y="568" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">保留原时间与异常原因</text><text x="40" y="652" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">按唯一事件核算：4条输入 = 主数据2 + 隔离1 + 主动丢弃1。</text><text x="40" y="700" font-size="24" fill="#4f5d75" font-weight="400" text-anchor="start">出口中断时可能仍在缓冲；超限或过期后丢弃，要另行记录。</text><line x1="40" y1="744" x2="1080" y2="744" stroke="#4f5d75" stroke-width="2"/><text x="40" y="784" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">本例是独立工作事件的路由；没有承诺删除部分span后仍能得到完整trace。</text></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图18-A｜依据本章组件关系构造，事件身份和策略为假设。箭头表示数据去向；隔离、丢弃与等待分别保留标识，不统称为丢失。</p>
+<p><strong>接收。</strong> 验证基本结构，给事件带上流名和接收时间，缓冲四条原始记录。接收时间是处理元数据，不能偷偷替换成原业务发生时间。</p>
+<p><strong>处理。</strong> e1按已声明规则丢弃并计数；e2移除指定字段，保留订单关联、状态和错误种类；e3进入隔离区，附“时间异常”的原因和原时间，等待核对；e4保持成功对照。区域或容器信息可以增强，但应知道来自哪个元数据源。</p>
+<p><strong>导出。</strong> 主数据集只有e2、e4，实时分析和归档各有一份。两个出口合计四次发送，不等于四个不同业务事件，也不能拿它与四条原始输入直接判定“完全一致”。按唯一事件身份看，四条输入的去向为：主数据2、隔离1、主动丢弃1，当前无处理中记录。</p>
+<p><strong>遇到中断。</strong> 实时后端不可用时，e2、e4可能仍在缓冲等待，归档也可能先收到。这是一个出口延迟，不能说原事件已丢失；恢复后需验证该出口实际收到。如果缓冲超限或过期，则是另一种结果，必须明确丢弃数量及范围。重放时还要避免把同一事件重复计入统计。</p>
+<h3 id="section-26">为什么这些选择影响调查</h3>
+<p>去掉全部成功事件会失去对照；把未来时间直接当真会污染窗口；用接收时间代替事件时间而不说明，会改变“什么时候发生”的答案。格式统一只是起点，工作边界和字段意义仍需成立。</p>
+<p>把最新数据放在前面，可以帮助当前故障调查，但历史仍在排队，报表可能暂不完整。隔离区让可疑数据有去处，也需要明确容量、留存与处理责任。这些限制是本例选择的后果，不能用一句“流水线确保数据质量”覆盖。</p>
+<h2 id="section-27">检验理解</h2>
+<p>输入1000条，主后端看到800条，能否断言丢了200条？核对：先按事件身份检查主动过滤、隔离、缓冲未发、出口失败与重复发送；有去向的延迟或隔离与永久丢失不同，不能只看两个总数。</p>
+<p>为保护后端，错误突增时仍全量保留错误，并删除全部成功事件，是否满足本书要求？核对：既可能超容量，也会失去对照。按业务价值与预算分配概率，记录有效权重，并说明完整trace所需的额外机制。</p>
+<h2 id="section-28">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理162—173页；图18-1至18-5及表18-1已补读。Murron、Wallace、SpanEvent和各出口保持原案例身份。</p>
+</li>
+<li><p>四条事件、去向核算和中断情形为本版假设；对敏感数据的处理依据本例政策，未替用户系统作合规判定或配置修改。</p>
+</li>
+<li><p>接第14章共享上下文、第16章存储和第17章采样；第19章开始把技术效果连接到业务与组织采用。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../17-sampling/index.html">上一篇 · 如何使采样精准且便宜</a><a href="../19-business-case/index.html">下一篇 · 可观测性的商业案例</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

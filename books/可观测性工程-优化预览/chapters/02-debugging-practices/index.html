@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第2章｜可观测性和监控之间的调试实践有何不同 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：工具怎样塑造调查习惯</a><a class="sub" href="#section-2">2.1 监控数据如何用于调试</a><a class="sub" href="#section-3">2.1.1 使用仪表盘时的故障排查行为</a><a class="sub" href="#section-4">2.1.2 通过直觉进行故障排查的局限性</a><a class="sub" href="#section-5">2.1.3 传统的监控基本上是被动的</a><a class="sub" href="#section-6">2.2 可观测性如何实现更好的调试</a><a class="sub" href="#section-7">2.3 结论</a><a class="" href="#section-8">二、主题讲解：磁盘没变，为什么仍不能宣布没删数据</a><a class="sub" href="#section-9">再用索引案例检查“确认偏见”</a><a class="sub" href="#section-10">两个数据术语各解决什么问题</a><a class="sub" href="#section-11">保存下一位工程师能接着用的上下文</a><a class="" href="#section-12">检验理解</a><a class="" href="#section-13">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第2章</p><h1>可观测性和监控之间的调试实践有何不同</h1>
+<p>本章要回答：监控与可观测性让工程师以什么不同方式排障，为什么会影响判断？</p>
+<p>CPU曲线升高，可以触发一条明确的规则；它却没有自动告诉你是哪类请求、哪个用户或哪次变更造成了变化。本章接续第1章，把区别落在调试者实际做的动作上：先凭经验找熟悉形状，还是沿保留的请求上下文提出可检验的问题。</p>
+<h2 id="section-1">一、原书回顾：工具怎样塑造调查习惯</h2>
+<h3 id="section-2">2.1 监控数据如何用于调试</h3>
+<p>作者用“CPU超过90%持续两分钟”说明机器如何检查已定义条件。达到阈值告警，跌回配置范围后报告恢复；阈值及时间窗由人设定。指标与仪表盘适合显示这种趋势，但图表没有自动给出造成变化的过程。</p>
+<p>即使仪表盘提供过滤和下钻，仍受实际保存的维度限制。调查时才发现应按实例类型分组，若此前没有保留标签，就无法从现有聚合值补出来。作者讨论的指标工具还需提前选定分解维度、建立索引，并受高基数限制。已有字段和下钻界面仍不保证任意高基数调查可行；这里保留的是原书所讨论工具的约束，不把它推广成所有工具的定律。（PDF 28—29）</p>
+<h3 id="section-3">2.1.1 使用仪表盘时的故障排查行为</h3>
+<p>书中工程师早晨浏览熟悉的大屏，看到特定几条曲线组合，便猜缓存快出问题。他打开缓存仪表盘确认，再解决故障。这种熟练来自过去经历：即使说不清每张图测量什么，也记得它们曾与某次故障一起出现。</p>
+<p>这套习惯可以很快，但真正的解释藏在人的记忆里。换一个服务、架构或新人，相同颜色与曲线不再指向相同答案。（PDF 29—30）</p>
+<h3 id="section-4">2.1.2 通过直觉进行故障排查的局限性</h3>
+<p>作者用三个案例分别说明缺什么。</p>
+<p><strong>相关性不足。</strong> 添加数据库索引后，需要知道特定查询扫描行数是否减少、优化器是否选了新索引、选用频率及查询类型、读查询是否更快、写延迟或尾延迟是否上升、它是否与其他索引交叉使用，以及哪些旧索引已经过时、可以删除以回收存储。CPU、内存与总索引计数无法把这些变化连回具体查询。</p>
+<p><strong>不深入。</strong> 数据过期bug发生时，一个分片磁盘空间下降，另一个分片空间稳定。工程师据此误判只影响前者；后者同时有导入，新增数据抵消了过期删除造成的空间下降。聚合结果稳定，并不说明内部没有发生删除。</p>
+<p><strong>在工具间跳跃。</strong> 工程师从错误峰值跳到日志找请求ID，再到trace工具寻找相同请求；若该请求未被追踪，只能反复重试。时间窗、请求身份和过滤条件都需要人工携带。事后补指标又无法恢复上一次故障的历史，只能等待重现。（PDF 30—31）</p>
+<h3 id="section-5">2.1.3 传统的监控基本上是被动的</h3>
+<p>新故障带来新指标，指标成本上升后再删减，团队持续追赶已发生的问题。作者建议观察一周的调查：从已知地方找答案，还是根据实际记录改变方向？最强排障者是否总是任职最久的人？跨工具时是否频繁丢失上下文？</p>
+<p>这些问题用于识别团队对惯例知识的依赖，不用于否定经验本身。原书明确指出相关性不是因果关系；症状暂时缓解也不能证明初始解释成立。（PDF 31—32）</p>
+<h3 id="section-6">2.2 可观测性如何实现更好的调试</h3>
+<p>作者比较三个方面：减少对少数人惯例知识的依赖，发现被熟悉模式掩盖的问题，以及提高诊断的可验证程度。每次遇到问题，都允许它是新问题：查询、检查结果、继续提出下一问，而不把过去的答案当当前结论。</p>
+<p>将高基数、高维度上下文放在可关联的数据中，也能减少在仪表盘、日志和trace间人工搬运线索。重要知识从个人记忆变成其他工程师能检查的材料。作者在这段理论比较中用了“任何工程师都可以诊断任何问题”的强表述，强调好奇心和可重复调查。（PDF 32—33）</p>
+<p><strong>本版补充分析：</strong>这是一项很高的能力主张，本章没有给出适用于所有系统的普遍验证。实际调查仍需要足够数据、可用关联及查询能力；说明这些前提，不应被误读为作者已经为强表述提供了完整证明。</p>
+<h3 id="section-7">2.3 结论</h3>
+<p>本章比较的是两种工作方式及其数据条件。预设监控帮助发现已定义状况，开放调查帮助解释此前没设定的问题。第3章将用Parse的扩展经历，展示复杂性怎样逐步超过旧工具与旧习惯。（PDF 33）</p>
+<h2 id="section-8">二、主题讲解：磁盘没变，为什么仍不能宣布没删数据</h2>
+<p>沿原书第二个案例构造一组数字。以下为同一小时的数据量，单位GB，忽略压缩和其他写入，只用于解释聚合掩盖过程：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>分片</th>
+<th align="right">期初</th>
+<th align="right">本小时导入</th>
+<th align="right">本小时过期删除</th>
+<th align="right">期末</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">20</td>
+<td align="right">80</td>
+</tr>
+<tr>
+<td>B</td>
+<td align="right">100</td>
+<td align="right">20</td>
+<td align="right">20</td>
+<td align="right">100</td>
+</tr>
+</tbody></table></div>
+<p><strong>第一轮只看磁盘趋势。</strong> A下降20，B没变。能得出的结论只是净变化不同，不能得出B没有删除。因为 <code>期末=期初+导入−删除</code>，B的两个过程恰好抵消。</p>
+<p><strong>第二轮改问具体工作。</strong> 保留分片、任务类型、删除条数或数据量以及时间的事件，就能分别按 <code>shard</code> 与 <code>operation</code> 分组，看到A、B都有过期删除。于是调查从“只查A”改为“两个分片上的过期逻辑与受影响用户”。</p>
+<p>但20GB删除是否错误，还需知道应当过期的规则、对象与业务影响。若B的导入及删除事件都未保存，第二轮无法执行；应说明缺证据，不能从总磁盘反推唯一过程。</p>
+<h3 id="section-9">再用索引案例检查“确认偏见”</h3>
+<p>假设索引上线后整体CPU下降，工程师想宣布优化成功。根据原书的问题链，至少还应把目标查询筛出来，比较执行计划、扫描行数与耗时；再查看写请求和尾部延迟是否受损。若旧索引仍与新索引交叉使用，就不能只因“新索引上线”便删除它；先查实际选用和组合情况。</p>
+<p>若新计划扫描行数减少，但写请求p99增加，两个结果可以同时为真。“CPU下降”只验证一个观察，没有替代对目标收益与副作用的判断。没有具体查询及写入数据时，就保留“可能有收益但尚未完整验证”，而不是补造成功结论。</p>
+<h3 id="section-10">两个数据术语各解决什么问题</h3>
+<p><strong>补充释义：</strong>高基数指一个字段有很多不同取值，例如request_id在一百万条请求里可能各不相同；高维度指一条记录有许多不同字段，例如用户、版本、实例、端点、状态和耗时。两个字段但request_id取值很多，是高基数而维度少；一百个字段但每个只取是/否，是维度多而单字段基数低。前者能指向具体请求，后者提供更多比较方向，二者共同帮助调查，不能互相替代。</p>
+<h3 id="section-11">保存下一位工程师能接着用的上下文</h3>
+<p>一次查询至少要让别人知道时间窗、服务与路由、筛选条件、结果计数，以及为什么改变下一问。请求ID和Trace ID把聚合与个例连起来；字段意义和服务基本资料帮助新人理解材料。这样既保留经验的价值，也让经验能够被后续证据纠正。</p>
+<p>第8章还会展示异常群体与对照群体的具体比较。本章先建立一条判断纪律：同一条曲线可以由多种过程产生，应寻找能把候选过程区分开的数据。</p>
+<h2 id="section-12">检验理解</h2>
+<p><strong>情形</strong>：分片C期初100GB、期末110GB。工程师说“空间增长，所以没有过期删除”。现有材料能支持吗？还缺什么？</p>
+<p>核对：不能。若导入30GB、删除20GB，净结果也为增加10GB。需补导入、删除及其他影响空间的过程数据，再判断删除是否符合业务规则。</p>
+<p><strong>情形</strong>：某用户失败请求集中在新版本，同时全部来自同一区域。现在能否认定新版本导致？</p>
+<p>核对：保留版本、区域与共同因素等候选解释。先在相同区域比较版本，再在相同版本比较区域，并核对请求与链路；若缺少交叉对照就说明不能区分，不凭熟悉程度选一个根因。</p>
+<h2 id="section-13">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理28—33页，包含监控阈值、缓存直觉、索引、分片数据过期及工具跳转案例；本章无图片代码解析缺口。</p>
+</li>
+<li><p>GB数字及索引结果是基于原书机制构造的讲解情形，未冒充原项目测量。CPU90%与两分钟是书中示例，不是本版告警建议。</p>
+</li>
+<li><p>接第1章的可探索性，连接第3章Parse案例和第8章核心分析循环。数据不足时保留候选解释，是本版采用的判断原则。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../01-what-is-observability/index.html">上一篇 · 什么是可观测性</a><a href="../03-scaling-without-observability/index.html">下一篇 · 不通过可观测性扩展系统的经验教训</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

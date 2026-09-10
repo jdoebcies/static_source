@@ -38,25 +38,25 @@
 
 ## 章节入口
 
-- [第1章 什么是可观测性](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/48ebe3a4-0b87-4d71-9ba3-8a57a66e2215)
-- [第2章 可观测性和监控之间的调试实践有何不同](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/69d3dc55-bcc4-463e-a39f-e96c9b2ae54a)
-- [第3章 不通过可观测性扩展系统的经验教训](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/85d31de0-d594-4888-a135-781372eacdd8)
-- [第4章 可观测性与DevOps、SRE和云原生的关联](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/b201c8b7-fa19-46a9-ac6a-8676b05cc307)
-- [第5章 结构化事件——可观测性的构建块](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/65282b80-081a-4125-98a5-4751e9f81921)
-- [第6章 将事件拼接成链路](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/e82c988b-a62d-470b-9296-47b39d3178ac)
-- [第7章 遵照OpenTelemetry的探针](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/bf54b96c-387f-4d7a-86a8-fa57db6288eb)
-- [第8章 通过事件分析实现可观测性](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/506da1a4-d7e0-4f34-a511-26265f10c1dd)
-- [第9章 可观测性和监控的融合](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/95e1bdb7-b11a-4115-89e9-9ea307ce85c4)
-- [第10章 在团队中应用可观测性实践](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/a803d020-d2a3-45fa-8de6-a48e676be9ef)
-- [第11章 可观测性驱动开发](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/cc69a6fd-b12e-4370-9cf2-510c720ca096)
-- [第12章 使用SLO来提高可靠性](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/73093f37-dc3c-466e-8ed7-01165f717786)
-- [第13章 处理和调试基于SLO的告警](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/ca457ada-9172-4a09-8bb9-9883bff7ef56)
-- [第14章 可观测性与软件供应链](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/bee9a812-c93b-4a11-ae8d-70d05d53899a)
-- [第15章 自建与购买以及投资回报率](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/35042299-ee0b-4cc0-ad35-47c6fed158dd)
-- [第16章 高效的数据存储](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/17a58b66-ed2e-4ba0-ad10-9ef4ba823560)
-- [第17章 如何使采样精准且便宜](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/27580da4-bd7a-4c18-91ad-8cbe2e332b58)
-- [第18章 使用流水线进行遥测管理](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/ce1e4c9e-c18c-4644-bfd8-b6a839c6ad54)
-- [第19章 可观测性的商业案例](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/95034656-ca61-4008-8262-bc162a04e22f)
-- [第20章 可观测性利益相关方和联盟](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/54f60620-8e5d-4e27-b587-cda578460be9)
-- [第21章 可观测性成熟度模型](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/893d49ff-da2f-4205-9629-6eba175865d6)
-- [第22章 未来发展趋势](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/3674458d-7f20-4ec5-87a5-2fbc64c6ea43)
+- 第1章 什么是可观测性
+- 第2章 可观测性和监控之间的调试实践有何不同
+- 第3章 不通过可观测性扩展系统的经验教训
+- 第4章 可观测性与DevOps、SRE和云原生的关联
+- 第5章 结构化事件——可观测性的构建块
+- 第6章 将事件拼接成链路
+- 第7章 遵照OpenTelemetry的探针
+- 第8章 通过事件分析实现可观测性
+- 第9章 可观测性和监控的融合
+- 第10章 在团队中应用可观测性实践
+- 第11章 可观测性驱动开发
+- 第12章 使用SLO来提高可靠性
+- 第13章 处理和调试基于SLO的告警
+- 第14章 可观测性与软件供应链
+- 第15章 自建与购买以及投资回报率
+- 第16章 高效的数据存储
+- 第17章 如何使采样精准且便宜
+- 第18章 使用流水线进行遥测管理
+- 第19章 可观测性的商业案例
+- 第20章 可观测性利益相关方和联盟
+- 第21章 可观测性成熟度模型
+- 第22章 未来发展趋势

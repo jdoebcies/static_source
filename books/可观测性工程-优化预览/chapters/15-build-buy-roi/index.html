@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第15章｜自建与购买以及投资回报率 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：把看得见与看不见的成本放到一起</a><a class="sub" href="#section-2">15.1 如何分析可观测性的投资回报率</a><a class="sub" href="#section-3">15.2 自建的真实成本</a><a class="sub" href="#section-4">15.2.1 开源软件的隐形成本</a><a class="sub" href="#section-5">15.2.2 自建的优势</a><a class="sub" href="#section-6">15.2.3 自建的风险</a><a class="sub" href="#section-7">15.3 购买软件的真实成本</a><a class="sub" href="#section-8">15.3.1 商业软件的隐形财务成本</a><a class="sub" href="#section-9">15.3.2 商业软件的隐形非财务成本</a><a class="sub" href="#section-10">15.3.3 购买商业软件的好处</a><a class="sub" href="#section-11">15.3.4 购买商业软件的风险</a><a class="sub" href="#section-12">15.4 购买与自建不是二元选择</a><a class="sub" href="#section-13">15.5 结论</a><a class="" href="#section-14">二、主题讲解：把一次比较算到能判断的程度</a><a class="sub" href="#section-15">有些差别应先验能力，再谈价格</a><a class="" href="#section-16">检验理解</a><a class="" href="#section-17">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第15章</p><h1>自建与购买以及投资回报率</h1>
+<p>本章要回答：怎样比较自建与购买的真实成本、收益和约束，避免只看账单作决定？</p>
+<p>供应商账单越来越高，团队很容易拿它与“免费开源软件”比较。但许可证免费，不代表运行、维护与改进免费；购买产品也不意味着没有迁移、集成和内部人力。本章要求先把两边的成本放到相同边界，再判断哪些能力值得自己建设。</p>
+<h2 id="section-1">一、原书回顾：把看得见与看不见的成本放到一起</h2>
+<h3 id="section-2">15.1 如何分析可观测性的投资回报率</h3>
+<p>作者说明，本章建议最适用于较大的组织，其他规模的团队也可以用来权衡采购与自建。作者先声明自己是可观测性供应商员工，立场存在偏向，再从可量化成本展开。商业账单集中而显眼，自建投入分散在人力、机器和其他预算里，容易被低估；软件采购难获批、人力却已经存在，也可能让组织选择看似更便宜的自建。</p>
+<p>总拥有成本（TCO）衡量一段周期内取得并持续使用方案的成本；投资回报率（ROI）还要比较由此获得的收益。先明确成本，并不能自动证明收益成立。（PDF 126—127）</p>
+<h3 id="section-3">15.2 自建的真实成本</h3>
+<p>工程时间有限，用来建观测平台，就不能同时用于其他工作。机会成本是放弃的最佳替代用途的价值。作者提醒技术团队从“能不能写”进一步问“这是不是本公司的核心业务，以及应该由谁持续维护”。（PDF 127）</p>
+<h3 id="section-4">15.2.1 开源软件的隐形成本</h3>
+<p>原书转述一位经理的ELK案例：商业报价每月8万美元，经理认为内部“免费ELK”更划算；但内部硬件也每月8万美元，还要3名工程师，每人年薪25—30万美元，并有招聘与培训成本。</p>
+<p>仅按给出的数字，硬件一年96万美元，薪资75—90万美元，招聘按每人7.5万美元为22.5万美元，首年合计193.5—208.5万美元，尚未计培训与其他组织时间。原书概括“超过200万美元”；本版保留其判断方向，也注明明确数字本身是一个跨过200万的范围，不能把下界说成已超过200万。（PDF 127—128；算术为本版校核）</p>
+<p>这不是用个案证明开源总比商业贵，而是说明比较前必须纳入实际运行成本。报价、人员费用与规模均属该历史案例，不是当前市场价格。</p>
+<h3 id="section-5">15.2.2 自建的优势</h3>
+<p>自建让团队深入理解内部用户与业务，将事件粒度、查询、采样、存储和工作流结合起来，形成符合本组织的方案。随着经验增长，内部团队可建立命名约定、共享库、升级能力和使用指导，处理通用产品未必优先支持的需求。</p>
+<p>这种专业知识和贴合度是实质收益，不能因为难以直接标价就忽略；它也要求持续投入，而非写完首版即可获得。（PDF 128）</p>
+<h3 id="section-6">15.2.3 自建的风险</h3>
+<p>主要风险是产品能否满足内部用户。需要有人访谈、排序需求、收集反馈、设计界面并解决组件间摩擦；只有建设能力却没有产品职能，平台可能只能被最熟悉它的人使用。</p>
+<p>自建还延迟获得可观测性的时间，并持续承担补丁、升级、支持和跟随业务变化的责任。首版完成后团队转做其他项目，可能让工具停滞、采用率下降，最初投入也失去价值。（PDF 128—129）</p>
+<h3 id="section-7">15.3 购买软件的真实成本</h3>
+<p>购买成本首先是账单。供应商定价包含服务成本与利润，这是商业关系的一部分；问题是组织能否看清总价、预测增长，并得到对应价值。（PDF 129）</p>
+<h3 id="section-8">15.3.1 商业软件的隐形财务成本</h3>
+<p>按席位、主机、服务、查询或其他维度计费，会对增长产生不同影响。成功采用后，更多团队可能使用同一批数据，查询也会增加；如果每多问一个问题都大幅增费，定价可能限制本应鼓励的调查行为。</p>
+<p>作者建议拿当前规模、架构演变和跨团队采用等场景，请供应商给出透明测算。按量付费本身不一定不公平，难点在于能否预测实际用途下的总拥有成本。不能只比较试用期的最低账单。（PDF 129—130）</p>
+<h3 id="section-9">15.3.2 商业软件的隐形非财务成本</h3>
+<p>专有探针初次接入可能方便，切换时却要重新埋点。作者建议应用默认使用OpenTelemetry（OTel）的原生功能，由发行版承接厂商配置。评估或迁移时，可以替换采用的发行版及配置，或者配置OTel exporter，把同一数据发往多个后端进行比较。起步仍有时间投入，但未来尝试其他方案时，大部分探针投入应能复用。</p>
+<p><strong>本版补充：</strong>标准化探针不能消除所有迁移工作：查询、仪表盘、字段映射和工作流仍需验证。这里保留作者减少锁定的方向，不把它写成“换产品必然零改造”。（PDF 130）</p>
+<h3 id="section-10">15.3.3 购买商业软件的好处</h3>
+<p>现成工作流能缩短开始使用的时间，把部分维护和支持交给供应商，并利用其规模与专业经验。作者还强调供应商可能成为知识伙伴，帮助内部团队少走弯路。</p>
+<p>这些收益需要实际服务与采用情况支持；付费关系本身不证明产品易用或问题得到解决。（PDF 131）</p>
+<h3 id="section-11">15.3.4 购买商业软件的风险</h3>
+<p>过度依赖成品，内部可能没有形成足够专业知识；通用产品也可能迟迟不支持本组织重要但不普遍的需求。将运行交出去，不代表可以把业务判断和调查能力一起交出去。（PDF 131）</p>
+<h3 id="section-12">15.4 购买与自建不是二元选择</h3>
+<p>作者最推荐的组合是购买通用平台，在其上建设适配本组织的部分。内部可观测性团队负责共享库、命名、接入、升级、供应商关系与工作流，把工程精力用于具体需求。</p>
+<p>前提是产品提供足够的API：能配置、管理、查询并程序化获取结果，才能把数据嵌入自身流程。若关键能力不可开放访问，“在购买之上建设”的空间也会受限。（PDF 131—132）</p>
+<h3 id="section-13">15.5 结论</h3>
+<p>先比较同周期、同能力范围内的TCO，再考虑收益、风险与机会成本。作者偏向购买加内部集成，但明确承认组织情况不同，也重申供应商身份。下一章转向需要理解或自建时的数据存储机制。（PDF 132）</p>
+<h2 id="section-14">二、主题讲解：把一次比较算到能判断的程度</h2>
+<p>以下为独立假设案例，金额只是演示单位，均按同一个三年周期计算，且假设两方案满足同样的核心调查需求：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th align="right">自建</th>
+<th align="right">购买＋内部集成</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>一次性建设或迁移</td>
+<td align="right">60万元</td>
+<td align="right">15万元</td>
+</tr>
+<tr>
+<td>每年运行资源或订阅</td>
+<td align="right">20万元</td>
+<td align="right">50万元</td>
+</tr>
+<tr>
+<td>每年维护、支持和集成人力</td>
+<td align="right">40万元</td>
+<td align="right">15万元</td>
+</tr>
+<tr>
+<td>三年成本</td>
+<td align="right">60+3×60=240万元</td>
+<td align="right">15+3×65=210万元</td>
+</tr>
+</tbody></table></div>
+<p>这组假设下，购买组合少30万元。若订阅从第二年起翻倍，购买组合改为 <code>15+65+115+115=310万元</code>，结论便变化。比较需要流量及定价场景，而不只是当前报价。</p>
+<p>这里还没有足够数据计算ROI。若要说“投入210万元带来多少回报”，需要估计并验证故障减少、调查时间、交付改善等收益；不能把省下的工程时间全额当作已经实现的收入。也不要同时把同一批维护人员的全部薪资和相同工时再计一遍，造成重复计算。</p>
+<h3 id="section-15">有些差别应先验能力，再谈价格</h3>
+<p>一个便宜方案若无法按用户和版本查询，就不满足本次能力边界；不能拿它与能完成该调查的方案直接比价格。一个更贵方案若让普通工程师快速复现查询、支持按需导出并有可靠维护，可能提供额外价值，但要把这些结果实际测出来。</p>
+<p>可以选同一件调查任务，记录两方案的接入工作、查询等待、缺失字段、复查能力与持续维护要求。先把不确定项列出，再让成本模型随证据更新。缺少人员、增长或能力数据时，结论应停在条件比较，不提前决定采购。</p>
+<h2 id="section-16">检验理解</h2>
+<p>内部团队原本就在岗，其维护观测平台的时间是否可以记为零？核对：不能。工资不因本项目新增，仍不等于没有时间占用和替代用途；计算时应明确分配口径，并避免与机会成本重复相加。</p>
+<p>商业方案首月免费、自建首年很贵，是否足以证明应该购买？核对：不够。需要同周期、同能力范围下的增长、持续维护、迁移和锁定成本；首月和首年不是可直接比较的单位。</p>
+<h2 id="section-17">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理126—132页，无图片代码缺口。ELK报价与薪酬是作者转述的历史案例，原有供应商立场已经保留。</p>
+</li>
+<li><p>三年万元模型为假设演算，不是用户团队预算或当前产品报价。收益未量化，不宣称已经得到ROI或采购结论。</p>
+</li>
+<li><p>接第10章快速验证价值、第14章内部用户工作流；第16—18章说明规模、采样与流水线成本，第19章再组织业务证据。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../14-software-supply-chain/index.html">上一篇 · 可观测性与软件供应链</a><a href="../16-data-storage/index.html">下一篇 · 高效的数据存储</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

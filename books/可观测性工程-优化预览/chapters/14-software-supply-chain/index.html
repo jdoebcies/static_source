@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第14章｜可观测性与软件供应链 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：让一次CI执行带着完整上下文</a><a class="sub" href="#section-2">14.1 为什么Slack需要可观测性</a><a class="sub" href="#section-3">14.2 探针：共享客户端库和维度</a><a class="sub" href="#section-4">14.3 案例研究：软件供应链的运营</a><a class="sub" href="#section-5">14.3.1 通过工具了解上下文</a><a class="sub" href="#section-6">14.3.2 嵌入可操作的告警</a><a class="sub" href="#section-7">14.3.3 理解变更了什么</a><a class="sub" href="#section-8">14.4 结论</a><a class="" href="#section-9">二、主题讲解：一条构建记录怎样支持调查</a><a class="" href="#section-10">检验理解</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第14章</p><h1>可观测性与软件供应链</h1>
+<p>本章要回答：怎样把构建、测试和部署当作可调查的工作流，定位等待与失败并验证改动？</p>
+<p>本章由Slack的Frank Chen撰写。这里的软件供应链包括从开发、构建、测试到部署的过程，本章聚焦其中的运行与调试，不是一份软件供应链安全教程。测试平台同样有动态依赖、资源与多团队变更；开发者是它的直接用户。</p>
+<p>Slack的Web应用测试由GitHub提交触发，Checkpoint接收事件并编排，Jenkins执行构建与测试，QA环境运行应用与依赖，结果再反馈给Checkpoint。CIBot保存和执行相应脚本。先记住这条工作路径，后面的每个例子都在问：等待或失败发生在其中哪一段，哪些条件与它一起变化？</p>
+<h2 id="section-1">一、原书回顾：让一次CI执行带着完整上下文</h2>
+<h3 id="section-2">14.1 为什么Slack需要可观测性</h3>
+<p>测试量从每天数千增长到数十万，多语言、多仓库、自动扩容和资源共享让CI比一些生产服务还复杂。Git版本、运行环境和测试依赖都可能改变表现；“慢”和“不稳定”的抱怨本身不足以定位问题。</p>
+<p>内部工具失败会延迟开发反馈、降低信任，并进一步影响向外部客户交付。作者因此把CI当成需要按用户工作建模的分布式系统，案例主要来自2019—2021年的Slack实践。（PDF 114—116）</p>
+<h3 id="section-3">14.2 探针：共享客户端库和维度</h3>
+<p>共享探针把一次执行的通用维度一路带下去：仓库、分支和提交，主机与运行环境，构建产物、Jenkins工作标签，测试套件及结果。后续span保留前面的上下文，再增加自己阶段的字段；于是可以同时按提交、主机或套件调查，而不只搜索一份日志。</p>
+<p>Slack用TraceContext单例配置公共维度，构建具有这些维度的初始追踪记录；每个span又有本阶段的维度。单个span可保留原始请求上下文，并将关注的维度补充到根span。这里是原书共享客户端机制的名称，本章没有给出完整接口或跨进程传播协议，不能直接当作SDK接入代码。</p>
+<p>原书两个早期例子说明它怎样产生价值。2019年第二季度，给CI runner补探针后发现Git检出异常，继续检查后发现自动扩容组（ASG）中的服务器没有自动扩容更新，部分在扩容过程中很快失效。作者指出，这类问题虽没有表现为明确故障，仍会损害工作流用户体验；第三季度，在runner与测试环境间建立跨服务trace，看到某组主机无法从Git LFS取回制品，才把多个高负载系统中的线索区分开。作者报告后者在两小时内解决，是该案例经验，不是统一承诺。（PDF 116—117）</p>
+<p>图14-2、14-3的具体字段与图14-4的瀑布图来自页图补读：<code>commit_head</code>、<code>commit_master</code>、<code>commit_merged</code>区分相关提交状态，<code>hostname</code>与 <code>jenkins_worker_label</code>区分运行位置，<code>test_suite</code>、<code>test_result</code>、<code>test_case_attempts</code>描述测试。图14-4中约828秒的一次执行，约809秒落在 <code>runner.test_execution</code>，这提供了进一步查看测试阶段的入口。（PDF 117—119）</p>
+<h3 id="section-4">14.3 案例研究：软件供应链的运营</h3>
+<p>接下来的案例分别展示：怎样用上下文识别不稳定条件，怎样把调查入口放进工作流，以及怎样在大量变更中检验怀疑。三个阶段共同连接内部用户体验与实际执行数据。</p>
+<h3 id="section-5">14.3.1 通过工具了解上下文</h3>
+<p>2020年的Slack端到端测试周转p95超过30分钟，计时对象是单次提交，从推送到GitHub开始，到全部测试执行返回结束；部分套件平均失败率接近15%。团队一度怀疑测试代码或平台选择，却没有足够材料确认。给测试运行时及Docker环境增加span和属性后，发现执行程序的用户与测试套件所有者配置不同，进一步处理平台设置不一致。</p>
+<p>作者报告调整后失败率由15%降至0.5%。关键过程是暴露先前未记录的运行条件，再修改并观察，而不是仅靠切换测试平台。原书还列出很大的每周时间损失量，但缺少完整计量基数，本文不拿它推算节省了多少工程师时间。（PDF 119—120）</p>
+<h3 id="section-6">14.3.2 嵌入可操作的告警</h3>
+<p>不同团队关注不同问题：套件负责人看不稳定与可靠性，基础设施团队看Docker及成本，开发者看能否及时获得测试结果，内部工具团队看吞吐。告警应带着套件、构建与时间窗，让接收者直接进入相应查询或trace。</p>
+<p>原图告警给出一个套件运行512秒、比比较值增加72秒，并附多个调查入口；仪表盘再按方法和服务分组查看速率、错误与持续时间（RED）。<strong>本版补充分析：</strong>页图补读中可见 <code>COUNT_DISTINCT(error)</code>，它计的是不同错误值数量，不能未经转换当作失败请求数。这里保留仪表盘作为入口，并不退回只看曲线猜原因。（PDF 121—122）</p>
+<h3 id="section-7">14.3.3 理解变更了什么</h3>
+<p>2021年8月，后端单元和集成测试因OOM频繁失败。团队先定位变化时间，再查看trace中的内存分布、此前几个月的跃升以及相关PR，协调多团队调查。</p>
+<p>回滚部分怀疑提交后，有测试恢复；页图对话仍提醒可能只是单次偶然，应查看这次运行的内存。这保留了“提出假设→采取可回退动作→等待实际反馈→继续验证”的过程，没有把最近提交或一次成功当作唯一原因。CAN（条件、操作、需求）中的条件记录帮助共享当时知道什么。（PDF 122—123）</p>
+<h3 id="section-8">14.4 结论</h3>
+<p>软件供应链的用户工作也可以被事件、trace与可查询上下文解释。它让团队在交付前调试复杂运行系统，而不仅在应用上线后才使用可观测性。（PDF 124）</p>
+<h2 id="section-9">二、主题讲解：一条构建记录怎样支持调查</h2>
+<p>下面是按原书字段组织方式构造的简化例子。四个阶段共享 <code>run_id=run-42</code>、仓库与提交，但各自增加属性：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>保留的公共上下文</th>
+<th>本阶段增加的字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编排</td>
+<td>run_id、repo、commit_head</td>
+<td>触发原因、入队时间</td>
+</tr>
+<tr>
+<td>构建</td>
+<td>同上</td>
+<td>artifact_id、构建时长、worker标签</td>
+</tr>
+<tr>
+<td>测试</td>
+<td>同上及产物身份</td>
+<td>test_suite、容器配置、失败与重试次数</td>
+</tr>
+<tr>
+<td>结果反馈</td>
+<td>同一次运行身份</td>
+<td>最终结果、总周转时间、查询入口</td>
+</tr>
+</tbody></table></div>
+<p>假设开发者报告“相同提交有时过、有时不过”。先按提交与套件筛选，再按运行环境分组，而不是立即指责测试代码。若失败集中在一种容器配置，继续比较同配置下成功与失败的执行；若只有重试结果、首轮失败被覆盖，就无法研究不稳定性，应先保留每次尝试和最终状态的区别。</p>
+<p>现在构造一个可逆验证：对同一提交、套件和输入，在两种配置下重复执行，记录每次内存、耗时与结果。若修改配置后的失败率下降，仍要核对负载、依赖版本和样本量。当前没有给出这些实验结果，所以不能提前写“已修复”。</p>
+<p>告警链接至少保留运行、套件、时间窗和必要过滤条件。接收者点开后，应能从总体变化查看具体运行，再回到相同条件的对照。只有一个红色状态或“构建失败”通知，会把大部分上下文搜集工作重新交给人。</p>
+<h2 id="section-10">检验理解</h2>
+<p>测试第3次重试成功，仪表盘只保存最终成功率。能否据此认为平台稳定？</p>
+<p>核对：不能。需要每次尝试、首轮失败、重试次数与总周转时间，区分最终完成和过程不稳定。更高最终成功率可能同时伴随更多等待。</p>
+<p>一个PR回滚后有一轮测试通过，是否已证明PR是唯一原因？核对：还需对应内存、运行环境和重复结果，排除偶然、负载或其他同时变化。原书案例本身保留了这一步谨慎判断。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理114—124页；图14-1至14-10的结构、字段与对话已经补读。案例与结果归Frank Chen在Slack的历史实践。</p>
+</li>
+<li><p>run-42表格及可逆验证为本版讲解；未执行真实CI实验，也未据缺少基数的时间损失数据计算ROI。</p>
+</li>
+<li><p>接第11章开发反馈、第12、13章响应原则；第18章继续讲Slack的遥测流水线。下一部分转向持续运行的成本，第15章先比较自建、购买与长期投入。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../13-slo-alerts/index.html">上一篇 · 处理和调试基于SLO的告警</a><a href="../15-build-buy-roi/index.html">下一篇 · 自建与购买以及投资回报率</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

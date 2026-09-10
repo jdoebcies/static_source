@@ -1,0 +1,216 @@
+{
+  "book_title": "可观测性工程",
+  "content_generator_skill_version": "8.2.3",
+  "html_generator_skill_version": "8.2.3",
+  "html_format": "reading-package-v1",
+  "source_sha256": "78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787",
+  "units": [
+    {
+      "id": "guide",
+      "label": "导读",
+      "title": "全书导读与阅读路线",
+      "source_location": null,
+      "source_markdown_sha256": "0611460e52e6f3907c99219645fd4a32108265113f4acb51b641d1595caf4abc",
+      "html": "chapters/guide/index.html",
+      "markdown": "chapters/guide/chapter.md"
+    },
+    {
+      "id": "01-what-is-observability",
+      "label": "第1章",
+      "title": "什么是可观测性",
+      "source_location": "PDF物理18—27页；25页图内字段例表已补读",
+      "source_markdown_sha256": "2b3338aa850d27f99c5306038a796d61b97e00b4fd741a1bf150b5e21d3d07f6",
+      "html": "chapters/01-what-is-observability/index.html",
+      "markdown": "chapters/01-what-is-observability/chapter.md"
+    },
+    {
+      "id": "02-debugging-practices",
+      "label": "第2章",
+      "title": "可观测性和监控之间的调试实践有何不同",
+      "source_location": "PDF物理28—33页，包含监控阈值、缓存直觉、索引、分片数据过期及工具跳转案例；本章无图片代码解析缺口",
+      "source_markdown_sha256": "de3be585dbc6a022de38021423ee6dcce6329bc36bd346f215a5416efd9d0593",
+      "html": "chapters/02-debugging-practices/index.html",
+      "markdown": "chapters/02-debugging-practices/chapter.md"
+    },
+    {
+      "id": "03-scaling-without-observability",
+      "label": "第3章",
+      "title": "不通过可观测性扩展系统的经验教训",
+      "source_location": "PDF物理34—41页；案例经历与收益陈述归Charity Majors，时间与工具均保持历史语境",
+      "source_markdown_sha256": "c52f44f144c533435fe41f72e5b4a16af8b30230bc517fbddefd2133e0535f7b",
+      "html": "chapters/03-scaling-without-observability/index.html",
+      "markdown": "chapters/03-scaling-without-observability/chapter.md"
+    },
+    {
+      "id": "04-devops-sre-cloud-native",
+      "label": "第4章",
+      "title": "可观测性与DevOps、SRE和云原生的关联",
+      "source_location": "PDF物理42—44页；四类实践与反馈要求来自4.3",
+      "source_markdown_sha256": "cd743e5884dba61fa3cb785db16692cde2ccd8f802c852e897883433c0b6c0b3",
+      "html": "chapters/04-devops-sre-cloud-native/index.html",
+      "markdown": "chapters/04-devops-sre-cloud-native/chapter.md"
+    },
+    {
+      "id": "05-structured-events",
+      "label": "第5章",
+      "title": "结构化事件——可观测性的构建块",
+      "source_location": "PDF物理46—51页；48—49页日志图片已补读",
+      "source_markdown_sha256": "9622636b93f4fd54db9ad8a0d507bb94724c056e3b67c605094a4b4355cfc52d",
+      "html": "chapters/05-structured-events/index.html",
+      "markdown": "chapters/05-structured-events/chapter.md"
+    },
+    {
+      "id": "06-traces",
+      "label": "第6章",
+      "title": "将事件拼接成链路",
+      "source_location": "PDF物理52—59页；53、55—58页图与代码已补读",
+      "source_markdown_sha256": "fd3359831ee77b5cbbf38a99f8ed069d6d41692770fc91d437428943aca2e5fb",
+      "html": "chapters/06-traces/index.html",
+      "markdown": "chapters/06-traces/chapter.md"
+    },
+    {
+      "id": "07-opentelemetry",
+      "label": "第7章",
+      "title": "遵照OpenTelemetry的探针",
+      "source_location": "PDF物理60—66页；62—66页包装、拦截、子span、属性、meter及exporter代码均已补读",
+      "source_markdown_sha256": "b6a13804308b5c9908d68642a06e7409d546c0ed091660b8be44bda9376d2b69",
+      "html": "chapters/07-opentelemetry/index.html",
+      "markdown": "chapters/07-opentelemetry/chapter.md"
+    },
+    {
+      "id": "08-event-analysis",
+      "label": "第8章",
+      "title": "通过事件分析实现可观测性",
+      "source_location": "PDF物理67—74页；图8-1至8-3已实际核对，98%与17%的分母按原图保留",
+      "source_markdown_sha256": "626036110298bc17dc5f9967d421927661fd96ca34b27be082ddc4b99f3091b3",
+      "html": "chapters/08-event-analysis/index.html",
+      "markdown": "chapters/08-event-analysis/chapter.md"
+    },
+    {
+      "id": "09-monitoring-and-observability",
+      "label": "第9章",
+      "title": "可观测性和监控的融合",
+      "source_location": "PDF物理75—80页；77页表9-1已补读",
+      "source_markdown_sha256": "981305cb55ae158d7ef1895785acb22c319e5f8e2774e1a9ca59d94550834954",
+      "html": "chapters/09-monitoring-and-observability/index.html",
+      "markdown": "chapters/09-monitoring-and-observability/chapter.md"
+    },
+    {
+      "id": "10-team-practice",
+      "label": "第10章",
+      "title": "在团队中应用可观测性实践",
+      "source_location": "PDF物理82—86页",
+      "source_markdown_sha256": "9ac097fa66fd8e6a07b2baa69187554de691254e2a4e6341856dcc187586ab39",
+      "html": "chapters/10-team-practice/index.html",
+      "markdown": "chapters/10-team-practice/chapter.md"
+    },
+    {
+      "id": "11-observability-driven-development",
+      "label": "第11章",
+      "title": "可观测性驱动开发",
+      "source_location": "PDF物理87—92页；89页数据库实例例子的因果跳步及91页矛盾表述已明确校注",
+      "source_markdown_sha256": "be6c96be2f9d477b0a0f5f04ecf5583838ece5f19cc91b85a653ddcdd4d6b9a4",
+      "html": "chapters/11-observability-driven-development/index.html",
+      "markdown": "chapters/11-observability-driven-development/chapter.md"
+    },
+    {
+      "id": "12-slo-reliability",
+      "label": "第12章",
+      "title": "使用SLO来提高可靠性",
+      "source_location": "PDF物理93—100页；96、98、99页已视觉核对",
+      "source_markdown_sha256": "e9d10f56288b8ae68d1213558333baf8cb3ee48adcc8a19e6edf7324e7ee7dcd",
+      "html": "chapters/12-slo-reliability/index.html",
+      "markdown": "chapters/12-slo-reliability/chapter.md"
+    },
+    {
+      "id": "13-slo-alerts",
+      "label": "第13章",
+      "title": "处理和调试基于SLO的告警",
+      "source_location": "PDF物理101—113页；图13-1至13-11及109页Go代码已补读",
+      "source_markdown_sha256": "6f8d0795833bb886ad582eb005be2cb6e984cd65ea2792c0eedd45feb2a0fca3",
+      "html": "chapters/13-slo-alerts/index.html",
+      "markdown": "chapters/13-slo-alerts/chapter.md"
+    },
+    {
+      "id": "14-software-supply-chain",
+      "label": "第14章",
+      "title": "可观测性与软件供应链",
+      "source_location": "PDF物理114—124页；图14-1至14-10的结构、字段与对话已经补读",
+      "source_markdown_sha256": "a682094d622e083f348f069d2af809cf1e297e5668a077b0e1d84a309eb09196",
+      "html": "chapters/14-software-supply-chain/index.html",
+      "markdown": "chapters/14-software-supply-chain/chapter.md"
+    },
+    {
+      "id": "15-build-buy-roi",
+      "label": "第15章",
+      "title": "自建与购买以及投资回报率",
+      "source_location": "PDF物理126—132页，无图片代码缺口",
+      "source_markdown_sha256": "95b859807b1e08e5902c046eda0efb02a6945e5738be480b153a30d6afa0ac31",
+      "html": "chapters/15-build-buy-roi/index.html",
+      "markdown": "chapters/15-build-buy-roi/chapter.md"
+    },
+    {
+      "id": "16-data-storage",
+      "label": "第16章",
+      "title": "高效的数据存储",
+      "source_location": "PDF物理133—146页；图16-1至16-5、140—142页列编码和聚合代码已补读",
+      "source_markdown_sha256": "02e8e41c986d6bc6b7a1235f87aa47704971a582d6854ec5e3012e3a8bd0db96",
+      "html": "chapters/16-data-storage/index.html",
+      "markdown": "chapters/16-data-storage/chapter.md"
+    },
+    {
+      "id": "17-sampling",
+      "label": "第17章",
+      "title": "如何使采样精准且便宜",
+      "source_location": null,
+      "source_markdown_sha256": "8222f93d58cb1321e8112529d7f8a6dad7a553361e80197777a078b494f06adc",
+      "html": "chapters/17-sampling/index.html",
+      "markdown": "chapters/17-sampling/chapter.md"
+    },
+    {
+      "id": "18-telemetry-pipelines",
+      "label": "第18章",
+      "title": "使用流水线进行遥测管理",
+      "source_location": "PDF物理162—173页；图18-1至18-5及表18-1已补读",
+      "source_markdown_sha256": "3b0e970576aff9c35c869dde0fedb401522bc6d499bdfd7219ea93f6a69ca833",
+      "html": "chapters/18-telemetry-pipelines/index.html",
+      "markdown": "chapters/18-telemetry-pipelines/chapter.md"
+    },
+    {
+      "id": "19-business-case",
+      "label": "第19章",
+      "title": "可观测性的商业案例",
+      "source_location": "PDF物理175—181页；原书未给出旧版所画的L1—L5固定阶梯，本版不沿用该模型",
+      "source_markdown_sha256": "fe148fbc5ead96d87f6fee4aca49b9c4819cab184e84b32477a34a2a69f6de40",
+      "html": "chapters/19-business-case/index.html",
+      "markdown": "chapters/19-business-case/chapter.md"
+    },
+    {
+      "id": "20-stakeholders",
+      "label": "第20章",
+      "title": "可观测性利益相关方和联盟",
+      "source_location": "PDF物理182—188页，无图片代码缺口",
+      "source_markdown_sha256": "e9dc4c6f0777dcb0dd8491eb31cfdc5ac39eef34d12d7f57490d381f5e5eb554",
+      "html": "chapters/20-stakeholders/index.html",
+      "markdown": "chapters/20-stakeholders/chapter.md"
+    },
+    {
+      "id": "21-maturity-model",
+      "label": "第21章",
+      "title": "可观测性成熟度模型",
+      "source_location": "PDF物理189—196页",
+      "source_markdown_sha256": "a5f195a9e47d8c451d109ac4c73f16647893edfc0624365d896c3b20bb4f0b0e",
+      "html": "chapters/21-maturity-model/index.html",
+      "markdown": "chapters/21-maturity-model/chapter.md"
+    },
+    {
+      "id": "22-future",
+      "label": "第22章",
+      "title": "未来发展趋势",
+      "source_location": "第22章PDF物理197—201页；202页作者介绍、203页封面动物说明及204页封底属于附属材料，不伪作第22章新增小节",
+      "source_markdown_sha256": "66d6977d00f406c94a2811df2865a718882ec367cd12996f028e4f6f438e6713",
+      "html": "chapters/22-future/index.html",
+      "markdown": "chapters/22-future/chapter.md"
+    }
+  ]
+}

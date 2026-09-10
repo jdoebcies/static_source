@@ -39,9 +39,9 @@
 
 ## 章节入口
 
-- [第一章 控制和反馈](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/452fc6e3-8c21-42a2-b86a-c699142d5f56)
-- [第二章 信息、思维和组织](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/523e5c40-b4ce-4beb-bdb5-c0f84bf9d969)
-- [第三章 系统及其演化](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/5dbcf944-4669-4adb-954c-1d1fa752deea)
-- [第四章 质变的数学模型](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/3ef40620-8636-4480-8190-269218c0180a)
-- [第五章 黑箱认识论](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/58079f2f-b925-4555-bd50-930e5b4c17da)
-- [附录 关于12个乒乓球问题](https://app.heptabase.com/4621513c-7353-47cb-acb2-7e0544b79289/card/b15aa4a1-d080-42d5-989f-21717302952a)
+- 第一章 控制和反馈
+- 第二章 信息、思维和组织
+- 第三章 系统及其演化
+- 第四章 质变的数学模型
+- 第五章 黑箱认识论
+- 附录 关于12个乒乓球问题

@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第11章｜可观测性驱动开发 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：让生产反馈回到开发者手中</a><a class="sub" href="#section-2">11.1 测试驱动开发</a><a class="sub" href="#section-3">11.2 软件开发生命周期中的可观测性</a><a class="sub" href="#section-4">11.3 从哪里开始调试</a><a class="sub" href="#section-5">11.4 微服务时代的调试</a><a class="sub" href="#section-6">11.5 探针如何提高可观测性</a><a class="sub" href="#section-7">11.6 可观测性左移</a><a class="sub" href="#section-8">11.7 利用可观测性加快软件交付</a><a class="sub" href="#section-9">11.8 结论</a><a class="" href="#section-10">二、主题讲解：一次反馈怎样改变代码决定</a><a class="sub" href="#section-11">发布前写下能被推翻的预期</a><a class="sub" href="#section-12">慢在某实例，不等于某类原因</a><a class="sub" href="#section-13">反馈如何回到实现和发布</a><a class="" href="#section-14">检验理解</a><a class="" href="#section-15">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第11章</p><h1>可观测性驱动开发</h1>
+<p>本章要回答：怎样把生产中的行为反馈接回开发过程，验证改动并改善交付？</p>
+<p>测试通过后，代码在真实用户、负载和依赖下是否仍按预期工作？如果几周后才收到反馈，写代码的人已经忘了当时的判断，排查又要重新开始。本章把“怎样知道改动有效”提前到编写和评审代码时。</p>
+<h2 id="section-1">一、原书回顾：让生产反馈回到开发者手中</h2>
+<h3 id="section-2">11.1 测试驱动开发</h3>
+<p>测试驱动开发（TDD）先把预期行为写成测试，再编写使测试通过的实现。它在受控、可重复的状态下定义预期行为，帮助开发者尽早发现偏离规范的问题。可重复性、隔离和模拟依赖是它的力量，也限定了它能证明什么：通过测试不等于每个真实用户都获得好体验，更不等于生产问题已经容易定位。</p>
+<p>作者希望可观测性补充这层缺口，而非取消测试。两者分别帮助理解受控规范与真实运行状态。（PDF 87）</p>
+<h3 id="section-3">11.2 软件开发生命周期中的可观测性</h3>
+<p>提交后只等待运维报告，反馈可能延迟数小时、数天乃至数周。代码作者越晚回到问题，越难恢复当时上下文，沟通和定位成本也越高。</p>
+<p>作者把快速调试与软件质量连起来：改动、发布、观察和修复之间应有短而可追溯的联系。不是每个线上问题都归最近一次提交，但最近的变更应有可供核对的实际行为。（PDF 87—88）</p>
+<h3 id="section-4">11.3 从哪里开始调试</h3>
+<p>可观测性先帮助找出需要深入调试的代码位置：哪类请求慢、在哪个组件开始等待、影响哪些用户。确认位置和条件后，再把可复现上下文带到本地调试器或分析器，检查更细的代码逻辑。作者用望远镜与显微镜说明这种尺度和顺序的区别。逐函数增加详细日志虽可能帮助调试代码，也会增加存储开销、淹没其他重要观测信息，不能替代系统范围的定位与理解。（PDF 88）</p>
+<p>原书两例都从接入层按服务节点分组，比较平均、90%和99%延迟。第一例继续跟踪慢请求，发现超时从服务3开始，再转入本地调试。第二例先发现独立部署的写入服务节点变慢，再按数据库服务主机分组，看到慢查询集中在特定数据库主实例或机房；作者据此直接归为基础设施问题。（PDF 88—89）<strong>本版校注：第二例给出的观察不足以排除代码、查询模式或路由影响；它只能确定下一步调查位置。</strong>下面将位置、候选原因和验证动作分别展开，避免沿用这个跳步。</p>
+<h3 id="section-5">11.4 微服务时代的调试</h3>
+<p>一个请求跨越多个运行时，代码错误、用户行为、数据库容量、网络限制、负载均衡和服务发现可能共同影响结果。多个图表一起变慢时，需要先建立请求关系，才能选择该去哪个局部调试。不能把所有复杂性都塞进一个本地断点。（PDF 89）</p>
+<h3 id="section-6">11.5 探针如何提高可观测性</h3>
+<p>作者要求在合并前问：“怎么知道这个改动按预期工作？”构建ID、实例、用户和工作阶段等字段，让问题可以在发布后被具体检查。由代码作者及时接收反馈，有助于保持责任与上下文；作者将它描述为学习机制，不是惩罚。</p>
+<p>部署后，作者要求分别检查：代码是否按预期运行，与旧版本相比是否有改进，用户是否因为改动更喜欢使用产品，以及是否出现异常。本版强调，技术表现与用户反应需要各自的证据；延迟下降且没有告警，仍未回答用户是否更喜欢产品。</p>
+<p>书中举出发布后30分钟到1小时把相关告警送给提交者，以及用功能标志或小部分生产流量观察新功能。这些是实践示例，通知范围、轮值和时限应按团队安排，不是所有场景的硬规则。（PDF 89—90）</p>
+<h3 id="section-7">11.6 可观测性左移</h3>
+<p>“左移”是早在开发时设计验证生产行为所需的探针，使小改动上线后能被看见。开发者逐渐熟悉真实运行条件，才有依据使用小幅调整、降级与受控发布，减少把生产视为不可触碰的“玻璃城堡”的心态。</p>
+<p>生产反馈不是放弃测试后的补救，更不是允许任意试验。它为预发无法覆盖的条件提供补充观察。（PDF 90—91）</p>
+<h3 id="section-8">11.7 利用可观测性加快软件交付</h3>
+<p>作者将小批量、功能标志和渐进式发布连起来。代码部署到生产与向用户开放功能可以分开，给工程师留出观察新功能的时间；这一过程仍依赖团队能以较快节奏把代码投入生产，只有功能标志却要等数周才能投产，并未满足前提。变更更容易区分，出现问题时也更容易定位和恢复。将部署工程化，让团队理解并共同改进流水线，避免变成少数人的专属知识；并重点追踪从编写到投入生产的时间。</p>
+<p>作者批评一种回滚反模式：团队缺少评估当前版本和控制局部影响的手段，因而一遇到异常就停止部署，并回滚到上一个稳定版本。本版将这个批评放在作者描述的条件下理解，不把它解释为禁止必要回退。</p>
+<p>为加快投产，作者建议由一名工程师以一个完整功能、一次独立合并来组织变更。作者判断，大多需要回滚并耗时数小时或数天解决的问题，与多位工程师同时且相互冲突地提交代码有关；这是作者对常见问题的归因，不是本版测得的普遍比例。</p>
+<p>本段中文原文在“速度质量不能兼顾”与“相互促进”之间存在表述冲突。结合后续论述，本章保留的主线是：更短的反馈和更可控的变更，可以同时支持交付与质量。从编写代码到投入生产的时间是一个观察量，不能单独证明用户体验、故障率或全部工程健康。（PDF 91）</p>
+<h3 id="section-9">11.8 结论</h3>
+<p>把遥测与功能一起设计，让工程师在代码记忆仍清晰时验证生产表现；TDD与可观测性分别提供受控和真实条件下的反馈。下一章进一步用用户体验定义何时需要响应。（PDF 91—92）</p>
+<h2 id="section-10">二、主题讲解：一次反馈怎样改变代码决定</h2>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 728" role="img" aria-label="改动如何获得及时、可核对的反馈">
+<defs><marker id="11-observability-driven-development-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#4f5d75"/></marker><marker id="11-observability-driven-development-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#eb6c36"/></marker><marker id="11-observability-driven-development-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Noto Sans CJK SC',sans-serif}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+<rect width="1120" height="728" fill="#f5f5f5"/>
+<text x="40" y="56" font-size="32" fill="#2d3142" font-weight="600" text-anchor="start">改动如何获得及时、可核对的反馈</text><text x="40" y="96" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">依据原书第11章重构｜箭头表示开发与反馈过程，不表示所有观察已证明因果</text>
+<line x1="320" y1="252" x2="400" y2="252" stroke="#4f5d75" stroke-width="2" marker-end="url(#11-observability-driven-development-0-arrow)"/><line x1="680" y1="252" x2="760" y2="252" stroke="#4f5d75" stroke-width="2" marker-end="url(#11-observability-driven-development-0-arrow)"/><path d="M900 336 V480 H680" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#11-observability-driven-development-0-arrow)"/><path d="M400 480 H180 V336" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#11-observability-driven-development-0-arrow)"/><rect x="40" y="168" width="280" height="168" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="180" y="212" font-size="28" fill="#2d3142" font-weight="600" text-anchor="middle">写清预期</text><text x="180" y="264" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">要改善哪个用户结果</text><text x="180" y="304" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">需要哪些字段与测试</text><rect x="400" y="168" width="280" height="168" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="540" y="212" font-size="28" fill="#2d3142" font-weight="600" text-anchor="middle">小范围发布</text><text x="540" y="264" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">版本与标志可区分</text><text x="540" y="304" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">保留对照与恢复办法</text><rect x="760" y="168" width="280" height="168" rx="8" fill="white" stroke="#4f5d75" stroke-width="2"/><text x="900" y="212" font-size="28" fill="#2d3142" font-weight="600" text-anchor="middle">观察真实表现</text><text x="900" y="264" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">查请求、阶段与用户</text><text x="900" y="304" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="middle">核对预期及副作用</text><rect x="400" y="408" width="280" height="144" rx="8" fill="#f9e3d9" stroke="#eb6c36" stroke-width="2"/><text x="540" y="452" font-size="24" fill="#2d3142" font-weight="600" text-anchor="middle">改变下一步决定</text><text x="540" y="492" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">继续、暂停或补证据</text><text x="540" y="528" font-size="20" fill="#2d3142" font-weight="400" text-anchor="middle">将已确认条件带回代码</text><text x="40" y="612" font-size="24" fill="#2d3142" font-weight="400" text-anchor="start">测试证明已定义条件；生产观察补充真实负载与依赖下的行为。</text><line x1="40" y1="656" x2="1080" y2="656" stroke="#4f5d75" stroke-width="2"/><text x="40" y="696" font-size="20" fill="#4f5d75" font-weight="400" text-anchor="start">发布后出现差异，先核对候选原因；把确认的发现变成代码、测试或探针改进。</text></svg></button><small>点击放大配图</small></figure>
+<p class="caption">图11-A｜依据本章开发反馈关系重构。箭头表示反馈推进；是否继续发布由结果、对照与既定条件决定。</p>
+<h3 id="section-11">发布前写下能被推翻的预期</h3>
+<p>假设团队要减少报表查询次数。预期是“同一类报表、相同输入规模下，数据库调用由多次减少为一次，总延迟下降，错误比例不升高”。在span中记录版本、输入规模、查询次数、查询指纹、目标实例与各阶段耗时。这里的数字是讲解设定，不是原书实测。</p>
+<p>小范围发布后，得到同一观察窗的摘要：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>组别</th>
+<th align="right">报表请求数</th>
+<th align="right">每请求查询次数</th>
+<th align="right">数据库相关耗时</th>
+<th align="right">总耗时</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>旧版、相近输入</td>
+<td align="right">100</td>
+<td align="right">10</td>
+<td align="right">100毫秒</td>
+<td align="right">160毫秒</td>
+</tr>
+<tr>
+<td>新版、相近输入</td>
+<td align="right">100</td>
+<td align="right">1</td>
+<td align="right">400毫秒</td>
+<td align="right">460毫秒</td>
+</tr>
+</tbody></table></div>
+<p>这份摘要确认“调用次数少了”，否定了“延迟因此下降”。不能用第一项达标掩盖用户更慢。下一步查看查询指纹、执行计划、扫描行数、等待及实例负载；这些当前没有给出，原因保持未定。</p>
+<h3 id="section-12">慢在某实例，不等于某类原因</h3>
+<p>假设进一步发现慢请求集中在数据库D。先记录观察：D相关调用阶段耗时较高。再列能够被不同证据区分的解释：新查询在D的数据分布上变差，D有其他负载或锁等待，路由把特定大请求集中到D，或者资源/网络发生异常。</p>
+<p>用同一查询与相近输入在不同实例的表现、同一实例上的不同查询、变更前后执行计划及资源证据逐步比较。若缺少交叉对照，不宣布“基础设施问题”。这与第5、8章版本/区域的证据要求相同。</p>
+<h3 id="section-13">反馈如何回到实现和发布</h3>
+<p>当前足以支持暂停放量并调查，是否回退按团队既定影响与恢复策略决定。若随后确认新查询在某数据形态下扫描量过大，就将这种输入加入可重复测试，修改实现，再用相同字段检查下一次小范围发布。这个“若确认”是条件分支，不代表本例已找到原因。</p>
+<p>最终回到代码的可以是一个测试、一项查询修改或一条更好的埋点，也可能是“现有材料无法区分，先补观察”。仅看到新版本出现图表不算反馈闭环；要说明它改变了哪个决定以及依据是什么。</p>
+<h2 id="section-14">检验理解</h2>
+<p>测试全绿，但新版本在某用户群体的请求中明显更慢。下一步是否应删除测试并只用生产观察？</p>
+<p>核对：不应。先用事件和trace缩小实际条件，再将可复现的部分带回测试和本地分析；测试证明已定义条件，生产观察补充原来没有覆盖的条件。</p>
+<p>如果新版本查询次数下降、总延迟上升，产品目标是缩短等待，能否宣布优化完成？核对：不能。中间指标改善不等于用户目标达成；应解释延迟落点和候选原因，并据影响控制后续发布。</p>
+<h2 id="section-15">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理87—92页；89页数据库实例例子的因果跳步及91页矛盾表述已明确校注。</p>
+</li>
+<li><p>报表数据和验证路径是讲解案例，不是作者实测。本版把观测位置、候选原因、验证结果和发布决定分开。</p>
+</li>
+<li><p>接第7章的自定义探针、第10章的团队使用；第12、13章定义用户影响与响应，第14章把同样方法用于交付流水线。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../10-team-practice/index.html">上一篇 · 在团队中应用可观测性实践</a><a href="../12-slo-reliability/index.html">下一篇 · 使用SLO来提高可靠性</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第4章｜可观测性与DevOps、SRE和云原生的关联 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：技术能力为什么需要新的工作方式</a><a class="sub" href="#section-2">4.1 云原生、DevOps和SRE简介</a><a class="sub" href="#section-3">4.2 可观测性：调试方式的过去与现在</a><a class="sub" href="#section-4">4.3 可观测性增强了DevOps和SRE的实践</a><a class="sub" href="#section-5">4.4 结论</a><a class="" href="#section-6">二、主题讲解：一次功能标志发布怎样获得反馈</a><a class="" href="#section-7">检验理解</a><a class="" href="#section-8">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第4章</p><h1>可观测性与DevOps、SRE和云原生的关联</h1>
+<p>本章要回答：可观测性怎样为DevOps、SRE和云原生实践提供所需的反馈？</p>
+<p>能够独立发布一个服务，还不等于知道发布后哪些用户受到影响。云原生和自动化提高变更能力，也让组合状态更复杂。本章解释可观测性怎样为这些实践提供反馈，以及为什么它需要随着系统持续投入。</p>
+<h2 id="section-1">一、原书回顾：技术能力为什么需要新的工作方式</h2>
+<h3 id="section-2">4.1 云原生、DevOps和SRE简介</h3>
+<p>作者先讲收益与代价：松散耦合让团队更自主地交付、按组件扩容和控制成本；动态资源、非层级通信与突现行为又增加理解和管理成本。只换工具链，旧工作方式未必能承受这些变化。</p>
+<p>DevOps强调开发与运维协作、缩短反馈，SRE运用软件和系统工程减少重复人工操作，云原生强调动态环境中的弹性、管理与频繁变更。作者将它们看作社会与技术共同改变的实践，可观测性则提供理解变更结果的材料。（PDF 42—43）</p>
+<h3 id="section-3">4.2 可观测性：调试方式的过去与现在</h3>
+<p>作者先说明可观测性旨在让人推理内部状态；仅列出日志、指标和trace，并没有解释怎样实现它。在故障域可预测、连接关系较简单的单体场景，详细日志或CPU、磁盘等粗指标结合经验可以形成适当理解。</p>
+<p>容器重启会丢掉瞬态状态，独立发布可能产生版本不兼容，作者认为，在不可变基础设施下，SSH进入主机调试可能扰乱主机状态，因此不再可行，服务网格又增加路由层。数据如果只被收集却无法分析，仍不能帮助理解这些变化。</p>
+<p>原书还走过一条跨主机调查路径：从高层服务指标看到异常，组合不同信号逐步比较，确定与哪些主机更相关，再按这些主机查看日志与请求。它旨在减少依赖集中索引全部日志及个人记忆的负担；这一场景不构成通用日志删除策略。</p>
+<p>事件保存具体上下文，trace展开某次请求的步骤，使团队不必同时记住整个系统。查看调用方、接收方和版本关系，能找到兼容性调查的入口；它仍需实际证据证明哪一项变更产生影响。（PDF 43）</p>
+<h3 id="section-4">4.3 可观测性增强了DevOps和SRE的实践</h3>
+<p>SRE用SLO与错误预算讨论可靠性，DevOps让开发者对生产代码负责。作者主张从用户受损的症状进入调查，再筛选原因，减少只围绕猜测原因添加的告警。</p>
+<p>四类实践分别需要不同反馈：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>原书实践</th>
+<th>作者对该实践的要求</th>
+<th>缺少它会怎样</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>混沌工程和持续验证</td>
+<td>基线稳态、预期行为及实际偏差的解释</td>
+<td>只能看到变化，无法判断实验是否符合预期</td>
+</tr>
+<tr>
+<td>功能标志</td>
+<td>用户与实际生效的标志组合</td>
+<td>总体平均掩盖只影响某组用户的行为</td>
+</tr>
+<tr>
+<td>渐进式发布模式</td>
+<td>判断何时停止，调查偏差是否由发布引起</td>
+<td>能放量，却不知道何时暂停及为何暂停</td>
+</tr>
+<tr>
+<td>事件分析和无指责的事后检讨</td>
+<td>技术发生了什么、当时人看见并如何理解</td>
+<td>用事后知识误判当时决定，无法解释真实过程</td>
+</tr>
+</tbody></table></div>
+<p>这些并列实践有共同的数据基础，不构成必须逐级升级的成熟度阶梯。（PDF 43—44）</p>
+<h3 id="section-5">4.4 结论</h3>
+<p>云原生、DevOps和SRE的变化催生了可观测性需求；可观测性又让团队更有依据地使用这些能力。它与可测试性一样是需要持续改善的系统属性，而非一次安装即可完成。（PDF 44）</p>
+<h2 id="section-6">二、主题讲解：一次功能标志发布怎样获得反馈</h2>
+<p>以下是假设案例。团队把新解析逻辑对一小组用户开启，旧逻辑继续服务其余人。发布前先说明要观察的工作：同一路由的成功结果、解析时长，以及实际走了哪种实现；在事件中保留版本、标志状态和用户群体。</p>
+<p>假设相同观察窗口中，新组有1000次请求、50次错误，旧组有9000次请求、9次错误。新组错误率5%，旧组0.1%；总体 <code>59/10000=0.59%</code> 会稀释新组受损程度。按照事先约定的本次试验停止规则，如果新组显著偏离目标，就暂停放量并调查。</p>
+<p>这里“显著”不是自动的统计检验结论。要核对新旧人群、区域与输入是否可比，并沿trace检查错误发生处。关闭标志后恢复是一条验证线索，仍要排除同时发生的其他变化。具体阈值、样本量和风险容忍度由当前服务决定，本章没有提供统一数值。</p>
+<p>这次过程把几个动作接起来：功能标志控制暴露范围，可观测性看见实际路径和结果，团队据证据决定继续或暂停，事后留下当时的数据与判断供复盘。只有控制开关而没有可解释的反馈，渐进式交付就缺少判断依据。</p>
+<h2 id="section-7">检验理解</h2>
+<p>准备注入依赖故障，但团队不知道当前成功率、正常延迟或预期降级行为。即使实验能自动执行，是否已准备充分？</p>
+<p>核对：没有。根据原书，先建立基线稳态、预期行为及解释偏差的方法；否则无法区分实验产生了什么、是否超出预期。补齐这些信息后再解释实验结果。<strong>本版补充建议：</strong>还应明确怎样观察实验后的恢复，这不是本段原书另列的一项要求。</p>
+<p>复盘中某人没有采取事后看来最佳的动作，能否仅据最终根因归责？核对：应还原当时可见信息、告警与限制，区分事后知道的原因和当时可合理作出的判断。这是本章社会技术视角的用途。</p>
+<h2 id="section-8">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理42—44页；四类实践与反馈要求来自4.3。</p>
+</li>
+<li><p>功能标志数字是本版演示，停止规则未被写成生产通用标准；本文不把书中引用的历史报告当成当前统计。</p>
+</li>
+<li><p>接第3章的生产关系变化，第5章开始建立事件数据，第12、13章具体计算SLO与错误预算，第14章延伸到交付链路。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../03-scaling-without-observability/index.html">上一篇 · 不通过可观测性扩展系统的经验教训</a><a href="../05-structured-events/index.html">下一篇 · 结构化事件——可观测性的构建块</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

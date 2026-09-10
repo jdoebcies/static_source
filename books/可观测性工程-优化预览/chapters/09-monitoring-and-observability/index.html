@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第9章｜可观测性和监控的融合 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：按所负责的问题选择工具</a><a class="sub" href="#section-2">9.1 监控适合的地方</a><a class="sub" href="#section-3">9.2 可观测性适合的地方</a><a class="sub" href="#section-4">9.3 系统与软件注意事项</a><a class="sub" href="#section-5">9.4 评估你的组织需求</a><a class="sub" href="#section-6">9.4.1 例外：不可忽视的基础设施监控</a><a class="sub" href="#section-7">9.4.2 真实案例</a><a class="sub" href="#section-8">9.5 结论</a><a class="" href="#section-9">二、主题讲解：用责任清单做一次选择</a><a class="" href="#section-10">检验理解</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第9章</p><h1>可观测性和监控的融合</h1>
+<p>本章要回答：根据业务问题和运维责任，怎样组合监控与可观测性？</p>
+<p>前几章批评预聚合数据无法支撑任意请求调查，本章补上使用边界：组织已有的有效监控不必全部推倒。要保留多少监控、在哪里增加可观测性，取决于业务问题与实际运维责任。</p>
+<h2 id="section-1">一、原书回顾：按所负责的问题选择工具</h2>
+<h3 id="section-2">9.1 监控适合的地方</h3>
+<p>监控经过长期发展，适合自动检测已定义的故障与容量条件，作者称之为“已知的未知”。人不需要整天盯图，而是在已定义条件发生时收到信号。基础设施、运行时及容量计数器的行为通常比业务代码更稳定，聚合指标对此很有价值。</p>
+<p>指标能帮助把系统约束与应用表现联系起来，却不能单独解释一位用户的完整经历。<strong>本版校注：</strong>原书在此用CPU升高举例排除代码原因，但这个观察不足以作出该结论。CPU升高可能是代码、负载或其他约束的结果，应结合9.4.1的交互视角继续比较。（PDF 75—76）</p>
+<h3 id="section-3">9.2 可观测性适合的地方</h3>
+<p>作者建议开发者发布时观察代码，平时也探索用户如何使用它。高基数、高维度的事件和核心分析循环尤其适合频繁变化的应用问题，寻找“未知的未知”。这是主动理解工作的实践，不能等同于只在告警后搜索日志。（PDF 76）</p>
+<h3 id="section-4">9.3 系统与软件注意事项</h3>
+<p>本章把“软件”定义为团队积极开发、向客户提供价值的代码；“系统”指运行它所需、由团队负责维护的基础设施和运行时。购买某组件的托管服务，与自己安装、配置、升级和排障，意味着不同的运营责任。</p>
+<p>表9-1按变化频率、可预测性、用户与评价视角等比较两类对象：基础设施维护者关注服务健康和容量，应用开发者关注实际用户的每次工作能否及时完成。表中的月度更新、每日提交、成本中心或创收，是作者的典型画像；基础设施本身也可能就是一家公司的产品，后文明确保留这个例外。（PDF 76—77）</p>
+<h3 id="section-5">9.4 评估你的组织需求</h3>
+<p>如果核心业务是开发应用，特别要看具体客户体验，可观测性需求较强；如果核心业务是IaaS，底层DNS、磁盘等系统能力直接面向客户，就需要深入监控。</p>
+<p>判断轴是责任，不是机器在本地还是云上。自管云虚拟机仍有系统责任；使用更高层PaaS可能将部分责任交给提供商，但抽象是否完善、服务是否满足需求仍要验证。作者没有给出所有组织通用的监控数量。（PDF 77—78）</p>
+<h3 id="section-6">9.4.1 例外：不可忽视的基础设施监控</h3>
+<p>CPU、内存和磁盘活动直接表示应用与物理约束的交互，软件工程师也应关注。例如新版本上线后内存突然增至三倍，需要立即调查代码、流量和资源变化。高阶资源指标与请求事件放在可关联的上下文中，能让两类视角相互补充。</p>
+<p><strong>本版补充分析：</strong>资源信号可以支持或削弱候选解释，但“CPU高”或“数据库span慢”并不自动确定原因类别。先确认时间、实例、工作负载与版本，再沿具体请求检查。（PDF 78—79）</p>
+<h3 id="section-7">9.4.2 真实案例</h3>
+<p>作者给出三种共存形态，均是客户或社区经验而非唯一方案。</p>
+<p>第一家原先使用Prometheus、Jaeger及APM，跨三套系统关联很费力；应用团队逐渐主要用可观测性工具，中央运维团队保留Prometheus，开发者需要查看资源时仍可进入。</p>
+<p>第二家新公司主要使用Serverless与SaaS，几乎不自管基础设施，从应用探针与可观测性开始，并另导出部分数据长期汇总。</p>
+<p>第三家成熟金融公司有大量遗留系统，原维护团队可能已经解散。稳定有效的旧监控继续保留，新应用采用可观测性；部分团队把资源指标连入事件，减少切换工具的成本。没有必要为格式统一而一次重建全部旧系统。（PDF 79）</p>
+<h3 id="section-8">9.5 结论</h3>
+<p>监控与可观测性分别服务于较稳定的约束检查和变化中的应用理解，具体组合由责任与业务目标决定。CPU、内存、磁盘等交互信号跨越两者边界。下一部分转向团队怎样真正采用这些实践。（PDF 79—80）</p>
+<h2 id="section-9">二、主题讲解：用责任清单做一次选择</h2>
+<p>以下为假设团队：自己开发订单API，自管云上的数据库，支付接口购买外部服务。把对象、责任和观察问题列在一起：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>对象</th>
+<th>本团队负责什么</th>
+<th>应具备的观察</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>订单API</td>
+<td>代码、发布和用户结果</td>
+<td>请求成功、延迟、用户与版本分组、trace</td>
+</tr>
+<tr>
+<td>自管数据库</td>
+<td>配置、容量、升级与排障</td>
+<td>容量/连接/资源趋势，并关联具体查询与调用</td>
+</tr>
+<tr>
+<td>外部支付服务</td>
+<td>正确调用、超时与自身降级</td>
+<td>本侧请求结果、延迟与用户影响；提供商内部不可见部分明确保留</td>
+</tr>
+</tbody></table></div>
+<p>云上的数据库并不因为地点改变就自动移交责任；外部支付服务虽然不由团队维护内部机器，调用结果仍属于用户体验的一部分。监控范围和调查范围要顺着责任与请求分别检查。</p>
+<p>假设上线后订单API延迟上升，数据库CPU也升高。两者同窗出现，是继续调查的理由：先按版本、查询和实例分组，再看是否增加了查询次数、改变执行计划或遇到其他负载。若CPU正常，也不能排除连接等待、锁或外部依赖。资源数据和请求上下文共同缩小解释，任何一边都不能单独承担全部证明。</p>
+<h2 id="section-10">检验理解</h2>
+<p>迁入云后，有人建议删除全部数据库监控，理由是“基础设施已经外包”。如何判断？</p>
+<p>核对：先看实际责任。如果仍由团队管理数据库进程、配置与容量，责任没有被完整外包；若购买托管服务，也需核对提供商承担什么及暴露哪些接口、容量和用户影响信号。不能只看部署地点。</p>
+<p>旧应用运行稳定且维护团队已解散，新应用正在快速变化，是否应立即统一替换所有工具？核对：原书第三个案例支持按价值与可行性渐进共存；应先改善真实调查缺口，评估迁移成本，而不是仅追求工具一致。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理75—80页；77页表9-1已补读。三种客户模式保持经验性质，未补造公司名、收益数据或通用阈值。</p>
+</li>
+<li><p>责任清单与订单示例为本版讲解；资源位置不等于根因类别的判断与第2、5、8、11章保持一致。</p>
+</li>
+<li><p>本章结束技术基础部分，第10章开始讨论试点、团队采用与习惯变化。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../08-event-analysis/index.html">上一篇 · 通过事件分析实现可观测性</a><a href="../10-team-practice/index.html">下一篇 · 在团队中应用可观测性实践</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

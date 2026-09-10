@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第12章｜使用SLO来提高可靠性 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：把“发生了影响”与“为什么发生”分开</a><a class="sub" href="#section-2">12.1 传统监控方法造成危险的告警疲劳</a><a class="sub" href="#section-3">12.2 阈值告警只适用于“已知的未知”情况</a><a class="sub" href="#section-4">12.3 用户体验是一颗北极星</a><a class="sub" href="#section-5">12.4 什么是SLO</a><a class="sub" href="#section-6">12.4.1 使用SLO进行可靠的告警</a><a class="sub" href="#section-7">12.4.2 案例研究：改变文化，实现基于SLO的告警</a><a class="sub" href="#section-8">12.5 结论</a><a class="" href="#section-9">二、主题讲解：先定义分母，再判断每条请求</a><a class="sub" href="#section-10">一个完整的首页SLI</a><a class="sub" href="#section-11">从坏事件进入调查</a><a class="" href="#section-12">检验理解</a><a class="" href="#section-13">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第12章</p><h1>使用SLO来提高可靠性</h1>
+<p>本章要回答：怎样用SLI、SLO和错误预算，让告警对准值得处理的用户影响？</p>
+<p>CPU升高可能是备份正在工作，也可能伴随用户请求变慢。若每次都叫醒值班者，团队会逐渐把告警当背景噪声。本章把告警的起点移向用户可见的服务结果：先判断什么体验受损，再用可观测性调查为什么。</p>
+<h2 id="section-1">一、原书回顾：把“发生了影响”与“为什么发生”分开</h2>
+<h3 id="section-2">12.1 传统监控方法造成危险的告警疲劳</h3>
+<p>容易测量的资源量不一定对应需要立即处理的问题。大量误报让工程师学会忽略告警，作者称其为偏差的正常化（normalization of deviance）；真正重要的信号也可能一起被忽略。事故后不断新增检查，进一步增加下一次响应的认知负担。</p>
+<p>作者质疑只靠分组、抑制或AIOps管理噪声，而不检查告警是否本来就有行动价值。这是对告警设计的批评，不是要求取消所有资源监测；第9章已保留实际系统责任与物理约束的用途。（PDF 93—94）</p>
+<h3 id="section-3">12.2 阈值告警只适用于“已知的未知”情况</h3>
+<p>“已知的未知”指知道哪种问题可能发生、尚不知道它何时发生；“未知的未知”则是事先没有准备对应检查的新故障。复杂系统的故障组合难以逐项预设。某个线程数异常可能是正常工作，也可能伴随延迟；仅凭潜在原因，响应者仍需猜用户是否受影响。能自动恢复的瞬态问题也未必值得夜间呼叫，正常工作时间仍可以调查其原因。</p>
+<p>作者提出两个标准：可靠地表明用户体验正在下降，并且能采取行动。后者不要求告警直接给出唯一根因，而是响应者有可执行的调查和缓解路径。告警的职责是指出需要关注的影响，不能把未经验证的原因包装为事实。（PDF 94—95）</p>
+<h3 id="section-4">12.3 用户体验是一颗北极星</h3>
+<p>固定数量的慢请求在低流量和高流量时意义不同。作者还指出，瞬时故障带来的额外延迟可能融入高峰流量，但低流量时p95会对单个数据点更加敏感；把整个五分钟一律判好或坏，又可能掩盖内部的部分失败。作者希望定义与用户工作直接相关的测量，而不是把资源阈值或粗窗口当成体验本身。</p>
+<p>仍要明确目标、范围和阈值，只是它们应来自用户需要及服务承诺。SLO并没有消除数值判断，而是让数值对准要保障的工作。（PDF 95—96）</p>
+<h3 id="section-5">12.4 什么是SLO</h3>
+<p><strong>服务级别目标（SLO，原书亦译服务水平目标）</strong>是内部希望达到的服务质量目标；<strong>服务级别指标（SLI）</strong>是实际测量它的方法。对外的服务级别协议（SLA）用于约定服务承诺，内部目标通常留有更严格的余量，三者不能混为一个百分数。</p>
+<p>SLO本身不依赖某一种可观测性产品，缺少可调查的数据时也能算比例；但告警后找不到受影响请求及原因，会限制它的可操作性。（PDF 96）</p>
+<h3 id="section-6">12.4.1 使用SLO进行可靠的告警</h3>
+<p>原书区分两类SLI：按时间片判断整体好坏，或在指定窗口内逐个判断事件。作者偏向事件粒度，因为可以保留部分失败及具体请求的上下文。</p>
+<p>其首页例子先限定 <code>/home</code> 请求，再判断是否成功且足够快。成功但很慢仍是坏事件；失败很快也不是好体验。错误预算（error budget）是目标允许的坏事件数量，坏事件累积会消耗它，第13章再讨论怎样根据消耗趋势提前告警。</p>
+<p>这种告警先说明首页体验有问题，然后由响应者按版本、用户、实例、trace等继续调查。作者在这里强调可观测性的能力：使用已保留的丰富遥测提出新问题，从第一性原理逐步检验假设，无需为每个新问题增加一套探针。已有材料仍是前提，缺失数据不能靠新查询补出。丰富数据与少量有意义告警可以同时存在；不必为收集的每个字段都建立一条告警。（PDF 96—97）</p>
+<h3 id="section-7">12.4.2 案例研究：改变文化，实现基于SLO的告警</h3>
+<p>Honeycomb最初把SLO告警放在低优先级通道，团队仍主要信任传统监控。2019年末，接收客户数据的Shepherd服务反复受损：早期约20分钟的影响后服务恢复，传统需要连续探测失败的告警未提供有效信号。到上午9:55第四次SLO告警出现，团队开始正式调查。</p>
+<p>他们查看进程运行时间和内存，发现一个进程存在内存泄漏，集群各机器耗尽内存并同步失败、重启，关联到新部署后回滚，叙述中在10:32解决。单台进程偶发OOM在该架构里未必严重，集群同时受损却影响客户上传，一些上传数据被删除；SLO抓住了这种用户影响。作者给出第二个理由：即使按特定OOM数量及类型设计复杂规则，仍须事前预测这种故障组合，不能因此覆盖未知的新故障。团队在积累这些经验后才提高信任，逐步删除不具行动意义的旧告警。（PDF 97—99）</p>
+<p>图12-2的图内剩余预算显示−290.5%，图注却写−566%；本书所给材料不能消除这个数值差异。本版据此只保留“预算已超支、客户数据确实受到影响”的结论，不用矛盾数字复算事故，也不将其概括为所有传统监控都永远无法发现内存问题。</p>
+<h3 id="section-8">12.5 结论</h3>
+<p>告警应反映需要处理的用户影响，并有可行的调查路径。SLO帮助描述影响，可观测性帮助找到涉及哪些请求以及原因。下一章把预算、时间窗和预测计算展开。（PDF 99—100）</p>
+<h2 id="section-9">二、主题讲解：先定义分母，再判断每条请求</h2>
+<h3 id="section-10">一个完整的首页SLI</h3>
+<p>下面沿原书首页例子补齐计算定义，数值为讲解设定：</p>
+<ul>
+<li>范围：当前观察窗口内全部 <code>/home</code> 请求。</li>
+<li>好事件：请求成功，且 <code>duration_ms&lt;100</code>。</li>
+<li>坏事件：范围内其余请求，包括失败或 <code>duration_ms≥100</code>。把等于100纳入坏，是本版为补齐边界作出的定义选择。</li>
+<li>SLI：好事件数 / 范围内全部请求数。</li>
+<li>SLO：在所约定窗口达到99.5%。</li>
+</ul>
+<p>不能先把慢请求过滤掉，再拿剩下的请求作分母。假设这个窗口有1000次首页请求，其中994次成功且快，4次失败，另有2次成功但慢：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>量</th>
+<th>计算</th>
+<th align="right">结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>合格范围内请求N</td>
+<td>994+4+2</td>
+<td align="right">1000次</td>
+</tr>
+<tr>
+<td>坏事件B</td>
+<td>4+2</td>
+<td align="right">6次</td>
+</tr>
+<tr>
+<td>SLI</td>
+<td>994/1000</td>
+<td align="right">99.4%</td>
+</tr>
+<tr>
+<td>允许坏事件</td>
+<td>1000×(1−99.5%)</td>
+<td align="right">5次</td>
+</tr>
+<tr>
+<td>剩余预算</td>
+<td>5−6</td>
+<td align="right">−1次</td>
+</tr>
+<tr>
+<td>已消耗预算比例</td>
+<td>6/5</td>
+<td align="right">120%</td>
+</tr>
+</tbody></table></div>
+<p>这份窗口已经不达目标。坏请求占全部请求0.6%，消耗的却是120%的预算，两种百分比的分母不同。对响应时机，还要结合故障是否持续、预测与预先约定的告警规则；SLO不达标不自动生成一个通用处置方案。</p>
+<h3 id="section-11">从坏事件进入调查</h3>
+<p>保留这6次坏请求，先看失败与慢是否发生在同一条件，再与994次好请求比较。若只有新版本在一个区域受损，按第8章固定区域再比较版本；若耗时落在数据库调用，继续看查询、等待与资源，不能直接宣布数据库机器故障。</p>
+<p>若新告警仍让人找不到具体请求，检查SLI是否基于实际业务事件、范围是否正确、数据是否保留必要关联。仅把旧阈值告警改名为“SLO告警”不会修复这些缺口。</p>
+<h2 id="section-12">检验理解</h2>
+<p>同一窗口2000次合格请求，目标99%，有15次坏事件。错误预算剩余多少？若又发现10次先前漏计的失败，且它们已经包含在2000次分母中，结论怎样变化？</p>
+<p>核对：允许20次，先剩5次；修正后坏事件25次，剩−5次，消耗125%。题目已说明分母包含这10次，不能再把总请求数加10。若它们此前也漏出分母，就需要同时重算两者。</p>
+<p>某内存告警频繁出现却不影响用户，能否直接照搬Honeycomb经验删除？核对：先核对本服务的冗余、恢复、容量责任与用户影响，并确认其他信号及响应路径。原书案例支持用证据建立信任，不支持不加判断地复制删除清单。</p>
+<h2 id="section-13">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理93—100页；96、98、99页已视觉核对。图内与图注不一致已保留说明。</p>
+</li>
+<li><p>1000次请求、99.5%目标及练习数字为讲解设定；SLI边界与分母明确，没有引入通用告警阈值。</p>
+</li>
+<li><p>接第11章的用户反馈，第13章计算滑动窗口与预算消耗，第8章提供告警后的调查方法。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../11-observability-driven-development/index.html">上一篇 · 可观测性驱动开发</a><a href="../13-slo-alerts/index.html">下一篇 · 处理和调试基于SLO的告警</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

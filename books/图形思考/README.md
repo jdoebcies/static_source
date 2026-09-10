@@ -22,4 +22,3 @@
 ## 验证
 
 - 12 个章节 HTML 全部通过 `note-slides/scripts/check_deck.py`。
-- 最终批量复核报告：`final_check_report_after_fixes.txt`。

@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《可观测性工程》第20章｜可观测性利益相关方和联盟 · 书镜 V8.2 优化版</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+/* 图像与关闭控件分区，手机横向阅读不遮挡图中文字。 */
+dialog { padding: 0; overflow: hidden; }
+.zoom-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+dialog .zoom-toolbar button { position: static; float: none; margin: 0; flex-shrink: 0; }
+.zoom-content { overflow: auto; max-height: calc(95vh - 66px); padding: 8px; }
+</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>可观测性工程 · 书镜 8.2 优化版</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：从别人的问题出发建立合作</a><a class="sub" href="#section-2">20.1 识别非工程可观测性需求</a><a class="sub" href="#section-3">20.2 在实践中创建可观测性同盟</a><a class="sub" href="#section-4">20.2.1 客户支持团队</a><a class="sub" href="#section-5">20.2.2 客户成功和产品团队</a><a class="sub" href="#section-6">20.2.3 销售和管理团队</a><a class="sub" href="#section-7">20.3 使用可观测性与商业智能工具</a><a class="sub" href="#section-8">20.3.1 查询执行时间</a><a class="sub" href="#section-9">20.3.2 准确性</a><a class="sub" href="#section-10">20.3.3 近期性</a><a class="sub" href="#section-11">20.3.4 结构</a><a class="sub" href="#section-12">20.3.5 时间窗口</a><a class="sub" href="#section-13">20.3.6 短暂性</a><a class="sub" href="#section-14">20.4 在实践中结合使用可观测性和商业智能工具</a><a class="sub" href="#section-15">20.5 结论</a><a class="" href="#section-16">二、主题讲解：同一次功能上线，三种问题各需要什么</a><a class="sub" href="#section-17">共享之后，仍要说明能看见多少</a><a class="" href="#section-18">检验理解</a><a class="" href="#section-19">来源、范围与阅读连接</a></details></aside>
+<main><p class="colophon">书镜 V8.2 优化版 · 全书导读与22章</p><p class="chapter-label">第20章</p><h1>可观测性利益相关方和联盟</h1>
+<p>本章要回答：怎样让支持、产品等团队用可观测性回答自己的问题，并与BI形成互补？</p>
+<p>同一批运行事件，工程师问“哪里慢”，支持团队问“这位客户是否受影响”，产品团队问“功能是否真正进入工作流”。本章用这些不同的问题解释怎样建立采用联盟，也提醒读者：可观测性、监控和BI有不同的设计取舍。</p>
+<h2 id="section-1">一、原书回顾：从别人的问题出发建立合作</h2>
+<h3 id="section-2">20.1 识别非工程可观测性需求</h3>
+<p>客户体验不只是工程团队的工作。功能使用、客户激活、服务状态、可靠性趋势和发布效果，都需要理解软件实际怎样被使用。具体问题包括：实际使用新功能的客户是否符合潜在用户名单，活跃者与体验后流失者有何差异；哪些功能组合能吸引新客户，未能激活的客户有什么共同点。作者也建议用状态页和模板查询支持自助检查，比较可靠性趋势与客户投诉是否一致，检查能否在工单涌入前发现影响，以及部署与功能发布分离能否减少大范围停机。找出谁需要这些答案，提供初步指引，再让他们提出自己的问题。</p>
+<p>某个问题今天答不出，可以与相关团队一起补下一轮探针。团队也不必人人写代码，关键是能在合适范围内理解并使用相关信息。（PDF 182—183）</p>
+<p><strong>本版补充：</strong>仅新增探针不会自动补回此前未采集的信息，它首先改善后续数据。</p>
+<h3 id="section-3">20.2 在实践中创建可观测性同盟</h3>
+<p>先在小范围展示如何帮助对方实现目标，利益相关者才可能成为愿意支持资源与优先级的盟友。作者不提供统一组织图，接下来列出的是常见用例，不是所有公司必须存在的部门划分。（PDF 183）</p>
+<h3 id="section-4">20.2.1 客户支持团队</h3>
+<p>传统流程中，支持可能要等待运维确认事故，工单在此期间堆积。SLO视图提供更早线索，具体客户事件则进一步区分部分故障：例如欧洲Android购物车受损，或只有启用新ACL的客户受影响。</p>
+<p>支持人员可以按客户、设备、区域和功能条件查询，确认工单是否属于已知事件；经过培训，也可能发现SLI覆盖不足的新问题。无法观察的范围仍应报告，不能因为总体SLO正常就否定客户反馈。（PDF 183—184）</p>
+<h3 id="section-5">20.2.2 客户成功和产品团队</h3>
+<p>支持偏向处理已经发生的问题，客户成功更关注上手、培训、规划与升级。事件能区分只试用一次的功能和已进入工作流的功能，也能找出仍使用即将下架功能的客户。支持与客户成功听到的直接反馈值得调查，但抱怨声量最大的部分，未必最影响客户旅程的整体成功；需要检查实际使用与影响，不能直接按声量确定优先级。</p>
+<p>作者称这种调查为寻找“采用异常值”：把发出某类请求超过一定次数的用户，与没有发出这类请求的用户分组比较，再查他们有什么不同。原书没有给出统一次数阈值，需要按功能含义定义。作者举例：采用新分析功能的用户，创建自定义报告的可能性也高10倍。团队可以据此设计培训，再测前后效果。<strong>本版辨析：</strong>这一关联提示值得验证的路径，不证明“教用户建报告”必然造成分析功能采用；活跃程度或其他因素也可能同时影响两者。（PDF 184—185）</p>
+<h3 id="section-6">20.2.3 销售和管理团队</h3>
+<p>销售关心哪些特性被战略客户依赖、演示中哪些功能必须稳定，以及潜在客户的真实使用。定性反馈与运行数据可以互相校核，帮助确定服务优先级。</p>
+<p>管理层则把工程投入连到具体客户结果。笼统要求接近100%可用性，无法解释资源应投在哪里；按用户、功能与实际影响描述目标，才更容易形成跨团队一致理解。数据支持决策，不自动替代商业取舍。（PDF 185）</p>
+<h3 id="section-7">20.3 使用可观测性与商业智能工具</h3>
+<p>作者先承认BI涵盖很多工具，再以典型工作负载比较：可观测性偏向快速探索代码、基础设施、用户和时间的交点；BI常服务长期报告、重复查询和精确业务记录。以下是侧重点，不是对所有当前产品能力的绝对分类。</p>
+<h3 id="section-8">20.3.1 查询执行时间</h3>
+<p>调查需要跟着结果不断换问题，作者要求亚秒到低秒级的查询反馈；等待一分钟可能打断思路，长期规划报告则可能允许更久的计算。选择取决于交互用途与时限，不是产品被叫作BI还是可观测性。（PDF 186）</p>
+<h3 id="section-9">20.3.2 准确性</h3>
+<p>作者讨论为低延迟接受有限近似或采样的权衡，举出快速扫描99.5%与较慢扫描100%的比较。计费等业务却要求准确结果，不能直接拿采样后的调查数据作完整账单。</p>
+<p><strong>补充辨析：</strong>未扫描部分若集中包含异常，也可能改变调查结论；近似、采样概率与覆盖范围应可见。这里保留作者的速度取舍，不把“近似通常有用”解释为无条件正确。（PDF 186；权重见第17章）</p>
+<h3 id="section-10">20.3.3 近期性</h3>
+<p>作者特别强调突发事件：从生产中发生到可以查询，超过几秒的延迟就不可接受。因此即便查询本身很快，晚20分钟才进入工具的数据也不满足这类调查需要。较旧数据更常用于趋势，业务仓库则常保存长期完整记录。这里的“近期性”是数据可查询延迟，不是查询执行时间，也不是保留期限。（PDF 186）</p>
+<h3 id="section-11">20.3.4 结构</h3>
+<p>宽事件的字段随调查需要演变，固定预设可能限制探索；长期业务分析又需要稳定语义和可重复口径。作者据此主张，可观测性工作负载的模式应在事后推断或动态变更：可以开始发送新维度，或停止发送某个维度。作者在本章语境中认为索引无助于这种开放探索；对照之下，BI依靠一致模式支持重复分析，可用索引、复合索引及摘要优化。第16章进一步展开存储理由，这里保留原书的工作负载取舍，不将其推成所有当前产品的能力定律。<strong>本版说明：</strong>可扩展字段不等于不要命名和类型约定，第18章的格式与数据质量治理仍然适用。（PDF 186—187）</p>
+<h3 id="section-12">20.3.5 时间窗口</h3>
+<p>作者所讨论的trace通常跨秒到分钟，BI可能跟踪跨天、跨周的业务路径。长时间的导入、导出或队列工作，原书建议通过轮询过程观察，而不依赖一个很长的追踪。这是追踪的业务时间跨度，与前面的查询耗时、数据延迟以及后面的保留期限分别计量。（PDF 187）</p>
+<p><strong>本版补充：</strong>也可以按明确工作阶段产生事件，避免只留下一个跨多天且迟迟不结束的span；这是一种观察边界选择，具体实现需核对业务阶段。</p>
+<h3 id="section-13">20.3.6 短暂性</h3>
+<p>两年前某笔交易需要准确回查，与两年前某次服务调用的延迟细节有不同价值。长期性能趋势可以由监控汇总承担，近期个体调查与长期账本则各有保存需求。不要因为数据都来自软件，就给它们同一生命周期。（PDF 187）</p>
+<h3 id="section-14">20.4 在实践中结合使用可观测性和商业智能工具</h3>
+<p>宏观报告提出业务问题，微观事件帮助解释具体过程。作者将跨部门围绕同一服务、API和业务对象沟通称为推广“单域语言”。共享这些名称，让工程师和业务同事能讨论同一对象；需要精确结算时回到完整业务记录，需要调查近期行为时再进入事件与trace。</p>
+<p>作者倡导的是相互补充，不是把所有BI或长期仓储迁成遥测系统。（PDF 187）</p>
+<h3 id="section-15">20.5 结论</h3>
+<p>帮助相关团队回答他们真正关心的问题，才能形成持续合作。支持、客户成功、产品、销售和管理只是例子；谁需要理解用户实际体验，谁就可能参与。下一章用能力模型决定组织改进的优先级。（PDF 188）</p>
+<h2 id="section-16">二、主题讲解：同一次功能上线，三种问题各需要什么</h2>
+<p>以下是假设场景：产品上线分析功能，第一周使用人数不多。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>使用者</th>
+<th>具体问题</th>
+<th>需要的材料与下一步</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>支持</td>
+<td>某位客户点击后为什么没结果</td>
+<td>找到该次请求、错误和耗时，关联已知故障或新条件</td>
+</tr>
+<tr>
+<td>客户成功/产品</td>
+<td>谁只试过一次，谁持续在工作流里使用</td>
+<td>看相同用户群体的多次操作与顺序，结合访谈判断障碍</td>
+</tr>
+<tr>
+<td>管理/财务</td>
+<td>收费是否准确、投入是否值得</td>
+<td>用完整业务账本计算收入，再结合成本和行为证据评估</td>
+</tr>
+</tbody></table></div>
+<p>若事件显示“经常创建报告的人更常用分析”，可以提出培训假设，但先问这是不是活跃用户共同特征。选择可比较的用户群体，记录培训是否实际参加、之后是否完成关键工作；若没有结果数据，就不能把培训效果写进业务回报。</p>
+<p>若支持查询到某客户本周有10条失败span，还要核对采样、重试和工作边界。10条span不一定代表10次独立客户交易，更不代表应退款的10笔订单。把事件、用户工作和业务账本通过可靠标识连接，才能避免概念在跨部门沟通中滑动。</p>
+<h3 id="section-17">共享之后，仍要说明能看见多少</h3>
+<p>模板查询可以固定服务、时间窗及客户条件，降低使用门槛；同时展示采样、数据延迟和缺失范围。业务同事需要知道“没有查到”是没有发生，还是数据不在当前保留范围内。字段说明与最初辅导因此是能力的一部分，不能仅给一个工具账号就算推广完成。</p>
+<h2 id="section-18">检验理解</h2>
+<p>一份按1/100采样的遥测数据估计某客户本月有10000次调用，能否直接作为准确计费依据？核对：不能。它是统计估计，计费需要符合业务定义的完整、可核对记录；调用、span与收费交易也可能不是同一单位。</p>
+<p>新功能使用与自定义报告创建高度相关，能否宣布增加报告培训一定提高采用？核对：只能提出假设。需检查用户活跃度、原需求与培训效果等证据，避免把共现直接当成干预效果。</p>
+<h2 id="section-19">来源、范围与阅读连接</h2>
+<ul>
+<li><p>原书定位：PDF物理182—188页，无图片代码缺口。BI对比按原书工作负载语境阅读，不是当前产品功能测评。</p>
+</li>
+<li><p>分析功能表格与计费练习为讲解构造；10倍关联保留原书假设身份，未写成实证因果结果。</p>
+</li>
+<li><p>接第19章业务理由、第18章数据语义和第17章采样限制，第21章选择组织下一项改进。</p>
+</li>
+<li><p>来源文件SHA-256：<code>78f8afbea15570feabe82aa74eac0d7a6ee19273131c7e70c171588640af1787</code>。</p>
+</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../19-business-case/index.html">上一篇 · 可观测性的商业案例</a><a href="../21-maturity-model/index.html">下一篇 · 可观测性成熟度模型</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><div class="zoom-toolbar"><span>可左右滑动查看整图</span><button type="button">关闭配图</button></div><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>
