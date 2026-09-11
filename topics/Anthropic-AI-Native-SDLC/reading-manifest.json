@@ -1,0 +1,279 @@
+{
+  "format": "reading-package-v1",
+  "generator": "sdlc-full-pdf-reading-v1",
+  "title": "Anthropic AI-Native SDLC",
+  "source": {
+    "kind": "user_provided_pdf_not_published",
+    "pages": 50,
+    "article_pages": [
+      1,
+      48
+    ],
+    "source_url": "https://claude.com/blog/the-ai-native-sdlc-playbook",
+    "scope": "complete article, tables, sidebars, examples, figures and resource list"
+  },
+  "units": [
+    {
+      "id": "index",
+      "title": "AI 原生 SDLC：原文、全文译文与图解",
+      "markdown": "chapter.md",
+      "html": "index.html",
+      "source_markdown_sha256": "bac5eac68358b4df5f7d373c7c05fe577aee3d8ef42e3ffa25e3eaa9fcc1152a"
+    },
+    {
+      "id": "original",
+      "title": "英文全文",
+      "markdown": "original/chapter.md",
+      "html": "original/index.html",
+      "source_markdown_sha256": "57d4ad05066264d9d6925ca0e0ce19b4a8cdaaaea2b0451748f3d05d82f5ca77"
+    },
+    {
+      "id": "chinese",
+      "title": "中文全文译文",
+      "markdown": "chinese/chapter.md",
+      "html": "chinese/index.html",
+      "source_markdown_sha256": "08b9cc9aab64e6dcef8a6f1fc4abca4e5e6a8a28d298baf4cb3ddd0b9fdf893d"
+    },
+    {
+      "id": "source-notes",
+      "title": "PDF 来源与完整性核对",
+      "markdown": "source-notes/chapter.md",
+      "html": "source-notes/index.html",
+      "source_markdown_sha256": "b73c420e5e6e4cd0c590e6ae5426192ba7bc41b72dac0adba0668115dc051a29"
+    },
+    {
+      "id": "gallery",
+      "title": "图稿目录",
+      "markdown": "gallery/chapter.md",
+      "html": "gallery/index.html",
+      "source_markdown_sha256": "6eca47f79b6db39b40a0d457d3603bd5029817bc09628444b273263f508689c7"
+    },
+    {
+      "id": "interactive",
+      "title": "把流程里的选择亲手改一遍",
+      "markdown": "interactive/chapter.md",
+      "html": "interactive/index.html",
+      "source_markdown_sha256": "cad9691b132b192293a9b618c6ddf5ca1dc4053a93ff5c37507d24d2b852ca2e"
+    },
+    {
+      "id": "original/00-overview",
+      "title": "Overview · PDF full text",
+      "markdown": "original/00-overview/chapter.md",
+      "html": "original/00-overview/index.html",
+      "source_markdown_sha256": "5627190b87fc53cd18ac68463eb19bd933cb668d83baa9dc1d2248ceca37e6f4",
+      "source_pdf_pages": [
+        1,
+        8
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/00-overview",
+      "title": "AI 原生 SDLC 实践手册",
+      "markdown": "chinese/00-overview/chapter.md",
+      "html": "chinese/00-overview/index.html",
+      "source_markdown_sha256": "08e9ec4b768280a95dba048a6d917a1d63e397da281dc89eff25eb3f9b065974",
+      "source_pdf_pages": [
+        1,
+        8
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "original/01-plan",
+      "title": "Plan · PDF full text",
+      "markdown": "original/01-plan/chapter.md",
+      "html": "original/01-plan/index.html",
+      "source_markdown_sha256": "0f5711e28406b8fb059a8274702536125b0861125aedcb36968021ac1165b176",
+      "source_pdf_pages": [
+        8,
+        11
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/01-plan",
+      "title": "01 Plan：计划",
+      "markdown": "chinese/01-plan/chapter.md",
+      "html": "chinese/01-plan/index.html",
+      "source_markdown_sha256": "69e828757bd2455d4aff1930d3cc35c0f541bb3dc5ae36ca3928bb148fbf45ca",
+      "source_pdf_pages": [
+        8,
+        11
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "original/02-design",
+      "title": "Design · PDF full text",
+      "markdown": "original/02-design/chapter.md",
+      "html": "original/02-design/index.html",
+      "source_markdown_sha256": "70779460a03bfc674c6144b3f1ee674c9d3f936e487a3b47d3e47744e974aad5",
+      "source_pdf_pages": [
+        11,
+        14
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/02-design",
+      "title": "02 Design：设计",
+      "markdown": "chinese/02-design/chapter.md",
+      "html": "chinese/02-design/index.html",
+      "source_markdown_sha256": "4a2cd804600b140485504511a15b5578d51f17091a6043bce07714ab98d5eae8",
+      "source_pdf_pages": [
+        11,
+        14
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "original/03-build",
+      "title": "Build · PDF full text",
+      "markdown": "original/03-build/chapter.md",
+      "html": "original/03-build/index.html",
+      "source_markdown_sha256": "e88eaf0e4196c0ef1d3bca873b1c14fd1c260b6e8a12f6ec03c849e0c7804792",
+      "source_pdf_pages": [
+        14,
+        25
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/03-build",
+      "title": "03 Build：开发实现",
+      "markdown": "chinese/03-build/chapter.md",
+      "html": "chinese/03-build/index.html",
+      "source_markdown_sha256": "b570b817a53c96cb1f454b6f1ab9765a45aed14a6beb671bf7613cc825e02962",
+      "source_pdf_pages": [
+        14,
+        25
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "original/04-test",
+      "title": "Test · PDF full text",
+      "markdown": "original/04-test/chapter.md",
+      "html": "original/04-test/index.html",
+      "source_markdown_sha256": "c0e2aa73910a4f180dcdefde194c76a2d62aec4c09acd858b0a2fb9c20253486",
+      "source_pdf_pages": [
+        25,
+        30
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/04-test",
+      "title": "04 Test：测试",
+      "markdown": "chinese/04-test/chapter.md",
+      "html": "chinese/04-test/index.html",
+      "source_markdown_sha256": "a4e77f03883dde7ad598b30f1cbbdd9f8ebf1f399aa9c106f5fbfc5ad3305125",
+      "source_pdf_pages": [
+        25,
+        30
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "original/05-deploy",
+      "title": "Deploy · PDF full text",
+      "markdown": "original/05-deploy/chapter.md",
+      "html": "original/05-deploy/index.html",
+      "source_markdown_sha256": "7185468c6d4826e7c4b7ecdf0f2a6d266062d1de568e935c7091deffc2fb3027",
+      "source_pdf_pages": [
+        30,
+        39
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/05-deploy",
+      "title": "05 Deploy：部署",
+      "markdown": "chinese/05-deploy/chapter.md",
+      "html": "chinese/05-deploy/index.html",
+      "source_markdown_sha256": "d1a84f883d1a286cd03e3fce35eb325abc2def6a97ec48b1df6d5b0076455b88",
+      "source_pdf_pages": [
+        30,
+        39
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "original/06-maintain",
+      "title": "Maintain · PDF full text",
+      "markdown": "original/06-maintain/chapter.md",
+      "html": "original/06-maintain/index.html",
+      "source_markdown_sha256": "220b8292d321e3d72b5e698dc150aa290b6d36d24deff70d18bc96ea4d26bd3d",
+      "source_pdf_pages": [
+        39,
+        47
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/06-maintain",
+      "title": "06 Maintain：维护",
+      "markdown": "chinese/06-maintain/chapter.md",
+      "html": "chinese/06-maintain/index.html",
+      "source_markdown_sha256": "494fc9d3119344bf830fe8a2a590d126ec70ddd8a9db783255bfa9d07ad50045",
+      "source_pdf_pages": [
+        39,
+        47
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "original/07-closing",
+      "title": "Closing thoughts · PDF full text",
+      "markdown": "original/07-closing/chapter.md",
+      "html": "original/07-closing/index.html",
+      "source_markdown_sha256": "fe1a80843603eec389a915629b60910dcd905895cf7c09627eb3e3fb423b9095",
+      "source_pdf_pages": [
+        47,
+        48
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chinese/07-closing",
+      "title": "结语、资源与致谢",
+      "markdown": "chinese/07-closing/chapter.md",
+      "html": "chinese/07-closing/index.html",
+      "source_markdown_sha256": "248cb5679d839fa304fcb8afc67e0dd7662bef2d6f3f8d93e0d239843c51cc69",
+      "source_pdf_pages": [
+        47,
+        48
+      ],
+      "content_lineage": "fresh_from_user_provided_pdf"
+    },
+    {
+      "id": "chapters/01-map",
+      "title": "一次改动怎样走完整个生命周期",
+      "markdown": "chapters/01-map/chapter.md",
+      "html": "chapters/01-map/index.html",
+      "source_markdown_sha256": "e0177989c1c723618767fa0c24a19f893bd839069822d869bb3f6b80d37bed3e"
+    },
+    {
+      "id": "chapters/02-decisions",
+      "title": "产品和研发在哪里作判断",
+      "markdown": "chapters/02-decisions/chapter.md",
+      "html": "chapters/02-decisions/index.html",
+      "source_markdown_sha256": "3a55540dd5c12bdca771030f26d2c0fac9e61e306f637fe8687a714801c7e917"
+    },
+    {
+      "id": "chapters/03-evidence",
+      "title": "怎样判断代码已经可以交付",
+      "markdown": "chapters/03-evidence/chapter.md",
+      "html": "chapters/03-evidence/index.html",
+      "source_markdown_sha256": "1aa1ad54852a6a9e1064a1334335538ba6a8cd775fc0396fafe566d70325d8f2"
+    },
+    {
+      "id": "chapters/04-feedback",
+      "title": "上线以后，怎样把发现带回下一次改动",
+      "markdown": "chapters/04-feedback/chapter.md",
+      "html": "chapters/04-feedback/index.html",
+      "source_markdown_sha256": "79b59705ea04e376c4acd18581c2913fba847d1250c64fee3e711db4c9b1005f"
+    }
+  ]
+}

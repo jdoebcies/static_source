@@ -1,0 +1,463 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="book-mirror-html-format" content="reading-package-v1"><meta name="source-markdown-sha256" content="c0e2aa73910a4f180dcdefde194c76a2d62aec4c09acd858b0a2fb9c20253486"><title>Test · PDF full text · AI 原生 SDLC</title><style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+.mode-nav{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin:0 0 28px;font-size:15px}.mode-nav [aria-current]{font-weight:750;color:var(--ink)}.notice{font-size:14px;color:var(--muted)}.reader-tools{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:20px 0}.widget{margin:24px 0 36px;border-block:1px solid var(--line);padding:24px 0}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.control label{display:block;font-size:15px}.control input{width:100%;min-height:40px;accent-color:#b9481a}.widget button,.scenario-buttons button{font:inherit;font-size:16px;padding:10px 16px;border:1px solid #adb4bd;border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}.scenario-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.scenario-buttons [aria-pressed=true]{background:#fbe9df;border-color:#b9481a}.widget svg{width:100%;height:auto;display:block}.scenario-steps{display:flex;list-style:none;gap:12px;padding:0;flex-wrap:wrap}.scenario-steps li{padding:8px 12px;border-bottom:2px solid var(--line)}.scenario-steps li.current{border-color:#b9481a;font-weight:700}.scenario-output h3{margin-top:20px}.timing-result{font-size:20px;font-weight:600}.widget output{font-variant-numeric:tabular-nums}.figure button{color:inherit}.interactive-key{font-size:14px;line-height:1.6}.flow-track{display:flex;gap:4px;margin:24px 0}.flow-track span{flex:1;border-bottom:4px solid #d8dde4;text-align:center;font-size:13px;padding-bottom:8px}.flow-track span.active{border-color:#b9481a;font-weight:700}@media(max-width:600px){.controls{grid-template-columns:1fr}.flow-track{flex-wrap:wrap}.flow-track span{flex:1 0 28%}.mode-nav{gap:8px 14px}}@media print{.mode-nav,.reader-tools,.controls,.scenario-buttons,.widget button{display:none}}</style></head><body data-book-mirror-layout="reading-package-v1"><header><a href="../../../../">← 静态学习资料库</a><span>Anthropic AI-Native SDLC · 英文 · Test</span></header><div class="shell"><aside><details><summary>本页目录</summary><nav aria-label="本页目录"><a href="#s-1">Test</a><a href="#s-2" class="sub">Give Claude a feedback loop</a><a href="#s-3" class="sub">Getting started</a><a href="#s-4" class="sub">How to execute it</a><a href="#s-5" class="sub">What it looks like (CLAUDE.md verification block)</a><a href="#s-6" class="sub">Governance considerations</a><a href="#s-7" class="sub">What is enforced</a><a href="#s-8" class="sub">What the evidence is</a><a href="#s-9" class="sub">Where it is logged</a><a href="#s-10" class="sub">Who approves</a><a href="#s-11" class="sub">How to measure it</a><a href="#s-12" class="sub">Continuous evals in CI</a><a href="#s-13" class="sub">Getting started</a><a href="#s-14" class="sub">How to execute it</a><a href="#s-15" class="sub">What it looks like (.github/workflows/agent-evals.yml)</a><a href="#s-16" class="sub">Governance considerations</a><a href="#s-17" class="sub">How to measure it</a></nav></details></aside><main><nav class="mode-nav" aria-label="阅读方式"><a href="../../original/04-test/" aria-current="page">英文全文</a><a href="../../chinese/04-test/">中文全文译文</a><a href="../../chapters/01-map/">图解讲解</a><a href="../../interactive/">交互推演</a></nav><p class="notice">Full source：PDF 第 25—30 页 · <a href="../../chinese/04-test/">对照中文</a></p><h1 id="s-0">Test · PDF full text</h1><h2 id="s-1">Test</h2><p>Every session checks its own work before a human sees it, and the configuration that steers the agent gets regression-tested like the code it writes.</p>
+<h3 id="s-2">Give Claude a feedback loop</h3><p>Always give Claude a way to verify its own work, whether tests, a build, or a screenshot diff. A session checks its own work and fixes its own mistakes before an engineer sees them.</p>
+<p>The feedback loop should not be confused with a verifier subagent (Stage 3: Build). The feedback loop runs through the whole task as many times as the work. The verifier subagent, on the other hand, is one way to package the final check by running a fresh context window once the session believes the work is done. This way the verdict is not colored by the assumptions that produced the code.</p>
+<p><strong>Traditional.</strong> The signal that code works arrives late. CI minutes later, a tester days later, production weeks later. With an agent producing the code, a late signal means a person has to check all of its output, and that person becomes the bottleneck.</p>
+<p><strong>AI-native.</strong> The session is given a way to check its own work before a person sees it. Run the tests, run the build, take the screenshot. Claude iterates until the check passes, so what reaches the engineer has already passed it. Setting the loop up falls to the engineer running the session, and the steps below are written for them.</p>
+<h4 id="s-3">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>None.</p>
+<p><strong>Infrastructure</strong></p>
+<p>A test suite and a build that run locally with one command each. For the UI work, a way for Claude to see the result is crucial, either a browser tool or a screenshot utility wired in via MCP.</p>
+<h4 id="s-4">How to execute it</h4><ul>
+<li><p>If checking the work today takes a sequence of commands and some environment knowledge, wrap it in a single target such as &quot;make test&quot; or &quot;npm test&quot; that exits non-zero on failure.</p>
+</li>
+<li><p>In the CLAUDE.md&#39;s Commands section, list each command with an example of a healthy output.</p>
+</li>
+<li><p>State a target and make it quantifiable so Claude can check the work without asking you, for example: &quot;All tests in test_status.py pass,&quot; &quot;the screenshot matches the attached mock,&quot; or &quot;the endpoint returns 200 with the new field&quot;.</p>
+</li>
+<li><p>For bug fixes, write the failing test first. Ask Claude to reproduce the bug as a test, run it, and confirm it fails for the reason you expect. Commit that test. Only then ask Claude to make it pass without editing the test, with the test-file hook from the final step enforcing the restriction. A test that existed before the fix, and that the agent couldn&#39;t rewrite, is proof the bug is gone.</p>
+</li>
+<li><p>For UI work, close the loop with a visual check. Give Claude a browser or screenshot tool, give it the mock, and let it iterate. Implement, screenshot, compare, and adjust. Two or three rounds is normal, and the result should improve with each one.</p>
+</li>
+<li><p>Make verification part of &quot;done.&quot; Instruction lives in CLAUDE.md. Run the tests before reporting a task complete, and show the output.</p>
+</li>
+<li><p>Finally, the loop itself needs protecting, because an agent fixing code must not be able to weaken the check on that code. A hook that blocks edits to test files during a fix task does this. The alternative is to check the diff in review and reject any change that touches a test.</p>
+</li>
+</ul>
+<h4 id="s-5">What it looks like (CLAUDE.md verification block)</h4><pre><code class="language-markdown">## Verifying your work
+
+- Build: make build (must finish with &quot;Build succeeded&quot;)
+- Test: make test (all green; never skip or delete a failing test)
+- Lint: make lint (zero warnings)
+
+Run all three before reporting any task complete, and paste the output.
+If a test fails, fix the code, not the test.
+</code></pre>
+<h4 id="s-6">Governance considerations</h4><h4 id="s-7">What is enforced</h4><p>Verification before a task is reported done, and the block on the agent editing test files during a fix, both implemented as hooks where the organization wants them guaranteed.</p>
+<h4 id="s-8">What the evidence is</h4><p>The literal output of &quot;make test,&quot; the build log, or the screenshot diff that Claude ran and pasted, so the evidence comes from the toolchain.</p>
+<h4 id="s-9">Where it is logged</h4><p>In the session transcript, which the OpenTelemetry export forwards to the organization&#39;s observability stack, and in the PR&#39;s check run, where the reviewer and any later auditor can both see it.</p>
+<h4 id="s-10">Who approves</h4><p>The code owner reviewing the PR, who can concentrate on intent and risk because the mechanical evidence is already attached.</p>
+<h4 id="s-11">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>First-pass CI success rate for agent-written changes, which the CI system already supports.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>Review time per PR (from the PR metadata), which should fall once the tests catch what reviewers used to catch, and the change failure rate from an incident tracker.</p>
+<h3 id="s-12">Continuous evals in CI</h3><p>Evals are the AI-native equivalent of stage-gate QA. In practice that means a suite that runs whenever the agent&#39;s configuration changes. When a new model is swapped in or a prompt is rewritten, the eval suite says whether the agent still does the work to the same standard.</p>
+<p>The evals should be seen as a live suite. As models improve, cases that once discriminated stop doing so and new ones must be added that arise from ongoing monitoring.</p>
+<p>Depending on the use case, some teams may prefer to run these evals offline on a set cadence rather than on every change. The steps below are for continuous evaluations.</p>
+<h4 id="s-13">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>The CLAUDE.md and feedback loop (Stage 4: Test).</p>
+<p><strong>Infrastructure</strong></p>
+<p>CI that can run Claude Code non-interactively, and an API key with budget for eval runs.</p>
+<h4 id="s-14">How to execute it</h4><ul>
+<li><p>The platform engineer collects 20 to 50 real tasks from recent work with its expected/accepted outcome.</p>
+</li>
+<li><p>Write each task as an eval, meaning the prompt plus the checks that define acceptable (tests pass, lint clean, behavior unchanged, policy followed).</p>
+</li>
+<li><p>The suite runs non-interactively in CI on a schedule and on any change to CLAUDE.md, skills or hooks, since that configuration steers the agent and deserves the regression testing that code gets.</p>
+</li>
+<li><p>Gate configuration changes on the results. A skill change that drops the pass rate gets reviewed before it merges.</p>
+</li>
+<li><p>Each production incident gets an eval, written by the team that owned the incident, and stays in the suite as a regression test.</p>
+</li>
+</ul>
+<h4 id="s-15">What it looks like (.github/workflows/agent-evals.yml)</h4><pre><code class="language-yaml">name: Agent evals
+on:
+  pull_request:
+    paths: [&#39;CLAUDE.md&#39;, &#39;.claude/**&#39;]
+  schedule:
+    - cron: &#39;0 2 * * *&#39;
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: Run eval suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          for eval in evals/*.json; do
+            claude -p &quot;$(jq -r &#39;.prompt&#39; $eval)&quot; \
+              --allowedTools &quot;Read,Edit,Bash(make test)&quot; \
+              --output-format json &gt; result.json
+            ./evals/check.sh &quot;$eval&quot; result.json
+          done
+</code></pre>
+<h4 id="s-16">Governance considerations</h4><p>Evals give QA a gate that keeps up with agent output. The pass-rate threshold is enforced as a merge check, runs are logged so results can be compared over time, and the team that owns the configuration change approves it.</p>
+<h4 id="s-17">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>The eval pass rate over time, reported by the suite on every run, and how long a production incident takes to become a permanent eval.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>Regressions caught in CI compared with regressions found in production derived from the incident tracker.</p>
+<div class="reader-tools"><a href="chapter.md">Markdown 源稿</a><a href="../../">专题目录</a></div><nav class="pagination" aria-label="前后阅读"><a href="../../original/03-build/">← 上一篇</a><a href="../../original/05-deploy/">下一篇 →</a></nav><p class="colophon">来源：用户提供的英文 PDF。全文译文与原创图解分别呈现。</p></main></div><dialog aria-label="图片放大"><button type="button" autofocus>关闭</button><div class="zoom-content"></div></dialog><script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+
+</script></body></html>

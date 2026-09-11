@@ -1,0 +1,565 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="book-mirror-html-format" content="reading-package-v1"><meta name="source-markdown-sha256" content="e88eaf0e4196c0ef1d3bca873b1c14fd1c260b6e8a12f6ec03c849e0c7804792"><title>Build · PDF full text · AI 原生 SDLC</title><style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+.mode-nav{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin:0 0 28px;font-size:15px}.mode-nav [aria-current]{font-weight:750;color:var(--ink)}.notice{font-size:14px;color:var(--muted)}.reader-tools{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:20px 0}.widget{margin:24px 0 36px;border-block:1px solid var(--line);padding:24px 0}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.control label{display:block;font-size:15px}.control input{width:100%;min-height:40px;accent-color:#b9481a}.widget button,.scenario-buttons button{font:inherit;font-size:16px;padding:10px 16px;border:1px solid #adb4bd;border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}.scenario-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.scenario-buttons [aria-pressed=true]{background:#fbe9df;border-color:#b9481a}.widget svg{width:100%;height:auto;display:block}.scenario-steps{display:flex;list-style:none;gap:12px;padding:0;flex-wrap:wrap}.scenario-steps li{padding:8px 12px;border-bottom:2px solid var(--line)}.scenario-steps li.current{border-color:#b9481a;font-weight:700}.scenario-output h3{margin-top:20px}.timing-result{font-size:20px;font-weight:600}.widget output{font-variant-numeric:tabular-nums}.figure button{color:inherit}.interactive-key{font-size:14px;line-height:1.6}.flow-track{display:flex;gap:4px;margin:24px 0}.flow-track span{flex:1;border-bottom:4px solid #d8dde4;text-align:center;font-size:13px;padding-bottom:8px}.flow-track span.active{border-color:#b9481a;font-weight:700}@media(max-width:600px){.controls{grid-template-columns:1fr}.flow-track{flex-wrap:wrap}.flow-track span{flex:1 0 28%}.mode-nav{gap:8px 14px}}@media print{.mode-nav,.reader-tools,.controls,.scenario-buttons,.widget button{display:none}}</style></head><body data-book-mirror-layout="reading-package-v1"><header><a href="../../../../">← 静态学习资料库</a><span>Anthropic AI-Native SDLC · 英文 · Build</span></header><div class="shell"><aside><details><summary>本页目录</summary><nav aria-label="本页目录"><a href="#s-1">Build</a><a href="#s-2" class="sub">Claude Code plan mode as the default starting point</a><a href="#s-3" class="sub">Getting started</a><a href="#s-4" class="sub">How to execute it</a><a href="#s-5" class="sub">What it looks like (plan.md)</a><a href="#s-6" class="sub">Governance considerations</a><a href="#s-7" class="sub">How to measure it</a><a href="#s-8" class="sub">Claude Code on auto mode</a><a href="#s-9" class="sub">Legacy systems and the source of truth</a><a href="#s-10" class="sub">The CLAUDE.md</a><a href="#s-11" class="sub">Getting started</a><a href="#s-12" class="sub">How to execute it</a><a href="#s-13" class="sub">What it looks like (CLAUDE.md)</a><a href="#s-14" class="sub">Governance considerations</a><a href="#s-15" class="sub">How to measure it</a><a href="#s-16" class="sub">Skills as institutional knowledge</a><a href="#s-17" class="sub">Getting started</a><a href="#s-18" class="sub">How to execute it</a><a href="#s-19" class="sub">What it looks like (.claude/skills/secure-api-review/SKILL.md)</a><a href="#s-20" class="sub">Governance considerations</a><a href="#s-21" class="sub">How to measure it</a><a href="#s-22" class="sub">Hooks as build-time guardrails</a><a href="#s-23" class="sub">Parallel sessions and subagents</a><a href="#s-24" class="sub">Getting started</a><a href="#s-25" class="sub">How to execute it</a><a href="#s-26" class="sub">What it looks like (.claude/agents/verifier.md)</a><a href="#s-27" class="sub">Governance considerations</a><a href="#s-28" class="sub">How to measure it</a></nav></details></aside><main><nav class="mode-nav" aria-label="阅读方式"><a href="../../original/03-build/" aria-current="page">英文全文</a><a href="../../chinese/03-build/">中文全文译文</a><a href="../../chapters/01-map/">图解讲解</a><a href="../../interactive/">交互推演</a></nav><p class="notice">Full source：PDF 第 14—25 页 · <a href="../../chinese/03-build/">对照中文</a></p><h1 id="s-0">Build · PDF full text</h1><h2 id="s-1">Build</h2><p>Nothing is implemented without an accepted plan. Institutional knowledge becomes files the agent reads, and the guardrails run as code rather than as habits.</p>
+<h3 id="s-2">Claude Code plan mode as the default starting point</h3><p>Engineers start Claude Code sessions in <a href="https://code.claude.com/docs/en/permission-modes">plan mode</a>, give Claude the approved spec.md from Stage 2: Design, and let it interview them, iterating on the plan until the engineer is happy with it.</p>
+<p><strong>Traditional.</strong> An engineer reads the design and starts writing code. How the change will be made, down to which files and which tests, stays in the engineer&#39;s head or at best a ticket comment. Nobody else can review it. The first thing a reviewer sees is the finished diff, and by then rework is slow.</p>
+<p><strong>AI-native.</strong> Work starts with a written plan that Claude produces in plan mode, where it can read the codebase without changing anything. The engineer corrects the plan before code is written, and the approved version is committed as plan.md for later stages to check against.</p>
+<h4 id="s-3">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>The intent artifact (intent.md or spec.md) if one exists, and the CLAUDE.md file helps.</p>
+<p><strong>Infrastructure</strong></p>
+<p>Claude Code with access to the repository.</p>
+<h4 id="s-4">How to execute it</h4><ul>
+<li><p>The engineer starts the session in plan mode with Claude.</p>
+</li>
+<li><p>The engineer gives Claude the intent.md and the spec.md and asks for an implementation plan that names the files that change, the order of the work, and the tests that prove it.</p>
+</li>
+<li><p>Interrogate the plan by asking what the change could break, which step is most risky, and what other options Claude chose not to do.</p>
+</li>
+<li><p>Iterate until an engineer who has never seen the conversation could implement the change from the plan alone.</p>
+</li>
+<li><p>Commit the approved plan as plan.md. The plan joins the audit trail, and the PR review play (Stage 5: Deploy) checks the eventual diff against it.</p>
+</li>
+<li><p>Accept the plan and let Claude implement. With a solid plan, the implementation is often a single pass.</p>
+</li>
+<li><p>When implementation departs from the plan, update plan.md in the same commit. Consider using a hook to enforce synchronization between the two.</p>
+</li>
+</ul>
+<h4 id="s-5">What it looks like (plan.md)</h4><pre><code class="language-markdown"># Plan: claims status self-service (from intent.md 2026-06-02)
+
+## Files that change
+portal/src/claims/StatusPanel.tsx (new), claims-api/routes/status.py,
+claims-api/tests/test_status.py
+
+## Order of work
+1. Add the status endpoint behind existing auth.
+2. Panel against the endpoint.
+3. Wire into the portal nav.
+
+## Risks
+The claims-core API rate-limits at 50 rps; the panel must cache.
+
+## Proof
+test_status.py covers the four claim states; screenshot matches the
+approved mock.
+</code></pre>
+<h4 id="s-6">Governance considerations</h4><p>Design review happens before any code is generated, when changing course is still a matter of editing a document. Plan mode enforces this itself, since Claude cannot edit files until the engineer accepts the plan. The plan and its revisions are logged along with who accepted it. Routine changes are approved by the engineer, and anything the organization classes as higher risk goes to a tech lead or architect.</p>
+<h4 id="s-7">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>Share of changes that merge from the first implementation pass, and time from plan approval to merged PR with the required data within the PR metadata.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>Rework cycles per change, again from the PR metadata, and how often the merged diff still matches the committed plan.md.</p>
+<h3 id="s-8">Claude Code on auto mode</h3><p>Claude Code can also run in auto mode, where the engineer approves the plan and, once happy and iterated upon, Claude applies each change without a per-edit prompt. As the guardrails from the later plays mature (a tuned CLAUDE.md, skills that encode policy, hooks that block unsafe actions, and a test suite Claude can run), auto-accept becomes the default for routine work: a tight spec.md, a small blast radius, and code the tests already cover.</p>
+<p>The shift is now away from the user watching the agent make the edits and reviewing actions, towards the review of artifacts after longer autonomous sessions. Auto-accept mode further enables parallelism across individuals and the team when used with worktrees and is fundamental to running the SDLC autonomously and closing the loop as described in Stage 6: Maintenance.</p>
+<p>Sidebar</p>
+<h3 id="s-9">Legacy systems and the source of truth</h3><p>Applies to every artifact the process produces.</p>
+<p>Existing SDLC processes likely already track artifacts, just not in markdown files. Work items may be in Jira, requirements in a tool with regulatory traceability built in, designs in Figma, and change approvals with a change board. Those systems are hard to displace because auditors and regulators already accept them and other teams depend on them, so the AI-native SDLC has to fit around what exists.</p>
+<p>When transitioning to the AI-native SDLC, for every artifact the process produces, name one system as the source of truth, with everything else holding a copy or a link to the original. The configurations below can be set up to have one source of truth, with the choice differing per artifact:</p>
+<p>The repo as the source of truth. The markdown artifacts are the authoritative record and the legacy system references files within commits. This can be one of the cleanest configurations for engineering-led organizations, as all records live in one tool with one timestamp authority.</p>
+<p>The legacy system as the source of truth. Jira, ServiceNow, or the requirements tool holds the authoritative record and the markdown artifacts are working copies. Claude reads the record at the start of the session and writes the outcome back through an <a href="https://code.claude.com/docs/en/mcp">MCP</a> connector in the same session that produced the spec or the plan.</p>
+<p>Linkage as the minimum bar. All artifacts note the record ID and all legacy records contain the commit SHA of the markdown file. Linkage is a good place to start when transitioning to the AI-native SDLC, accepting that there are two sources of truth.</p>
+<p>Both the legacy system and the markdown-first system can coexist, so long as there is a link between the two or one is declared the source of truth.</p>
+<h3 id="s-10">The CLAUDE.md</h3><p><a href="https://code.claude.com/docs/en/memory">CLAUDE.md</a> gives Claude the context a new joiner would need, covering conventions, commands, architecture, and the mistakes the team sees most often. Knowledge that used to sit in people&#39;s heads and on wikis becomes a file the agent reads at the start of every session, maintained by the whole team and iterated on whenever a mistake is made.</p>
+<h4 id="s-11">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>None.</p>
+<p><strong>Infrastructure</strong></p>
+<p>A repo, Claude Code installed, and one engineer who knows the codebase well.</p>
+<h4 id="s-12">How to execute it</h4><ul>
+<li><p>Run /init in the repo. Claude generates a starting CLAUDE.md from what it finds.</p>
+</li>
+<li><p>Cut the generated file down to what a new joiner would need on day one. Keep the build, test and lint commands, the conventions that matter, and the things Claude keeps getting wrong.</p>
+</li>
+<li><p>Check CLAUDE.md into git at the repo root so the whole team shares one version and changes are reviewed like code.</p>
+</li>
+<li><p>A working rule helps here. When Claude makes a mistake twice, the correction goes into CLAUDE.md.</p>
+</li>
+<li><p>Keep it under a page, because Claude reads all of it at the start of a session and anything stale is taking up context for no benefit.</p>
+</li>
+</ul>
+<h4 id="s-13">What it looks like (CLAUDE.md)</h4><pre><code class="language-markdown"># Payments service
+
+## Commands
+- Build: make build
+- Test: make test (unit), make itest (integration, needs docker)
+- Lint: make lint (runs in CI; fix before pushing)
+
+## Conventions
+- Java 21, Spring Boot 3. No new Lombok.
+- Money is always BigDecimal, never double.
+- Every endpoint needs an integration test in src/itest.
+
+## Architecture
+- api/ holds REST controllers, core/ holds domain logic,
+  adapters/ talks to external systems.
+- Kafka events are defined in schemas/; never edit generated classes.
+
+## Things Claude gets wrong
+- Do not bump dependency versions; the platform team owns them.
+- The legacy v1/ package is frozen; changes go in v2/.
+</code></pre>
+<h4 id="s-14">Governance considerations</h4><p>CLAUDE.md is version controlled, so the instructions the agent works to are reviewable and auditable. Team conventions are applied through the file, changes to it are logged in git history, and code owners approve those changes in PR review.</p>
+<h4 id="s-15">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>How often Claude repeats a mistake CLAUDE.md should have caught. The corrections or changes to the CLAUDE.md should be tracked within the git history.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>Time to first merged PR for a new member of the team from PR history.</p>
+<h3 id="s-16">Skills as institutional knowledge</h3><p>Skills are how an organization makes its institutional knowledge operational. The instructions are explicit, version-controlled, applied broadly, and updated centrally when policy changes. The rule of thumb: write a skill for institutional knowledge that must be applied consistently; don&#39;t write a skill for components that belong in CLAUDE.md or a prompt.</p>
+<h4 id="s-17">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>None required. Having a CLAUDE.md helps, because it keeps the agent&#39;s working knowledge in the repo, but a skill does not depend on it.</p>
+<p><strong>Infrastructure</strong></p>
+<p>One policy with a named owner and a written source of truth.</p>
+<h4 id="s-18">How to execute it</h4><ul>
+<li><p>Pick one piece of knowledge that is enforced inconsistently today. This could be a security standard, an API design convention, or a brand rule.</p>
+</li>
+<li><p>Write it as a skill, a folder containing a SKILL.md whose frontmatter says when it triggers and whose body says what to do. An engineer writes it from the policy owner&#39;s source of truth, using Claude to help.</p>
+</li>
+<li><p>Put the skill in the repo at <code>.claude/skills/&lt;name&gt;/</code> so it ships with the code, or distribute it organization-wide through a <a href="https://code.claude.com/docs/en/plugin-marketplaces">plugin</a>.</p>
+</li>
+<li><p>Test that the skill triggers. Ask Claude to do the relevant task in different ways and confirm the skill loads each time.</p>
+</li>
+<li><p>When the policy changes, change the skill and have the policy owner sign off the change.</p>
+</li>
+<li><p>Engineers pick up the new version automatically in their next session.</p>
+</li>
+</ul>
+<h4 id="s-19">What it looks like (.claude/skills/secure-api-review/SKILL.md)</h4><pre><code class="language-markdown">---
+name: secure-api-review
+description: Apply the API security standard. Use whenever creating or
+  modifying an external-facing endpoint, reviewing API code, or
+  generating an OpenAPI spec.
+---
+# Secure API review
+
+When you create or change an API endpoint:
+1. Authentication: every endpoint requires the gateway JWT;
+   no anonymous routes outside /health.
+2. Input validation: validate request bodies against the OpenAPI
+   schema and reject unknown fields.
+3. Audit: every state-changing endpoint emits an audit event with
+   actor, action, entity and timestamp.
+4. Data classification: fields tagged pii in the schema must never
+   appear in logs or error messages.
+
+Run scripts/check-endpoints.sh and include its output in your summary.
+</code></pre>
+<h4 id="s-20">Governance considerations</h4><p>A skill is a control, though an advisory one. It makes Claude likely to apply the policy while the code is written, and nothing forces a session to comply with it. A policy that must always hold needs something deterministic behind the skill, such as a hook that blocks the action or a review pass that re-checks the policy at the PR. The skill makes violations rare and the hook makes them close to impossible. Skill invocations are logged in session traces, and the policy owner reviews skill changes like code.</p>
+<h4 id="s-21">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>Time from the policy owner approving a policy change to the updated skill merging, taken from the PR on the skill folder.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>PR reviews findings that cite the policy, which should fall towards zero once the skill is applying the policy while the code is written. Where the findings don&#39;t fall towards zero, either the skill isn&#39;t triggering or its text has drifted from the official policy.</p>
+<h3 id="s-22">Hooks as build-time guardrails</h3><p>A skill is an advisory control while a <a href="https://code.claude.com/docs/en/hooks">hook</a> is the deterministic layer behind it. Most of Claude&#39;s actions are file edits and shell commands during implementation, so the build phase is where hooks can end up firing most often.</p>
+<p>Build-phase hooks can:</p>
+<ul>
+<li><p>Block edits to protected paths such as generated classes or a frozen package;</p>
+</li>
+<li><p>Run the formatter and linter after file edits so drift never accumulates;</p>
+</li>
+<li><p>Keep credentials out of the diff.</p>
+</li>
+</ul>
+<p>Back any skill whose policy has to hold without exception. A hook runs on each action that matches it, so build-phase hooks should be fast and scoped to the file that changed. Heavier checks such as the full test suite belong at the commit or the PR.</p>
+<p>A hook that asks a human for approval belongs with the gates in Stage 5: Deploy, because an approval prompt during the build puts a person back on the critical path of all the sessions running in parallel.</p>
+<h3 id="s-23">Parallel sessions and subagents</h3><p>One engineer can drive several streams of work at once.</p>
+<p>A parallel session is another full Claude Code instance, working a separate task in its own <a href="https://code.claude.com/docs/en/worktrees">git worktree</a>. Each independent session knows nothing about the others, and the engineer steering them is the only thing they share.</p>
+<p>A <a href="https://code.claude.com/docs/en/sub-agents">subagent</a> runs inside a single session as a scoped helper with its own context window and tool limits and suits jobs that recur in multiple tasks such as verifying the app runs as expected.</p>
+<p>Parallel sessions raise the number of tasks an engineer can have in flight, while subagents keep each session focused on its own task. The engineer&#39;s job is steering and reviewing all of them.</p>
+<p><strong>Traditional.</strong> One engineer works one task at a time and spends a significant portion of their day or week on builds, tests and reviewers. Switching between tasks while waiting is possible, but the context switch is tiring enough that few people choose to.</p>
+<p><strong>AI-native.</strong> One engineer runs several Claude sessions at once, each in its own worktree on its own task. Repeated jobs become subagents with their own context and tool limits. The engineer&#39;s job shifts to orchestrating, and eventually, to building and monitoring loops.</p>
+<h4 id="s-24">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>The CLAUDE.md, since all sessions read the file. The feedback loop (Stage 4: Test) also helps here, because less supervision from the engineer is needed when a session can verify its own work.</p>
+<p><strong>Infrastructure</strong></p>
+<p>A git repository, since isolation comes from worktrees and permission settings tuned so sessions are not waiting on approval prompts for commands the organization considers safe.</p>
+<h4 id="s-25">How to execute it</h4><ul>
+<li><p>The engineer splits the work into tasks that touch different files, using the plan from the plan mode play (Stage 3: Build) to see where the work is independent. Tasks that share files run in a single session, one after another.</p>
+</li>
+<li><p>Each parallel task gets its own worktree, for example claude --worktree feature-auth in one terminal and claude --worktree fix-rate-limit in another. A worktree is a separate checkout on its own branch, which stops sessions colliding on files.</p>
+</li>
+<li><p>Two or three sessions is a sensible starting point. The practical ceiling is how many streams one person can review properly, so add sessions only while review is keeping up.</p>
+</li>
+<li><p>Turn repeated jobs into subagents, as defined in markdown files in .claude/agents/, each with a name, a description of when to use it, and the tools it may touch. Examples include a code simplifier that strips needless complexity after the main agent finishes, a verifier that runs the app and checks behavior, a researcher that explores the codebase and reports back without flooding the main context. Check the definitions into git so the whole team shares them.</p>
+</li>
+</ul>
+<h4 id="s-26">What it looks like (.claude/agents/verifier.md)</h4><pre><code class="language-markdown">---
+name: verifier
+description: Runs the app and checks the change works before the session
+  reports done
+tools: Bash, Read
+---
+Start the app with make run. Exercise the changed behavior and the two
+nearest neighboring flows. Report what you ran, what you saw, and any
+behavior that does not match plan.md. Do not fix anything; report only.
+</code></pre>
+<h4 id="s-27">Governance considerations</h4><p>More sessions means more output, so the controls have to come from configuration in the repo. Hooks and permission settings there apply to all sessions, and what a session does is logged and attributed to the engineer who ran it.</p>
+<h4 id="s-28">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>Concurrent sessions per engineer while review quality holds, counted from the OpenTelemetry export, and the share of the day spent steering rather than waiting.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>Changes merged per engineer per week read alongside the rework rate as determined per the PR history.</p>
+<div class="reader-tools"><a href="chapter.md">Markdown 源稿</a><a href="../../">专题目录</a></div><nav class="pagination" aria-label="前后阅读"><a href="../../original/02-design/">← 上一篇</a><a href="../../original/04-test/">下一篇 →</a></nav><p class="colophon">来源：用户提供的英文 PDF。全文译文与原创图解分别呈现。</p></main></div><dialog aria-label="图片放大"><button type="button" autofocus>关闭</button><div class="zoom-content"></div></dialog><script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+
+</script></body></html>

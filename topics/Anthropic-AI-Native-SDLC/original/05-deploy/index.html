@@ -1,0 +1,555 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="book-mirror-html-format" content="reading-package-v1"><meta name="source-markdown-sha256" content="7185468c6d4826e7c4b7ecdf0f2a6d266062d1de568e935c7091deffc2fb3027"><title>Deploy · PDF full text · AI 原生 SDLC</title><style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+.mode-nav{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin:0 0 28px;font-size:15px}.mode-nav [aria-current]{font-weight:750;color:var(--ink)}.notice{font-size:14px;color:var(--muted)}.reader-tools{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:20px 0}.widget{margin:24px 0 36px;border-block:1px solid var(--line);padding:24px 0}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.control label{display:block;font-size:15px}.control input{width:100%;min-height:40px;accent-color:#b9481a}.widget button,.scenario-buttons button{font:inherit;font-size:16px;padding:10px 16px;border:1px solid #adb4bd;border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}.scenario-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.scenario-buttons [aria-pressed=true]{background:#fbe9df;border-color:#b9481a}.widget svg{width:100%;height:auto;display:block}.scenario-steps{display:flex;list-style:none;gap:12px;padding:0;flex-wrap:wrap}.scenario-steps li{padding:8px 12px;border-bottom:2px solid var(--line)}.scenario-steps li.current{border-color:#b9481a;font-weight:700}.scenario-output h3{margin-top:20px}.timing-result{font-size:20px;font-weight:600}.widget output{font-variant-numeric:tabular-nums}.figure button{color:inherit}.interactive-key{font-size:14px;line-height:1.6}.flow-track{display:flex;gap:4px;margin:24px 0}.flow-track span{flex:1;border-bottom:4px solid #d8dde4;text-align:center;font-size:13px;padding-bottom:8px}.flow-track span.active{border-color:#b9481a;font-weight:700}@media(max-width:600px){.controls{grid-template-columns:1fr}.flow-track{flex-wrap:wrap}.flow-track span{flex:1 0 28%}.mode-nav{gap:8px 14px}}@media print{.mode-nav,.reader-tools,.controls,.scenario-buttons,.widget button{display:none}}</style></head><body data-book-mirror-layout="reading-package-v1"><header><a href="../../../../">← 静态学习资料库</a><span>Anthropic AI-Native SDLC · 英文 · Deploy</span></header><div class="shell"><aside><details><summary>本页目录</summary><nav aria-label="本页目录"><a href="#s-1">Deploy</a><a href="#s-2" class="sub">AI in the PR review loop</a><a href="#s-3" class="sub">Getting started</a><a href="#s-4" class="sub">How to execute it</a><a href="#s-5" class="sub">What it looks like (REVIEW.md)</a><a href="#s-6" class="sub">Governance considerations</a><a href="#s-7" class="sub">How to measure it</a><a href="#s-8" class="sub">Hooks as approval gates</a><a href="#s-9" class="sub">Getting started</a><a href="#s-10" class="sub">How to execute it</a><a href="#s-11" class="sub">What it looks like (.claude/settings.json)</a><a href="#s-12" class="sub">And the gate itself (.claude/hooks/production-gate.sh)</a><a href="#s-13" class="sub">Governance considerations</a><a href="#s-14" class="sub">Managed settings for a regulated enterprise</a><a href="#s-15" class="sub">What each line buys, in control terms</a><a href="#s-16" class="sub">How to measure it (for the hooks themselves)</a><a href="#s-17" class="sub">CI/CD integration and deployment</a><a href="#s-18" class="sub">Getting started</a><a href="#s-19" class="sub">How to execute it</a><a href="#s-20" class="sub">What it looks like (pipeline step)</a><a href="#s-21" class="sub">Governance considerations</a><a href="#s-22" class="sub">How to measure it</a></nav></details></aside><main><nav class="mode-nav" aria-label="阅读方式"><a href="../../original/05-deploy/" aria-current="page">英文全文</a><a href="../../chinese/05-deploy/">中文全文译文</a><a href="../../chapters/01-map/">图解讲解</a><a href="../../interactive/">交互推演</a></nav><p class="notice">Full source：PDF 第 30—39 页 · <a href="../../chinese/05-deploy/">对照中文</a></p><h1 id="s-0">Deploy · PDF full text</h1><h2 id="s-1">Deploy</h2><p>Review runs in both directions, and governance is enforced as the agent acts. The agent does everything up to the production gate and nothing past it.</p>
+<h3 id="s-2">AI in the PR review loop</h3><p>Claude both gives and receives reviews. It reviews incoming PRs against the organization&#39;s policies and addresses review comments on its own PRs. This allows engineers to focus on behavior in their PR review, which boils down to judging intent and risk.</p>
+<p><strong>Traditional.</strong> Review capacity was planned around human output. A PR waits for a reviewer to read all of it, review quality varies with the reviewer&#39;s load, and the author chases while the backlog grows.</p>
+<p><strong>AI-native.</strong> All PRs get an identical set of review passes, with findings ranked by severity. Human attention moves up a level, to whether the change does what the plan intended and whether the risk is acceptable.</p>
+<h4 id="s-3">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>An updated CLAUDE.md file from Stage 3: Build; skills if the review passes enforce written policies, defined subagents.</p>
+<p><strong>Infrastructure</strong></p>
+<p>A repo with the Claude integration installed, either the managed <a href="https://code.claude.com/docs/en/code-review">Code Review</a> (research preview) service enabled by an admin or the <a href="https://code.claude.com/docs/en/github-actions">claude-code-action</a> running in your own CI, with model calls through AWS Bedrock, Google Vertex or Microsoft Foundry where needed (the CI/CD play covers the deployment options). Branch protection policies that require a code owner&#39;s approval are also worthwhile.</p>
+<h4 id="s-4">How to execute it</h4><ul>
+<li><p>The managed Code Review service is the fastest start. An admin enables it and selects repositories. Run the review in your own CI with the claude-code-action when you need control of the pipeline or want API calls routed through your own cloud agreement (the CI/CD play covers that plumbing).</p>
+</li>
+<li><p>The tech lead writes the review policy as REVIEW.md at the repo root, divided into the passes the organization cares about: bugs and logical errors; security and vulnerabilities; compliance against the spec (spec.md from the requirements play), the implementation plan (plan.md from the plan mode play) and design principles. REVIEW.md also defines what counts as Important as opposed to a Nit, and what to skip.</p>
+</li>
+<li><p>The tech lead sets the human threshold. Findings do not approve or block a PR on their own, and branch protection still requires approval from a code owner. A platform engineer who wants to gate merges on findings can read the severity counts that the check run publishes as a machine-readable tally.</p>
+</li>
+<li><p>When a reviewer or the author tags @claude on a review comment, Claude addresses the comment and pushes the fix. The PR thread records both the request and the change. This fix loop runs through the claude-code-action. In the managed service, commenting @claude review requests a fresh review instead. For PRs Claude opened, go further and let Claude babysit the PR to merge. Teams wrap the loop in a custom slash command that sweeps the unresolved review comments and failing checks on the PR, addresses them and pushes the fixes, until the PR is green and waiting only on code owner approval.</p>
+</li>
+<li><p>Review findings feed back into CLAUDE.md. When a review flags a mistake for the second time, the correction goes into CLAUDE.md as part of that review, and because review reads CLAUDE.md the mistake is caught from the next PR onwards. Review also flags when a change has made CLAUDE.md outdated.</p>
+</li>
+<li><p>Once a month the tech lead tunes the setup by rating findings so the reviewer improves and by capping Nit volume in REVIEW.md. Generated paths and anything CI already enforces are excluded.</p>
+</li>
+</ul>
+<h4 id="s-5">What it looks like (REVIEW.md)</h4><pre><code class="language-markdown"># Review instructions
+
+## Passes
+Run three passes and tag each finding with its pass:
+- Bugs: logic errors, broken edge cases, subtle regressions
+- Security: injection risks, authentication gaps, PII in logs
+- Compliance: the change matches spec.md, plan.md and our design principles
+
+## What Important means here
+Reserve Important for findings that would break behavior, leak data
+or breach a policy. Style and naming are nits.
+
+## Cap the nits
+Report at most five nits per review; summarize the rest as a count.
+
+## Do not report
+Generated files under src/gen/ and anything CI already enforces.
+</code></pre>
+<h4 id="s-6">Governance considerations</h4><p>Separation of duties is preserved, because the agent that wrote the code has no way to approve it. The review policy in REVIEW.md is applied to all PRs, and findings, fixes, ratings and approvals are logged in the PR history, so the PR is the audit record. Approval comes from a human through branch protection, informed by the findings.</p>
+<p>For how these controls compose at production scale, see <a href="https://claude.com/blog/how-anthropic-secures-its-ai-native-software-development-lifecycle">securing an AI-native SDLC at Anthropic</a>.</p>
+<h4 id="s-7">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>Time to first review, which should fall to minutes, and the share of review comments resolved without a human touching the branch with data stored directly on Git.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>Defects and vulnerabilities caught before merge set against those escaping to production, from the PR history and the incident tracker.</p>
+<h3 id="s-8">Hooks as approval gates</h3><p>The build phase used hooks as guardrails, allowing or blocking actions with no human involved (Stage 3: Build). A hook can also ask, pausing the action until a specific person approves, which is what release gating needs.</p>
+<p>The play sits in Stage 5: Deploy because the release gate is the clearest case, but hooks are not deploy-specific: they run wherever Claude acts. For example, hooks can block edits to migrations and infra without a change ticket during Stage 3: Build, and stop the agent editing test files during a fix task in Stage 4: Test.</p>
+<h4 id="s-9">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>None.</p>
+<p><strong>Infrastructure</strong></p>
+<p>A written list of the approvals the change process requires.</p>
+<h4 id="s-10">How to execute it</h4><ul>
+<li><p>Engineering leadership, with change management and compliance, lists the human approval gates that must survive, such as change management sign-off, release authorization, and edits to protected paths.</p>
+</li>
+<li><p>The platform engineer expresses each gate as a hook, a script that runs before Claude acts that can allow, ask, or block.</p>
+</li>
+<li><p>Team hooks go in .claude/settings.json in git, and non-negotiable hooks go in managed settings owned by the platform or IT admin, where individual engineers cannot switch them off.</p>
+</li>
+<li><p>A block should explain itself, so when a hook stops an action the reason and the route to approval appear in Claude&#39;s output.</p>
+</li>
+</ul>
+<h4 id="s-11">What it looks like (.claude/settings.json)</h4><pre><code class="language-json">{
+    &quot;hooks&quot;: {
+      &quot;PreToolUse&quot;: [
+        {
+          &quot;matcher&quot;: &quot;Bash&quot;,
+          &quot;hooks&quot;: [
+            { &quot;type&quot;: &quot;command&quot;,
+              &quot;command&quot;: &quot;${CLAUDE_PROJECT_DIR}/.claude/hooks/production-gate.sh&quot; }
+          ]
+        }
+      ]
+    }
+}
+</code></pre>
+<h4 id="s-12">And the gate itself (.claude/hooks/production-gate.sh)</h4><pre><code class="language-bash">#!/bin/bash
+# Production deploys require a named release authorization
+cmd=$(jq -r &#39;.tool_input.command&#39; &lt; /dev/stdin)
+if [[ &quot;$cmd&quot; == *&quot;deploy&quot;* &amp;&amp; &quot;$cmd&quot; == *&quot;production&quot;* ]]; then
+   if [ -z &quot;$RELEASE_APPROVAL&quot; ]; then
+     echo &quot;Production deploys need a release authorization.&quot; &gt;&amp;2
+     exit 2 # exit 2 blocks the action; the message goes to Claude
+   fi
+fi
+exit 0
+</code></pre>
+<h4 id="s-13">Governance considerations</h4><p>Hooks are the approval gates. The gate condition is enforced every time, for everyone. Allow and block decisions are logged with a timestamp. The gate also defines what counts as approval, whether that&#39;s an approved change ticket or the release manager&#39;s sign-off.</p>
+<p>Worked example</p>
+<h3 id="s-14">Managed settings for a regulated enterprise</h3><p>Deployed by the platform team via MDM or the admin console; engineers cannot edit or override any of it.</p>
+<pre><code class="language-json">{
+  &quot;permissions&quot;: {
+     &quot;deny&quot;: [
+        &quot;Read(.env*)&quot;, &quot;Read(./secrets/**)&quot;,
+        &quot;WebFetch&quot;, &quot;Bash(curl *)&quot;, &quot;Bash(wget *)&quot;
+     ],
+     &quot;allow&quot;: [
+        &quot;Bash(git *)&quot;, &quot;Bash(make build)&quot;,
+        &quot;Bash(make test)&quot;, &quot;Bash(make lint)&quot;
+     ],
+     &quot;disableBypassPermissionsMode&quot;: &quot;disable&quot;
+  },
+  &quot;allowManagedPermissionRulesOnly&quot;: true,
+  &quot;sandbox&quot;: {
+     &quot;enabled&quot;: true,
+     &quot;failIfUnavailable&quot;: true,
+     &quot;allowUnsandboxedCommands&quot;: false,
+     &quot;network&quot;: { &quot;allowedDomains&quot;: [&quot;git.internal.example.com&quot;,
+&quot;registry.npmjs.org&quot;] },
+     &quot;credentials&quot;: {
+        &quot;files&quot;: [
+          { &quot;path&quot;: &quot;~/.ssh&quot;, &quot;mode&quot;: &quot;deny&quot; },
+          { &quot;path&quot;: &quot;~/.aws/credentials&quot;, &quot;mode&quot;: &quot;deny&quot; }
+        ],
+        &quot;envVars&quot;: [ { &quot;name&quot;: &quot;GITHUB_TOKEN&quot;, &quot;mode&quot;: &quot;deny&quot; } ]
+     }
+  },
+  &quot;allowManagedHooksOnly&quot;: true,
+  &quot;disableSideloadFlags&quot;: true,
+  &quot;allowManagedMcpServersOnly&quot;: true,
+  &quot;strictKnownMarketplaces&quot;: [
+     { &quot;source&quot;: &quot;github&quot;, &quot;repo&quot;: &quot;example-corp/approved-plugins&quot; }
+  ],
+  &quot;requiredMinimumVersion&quot;: &quot;2.1.193&quot;
+}
+</code></pre>
+<h4 id="s-15">What each line buys, in control terms</h4><p>permissions.deny keeps secrets out of the agent&#39;s context and blocks arbitrary network egress through tools; permissions.allow pre-approves the safe inner loop so the deny list doesn&#39;t turn into prompt fatigue.</p>
+<p>disableBypassPermissionsMode plus allowManagedPermissionRulesOnly means no engineer, project file or command-line flag can widen the rules.</p>
+<p>sandbox closes the gap permissions cannot. A tool-level deny on WebFetch doesn&#39;t stop a shell command reaching the network; the OS-level domain allowlist blocks egress outright.</p>
+<p>failIfUnavailable and allowUnsandboxedCommands make the sandbox a gate: Claude Code refuses to start when the sandbox cannot initialize, and a command that fails inside the sandbox cannot be retried outside it.</p>
+<p>credentials closes the gap the deny rules leave open. permissions.deny governs Claude&#39;s file tools, but a sandboxed shell command could still read ~/.ssh or ~/.aws/credentials by default; this block denies those reads and strips the named secrets from the environment of every sandboxed command.</p>
+<p>allowManagedHooksOnly means the approval gates from this play are the only hooks that run; nothing local can add to or replace them.</p>
+<p>disableSideloadFlags and strictKnownMarketplaces mean every skill, agent, hook and MCP server on an engineer&#39;s machine arrived through the organization&#39;s approved plugin marketplace, never from a home directory.</p>
+<p>allowManagedMcpServersOnly makes the agent&#39;s tool surface an allowlist owned by the platform team.</p>
+<p>requiredMinimumVersion refuses to start on a version below the approved floor, so the controls are enforced by a build the organization has actually assessed.</p>
+<p>Consider the above a starting point to tailor, rather than a recommendation to copy. Every deny trades against capability, and the right balance depends on the data classification of the repo. The settings reference documents every key, including the managed-only ones: <a href="https://code.claude.com/docs/en/settings">code.claude.com/docs/en/settings</a></p>
+<h4 id="s-16">How to measure it (for the hooks themselves)</h4><p><strong>Leading indicator</strong></p>
+<p>Time spent waiting on each approval gate. Every hook decision is written to the OpenTelemetry export with a timestamp and an allow or block verdict, so the wait is visible per gate.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>Gate violations reaching production before and after hooks from the incident tracker.</p>
+<h3 id="s-17">CI/CD integration and deployment</h3><p>Run Claude Code non-interactively inside the CI/CD pipeline, sandbox the execution so long-running agents run safely, expose deployment through MCP integrations, and rehearse the rollback paths before the agent ever needs them.</p>
+<p><strong>Traditional.</strong> Pipelines run deterministic scripts, and anything that needs judgment waits for a human. For example, triaging the flaky test, writing the changelog, or working out why the build broke. Deployment and rollback are runbooks a human follows under pressure.</p>
+<p><strong>AI-native.</strong> Claude runs non-interactively inside the pipeline for the judgment steps, in a sandbox with scoped credentials. Deployment tooling is exposed to the agent through MCP, so the workflow that wrote and tested the change can also ship it and roll it back, inside gates the organization defines per environment.</p>
+<h4 id="s-18">Getting started</h4><p><strong>Prerequisites</strong></p>
+<p>Claude in the PR review loop and hooks as approval gates, because the gates must exist before automation accelerates anything through them.</p>
+<p><strong>Infrastructure</strong></p>
+<p>A CI platform with the claude-code-action installed, or any runner that can call claude -p; model access through the API, or Bedrock, Foundry, or Vertex where traffic must stay on the organization&#39;s cloud agreement; MCP servers for the deployment targets; a sandbox profile for agent jobs with no standing production credentials.</p>
+<h4 id="s-19">How to execute it</h4><ul>
+<li><p>The platform engineer starts with read-only judgment steps. Use claude -p in a pipeline job to triage a failed build, summarize a flaky test, or draft the changelog.</p>
+</li>
+<li><p>Add write steps behind the existing gates for jobs like fixing lint, updating generated docs, or addressing review comments via the @claude mentions. Anything the agent writes arrives as a PR through branch protection, and the agent has no route to push to main.</p>
+</li>
+<li><p>Execution is sandboxed. Agent jobs run in containers under a network policy with short-lived scoped tokens, and hold no production credentials by default.</p>
+</li>
+<li><p>Expose deployment through MCP. Deploy, status, and rollback become tools, scoped per environment, so the agent&#39;s deployment powers are an allowlist rather than a shell script with credentials.</p>
+</li>
+<li><p>Tier the autonomy by environment. In development, the agent deploys freely. In production, the agent prepares the release and the release manager authorizes it, and a hook enforces the production gate. Staging sits somewhere in the middle.</p>
+</li>
+<li><p>Rollback should be the most rehearsed path in the pipeline, a single command that the agent can run and that is exercised regularly in staging. The closing the loop play (Stage 6: Maintenance) calls this rollback when a control band is breached, so it has to be proven in advance.</p>
+</li>
+</ul>
+<h4 id="s-20">What it looks like (pipeline step)</h4><pre><code class="language-yaml">- name: Triage failed build
+  if: failure()
+  run: &gt;
+    claude -p &quot;Read the build log at out/build.log. Identify the most
+    likely cause, say whether the failure looks flaky or real, and write a
+    three-line summary for the PR thread.&quot; &gt;&gt; triage.md
+</code></pre>
+<h4 id="s-21">Governance considerations</h4><p>The governing principle is that the agent may act up to the production gate and cannot pass it. The controls below enforce this principle.</p>
+<ul>
+<li><p>Branch protection turns anything the agent writes into a PR, with no direct path to main.</p>
+</li>
+<li><p>The production deploy hook blocks the release until a named release manager authorizes it. Each non-interactive run acts under the agent&#39;s own identity, so the pipeline log separates what the agent did from what the engineer who triggered it did.</p>
+</li>
+<li><p>Per-environment permission tiers set how much the agent may do on the way to the gate.</p>
+</li>
+</ul>
+<h4 id="s-22">How to measure it</h4><p><strong>Leading indicator</strong></p>
+<p>The share of pipeline failures triaged without paging a human taken from the CI/CD pipeline logs.</p>
+<p><strong>Lagging indicator</strong></p>
+<p>DevOps Research and Assessment (DORA) measures, which the CI system and deployment tooling already emit.</p>
+<div class="reader-tools"><a href="chapter.md">Markdown 源稿</a><a href="../../">专题目录</a></div><nav class="pagination" aria-label="前后阅读"><a href="../../original/04-test/">← 上一篇</a><a href="../../original/06-maintain/">下一篇 →</a></nav><p class="colophon">来源：用户提供的英文 PDF。全文译文与原创图解分别呈现。</p></main></div><dialog aria-label="图片放大"><button type="button" autofocus>关闭</button><div class="zoom-content"></div></dialog><script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+
+</script></body></html>

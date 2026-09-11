@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 928" role="img" aria-labelledby="title desc">
+<title id="title">研发在实施前参与判断</title><desc id="desc">竖向泳道按责任划分；向下表示时间推进。实线：工作交接；政策冲突与高风险事项的分支见下一图。</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6Z" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6Z" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6Z" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Hiragino Sans GB','Arial',sans-serif} .mono{font-family:ui-monospace,monospace}</style>
+<rect width="800" height="928" fill="#f5f5f5"/>
+<text x="32" y="40" font-size="28" fill="#2d3142" text-anchor="start" font-weight="650">研发在实施前参与判断</text><text x="32" y="72" font-size="16" fill="#4f5d75" text-anchor="start" font-weight="500">竖向泳道按责任划分；向下表示时间推进</text>
+<rect x="12" y="96" width="256" height="752" fill="#f5f5f5"/><text x="140" y="124" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">产品负责人</text>
+<rect x="272" y="96" width="256" height="752" fill="#ececec"/><text x="400" y="124" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">Agent</text>
+<rect x="532" y="96" width="256" height="752" fill="#f5f5f5"/><text x="660" y="124" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">工程师</text>
+<path d="M140 224 V312 H300" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M400 352 V376 H140 V400" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M140 480 V568 H300" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M500 568 H560" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M660 608 V744 H500" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<rect x="612" y="660" width="96" height="28" rx="4" fill="#f5f5f5"/><text x="660" y="680" font-size="16" fill="#4f5d75" text-anchor="middle" font-weight="500">接受后实施</text><g class="node" data-title="明确意图"><rect x="40" y="144" width="200" height="80" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="140" y="192" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">明确意图</text></g>
+<g class="node" data-title="起草规格"><rect x="300" y="272" width="200" height="80" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="400" y="320" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">起草规格</text></g>
+<g class="node" data-title="审核规格"><rect x="40" y="400" width="200" height="80" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="140" y="448" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">审核规格</text></g>
+<g class="node" data-title="起草实施计划"><rect x="300" y="528" width="200" height="80" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="400" y="576" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">起草实施计划</text></g>
+<g class="node" data-title="审阅并接受"><rect x="560" y="528" width="200" height="80" rx="8" fill="#fbe9df" stroke="#eb6c36" stroke-width="1.2"/><text x="660" y="576" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">审阅并接受</text></g>
+<g class="node" data-title="实现与验证"><rect x="300" y="704" width="200" height="80" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="400" y="752" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">实现与验证</text></g>
+<path d="M32 864 H768" stroke="#bfc0c0" fill="none"/><text x="32" y="896" font-size="16" fill="#4f5d75" text-anchor="start" font-weight="500">实线：工作交接；政策冲突与高风险事项的分支见下一图。</text>
+</svg>

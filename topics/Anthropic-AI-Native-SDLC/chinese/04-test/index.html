@@ -1,0 +1,493 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="book-mirror-html-format" content="reading-package-v1"><meta name="source-markdown-sha256" content="a4e77f03883dde7ad598b30f1cbbdd9f8ebf1f399aa9c106f5fbfc5ad3305125"><title>04 Test：测试 · AI 原生 SDLC</title><style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+.mode-nav{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin:0 0 28px;font-size:15px}.mode-nav [aria-current]{font-weight:750;color:var(--ink)}.notice{font-size:14px;color:var(--muted)}.reader-tools{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:20px 0}.widget{margin:24px 0 36px;border-block:1px solid var(--line);padding:24px 0}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.control label{display:block;font-size:15px}.control input{width:100%;min-height:40px;accent-color:#b9481a}.widget button,.scenario-buttons button{font:inherit;font-size:16px;padding:10px 16px;border:1px solid #adb4bd;border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}.scenario-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.scenario-buttons [aria-pressed=true]{background:#fbe9df;border-color:#b9481a}.widget svg{width:100%;height:auto;display:block}.scenario-steps{display:flex;list-style:none;gap:12px;padding:0;flex-wrap:wrap}.scenario-steps li{padding:8px 12px;border-bottom:2px solid var(--line)}.scenario-steps li.current{border-color:#b9481a;font-weight:700}.scenario-output h3{margin-top:20px}.timing-result{font-size:20px;font-weight:600}.widget output{font-variant-numeric:tabular-nums}.figure button{color:inherit}.interactive-key{font-size:14px;line-height:1.6}.flow-track{display:flex;gap:4px;margin:24px 0}.flow-track span{flex:1;border-bottom:4px solid #d8dde4;text-align:center;font-size:13px;padding-bottom:8px}.flow-track span.active{border-color:#b9481a;font-weight:700}@media(max-width:600px){.controls{grid-template-columns:1fr}.flow-track{flex-wrap:wrap}.flow-track span{flex:1 0 28%}.mode-nav{gap:8px 14px}}@media print{.mode-nav,.reader-tools,.controls,.scenario-buttons,.widget button{display:none}}</style></head><body data-book-mirror-layout="reading-package-v1"><header><a href="../../../../">← 静态学习资料库</a><span>Anthropic AI-Native SDLC · 译文 · Test：测试</span></header><div class="shell"><aside><details><summary>本页目录</summary><nav aria-label="本页目录"><a href="#s-1">给 Claude 一个反馈回路</a><a href="#s-2" class="sub">如何开始</a><a href="#s-3" class="sub">如何执行</a><a href="#s-4" class="sub">CLAUDE.md 验证小节示例</a><a href="#s-5" class="sub">治理方面的考虑</a><a href="#s-6" class="sub">如何衡量</a><a href="#s-7">在 CI 中持续运行 eval</a><a href="#s-8" class="sub">如何开始</a><a href="#s-9" class="sub">如何执行</a><a href="#s-10" class="sub">示例：.github/workflows/agent-evals.yml</a><a href="#s-11" class="sub">治理方面的考虑</a><a href="#s-12" class="sub">如何衡量</a></nav></details></aside><main><nav class="mode-nav" aria-label="阅读方式"><a href="../../original/04-test/">英文全文</a><a href="../../chinese/04-test/" aria-current="page">中文全文译文</a><a href="../../chapters/01-map/">图解讲解</a><a href="../../interactive/">交互推演</a></nav><p class="notice">全文翻译依据：PDF 第 25—30 页 · <a href="../../original/04-test/">对照英文</a></p><h1 id="s-0">04 Test：测试</h1><p>每个会话都在人看到结果前检查自己的工作；引导 Agent 的配置，也像它写出的代码一样接受回归测试。</p>
+<h2 id="s-1">给 Claude 一个反馈回路</h2><p>始终让 Claude 有办法验证自己的工作，例如测试、构建或截图差异。会话先自查、修正错误，再把结果交给工程师。</p>
+<p>反馈回路不应与第 3 阶段“开发实现”中的验证子代理混淆。反馈回路贯穿整个任务，工作反复几次，它就跟着运行几次。验证子代理则是在会话认为工作完成后，使用新的上下文窗口执行最终检查的一种方式，让判断不受生成代码时那些假设的影响。</p>
+<p><strong>传统方式。</strong> 代码是否有效的信号到得很晚：CI 可能几分钟后才反馈，测试人员几天后才反馈，生产环境几周后才反馈。Agent 生成代码时，信号迟到意味着人必须检查它的全部产出，这个人就成了瓶颈。</p>
+<p><strong>AI 原生方式。</strong> 会话获得在人看到结果前自查的能力：运行测试、执行构建、获取截图。Claude 持续调整，直到检查通过，因此交给工程师的结果已经通过检查。建立这个反馈回路是运行会话的工程师的责任，以下步骤面向这位工程师。</p>
+<h3 id="s-2">如何开始</h3><p><strong>前置条件：</strong> 无。</p>
+<p><strong>基础设施：</strong> 能在本地各用一条命令运行的测试套件和构建。UI 工作尤其需要让 Claude 看见结果，可以使用浏览器工具，或通过 MCP 接入的截图工具。</p>
+<h3 id="s-3">如何执行</h3><ol>
+<li>如果目前检查工作需要一串命令和一些环境知识，就封装为 <code>make test</code> 或 <code>npm test</code> 这样的单一入口，失败时返回非零退出码。</li>
+<li>在 <code>CLAUDE.md</code> 的 Commands 小节列出每条命令，并提供正常输出的示例。</li>
+<li>给出可量化目标，让 Claude 不必追问就能自查。例如，“<code>test_status.py</code> 中全部测试通过”“截图与附件设计稿一致”“端点返回 200，且包含新字段”。</li>
+<li>修复缺陷时，先写会失败的测试。请 Claude 用测试复现缺陷，运行它，确认失败原因符合预期，再提交该测试。之后才让 Claude 在不修改测试的前提下使测试通过，并用最后一步所说的测试文件 Hook 执行这一限制。修复前已经存在、Agent 又不能改写的测试，证明缺陷已经消失。</li>
+<li>UI 工作通过视觉检查完成反馈循环。给 Claude 浏览器或截图工具，提供设计稿，让它反复实现、截图、比较和调整。两三轮很正常，每一轮结果都应改善。</li>
+<li>把验证纳入“完成”的定义，指令放在 <code>CLAUDE.md</code>。报告任务完成前运行测试，并展示输出。</li>
+<li>反馈回路本身也要保护，因为修复代码的 Agent 不能削弱对这份代码的检查。可以通过 Hook 阻止它在修复任务中编辑测试文件；另一种办法是在评审时检查 diff，拒绝任何修改测试的变更。</li>
+</ol>
+<h3 id="s-4">CLAUDE.md 验证小节示例</h3><pre><code class="language-markdown">## Verifying your work
+
+- Build: make build (must finish with &quot;Build succeeded&quot;)
+- Test: make test (all green; never skip or delete a failing test)
+- Lint: make lint (zero warnings)
+
+Run all three before reporting any task complete, and paste the output.
+If a test fails, fix the code, not the test.
+</code></pre>
+<p><strong>示例中的文字。</strong> 构建命令 <code>make build</code> 必须以 <code>Build succeeded</code> 结束；<code>make test</code> 必须全部通过，不得跳过或删除失败测试；<code>make lint</code> 必须零警告。报告完成前运行三项检查，并贴出输出。测试失败时修复代码，不要修改测试。</p>
+<h3 id="s-5">治理方面的考虑</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>要回答的问题</th>
+<th>原文要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>强制执行什么</td>
+<td>报告完成前验证，并阻止 Agent 在修复时编辑测试文件。组织希望确保这些要求成立时，两者都通过 Hooks 执行。</td>
+</tr>
+<tr>
+<td>证据是什么</td>
+<td>Claude 实际运行并贴出的 <code>make test</code> 原始输出、构建日志或截图差异，证据来自工具链。</td>
+</tr>
+<tr>
+<td>记录在哪里</td>
+<td>会话记录由 OpenTelemetry 导出转发到组织的可观测性系统；PR 的 check run 也保存记录，评审者和之后的审计人员都能看到。</td>
+</tr>
+<tr>
+<td>谁批准</td>
+<td>负责 PR 评审的代码所有者。机械检查的证据已经附上，评审者可以专注意图与风险。</td>
+</tr>
+</tbody></table></div>
+<h3 id="s-6">如何衡量</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>定义与取数方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>领先指标</td>
+<td>Agent 编写的改动第一次运行 CI 的成功率，CI 系统已经支持统计。</td>
+</tr>
+<tr>
+<td>滞后指标</td>
+<td>每个 PR 的评审时间，取自 PR 元数据；测试接手过去由评审者发现的问题后，这个时间应当下降。另看从事故追踪系统获得的变更失败率。</td>
+</tr>
+</tbody></table></div>
+<h2 id="s-7">在 CI 中持续运行 eval</h2><p>Eval 是 AI 原生流程中与阶段关口 QA 对应的评估机制。实际做法是：每当 Agent 配置发生变化，就运行一套评估。换模型或改写提示词后，评估集告诉你，Agent 是否仍能以相同标准完成工作。</p>
+<p>评估集应持续维护。随着模型进步，原本能区分表现的案例会失去区分作用，必须加入持续监测中出现的新案例。</p>
+<p>根据使用情形，有些团队可能更愿意按固定周期离线评估，而非每次变更都运行。下面介绍持续评估的步骤。</p>
+<h3 id="s-8">如何开始</h3><p><strong>前置条件：</strong> <code>CLAUDE.md</code> 和第 4 阶段“测试”中的反馈回路。</p>
+<p><strong>基础设施：</strong> 能以非交互方式运行 Claude Code 的 CI，以及具备评估运行预算的 API Key。</p>
+<h3 id="s-9">如何执行</h3><ol>
+<li>平台工程师从近期工作中收集 20～50 个真实任务，以及它们的预期或已接受结果。</li>
+<li>将每项任务写成 eval，包括提示词和定义可接受结果的检查：测试通过、lint 无问题、行为不变、遵守政策。</li>
+<li>在 CI 中定期以非交互方式运行评估集，并在 <code>CLAUDE.md</code>、Skills 或 Hooks 改动时运行。这些配置引导 Agent 行为，应像代码一样接受回归测试。</li>
+<li>依据评估结果控制配置变更的合并。Skill 改动导致通过率下降时，先评审，再合并。</li>
+<li>每次生产事故都由负责该事故的团队写成一个 eval，留在套件中作为回归测试。</li>
+</ol>
+<h3 id="s-10">示例：.github/workflows/agent-evals.yml</h3><pre><code class="language-yaml">name: Agent evals
+on:
+  pull_request:
+    paths: [&#39;CLAUDE.md&#39;, &#39;.claude/**&#39;]
+  schedule:
+    - cron: &#39;0 2 * * *&#39;
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: Run eval suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          for eval in evals/*.json; do
+            claude -p &quot;$(jq -r &#39;.prompt&#39; $eval)&quot; \
+              --allowedTools &quot;Read,Edit,Bash(make test)&quot; \
+              --output-format json &gt; result.json
+            ./evals/check.sh &quot;$eval&quot; result.json
+          done
+</code></pre>
+<p><strong>示例中的文字。</strong> 工作流名为 Agent evals，监听 <code>CLAUDE.md</code> 和 <code>.claude/**</code> 的 PR 变更，并每日定时运行。它检出代码、安装 Claude Code，从仓库 Secret 读取 API Key。随后遍历 <code>evals/*.json</code>，读取其中的提示词，在限定工具范围内运行 Claude，将结果写为 JSON，再用 <code>evals/check.sh</code> 检查每个任务。</p>
+<h3 id="s-11">治理方面的考虑</h3><p>Eval 为 QA 提供能跟上 Agent 产出的关口。通过率阈值由合并检查强制执行；运行记录用于跨时间比较结果；拥有这项配置变更的团队负责批准。</p>
+<h3 id="s-12">如何衡量</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>定义与取数方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>领先指标</td>
+<td>评估通过率随时间的变化，每次运行由套件报告；另看生产事故多久能转化为长期保留的 eval。</td>
+</tr>
+<tr>
+<td>滞后指标</td>
+<td>比较在 CI 中发现的回归与在生产中发现的回归，数据来自事故追踪系统。</td>
+</tr>
+</tbody></table></div>
+<div class="reader-tools"><a href="chapter.md">Markdown 源稿</a><a href="../../">专题目录</a></div><nav class="pagination" aria-label="前后阅读"><a href="../../chinese/03-build/">← 上一篇</a><a href="../../chinese/05-deploy/">下一篇 →</a></nav><p class="colophon">来源：用户提供的英文 PDF。全文译文与原创图解分别呈现。</p></main></div><dialog aria-label="图片放大"><button type="button" autofocus>关闭</button><div class="zoom-content"></div></dialog><script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+
+</script></body></html>

@@ -1,0 +1,460 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="book-mirror-html-format" content="reading-package-v1"><meta name="source-markdown-sha256" content="5627190b87fc53cd18ac68463eb19bd933cb668d83baa9dc1d2248ceca37e6f4"><title>Overview · PDF full text · AI 原生 SDLC</title><style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+.mode-nav{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin:0 0 28px;font-size:15px}.mode-nav [aria-current]{font-weight:750;color:var(--ink)}.notice{font-size:14px;color:var(--muted)}.reader-tools{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:20px 0}.widget{margin:24px 0 36px;border-block:1px solid var(--line);padding:24px 0}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.control label{display:block;font-size:15px}.control input{width:100%;min-height:40px;accent-color:#b9481a}.widget button,.scenario-buttons button{font:inherit;font-size:16px;padding:10px 16px;border:1px solid #adb4bd;border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}.scenario-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.scenario-buttons [aria-pressed=true]{background:#fbe9df;border-color:#b9481a}.widget svg{width:100%;height:auto;display:block}.scenario-steps{display:flex;list-style:none;gap:12px;padding:0;flex-wrap:wrap}.scenario-steps li{padding:8px 12px;border-bottom:2px solid var(--line)}.scenario-steps li.current{border-color:#b9481a;font-weight:700}.scenario-output h3{margin-top:20px}.timing-result{font-size:20px;font-weight:600}.widget output{font-variant-numeric:tabular-nums}.figure button{color:inherit}.interactive-key{font-size:14px;line-height:1.6}.flow-track{display:flex;gap:4px;margin:24px 0}.flow-track span{flex:1;border-bottom:4px solid #d8dde4;text-align:center;font-size:13px;padding-bottom:8px}.flow-track span.active{border-color:#b9481a;font-weight:700}@media(max-width:600px){.controls{grid-template-columns:1fr}.flow-track{flex-wrap:wrap}.flow-track span{flex:1 0 28%}.mode-nav{gap:8px 14px}}@media print{.mode-nav,.reader-tools,.controls,.scenario-buttons,.widget button{display:none}}</style></head><body data-book-mirror-layout="reading-package-v1"><header><a href="../../../../">← 静态学习资料库</a><span>Anthropic AI-Native SDLC · 英文 · Overview</span></header><div class="shell"><aside><details><summary>本页目录</summary><nav aria-label="本页目录"><a href="#s-1">Code is no longer the bottleneck</a><a href="#s-2">What is an AI-native SDLC?</a><a href="#s-3" class="sub">The shifts across the six stages of an AI-native SDLC</a><a href="#s-4">Plays</a></nav></details></aside><main><nav class="mode-nav" aria-label="阅读方式"><a href="../../original/00-overview/" aria-current="page">英文全文</a><a href="../../chinese/00-overview/">中文全文译文</a><a href="../../chapters/01-map/">图解讲解</a><a href="../../interactive/">交互推演</a></nav><p class="notice">Full source：PDF 第 1—8 页 · <a href="../../chinese/00-overview/">对照中文</a></p><h1 id="s-0">Overview · PDF full text</h1><p>The AI-Native SDLC playbook</p>
+<p>How to transform your software development lifecycle with AI—stage by stage.</p>
+<p>Louis Claxton · August 21, 2026</p>
+<h2 id="s-1">Code is no longer the bottleneck</h2><p>Organizations have started using AI to write code at a speed unthinkable one year ago, yet the processes around the code haven&#39;t changed at the same pace.</p>
+<p>Many engineering teams still have the same approval gates, reviews, handoffs, and policies, stalling productivity gains made by using agentic coding solutions like <a href="https://claude.com/product/claude-code">Claude Code</a>.</p>
+<p>The software development lifecycle (SDLC) is the process that takes software from idea to production. Most organizations run some version of the same six stages, covering planning, design, building, testing, deploying, and maintaining software. Traditionally, each stage is a discrete phase owned by a different role. Product managers write requirements, technical architects turn them into designs, engineers build the designs, QA teams at regulated enterprises verify it, releases teams ship it, and operations monitors what is running. Work moves between the phases through documents, tickets, and sign-offs.</p>
+<p>The traditional software development lifecycle (SDLC) is process-heavy to ensure accountability and control at each step. However, the traditional SDLC was designed to maximize efficiency in an era where the most time-consuming and expensive stage was writing and implementing code, which is no longer the case. PRDs, estimation rituals, and product security reviews all existed to force alignment during what could be weeks, months, or quarters of development work.</p>
+<p>The traditional SDLC also features controls that assume every step is performed by humans. The organizations generating the most value have rebuilt their process around what agentic AI can now do, while ensuring that humans stay in the loop. In this guide, we walk through several of our Applied AI team&#39;s best practices for integrating Claude internally across each stage of the SDLC to accelerate development and make processes run faster, inspired by working with our customers.</p>
+<p>When code is no longer the bottleneck and the build phase runs faster than the traditional SDLC allows for, three things become true:</p>
+<ul>
+<li><p>The bottleneck moves to the steps to the left and right of the build phase. This is mainly plan, review/test, and deploy, which still run at human speed.</p>
+</li>
+<li><p>The controls stop matching reality and become intractable. Reviewing each line by hand made sense when a person had written it, but it can&#39;t keep up once agents write most of the diff.</p>
+</li>
+<li><p>Governance costs increase because exceptions still route through meetings and committees that meet weekly or monthly.</p>
+</li>
+</ul>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大图片：Official illustration: build compression and the surrounding phases"><img src="../../images/source-01.png" alt="Official illustration: build compression and the surrounding phases" loading="lazy"></button><figcaption class="caption">Official illustration: build compression and the surrounding phases · 点击放大</figcaption></figure>
+<p>Build is no longer the constraint — the human-speed steps around it are. Human-speed stages keep their length while build collapses to hours.</p>
+<p>Let&#39;s use a security bottleneck as an example. Security teams are sized for human output, so when agents multiply code output, either the review queue builds or code ships under-reviewed. A regulated organization can&#39;t accept either outcome, so its security and policy checks have to keep pace with the agents.</p>
+<p>To better realize the productivity gains of and secure agentic AI, the traditional SDLC lifecycle requires the same level of transformation as the implementation phase has undergone.</p>
+<h2 id="s-2">What is an AI-native SDLC?</h2><p>The AI-native SDLC is a reimagined process that combines the old control objectives with new enforcement. Instead of a linear flow, the process becomes a loop, and AI is embedded at each point. The AI-native SDLC promotes automated handover and triggering of subsequent plays, helping to address the manual and clunky nature of handoff between the phases of the traditional SDLC.</p>
+<p>You&#39;ll also hear this shift called the agentic SDLC, the AI SDLC, or simply agentic software development — the labels differ, but they describe the same thing.</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大图片：Official illustration: linear SDLC and the AI-native loop"><img src="../../images/source-02.png" alt="Official illustration: linear SDLC and the AI-native loop" loading="lazy"></button><figcaption class="caption">Official illustration: linear SDLC and the AI-native loop · 点击放大</figcaption></figure>
+<h3 id="s-3">The shifts across the six stages of an AI-native SDLC</h3><p>The table below highlights the ends of the spectrum between traditional SDLC and AI-native SDLC, supported by Claude. Most organizations sit somewhere between the two columns.</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Traditional SDLC</th>
+<th>AI-native SDLC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Plan</td>
+<td>Requirements gathered by committee, distilled through workshops and sign-offs, written up by hand</td>
+<td>Claude synthesizes pain points straight from the sources and captures them within intent.md which is human readable and machine actionable</td>
+</tr>
+<tr>
+<td>Design</td>
+<td>Spec written by analysts, parsed by designers</td>
+<td>Requirements and design compressed into one working session with an agent, guided by standards encoded as skills, versioned in git</td>
+</tr>
+<tr>
+<td>Build</td>
+<td>Tests and code are handwritten and documentation is written after the main development happens</td>
+<td>Tests and code are generated by AI and institutional knowledge is maintained as versioned machine-readable CLAUDE.md files and skills</td>
+</tr>
+<tr>
+<td>Test</td>
+<td>QA gates at stage boundaries</td>
+<td>Continuous evals woven through implementation</td>
+</tr>
+<tr>
+<td>Deploy</td>
+<td>Humans review every line of code and governance occurs in review cycles, often inconsistently</td>
+<td>Layers of agentic review with human review reserved for regulated and critical code. Governance is enforced as the AI acts, with hooks as approval gates</td>
+</tr>
+<tr>
+<td>Maintain</td>
+<td>Humans watch production for bugs</td>
+<td>Agents monitor live deployments. Any breached control band is diagnosed and written back into the loop as a new intent.md</td>
+</tr>
+</tbody></table></div>
+<p>The thread running through the right-hand column is the committed artifact. Each stage ends by writing one to version control (including intent.md, spec.md, plan.md, the diff and its tests, the PR with its review findings, and the incident record) and the next stage begins by reading it. For the early stages, .md files are the predominant artifact because a product owner and an agent can both read and act on the same file. From Build onward, the artifact is code and its records. The chain of commits is also the audit trail: who asked for what, what the agent produced, and who approved it.</p>
+<p>Humans remain accountable for every decision that requires judgment. In the agentic SDLC world, the human attention shifts along with the artifacts that must be reviewed.</p>
+<p>Every stage commits an artifact the next stage can read. Together, the intent, the spec, the plan, the diff and the review findings are the audit trail.</p>
+<h2 id="s-4">Plays</h2><p>The plays are the core of the playbook and are grouped into six non-linear stages (Plan, Design, Build, Test, Deploy, Maintain), which together cover the complete lifecycle.</p>
+<p>Each play covers:</p>
+<ul>
+<li><p>What changes;</p>
+</li>
+<li><p>Getting started;</p>
+</li>
+<li><p>Concrete steps for implementation;</p>
+</li>
+<li><p>Governance considerations; and</p>
+</li>
+<li><p>How you measure whether it worked.</p>
+</li>
+</ul>
+<p>The steps are modular and organizations may choose to prioritize transforming different stages at different times based on their unique needs. Each play names its dependencies under &quot;Prerequisites,&quot; which the dependency graph further illustrates.</p>
+<p>A stage ends by committing an artifact with the commit initiating the next stage. An accepted intent.md triggers the requirements and design pass, an approved spec.md triggers plan mode, a merged PR triggers the pipeline, and a breached control band in production writes the next intent.md and so the loop continues.</p>
+<p>First, you prompt each step by hand with the end state being a loop in which each accepted artifact fires the next gate. Human attention concentrates at the gates, reviewing what the agent flagged rather than starting each stage from scratch.</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大图片：Official illustration: prerequisites for adopting the plays"><img src="../../images/source-03.png" alt="Official illustration: prerequisites for adopting the plays" loading="lazy"></button><figcaption class="caption">Official illustration: prerequisites for adopting the plays · 点击放大</figcaption></figure>
+<p>The plays are listed with stage; the arrows give the order to adopt them in. The two are not the same. Start with any clay play — nothing points into it, so it needs nothing first. For any other play, the arrows pointing into it are the plays to adopt before it.</p>
+<div class="reader-tools"><a href="chapter.md">Markdown 源稿</a><a href="../../">专题目录</a></div><nav class="pagination" aria-label="前后阅读"><span></span><a href="../../original/01-plan/">下一篇 →</a></nav><p class="colophon">来源：用户提供的英文 PDF。全文译文与原创图解分别呈现。</p></main></div><dialog aria-label="图片放大"><button type="button" autofocus>关闭</button><div class="zoom-content"></div></dialog><script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+
+</script></body></html>

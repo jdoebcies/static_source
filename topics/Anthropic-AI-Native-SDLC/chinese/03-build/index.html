@@ -1,0 +1,585 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="book-mirror-html-format" content="reading-package-v1"><meta name="source-markdown-sha256" content="b570b817a53c96cb1f454b6f1ab9765a45aed14a6beb671bf7613cc825e02962"><title>03 Build：开发实现 · AI 原生 SDLC</title><style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+.mode-nav{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin:0 0 28px;font-size:15px}.mode-nav [aria-current]{font-weight:750;color:var(--ink)}.notice{font-size:14px;color:var(--muted)}.reader-tools{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:20px 0}.widget{margin:24px 0 36px;border-block:1px solid var(--line);padding:24px 0}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.control label{display:block;font-size:15px}.control input{width:100%;min-height:40px;accent-color:#b9481a}.widget button,.scenario-buttons button{font:inherit;font-size:16px;padding:10px 16px;border:1px solid #adb4bd;border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}.scenario-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.scenario-buttons [aria-pressed=true]{background:#fbe9df;border-color:#b9481a}.widget svg{width:100%;height:auto;display:block}.scenario-steps{display:flex;list-style:none;gap:12px;padding:0;flex-wrap:wrap}.scenario-steps li{padding:8px 12px;border-bottom:2px solid var(--line)}.scenario-steps li.current{border-color:#b9481a;font-weight:700}.scenario-output h3{margin-top:20px}.timing-result{font-size:20px;font-weight:600}.widget output{font-variant-numeric:tabular-nums}.figure button{color:inherit}.interactive-key{font-size:14px;line-height:1.6}.flow-track{display:flex;gap:4px;margin:24px 0}.flow-track span{flex:1;border-bottom:4px solid #d8dde4;text-align:center;font-size:13px;padding-bottom:8px}.flow-track span.active{border-color:#b9481a;font-weight:700}@media(max-width:600px){.controls{grid-template-columns:1fr}.flow-track{flex-wrap:wrap}.flow-track span{flex:1 0 28%}.mode-nav{gap:8px 14px}}@media print{.mode-nav,.reader-tools,.controls,.scenario-buttons,.widget button{display:none}}</style></head><body data-book-mirror-layout="reading-package-v1"><header><a href="../../../../">← 静态学习资料库</a><span>Anthropic AI-Native SDLC · 译文 · Build：开发实现</span></header><div class="shell"><aside><details><summary>本页目录</summary><nav aria-label="本页目录"><a href="#s-1">默认从 Claude Code 计划模式开始</a><a href="#s-2" class="sub">如何开始</a><a href="#s-3" class="sub">如何执行</a><a href="#s-4" class="sub">plan.md 示例</a><a href="#s-5" class="sub">治理方面的考虑</a><a href="#s-6" class="sub">如何衡量</a><a href="#s-7">Claude Code 自动模式</a><a href="#s-8">侧栏：旧系统与权威记录</a><a href="#s-9">CLAUDE.md</a><a href="#s-10" class="sub">如何开始</a><a href="#s-11" class="sub">如何执行</a><a href="#s-12" class="sub">CLAUDE.md 示例</a><a href="#s-13" class="sub">治理方面的考虑</a><a href="#s-14" class="sub">如何衡量</a><a href="#s-15">用 Skills 承载组织知识</a><a href="#s-16" class="sub">如何开始</a><a href="#s-17" class="sub">如何执行</a><a href="#s-18" class="sub">示例：.claude/skills/secure-api-review/SKILL.md</a><a href="#s-19" class="sub">治理方面的考虑</a><a href="#s-20" class="sub">如何衡量</a><a href="#s-21">把 Hooks 用作开发时的保护措施</a><a href="#s-22">并行会话与子代理</a><a href="#s-23" class="sub">如何开始</a><a href="#s-24" class="sub">如何执行</a><a href="#s-25" class="sub">示例：.claude/agents/verifier.md</a><a href="#s-26" class="sub">治理方面的考虑</a><a href="#s-27" class="sub">如何衡量</a></nav></details></aside><main><nav class="mode-nav" aria-label="阅读方式"><a href="../../original/03-build/">英文全文</a><a href="../../chinese/03-build/" aria-current="page">中文全文译文</a><a href="../../chapters/01-map/">图解讲解</a><a href="../../interactive/">交互推演</a></nav><p class="notice">全文翻译依据：PDF 第 14—25 页 · <a href="../../original/03-build/">对照英文</a></p><h1 id="s-0">03 Build：开发实现</h1><p>没有获准的计划，就不开始实现。组织知识成为 Agent 能够读取的文件，保护措施以代码运行，而不只依赖工作习惯。</p>
+<h2 id="s-1">默认从 Claude Code 计划模式开始</h2><p>工程师以<a href="https://code.claude.com/docs/en/permission-modes">计划模式</a>启动 Claude Code 会话，把第 2 阶段“设计”中获准的 <code>spec.md</code> 交给 Claude，让它向自己提问，持续调整计划，直到工程师满意。</p>
+<p><strong>传统方式。</strong> 工程师读完设计便开始写代码。怎样实现改动、具体修改哪些文件、需要哪些测试，这些信息留在工程师脑中，最多写在工单评论里，其他人无法提前评审。评审者首次看到的就是已经完成的 diff，此时返工已经很慢。</p>
+<p><strong>AI 原生方式。</strong> 工作从书面计划开始。Claude 在计划模式中读取代码库，但不做改动，据此生成计划。工程师在写代码前纠正计划，批准后的版本提交为 <code>plan.md</code>，供后续阶段对照检查。</p>
+<h3 id="s-2">如何开始</h3><p><strong>前置条件：</strong> 如果已经有意图交付物，就提供 <code>intent.md</code> 或 <code>spec.md</code>；有 <code>CLAUDE.md</code> 也会有所帮助。</p>
+<p><strong>基础设施：</strong> 能够访问仓库的 Claude Code。</p>
+<h3 id="s-3">如何执行</h3><ol>
+<li>工程师在计划模式下启动与 Claude 的会话。</li>
+<li>提供 <code>intent.md</code> 与 <code>spec.md</code>，要求实施计划列明要修改的文件、工作顺序，以及证明改动的测试。</li>
+<li>追问计划：这次改动可能破坏什么？哪一步风险最高？Claude 考虑后放弃了哪些其他方案？</li>
+<li>持续修改，直到一个没看过这段对话的工程师，也能仅凭计划实施改动。</li>
+<li>将批准后的计划提交为 <code>plan.md</code>，纳入审计轨迹。第 5 阶段“部署”中的 PR 评审将对照它检查最终 diff。</li>
+<li>接受计划，让 Claude 实现。计划足够扎实时，实现往往一轮即可完成。</li>
+<li>实现偏离计划时，在同一次提交中更新 <code>plan.md</code>。可以考虑用 Hook 强制两者同步。</li>
+</ol>
+<h3 id="s-4">plan.md 示例</h3><pre><code class="language-markdown"># Plan: claims status self-service (from intent.md 2026-06-02)
+
+## Files that change
+portal/src/claims/StatusPanel.tsx (new), claims-api/routes/status.py,
+claims-api/tests/test_status.py
+
+## Order of work
+1. Add the status endpoint behind existing auth.
+2. Panel against the endpoint.
+3. Wire into the portal nav.
+
+## Risks
+The claims-core API rate-limits at 50 rps; the panel must cache.
+
+## Proof
+test_status.py covers the four claim states; screenshot matches the
+approved mock.
+</code></pre>
+<p><strong>示例中的文字。</strong> 计划是理赔状态自助查询，来源为 2026-06-02 的意图文件。新增 <code>StatusPanel.tsx</code>，修改状态路由和对应测试。顺序是先在既有认证后增加状态接口，再实现对接接口的面板，最后接入门户导航。风险是 <code>claims-core API</code> 每秒限流 50 次请求，因此面板必须缓存。验证要求为 <code>test_status.py</code> 覆盖四种理赔状态，截图符合已经批准的设计稿。</p>
+<h3 id="s-5">治理方面的考虑</h3><p>设计评审在生成任何代码之前进行。此时调整方向，仍然只需修改文档。计划模式本身就执行这项限制：工程师接受计划前，Claude 无法编辑文件。计划及其修订与接受者身份一起留档。日常改动由工程师批准，组织认定为较高风险的事项交给技术负责人或架构师。</p>
+<h3 id="s-6">如何衡量</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>定义与取数方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>领先指标</td>
+<td>第一轮实现后即可合并的改动比例，以及从计划批准到 PR 合并的时间。所需数据来自 PR 元数据。</td>
+</tr>
+<tr>
+<td>滞后指标</td>
+<td>每次改动的返工轮次，同样从 PR 元数据取得；另检查合并后的 diff 有多经常仍与已提交的 <code>plan.md</code> 一致。</td>
+</tr>
+</tbody></table></div>
+<h2 id="s-7">Claude Code 自动模式</h2><p>Claude Code 也可以运行在自动模式中。工程师反复调整并批准计划、确认满意后，Claude 每次应用改动时无需再逐次提示确认。随着后文各项方法中的保护措施成熟，包括调整好的 <code>CLAUDE.md</code>、表达政策的 Skills、阻止不安全动作的 Hooks，以及 Claude 能运行的测试套件，自动接受会成为日常工作的默认方式。这类工作应当有清楚的 <code>spec.md</code>、较小的影响范围，而且已有测试覆盖相关代码。</p>
+<p>人的工作会从观察 Agent 每次编辑、逐项审核动作，转向在较长的自主会话结束后审查交付物。自动接受与 worktree 结合，还能支持个人和团队开展并行工作；它也是第 6 阶段“维护”中自主运行 SDLC、形成循环的基础。</p>
+<h2 id="s-8">侧栏：旧系统与权威记录</h2><p>本节适用于流程产生的每一项交付物。</p>
+<p>既有 SDLC 很可能已经在追踪交付物，只是没有放在 Markdown 文件中。工作项可能在 Jira，需求放在内置监管追溯能力的工具里，设计在 Figma，变更批准则由变更委员会记录。这些系统很难被替换，因为审计人员和监管方已经接受它们，其他团队也依赖它们。因此，AI 原生 SDLC 必须能够适配现状。</p>
+<p>转向 AI 原生 SDLC 时，要为每种交付物指定一个系统作为权威记录（source of truth），其他地方保存副本或原记录链接。可以采用以下配置，每种交付物的选择可以不同：</p>
+<ul>
+<li><strong>仓库作为权威记录。</strong> Markdown 交付物是正式记录，旧系统引用某次提交中的文件。对于工程主导的组织，这可能是较简洁的配置：所有记录使用同一工具和同一时间戳权威。</li>
+<li><strong>旧系统作为权威记录。</strong> Jira、ServiceNow 或需求工具保存正式记录，Markdown 是工作副本。Claude 在会话开始时读取记录，在生成规格或计划的同一会话中，通过 <a href="https://code.claude.com/docs/en/mcp">MCP</a> 连接器把结果写回。</li>
+<li><strong>相互关联作为最低要求。</strong> 所有交付物注明记录 ID，所有旧系统记录包含 Markdown 文件的 commit SHA。过渡到 AI 原生 SDLC 时，可以从这种关联方式开始，同时接受目前存在两处权威记录的事实。</li>
+</ul>
+<p>旧系统与 Markdown 优先的系统可以共存，前提是两者建立关联，或明确其中一个是权威记录。</p>
+<h2 id="s-9">CLAUDE.md</h2><p><a href="https://code.claude.com/docs/en/memory"><code>CLAUDE.md</code></a> 为 Claude 提供新成员入职时需要的上下文，涵盖约定、命令、架构和团队最常见的错误。过去存在人脑和 Wiki 中的知识，变成 Agent 每次会话开始时读取的文件，由整个团队维护，并在出错后持续调整。</p>
+<h3 id="s-10">如何开始</h3><p><strong>前置条件：</strong> 无。</p>
+<p><strong>基础设施：</strong> 一个仓库、已安装的 Claude Code，以及一位熟悉代码库的工程师。</p>
+<h3 id="s-11">如何执行</h3><ol>
+<li>在仓库中运行 <code>/init</code>，让 Claude 根据发现的内容生成初始 <code>CLAUDE.md</code>。</li>
+<li>将文件精简到新成员第一天所需的信息：保留构建、测试和 lint 命令，重要约定，以及 Claude 反复犯错的地方。</li>
+<li>在仓库根目录提交 <code>CLAUDE.md</code>，让团队共享一个版本，并像代码一样评审修改。</li>
+<li>可以采用一条工作规则：Claude 同一种错误犯了两次，就把纠正说明写进 <code>CLAUDE.md</code>。</li>
+<li>文件控制在一页以内。Claude 在会话开始时会通读整个文件，过时信息只会白占上下文。</li>
+</ol>
+<h3 id="s-12">CLAUDE.md 示例</h3><pre><code class="language-markdown"># Payments service
+
+## Commands
+- Build: make build
+- Test: make test (unit), make itest (integration, needs docker)
+- Lint: make lint (runs in CI; fix before pushing)
+
+## Conventions
+- Java 21, Spring Boot 3. No new Lombok.
+- Money is always BigDecimal, never double.
+- Every endpoint needs an integration test in src/itest.
+
+## Architecture
+- api/ holds REST controllers, core/ holds domain logic,
+  adapters/ talks to external systems.
+- Kafka events are defined in schemas/; never edit generated classes.
+
+## Things Claude gets wrong
+- Do not bump dependency versions; the platform team owns them.
+- The legacy v1/ package is frozen; changes go in v2/.
+</code></pre>
+<p><strong>示例中的文字。</strong> 支付服务的命令为 <code>make build</code>、单元测试 <code>make test</code>、需要 Docker 的集成测试 <code>make itest</code>，以及在 CI 中运行的 <code>make lint</code>；推送前修复 lint 问题。约定使用 Java 21、Spring Boot 3，不新增 Lombok 用法；金额始终使用 <code>BigDecimal</code>，绝不使用 <code>double</code>；每个端点在 <code>src/itest</code> 中有集成测试。架构中，<code>api/</code> 放 REST 控制器，<code>core/</code> 放领域逻辑，<code>adapters/</code> 连接外部系统；Kafka 事件定义在 <code>schemas/</code>，不得编辑生成类。常见错误提示是：依赖版本由平台团队管理，不得自行升级；旧 <code>v1/</code> 包已冻结，修改放到 <code>v2/</code>。</p>
+<h3 id="s-13">治理方面的考虑</h3><p><code>CLAUDE.md</code> 纳入版本控制，Agent 遵守的指令就能够评审和审计。文件承载团队约定，修改记录保存在 Git 历史中，由代码所有者在 PR 评审中批准。</p>
+<h3 id="s-14">如何衡量</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>定义与取数方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>领先指标</td>
+<td>Claude 重复出现本应被 <code>CLAUDE.md</code> 纠正的错误的频率。对 <code>CLAUDE.md</code> 的修正和变更应在 Git 历史中追踪。</td>
+</tr>
+<tr>
+<td>滞后指标</td>
+<td>新团队成员从开始工作到首个 PR 合并所需的时间，从 PR 历史获取。</td>
+</tr>
+</tbody></table></div>
+<h2 id="s-15">用 Skills 承载组织知识</h2><p>Skills 使组织知识能够应用于实际工作：指令明确、纳入版本控制、广泛采用，并在政策改变时集中更新。一个经验原则是：需要一致应用的组织知识适合写成 Skill；本应放在 <code>CLAUDE.md</code> 或提示词里的内容，不要另写成 Skill。</p>
+<h3 id="s-16">如何开始</h3><p><strong>前置条件：</strong> 没有必需项。<code>CLAUDE.md</code> 能把 Agent 的工作知识保存在仓库中，因此有所帮助，但 Skill 并不依赖它。</p>
+<p><strong>基础设施：</strong> 一项有具名负责人、有书面权威记录的政策。</p>
+<h3 id="s-17">如何执行</h3><ol>
+<li>选择一项目前执行不一致的知识，可以是安全标准、API 设计约定或品牌规则。</li>
+<li>将其写为 Skill：一个包含 <code>SKILL.md</code> 的目录，frontmatter 说明何时触发，正文说明做什么。工程师依据政策负责人的权威记录起草，可以让 Claude 协助。</li>
+<li>将 Skill 放在仓库的 <code>.claude/skills/&lt;name&gt;/</code>，与代码一起交付；也可以通过<a href="https://code.claude.com/docs/en/plugin-marketplaces">插件</a>在组织内分发。</li>
+<li>测试触发是否可靠。用不同说法请 Claude 完成相关任务，确认每次都加载 Skill。</li>
+<li>政策改变时修改 Skill，并由政策负责人批准。</li>
+<li>工程师在下次会话自动使用新版本。</li>
+</ol>
+<h3 id="s-18">示例：.claude/skills/secure-api-review/SKILL.md</h3><pre><code class="language-markdown">---
+name: secure-api-review
+description: Apply the API security standard. Use whenever creating or
+  modifying an external-facing endpoint, reviewing API code, or
+  generating an OpenAPI spec.
+---
+# Secure API review
+
+When you create or change an API endpoint:
+1. Authentication: every endpoint requires the gateway JWT;
+   no anonymous routes outside /health.
+2. Input validation: validate request bodies against the OpenAPI
+   schema and reject unknown fields.
+3. Audit: every state-changing endpoint emits an audit event with
+   actor, action, entity and timestamp.
+4. Data classification: fields tagged pii in the schema must never
+   appear in logs or error messages.
+
+Run scripts/check-endpoints.sh and include its output in your summary.
+</code></pre>
+<p><strong>示例中的文字。</strong> 创建或修改对外端点、评审 API 代码或生成 OpenAPI 规格时，应用 API 安全标准。端点必须使用网关 JWT，<code>/health</code> 以外不允许匿名路由；按 OpenAPI schema 校验请求体，拒绝未知字段；所有改变状态的端点都发出审计事件，包含操作人、动作、实体和时间戳；schema 中标为 <code>pii</code> 的字段不得出现在日志或错误信息中。运行 <code>scripts/check-endpoints.sh</code>，在摘要中附上输出。</p>
+<h3 id="s-19">治理方面的考虑</h3><p>Skill 是一种控制措施，但它提供的是指导。它让 Claude 更有可能在写代码时应用政策，却没有机制强迫会话遵守。必须始终成立的政策，需要 Skill 背后的确定性机制支持，例如阻止动作的 Hook，或在 PR 中重新检查政策的评审。Skill 让违规变得少见，Hook 让违规接近不可能。Skill 调用记录在会话追踪中，政策负责人像评审代码一样审阅 Skill 修改。</p>
+<h3 id="s-20">如何衡量</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>定义与取数方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>领先指标</td>
+<td>从政策负责人批准政策变更，到更新后的 Skill 合并所需的时间，从 Skill 目录相关 PR 获取。</td>
+</tr>
+<tr>
+<td>滞后指标</td>
+<td>PR 评审中引用该政策的问题数量。Skill 在编码时开始应用政策后，这类发现应趋近于零。如果这类发现没有趋近于零，要么 Skill 没有触发，要么其文字已经偏离正式政策。</td>
+</tr>
+</tbody></table></div>
+<h2 id="s-21">把 Hooks 用作开发时的保护措施</h2><p>Skill 提供指导，<a href="https://code.claude.com/docs/en/hooks">Hook</a> 是背后的确定性执行层。Claude 在实现期间大多是在编辑文件和执行 Shell 命令，因此开发实现阶段可能最频繁地触发 Hooks。</p>
+<p>开发阶段的 Hook 可以：</p>
+<ul>
+<li>阻止编辑生成类、冻结包等受保护路径；</li>
+<li>每次编辑后运行格式化器和 lint，避免偏差累积；</li>
+<li>阻止凭据进入 diff。</li>
+</ul>
+<p>凡是必须无例外遵守的 Skill 政策，都应有这些机制支持。Hook 会在每次匹配动作发生时运行，因此开发阶段的 Hooks 应当快速，并限定于变更文件。完整测试套件等较重的检查应放在提交或 PR 阶段。</p>
+<p>向人请求批准的 Hook 应与第 5 阶段“部署”的审批关口一起安排，因为开发期间的批准提示，会让人重新成为所有并行会话的必经环节。</p>
+<h2 id="s-22">并行会话与子代理</h2><p>一位工程师可以同时推进几条工作线。</p>
+<p>并行会话是另一个完整的 Claude Code 实例，在自己的 <a href="https://code.claude.com/docs/en/worktrees">Git worktree</a> 中处理独立任务。会话彼此不了解，唯一的共同点是指导它们的工程师。</p>
+<p><a href="https://code.claude.com/docs/en/sub-agents">子代理</a> 在一个会话内部充当范围明确的助手，拥有独立上下文窗口和工具限制。它适合多个任务中反复出现的工作，例如验证应用是否按预期运行。</p>
+<p>并行会话增加工程师能同时推进的任务数；子代理让每个会话专注于自身任务。工程师负责指导和审查所有工作。</p>
+<p><strong>传统方式。</strong> 一位工程师一次做一项任务，每天或每周有相当多时间花在构建、测试和评审者身上。等待时可以切换任务，但上下文切换太耗精力，很少有人愿意这样做。</p>
+<p><strong>AI 原生方式。</strong> 一位工程师同时运行多个 Claude 会话，各有 worktree 和任务。重复工作交给拥有独立上下文与工具限制的子代理。工程师逐渐转向协调工作，最终转向建立和监控循环。</p>
+<h3 id="s-23">如何开始</h3><p><strong>前置条件：</strong> <code>CLAUDE.md</code>，因为所有会话都会读取它。第 4 阶段“测试”中的反馈回路也有帮助：会话能自查时，工程师就不必时时监督。</p>
+<p><strong>基础设施：</strong> Git 仓库，隔离来自 worktree；还需调整权限设置，使会话执行组织认为安全的命令时，无需一直等待批准提示。</p>
+<h3 id="s-24">如何执行</h3><ol>
+<li>工程师依据计划模式形成的计划，找出独立部分，将工作拆为修改不同文件的任务。共享文件的任务放在一个会话中先后运行。</li>
+<li>每个并行任务使用独立 worktree，例如一个终端运行 <code>claude --worktree feature-auth</code>，另一个运行 <code>claude --worktree fix-rate-limit</code>。worktree 是独立分支上的单独检出目录，避免会话在文件上冲突。</li>
+<li>从两三个会话开始比较合适。实际的上限是一个人能认真审查多少条工作线，只有评审跟得上时才增加会话。</li>
+<li>将重复工作制作成子代理，定义在 <code>.claude/agents/</code> 的 Markdown 文件中，写明名称、使用时机与可用工具。例如主代理完成后清除无谓复杂度的代码简化器、运行应用并检查行为的验证器，或探索代码后汇报结果、避免挤满主上下文的研究助手。定义提交到 Git，供全团队共享。</li>
+</ol>
+<h3 id="s-25">示例：.claude/agents/verifier.md</h3><pre><code class="language-markdown">---
+name: verifier
+description: Runs the app and checks the change works before the session
+  reports done
+tools: Bash, Read
+---
+Start the app with make run. Exercise the changed behavior and the two
+nearest neighboring flows. Report what you ran, what you saw, and any
+behavior that does not match plan.md. Do not fix anything; report only.
+</code></pre>
+<p><strong>示例中的文字。</strong> <code>verifier</code> 在会话报告完成前运行应用、确认改动生效，可用工具只有 <code>Bash</code> 与 <code>Read</code>。使用 <code>make run</code> 启动应用，执行改动涉及的行为及最相近的两条流程。报告运行了什么、观察到什么，以及哪些行为不符合 <code>plan.md</code>。不修复，只报告。</p>
+<h3 id="s-26">治理方面的考虑</h3><p>会话更多，产出也更多，因此控制措施必须来自仓库配置。仓库中的 Hooks 和权限设置应用于所有会话；会话所做的事情会被记录，并归属于运行会话的工程师。</p>
+<h3 id="s-27">如何衡量</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>定义与取数方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>领先指标</td>
+<td>在评审质量保持稳定的条件下，每位工程师的并发会话数，使用 OpenTelemetry 导出统计；同时看一天中用于指导工作而非等待的时间比例。</td>
+</tr>
+<tr>
+<td>滞后指标</td>
+<td>每位工程师每周合并的改动数，并结合 PR 历史中的返工率一起解读。</td>
+</tr>
+</tbody></table></div>
+<div class="reader-tools"><a href="chapter.md">Markdown 源稿</a><a href="../../">专题目录</a></div><nav class="pagination" aria-label="前后阅读"><a href="../../chinese/02-design/">← 上一篇</a><a href="../../chinese/04-test/">下一篇 →</a></nav><p class="colophon">来源：用户提供的英文 PDF。全文译文与原创图解分别呈现。</p></main></div><dialog aria-label="图片放大"><button type="button" autofocus>关闭</button><div class="zoom-content"></div></dialog><script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+
+</script></body></html>

@@ -1,0 +1,410 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="book-mirror-html-format" content="reading-package-v1"><meta name="source-markdown-sha256" content="4a2cd804600b140485504511a15b5578d51f17091a6043bce07714ab98d5eae8"><title>02 Design：设计 · AI 原生 SDLC</title><style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+.mode-nav{display:flex;flex-wrap:wrap;gap:8px 20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin:0 0 28px;font-size:15px}.mode-nav [aria-current]{font-weight:750;color:var(--ink)}.notice{font-size:14px;color:var(--muted)}.reader-tools{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:20px 0}.widget{margin:24px 0 36px;border-block:1px solid var(--line);padding:24px 0}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.control label{display:block;font-size:15px}.control input{width:100%;min-height:40px;accent-color:#b9481a}.widget button,.scenario-buttons button{font:inherit;font-size:16px;padding:10px 16px;border:1px solid #adb4bd;border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}.scenario-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.scenario-buttons [aria-pressed=true]{background:#fbe9df;border-color:#b9481a}.widget svg{width:100%;height:auto;display:block}.scenario-steps{display:flex;list-style:none;gap:12px;padding:0;flex-wrap:wrap}.scenario-steps li{padding:8px 12px;border-bottom:2px solid var(--line)}.scenario-steps li.current{border-color:#b9481a;font-weight:700}.scenario-output h3{margin-top:20px}.timing-result{font-size:20px;font-weight:600}.widget output{font-variant-numeric:tabular-nums}.figure button{color:inherit}.interactive-key{font-size:14px;line-height:1.6}.flow-track{display:flex;gap:4px;margin:24px 0}.flow-track span{flex:1;border-bottom:4px solid #d8dde4;text-align:center;font-size:13px;padding-bottom:8px}.flow-track span.active{border-color:#b9481a;font-weight:700}@media(max-width:600px){.controls{grid-template-columns:1fr}.flow-track{flex-wrap:wrap}.flow-track span{flex:1 0 28%}.mode-nav{gap:8px 14px}}@media print{.mode-nav,.reader-tools,.controls,.scenario-buttons,.widget button{display:none}}</style></head><body data-book-mirror-layout="reading-package-v1"><header><a href="../../../../">← 静态学习资料库</a><span>Anthropic AI-Native SDLC · 译文 · Design：设计</span></header><div class="shell"><aside><details><summary>本页目录</summary><nav aria-label="本页目录"><a href="#s-1">需求与设计</a><a href="#s-2" class="sub">如何开始</a><a href="#s-3" class="sub">如何执行</a><a href="#s-4" class="sub">提示词示例</a><a href="#s-5" class="sub">治理方面的考虑</a><a href="#s-6" class="sub">如何衡量</a></nav></details></aside><main><nav class="mode-nav" aria-label="阅读方式"><a href="../../original/02-design/">英文全文</a><a href="../../chinese/02-design/" aria-current="page">中文全文译文</a><a href="../../chapters/01-map/">图解讲解</a><a href="../../interactive/">交互推演</a></nav><p class="notice">全文翻译依据：PDF 第 11—14 页 · <a href="../../original/02-design/">对照英文</a></p><h1 id="s-0">02 Design：设计</h1><p>需求和设计合并到一次会话中。政策在编写规格时就得到应用，无需等到几周后的评审才发现问题。</p>
+<h2 id="s-1">需求与设计</h2><p>产品负责人批准后，Claude 读取获准的 <code>intent.md</code>，生成需求与设计规格。组织针对品牌、安全、合规和用户体验编写的 <a href="https://code.claude.com/docs/en/skills">Skills</a>，为这一过程提供指导。</p>
+<p>产品负责人负责审阅规格，无需自己起草。目标是生成一份工程团队可以据以制定计划的规格，并把需要关注的问题标出来。</p>
+<p>前端工作最容易说明这一点。<code>intent.md</code> 获准后，产品负责人据此在 <a href="https://claude.com/product/design">Claude Design</a>（测试版）中制作设计稿，反复调整，再导出给 Claude Code 实现。</p>
+<p><strong>传统方式。</strong> 需求和设计是不同团队负责的两个阶段。分析师把想法正式写成需求，设计师再把需求解读成设计。这种分离是为了明确责任，但过程缓慢，也会损失信息。</p>
+<p><strong>AI 原生方式。</strong> 两个阶段在一次提示驱动的会话中完成。Claude 读取 <code>intent.md</code>，按照组织 Skills 的约束生成需求与设计规格，并标出疑虑。</p>
+<h3 id="s-2">如何开始</h3><p><strong>前置条件：</strong> 已写好 <code>intent.md</code>，并将品牌、安全、合规和用户体验政策编写为 Skills。</p>
+<p><strong>基础设施：</strong> 一位能够使用 Claude 的产品负责人。执行这一步不需要工程技能。</p>
+<h3 id="s-3">如何执行</h3><ol>
+<li>产品负责人启动能够访问组织 Skills 的会话，并附上 <code>intent.md</code>。</li>
+<li>提示词指向 <code>intent.md</code>，列明约束，要求标出疑虑。最初手动运行，再将其固化为组织级斜杠命令。之后，以意图存放位置中的 <code>intent.md</code> 获准为触发条件，在合并时启动非交互作业，加载组织 Skills 完成处理，再以 PR 提交 <code>spec.md</code>。第 5 阶段“部署”的 CI/CD 方法说明了接入机制。做到这一步后，产品负责人首次介入就是评审。</li>
+<li>同一位产品负责人对照原想法审阅规格：它解决了提出的问题吗？<code>intent.md</code> 中的未决问题得到回答了，还是被明确带到后续阶段？</li>
+<li>先处理标出的疑虑，因为它们正是分析师原本会升级处理的问题。工程团队看到规格前，产品负责人逐项与相应政策负责人解决。</li>
+<li>将 <code>spec.md</code> 与 <code>intent.md</code> 放在一起提交。两份文件记录最初提出什么要求，以及最终决定了什么。</li>
+<li>产品负责人决定规格与意图是否进入开发实现；对于组织认定为较高风险的事项，咨询技术负责人。这个决定始终由人作出。接受规格后，才会启动第 3 阶段“开发实现”中的计划模式。</li>
+</ol>
+<h3 id="s-4">提示词示例</h3><pre><code class="language-markdown">Read the attached intent.md and produce a requirements and design spec for integrating it into our existing codebase. Apply the skills available to you so the plan conforms to our brand guidelines, security policies and UX standards. Document the spec fully as spec.md, ready to hand to the engineering team. Describe clearly any areas of concern, especially where you cannot satisfy contradicting policies.
+</code></pre>
+<p><strong>提示词中文。</strong> 阅读所附的 <code>intent.md</code>，生成需求与设计规格，说明如何将需求整合进现有代码库。运用你能够使用的 Skills，使方案符合我们的品牌准则、安全政策和用户体验标准。把规格完整记录为 <code>spec.md</code>，准备交给工程团队。清楚描述所有疑虑，尤其是无法同时满足、相互冲突的政策。</p>
+<h3 id="s-5">治理方面的考虑</h3><p>当前政策在编写规格时就被读取和应用，不必等到几周后的评审才发现问题。组织 Skills 对规格施加约束。规格、生成它的提示词，以及当时生效的 Skill 版本，都记录在版本控制系统中。产品负责人批准规格，并把标出的疑虑交给明确指定的政策负责人。</p>
+<h3 id="s-6">如何衡量</h3><div class="table-scroll"><table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>定义与取数方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>领先指标</td>
+<td>同一次改动中，<code>intent.md</code> 提交与 <code>spec.md</code> 提交之间的时间，取两个 Git 时间戳之差，与原先需求加设计的周期比较。</td>
+</tr>
+<tr>
+<td>滞后指标</td>
+<td>开发开始后的需求返工。统计同一次改动首次提交 <code>plan.md</code> 之后的 <code>spec.md</code> 提交次数，直接从 Git 日志获取。</td>
+</tr>
+</tbody></table></div>
+<div class="reader-tools"><a href="chapter.md">Markdown 源稿</a><a href="../../">专题目录</a></div><nav class="pagination" aria-label="前后阅读"><a href="../../chinese/01-plan/">← 上一篇</a><a href="../../chinese/03-build/">下一篇 →</a></nav><p class="colophon">来源：用户提供的英文 PDF。全文译文与原创图解分别呈现。</p></main></div><dialog aria-label="图片放大"><button type="button" autofocus>关闭</button><div class="zoom-content"></div></dialog><script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+
+</script></body></html>

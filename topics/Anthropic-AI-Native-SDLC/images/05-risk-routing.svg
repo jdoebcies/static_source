@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 744" role="img" aria-labelledby="title desc">
+<title id="title">访问范围变化，判断路径也会变化</title><desc id="desc">订单导出案例：技术上可做，还需要确认是否获准。实线：案例决策路径；未决问题不能当作已经批准。</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6Z" fill="#4f5d75"/></marker><marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6Z" fill="#eb6c36"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6Z" fill="#2e5aa8"/></marker></defs>
+<style>text{font-family:'PingFang SC','Hiragino Sans GB','Arial',sans-serif} .mono{font-family:ui-monospace,monospace}</style>
+<rect width="800" height="744" fill="#f5f5f5"/>
+<text x="32" y="40" font-size="28" fill="#2d3142" text-anchor="start" font-weight="650">访问范围变化，判断路径也会变化</text><text x="32" y="72" font-size="16" fill="#4f5d75" text-anchor="start" font-weight="500">订单导出案例：技术上可做，还需要确认是否获准</text>
+<path d="M400 180 V212" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M260 288 H160 V400" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M540 288 H648 V400" fill="none" stroke="#eb6c36" stroke-width="2"  marker-end="url(#arrow-accent)"/>
+<rect x="156" y="260" width="32" height="28" rx="4" fill="#f5f5f5"/><text x="172" y="280" font-size="16" fill="#4f5d75" text-anchor="middle" font-weight="500">否</text>
+<rect x="628" y="260" width="32" height="28" rx="4" fill="#f5f5f5"/><text x="644" y="280" font-size="16" fill="#4f5d75" text-anchor="middle" font-weight="500">是</text>
+<path d="M160 496 V580 H288" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M648 496 V580 H512" fill="none" stroke="#4f5d75" stroke-width="2"  marker-end="url(#arrow)"/><g class="node" data-title="读取现有权限事实"><rect x="288" y="104" width="224" height="80" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="400" y="152" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">读取现有权限事实</text></g>
+<g class="node" data-title="改变访问边界？"><path d="M 400 212 L 540 288 L 400 364 L 260 288 Z" fill="#fbe9df" stroke="#eb6c36" stroke-width="1.2"/><text x="400" y="284" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="500">改变访问边界？</text><text x="400" y="312" font-size="16" fill="#4f5d75" text-anchor="middle" font-weight="500">核对业务范围</text></g>
+<g class="node" data-title="复用现有授权"><rect x="48" y="400" width="224" height="96" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="160" y="436" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">复用现有授权</text><text x="160" y="468" font-size="16" fill="#4f5d75" text-anchor="middle" font-weight="500">研发检查适配</text></g>
+<g class="node" data-title="处理新增风险"><rect x="536" y="400" width="224" height="96" rx="8" fill="#fbe9df" stroke="#eb6c36" stroke-width="1.2"/><text x="648" y="436" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">处理新增风险</text><text x="648" y="468" font-size="16" fill="#4f5d75" text-anchor="middle" font-weight="500">政策负责人＋技术判断</text></g>
+<g class="node" data-title="形成可接受的计划"><rect x="288" y="544" width="224" height="80" rx="8" fill="#fff" stroke="#4f5d75" stroke-width="1.2"/><text x="400" y="592" font-size="20" fill="#2d3142" text-anchor="middle" font-weight="650">形成可接受的计划</text></g>
+<path d="M32 680 H768" stroke="#bfc0c0" fill="none"/><text x="32" y="712" font-size="16" fill="#4f5d75" text-anchor="start" font-weight="500">实线：案例决策路径；未决问题不能当作已经批准。</text>
+</svg>

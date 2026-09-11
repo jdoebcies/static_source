@@ -1,0 +1,125 @@
+{
+  "format": "diagram-design-svg-v1",
+  "diagrams": [
+    {
+      "id": "01-lifecycle",
+      "title": "六阶段全流程",
+      "subtitle": "沿箭头看交接；虚线表示运行发现返回下一轮",
+      "legend": "来源：官方六阶段模型；本图为原创整理。",
+      "svg": "images/01-lifecycle.svg",
+      "png": "images/01-lifecycle.png",
+      "html": "diagrams/01-lifecycle.html",
+      "height": 520
+    },
+    {
+      "id": "02-artifacts",
+      "title": "同一个需要，逐步变得可执行",
+      "subtitle": "订单导出是教学案例；三个文件回答不同问题",
+      "legend": "实线：同一需求逐步具体化；变化可以要求回查前面的决定。",
+      "svg": "images/02-artifacts.svg",
+      "png": "images/02-artifacts.png",
+      "html": "diagrams/02-artifacts.html",
+      "height": 432
+    },
+    {
+      "id": "03-waiting",
+      "title": "编码缩短，不会自动消除等待",
+      "subtitle": "假设串行工时，仅演示算术；不代表实测效率",
+      "legend": "总周期减少 5/12，约 42%；模型忽略并行与返工。",
+      "svg": "images/03-waiting.svg",
+      "png": "images/03-waiting.png",
+      "html": "diagrams/03-waiting.html",
+      "height": 404
+    },
+    {
+      "id": "04-responsibilities",
+      "title": "研发在实施前参与判断",
+      "subtitle": "竖向泳道按责任划分；向下表示时间推进",
+      "legend": "实线：工作交接；政策冲突与高风险事项的分支见下一图。",
+      "svg": "images/04-responsibilities.svg",
+      "png": "images/04-responsibilities.png",
+      "html": "diagrams/04-responsibilities.html",
+      "height": 928
+    },
+    {
+      "id": "05-risk-routing",
+      "title": "访问范围变化，判断路径也会变化",
+      "subtitle": "订单导出案例：技术上可做，还需要确认是否获准",
+      "legend": "实线：案例决策路径；未决问题不能当作已经批准。",
+      "svg": "images/05-risk-routing.svg",
+      "png": "images/05-risk-routing.png",
+      "html": "diagrams/05-risk-routing.html",
+      "height": 744
+    },
+    {
+      "id": "06-plan-review",
+      "title": "先把计划审明白，再开始改代码",
+      "subtitle": "时间从上到下；每条箭头表示一次请求或返回",
+      "legend": "实线：请求；虚线：返回。具体时序为订单导出教学构造。",
+      "svg": "images/06-plan-review.svg",
+      "png": "images/06-plan-review.png",
+      "html": "diagrams/06-plan-review.html",
+      "height": 680
+    },
+    {
+      "id": "07-controls",
+      "title": "指导与执行，检查的是不同位置",
+      "subtitle": "以订单访问隔离为例，规则需要对应实际执行点",
+      "legend": "本图用业务权限作类比；工具侧还需 Hooks、权限与 CI 等控制。",
+      "svg": "images/07-controls.svg",
+      "png": "images/07-controls.png",
+      "html": "diagrams/07-controls.html",
+      "height": 576
+    },
+    {
+      "id": "08-verification",
+      "title": "让失败成为可以重跑的证据",
+      "subtitle": "假设缺陷：A 门店用户可导出 B 门店订单",
+      "legend": "实线：验证步骤；虚线：未通过时返回实现。测试变更须解释。",
+      "svg": "images/08-verification.svg",
+      "png": "images/08-verification.png",
+      "html": "diagrams/08-verification.html",
+      "height": 648
+    },
+    {
+      "id": "09-review",
+      "title": "“没有发现问题”与“批准合并”分开",
+      "subtitle": "订单导出 PR：谁生成、谁检查、谁能批准",
+      "legend": "实线：交接；虚线：返工。生成者没有自批路径。",
+      "svg": "images/09-review.svg",
+      "png": "images/09-review.png",
+      "html": "diagrams/09-review.html",
+      "height": 464
+    },
+    {
+      "id": "10-deployment",
+      "title": "合并以后，还要判断何时发布",
+      "subtitle": "示例环境策略；权限与验证条件需由团队实际确定",
+      "legend": "箭头：示例发布步骤。合并批准和生产发布授权不等价。",
+      "svg": "images/10-deployment.svg",
+      "png": "images/10-deployment.png",
+      "html": "diagrams/10-deployment.html",
+      "height": 600
+    },
+    {
+      "id": "11-maintenance",
+      "title": "异常触发诊断，行动仍受约束",
+      "subtitle": "假设订单导出上线后，在线查询延迟持续异常",
+      "legend": "箭头：事件与工作流转。触发自动化不增加任意生产权限。",
+      "svg": "images/11-maintenance.svg",
+      "png": "images/11-maintenance.png",
+      "html": "diagrams/11-maintenance.html",
+      "height": 668
+    },
+    {
+      "id": "12-learning",
+      "title": "让这次发现，成为下次的检查",
+      "subtitle": "测试评价实现；eval 评价 Agent 与配置的任务表现",
+      "legend": "实线：形成检查依据；虚线：持续补充。通过只覆盖已检查情景。",
+      "svg": "images/12-learning.svg",
+      "png": "images/12-learning.png",
+      "html": "diagrams/12-learning.html",
+      "height": 584
+    }
+  ]
+}
