@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《赚钱的艺术》第五部｜美食与生活 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
+  margin: 0 0 12px auto;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>赚钱的艺术：心酸不必对人言，多挣钱多自由 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：11篇文章怎样展开</a><a class="sub" href="#section-2">面痴谈面</a><a class="sub" href="#section-3">靠吃起家的人</a><a class="sub" href="#section-4">怀念吃饭盒的日子</a><a class="sub" href="#section-5">一桌斋菜</a><a class="sub" href="#section-6">蔡澜越南粉</a><a class="sub" href="#section-7">求精</a><a class="sub" href="#section-8">放假</a><a class="sub" href="#section-9">为“狗民”服务</a><a class="sub" href="#section-10">履历书</a><a class="sub" href="#section-11">重现避风塘旧梦</a><a class="sub" href="#section-12">跳肚皮舞的巴士小姐</a><a class="" href="#section-13">二、主题讲解：把兴趣做深，要经过“比较—复现—标准化—适配”</a><a class="" href="#section-14">检验理解</a><a class="sub" href="#section-15">核对思路（先作答再看）</a><a class="" href="#section-16">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第五部</p><h1>美食与生活</h1>
+<p>本章要回答：蔡澜怎样把“会吃”变成辨别、制作和经营能力？一门兴趣什么时候适合变成生意，什么时候应该保留为生活？</p>
+<h2 id="section-1">一、原书回顾：11篇文章怎样展开</h2>
+<h3 id="section-2">面痴谈面</h3>
+<p>作者从碱水蛋面、北方面、炒面、干捞、方便面、炸酱面、蟹粉面和日本拉面一路比较。地域偏好可以不同，但面条软硬、汤底、油脂、浇头和火候都能具体判断。他的“最好”不是抽象排名，而是吃过多个版本后形成的个人尺度。</p>
+<p>文章最后转到自家干面产品：合作伙伴研究三年，目标是两分钟煮熟、煮过也保持弹性，再配高价酱油和自制葱头猪油。长期试验、明确口感和整套搭配，才把“爱吃面”变成商品。大量猪油与高热量偏好属于个人口味，不是健康建议。</p>
+<h3 id="section-3">靠吃起家的人</h3>
+<p>墨尔本的罗拔·洛沦因喜欢吃、爱追问而成为食家，先替有钱人设计宴席，后来在别人投资下经营婚礼和生日到会，甚至承接国宴。他不愿开需要长期盯场的餐厅，也不喜欢快餐连锁，于是转向大型机构食堂：用相同预算改善食物与环境。</p>
+<p>这篇把兴趣、知识、客户问题和商业形式逐步配对。罗拔没有选择最大市场，而是选择与自己性格、耐心和优势相符的机构餐饮。</p>
+<h3 id="section-4">怀念吃饭盒的日子</h3>
+<p>四十年电影工作让作者吃遍台湾、日本、印度、韩国、泰国、西班牙、澳大利亚和香港的工作餐。饭盒既记录不同饮食制度，也代表“有工开”；热食先给同事，自己吃冷饭，被他视为监制的角色安排。</p>
+<p>当香港电影海外版权和制作模式变化，他选择离开，不把怀旧当作继续留场的理由。文章最后又用一盒烧味饭召回过去，说明退出职业不等于否定那段生活。</p>
+<h3 id="section-5">一桌斋菜</h3>
+<p>作者认为只会吃、不理解制作，只懂一半，于是为佛家师父设计素食宴。他从吃过的菜出发，再用粟米须、草菇、芥蓝、羊角豆、萝卜、菌汤、白菜、芝士、不同油、苦瓜、豆腐渣、豆浆、松菌和花冻做口感与层次变化。</p>
+<p>他拒绝用“斋乳猪”等名字模仿肉，宁可让食材自身成立。文章含奶、芝士等作者认为可用的食材，未必符合所有宗教或纯素标准；真正宴客前仍需问清饮食边界和过敏信息。</p>
+<h3 id="section-6">蔡澜越南粉</h3>
+<p>蔡澜几十年在越南、法国、美国和澳大利亚比较河粉，认定墨尔本“勇记”最好。自己不愿被餐厅绑住，于是与已有两百多家餐厅经验的王力加、李品熹合作，再请“勇记”团队来做核心技术。</p>
+<p>实验厨房用接近实际规模熬汤，小锅等比试验失败就倒掉；鲜河粉买不到合格版本，团队便设计现场制粉机。空间、制服、音乐、餐纸、外卖盒和保温壶都由专业人员处理。旗舰店先把流程做完整，接受反馈，下一店等完善后再复制。</p>
+<h3 id="section-7">求精</h3>
+<p>作者先承认每个人会偏爱出生地食物，也主张旅行者不能用自己的口味贬低别人的饮食。他比较东方蒸、炖、炒与西方面包、芝士、鱼子酱、红酒和酱汁，反对只学外形、不掌握两边基本功的“fusion”；那会变成“confusion”。</p>
+<p>求精意味着理解原技法和食材，再决定怎样结合；从越南河粉、日本拉面到茶餐厅，最后胜出的仍是同类中做得最细的一家。作者对东西方优劣有不少夸张概括，可用原则是深入比较，不是文化等级。</p>
+<h3 id="section-8">放假</h3>
+<p>蔡澜从厌恶星期一走到没有固定上班，却发现自己比上班时更忙：写作、练草书、开发蛋卷、面条和酥饼，受伤后又准备长篇。他说创作者没有退休，假期只是换地方继续做喜欢的事。</p>
+<p>这既表现自主，也暴露停不下来的风险。能把兴趣变成工作，不等于休息失去价值；身体受伤不应只被当作终于有空写作的机会。</p>
+<h3 id="section-9">为“狗民”服务</h3>
+<p>大阪一家狗酒店把服务分为普通房、豪华房、套房和短时入住，另售饲料、喂药、减肥、洗护、按摩、录像、海滩活动、保险、服饰、香水和定位项圈。预约要信用卡，取消收费；入住前检查杀虫和狂犬病证明，以保护其他客人。</p>
+<p>作者通过连续追问把宠物主的焦虑拆成房间、照护、健康、可见性、安全和附加体验，再看每项如何定价。免责合同不等于可以忽视照护责任，具体动物福利与法律仍需当前核验。</p>
+<h3 id="section-10">履历书</h3>
+<p>为申请澳门身份，蔡澜第一次写履历。他从家庭、双语教育、日本电影学习、邵氏和嘉禾制片、海外拍摄、专栏、食评、电视、广播、旅行团、茶与食品、书法和澳门项目，串出一条不断转向的职业线。</p>
+<p>结尾明确提醒：这些都是一时回忆，没有文件数据，文凭遗失，年份也可能不准；他只愿为自己做过的事负责。这一证据边界是全书少见的自我限定，不能在书镜中删掉。</p>
+<h3 id="section-11">重现避风塘旧梦</h3>
+<p>作者怀念昔日铜锣湾避风塘的小艇、饮品、粥面、炒蟹和唱曲，也承认原场景因污染被禁。他多次想重现，先被环境理由拒绝，后来在香港仔“珍宝”项目中与经营者、政府、艇家和旧餐厅协商，设计不污染海面的版本。</p>
+<p>怀旧提供主题和细节，环保许可决定边界；即便重现，也不会等同原来的生活。文章把白日梦推进到可执行项目，却仍保留“起初不完善”的预期。</p>
+<h3 id="section-12">跳肚皮舞的巴士小姐</h3>
+<p>一位日本导游离开控制她的短暂婚姻，转去跳肚皮舞。她把导游工作中整天站立的体力带到舞台，在被说“身材不适合”时发展更强的下半身动作；她也不把自由式舞蹈包装成纯正传统，而承认表演、观众和女性自我表达同时存在。</p>
+<p>原文从男性目光大量评论女性外貌和身体，书镜不把这些评价当作她成功的原因。可迁移的是：旧工作积累的体力成为新技能，明确离开不尊重的关系，再通过训练形成新的职业身份。</p>
+<h2 id="section-13">二、主题讲解：把兴趣做深，要经过“比较—复现—标准化—适配”</h2>
+<p>“喜欢吃”只是起点。蔡澜真正反复做的是四步：在多地多版本之间比较；亲自做或进入厨房复现；把汤、粉、火候、食材、包装和服务写成标准；最后选择适合自己性格的商业形式。</p>
+<p>越南粉项目是最完整例子。几十年品尝提供标杆，实验厨房暴露小锅比例错误，现场制粉解决新鲜度，专业团队补空间和交付，旗舰店先承受学习成本，再决定复制。罗拔则说明，哪怕很懂吃，也可以拒绝不适合自己耐性的餐厅，转做机构食堂。</p>
+<p>因此，“兴趣变现”前要多问一层：我喜欢消费这件事，还是愿意长期处理它的质量、重复、客户和麻烦？答案不同，适合的路径也不同。</p>
+<h2 id="section-14">检验理解</h2>
+<p><strong>情形</strong>：你很爱吃面，准备开店；能列出十家喜欢的餐厅，却从没进过厨房，也说不出汤、面和出品波动怎样控制。</p>
+<p><strong>问题</strong>：按本部四步，当前最缺哪两步？</p>
+<h3 id="section-15">核对思路（先作答再看）</h3>
+<p>缺复现和标准化。先在小规模下做出可重复版本，记录原料、时间、温度、口感和失败，再决定是否能交给团队稳定执行。偏好清单只能证明会消费，不能证明会经营。</p>
+<h2 id="section-16">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 188—223页，“美食与生活”分部，完整覆盖11篇文章。</li>
+<li>源文件 SHA-256：<code>3da69c326afcf7724a4bd413577f3c9f2175ad7109fa6d1e21cf979634247613</code>。</li>
+<li>餐厅、价格、项目状态、食材、政策和履历年份按作者回忆保留，未作当前商业、食品或法律核验。</li>
+<li>高脂饮食、生食、酒精、动物服务和健康内容不构成个人建议。</li>
+<li>下一部进入媒体与社交，观察微博、直播和播客怎样把长期回应变成受众与商业入口。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../04-art-and-creativity/index.html">上一篇 · 艺术与创意</a><a href="../06-media-and-social/index.html">下一篇 · 媒体与社交</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《富有的习惯》Part1第五章｜富有的习惯养成方案 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
+  margin: 0 0 12px auto;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>富有的习惯 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：从四种运气到十条承诺</a><a class="sub" href="#section-2">四种运气</a><a class="sub" href="#section-3">富有的习惯承诺1：我要培养自己的日常富有的习惯，每天照做不误</a><a class="sub" href="#section-4">富有的习惯承诺2：我会设定每日、每月、每年的目标以及长期目标，然后全心投入追求自己的目标</a><a class="sub" href="#section-5">当日目标</a><a class="sub" href="#section-6">当月目标</a><a class="sub" href="#section-7">今年和来年的目标</a><a class="sub" href="#section-8">长期目标</a><a class="sub" href="#section-9">富有的习惯承诺3：我每天都要提升自我价值</a><a class="sub" href="#section-10">富有的习惯承诺4：我每天都要关注自己的身体健康</a><a class="sub" href="#section-11">富有的习惯承诺5：我每天都要建立并维护可持续的人际关系</a><a class="sub" href="#section-12">富有的习惯承诺6：我每天都会生活得很有节制</a><a class="sub" href="#section-13">富有的习惯承诺7：我会告诉自己“现在就做”，将当天的任务按时完成</a><a class="sub" href="#section-14">富有的习惯承诺8：我会用致富思维面对生活</a><a class="sub" href="#section-15">正面肯定</a><a class="sub" href="#section-16">富有的习惯承诺9：每次发放薪水后，我会拿出10%进行储蓄</a><a class="sub" href="#section-17">富有的习惯承诺10：我每天都会控制自己的想法和情绪</a><a class="" href="#section-18">二、主题讲解：十条承诺其实分成四个可管理层次</a><a class="" href="#section-19">检验理解</a><a class="sub" href="#section-20">核对思路（先作答再看）</a><a class="" href="#section-21">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">Part1 第五章</p><h1>富有的习惯养成方案</h1>
+<p>本章要回答：作者的十条“富有的习惯承诺”分别要求什么？它们怎样从一句愿望落到每天的动作，又有哪些结论说得超过了现有证据？</p>
+<h2 id="section-1">一、原书回顾：从四种运气到十条承诺</h2>
+<h3 id="section-2">四种运气</h3>
+<p>作者先承认成功离不开运气，再把运气分为四类。<strong>随机的好运</strong>，如中奖和意外遗产，个人无法安排；<strong>随机的坏运气</strong>，如事故和疾病，也可能超出控制；<strong>机遇</strong>被解释为长期好习惯结出的果实；<strong>厄运</strong>则被解释为坏习惯累积后的后果。前两类强调不可控，后两类强调可以通过行为提高或降低发生概率。</p>
+<p>随后，作者把“机遇”写得更强，声称养成富有的习惯能够保证好运出现，又把失业、投资失败、离婚和生病等复杂结果广泛归入坏习惯结出的“厄运”。这一步从可控概率跳到了保证和单因解释，原章没有给出足够证据。</p>
+<h3 id="section-3">富有的习惯承诺1：我要培养自己的日常富有的习惯，每天照做不误</h3>
+<p>作者要求先盘点，不急着评价人格：把每天反复做的坏习惯写在左栏，为每一项写一个具体的好习惯放在右栏。示例包括每天学习、运动、完成待办、联系潜在客户、少刷网页、在想拖延时提醒“现在就做”、控制热量和酒精、维护联络等。右栏随后成为每日跟进清单。</p>
+<p>这一节的有效动作是把“我不自律”改成可以观察的句子。原书又把好习惯与成功、坏习惯与失败做了过于整齐的二分，忽略了资源、疾病、照护责任和环境约束。</p>
+<h3 id="section-4">富有的习惯承诺2：我会设定每日、每月、每年的目标以及长期目标，然后全心投入追求自己的目标</h3>
+<p>作者把目标按时间层级拆开：</p>
+<h3 id="section-5">当日目标</h3>
+<p>开始一天前列出有较高可能完成的事项，为任务设时间，优先处理重要项；完成约80%就视为当天成功，晚上复盘。</p>
+<h3 id="section-6">当月目标</h3>
+<p>把月末前要完成的结果拆成每周和每天的动作。例如月签五张保单，反推每周面谈数和每日电话数。</p>
+<h3 id="section-7">今年和来年的目标</h3>
+<p>选择自己确实想做、也有把握推进的目标，再拆出训练计划；原书以注册会计师考试为例。</p>
+<h3 id="section-8">长期目标</h3>
+<p>把愿望拆成多年可累计的动作；原书用五年买房反推每月、每次发薪的储蓄额，并建议用愿景板持续提醒。</p>
+<p>作者的核心结构是“远期结果—阶段结果—重复动作”。他把家庭事务写成会妨碍工作的分心来源，这个处理过于单向；现实目标要同时纳入照护、健康和休息，而不是把工作以外的一切都排除。</p>
+<h3 id="section-9">富有的习惯承诺3：我每天都要提升自我价值</h3>
+<p>作者建议每天至少留30分钟、不受打扰地学习行业资料、自我提升内容或新技能，也可以考证、攻读学位、参与创造性项目、寻找业务机会。学习要围绕当前目标，而不是用泛读制造忙碌感。</p>
+<p>原书把“看电视、读杂书”整体写成浪费，界线过粗。是否有价值应看它与当前目标、恢复和生活质量的关系。</p>
+<h3 id="section-10">富有的习惯承诺4：我每天都要关注自己的身体健康</h3>
+<p>作者把健康习惯拆成饮食记录、热量管理、体重记录和有氧运动，主张先连续30天记下吃了什么，再决定减少哪些高热量食物；他强调“管理摄入”不同于极端节食，并建议每周至少四天、每次20—30分钟有氧运动。书中还提供一份按日记录体重、运动与三餐热量的月表。</p>
+<p>原章同时提出“户外慢跑比室内器械多消耗约三分之一热量”“有氧运动是最有效的减脂运动”等强结论，却没有在本章给出来源和适用条件。热量与运动安排涉及身体状况，不能把固定数字当作人人通用的处方。</p>
+<h3 id="section-11">富有的习惯承诺5：我每天都要建立并维护可持续的人际关系</h3>
+<p>作者把关系维护写成持续动作：记住姓名、生日和家人情况，在重要时刻致电或送贺卡，及时回复，主动提供帮助；可以用联系人系统保存对对方真正重要的信息，并在见面前复习姓名。他还建议按球友、邻居、同学、工作伙伴、社区等情形分类联系人。</p>
+<p>作者又建议远离“焦虑抑郁者”，并把他们的处境归因于坏习惯。这种表述把健康状态与道德评价混在一起，不能沿用为关系原则。更稳的边界是识别持续操控、伤害或单向索取的具体行为，而不是按心理状态排斥人。</p>
+<h3 id="section-12">富有的习惯承诺6：我每天都会生活得很有节制</h3>
+<p>“节制”在原章中覆盖饮食、饮酒、消费、娱乐、工作和情绪。作者用沃伦·巴菲特长期住在同一所房子、日常乘商业航班等轶事，反对为了攀比而扩大住房、车辆和消费，并提醒没有储蓄和安全垫的人更容易被收入中断击穿。</p>
+<p>可用判断不是“富人都低调”，而是消费和投入是否与自己的资源、目标和风险承受能力匹配。原书把成功者写得过于一致，也把情绪强烈直接等同于失败，证据不足。</p>
+<h3 id="section-13">富有的习惯承诺7：我会告诉自己“现在就做”，将当天的任务按时完成</h3>
+<p>作者把拖延和救火连接起来：重要任务推后，时间变紧，错误和遗漏增加，新的紧急问题又打断下一项工作。他建议提前安排待办，在想拖延时立即说“现在就做”，进入任务后让专注接管。</p>
+<p>这条承诺适合已经明确、规模可控的动作。若任务含义不清、风险高或需要休息，直接逼自己开工未必正确；应先把任务拆小、澄清下一步和完成条件。</p>
+<h3 id="section-14">富有的习惯承诺8：我会用致富思维面对生活</h3>
+<p>作者建议减少持续输入负面信息，用正面肯定、感恩清单和视觉化调整注意力。原书的正面肯定包含“我会完成待办”“我每周给父母打电话”等行为句，也包含“我一年挣30万美元”“我拥有度假屋”等结果句，并声称重复后相应机会会显现。</p>
+<h3 id="section-15">正面肯定</h3>
+<p>原书建议把肯定句做成随身清单，早、中、晚反复读。行为句可以提醒下一步；把尚未发生的结果当成已经发生，不能替代计划和证据。“积极”也不应变成压制悲伤、焦虑或合理风险判断。</p>
+<h3 id="section-16">富有的习惯承诺9：每次发放薪水后，我会拿出10%进行储蓄</h3>
+<p>作者提出“先付钱给自己”：发薪后先把10%转入储蓄、投资或退休账户，定期查看净资产和养老目标，并在需要时咨询会计师、律师或理财规划师。他把完全不储蓄、长期依赖信用卡和投机当养老计划视为高风险行为。</p>
+<p>10%是书中的固定启发式，不是适合所有收入、债务和福利制度的唯一比例。现实顺序还要考虑基本生活、紧急债务、保险、税务和本地退休制度。</p>
+<h3 id="section-17">富有的习惯承诺10：我每天都会控制自己的想法和情绪</h3>
+<p>作者推荐“思考—评估—反应”：在刺激与行动之间留出时间，减少愤怒、嫉妒或悲伤带来的冲动决定；也建议用建设性项目替代无所事事时的负面想法。</p>
+<p>原章把成功者写成能驱除所有负面情绪，又用监狱人口暗示失败者因不思考而犯罪，这是一种没有证据支持的过度外推。更可用的目标是识别情绪、延迟高风险反应，并在持续困扰时寻求支持，而不是要求自己不再有负面感受。</p>
+<h2 id="section-18">二、主题讲解：十条承诺其实分成四个可管理层次</h2>
+<p>一个人想改善财务，最容易犯的错是把十条同时当作每日考试。更清楚的读法，是先看它们分别在管理什么。</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1104 540" role="img" aria-label="十条富有习惯承诺分成看见并启动、把方向变成日程、保护行动条件、让结果长期累积四层。">
+      <defs>
+        <marker id="p1-05-0-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="p1-05-0-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="p1-05-0-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <g fill="none" stroke="#4f5d75" stroke-width="1">
+        <path d="M552 96 V152 H144 V192"/>
+        <path d="M552 152 H416 V192"/>
+        <path d="M552 152 H688 V192"/>
+        <path d="M552 152 H960 V192"/>
+      </g>
+
+      <g font-family="Geist, PingFang SC, sans-serif" text-anchor="middle">
+        <rect x="432" y="24" width="240" height="72" rx="6" fill="rgba(235,108,54,.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <text x="552" y="56" font-size="16" font-weight="600">十条富有的习惯承诺</text>
+        <text x="552" y="80" fill="#4f5d75" font-size="12">原书行动清单</text>
+
+        <rect x="32" y="192" width="224" height="184" rx="6" fill="#fff" stroke="#2d3142"/>
+        <rect x="48" y="208" width="64" height="16" rx="2" fill="rgba(235,108,54,.08)" stroke="#eb6c36" stroke-width=".8"/>
+        <text x="80" y="220" fill="#eb6c36" font-size="8" font-family="Geist Mono, monospace">LEVEL 01</text>
+        <text x="144" y="256" font-size="16" font-weight="600">看见并启动</text>
+        <text x="56" y="292" text-anchor="start" fill="#4f5d75" font-size="12">1 · 盘点日常习惯</text>
+        <text x="56" y="320" text-anchor="start" fill="#4f5d75" font-size="12">7 · 现在就做</text>
+        <text x="56" y="352" text-anchor="start" fill="#7a8399" font-size="12">先让动作发生</text>
+
+        <rect x="304" y="192" width="224" height="184" rx="6" fill="#fff" stroke="#2d3142"/>
+        <rect x="320" y="208" width="64" height="16" rx="2" fill="transparent" stroke="#4f5d75" stroke-width=".8"/>
+        <text x="352" y="220" fill="#4f5d75" font-size="8" font-family="Geist Mono, monospace">LEVEL 02</text>
+        <text x="416" y="256" font-size="16" font-weight="600">把方向变成日程</text>
+        <text x="328" y="292" text-anchor="start" fill="#4f5d75" font-size="12">2 · 分解多层目标</text>
+        <text x="328" y="320" text-anchor="start" fill="#4f5d75" font-size="12">3 · 固定学习时段</text>
+        <text x="328" y="352" text-anchor="start" fill="#7a8399" font-size="12">远期结果 → 今日任务</text>
+
+        <rect x="576" y="192" width="224" height="184" rx="6" fill="#fff" stroke="#2d3142"/>
+        <rect x="592" y="208" width="64" height="16" rx="2" fill="transparent" stroke="#4f5d75" stroke-width=".8"/>
+        <text x="624" y="220" fill="#4f5d75" font-size="8" font-family="Geist Mono, monospace">LEVEL 03</text>
+        <text x="688" y="256" font-size="16" font-weight="600">保护行动条件</text>
+        <text x="600" y="292" text-anchor="start" fill="#4f5d75" font-size="12">4 · 健康</text>
+        <text x="600" y="320" text-anchor="start" fill="#4f5d75" font-size="12">5 · 关系　6 · 节制</text>
+        <text x="600" y="352" text-anchor="start" fill="#7a8399" font-size="12">减少反复中断与耗损</text>
+
+        <rect x="848" y="192" width="224" height="184" rx="6" fill="#fff" stroke="#2d3142"/>
+        <rect x="864" y="208" width="64" height="16" rx="2" fill="transparent" stroke="#4f5d75" stroke-width=".8"/>
+        <text x="896" y="220" fill="#4f5d75" font-size="8" font-family="Geist Mono, monospace">LEVEL 04</text>
+        <text x="960" y="256" font-size="16" font-weight="600">让结果长期累积</text>
+        <text x="872" y="292" text-anchor="start" fill="#4f5d75" font-size="12">8 · 注意力与解释</text>
+        <text x="872" y="320" text-anchor="start" fill="#4f5d75" font-size="12">9 · 储蓄　10 · 情绪反应</text>
+        <text x="872" y="352" text-anchor="start" fill="#7a8399" font-size="12">建立缓冲与判断空间</text>
+
+        <rect x="320" y="424" width="464" height="56" rx="6" fill="rgba(45,49,66,.02)" stroke="rgba(45,49,66,.30)" stroke-dasharray="4 3"/>
+        <text x="552" y="448" font-size="12" font-weight="600">执行建议 · 每轮只改 1—3 项</text>
+        <text x="552" y="468" fill="#4f5d75" font-size="12">记录触发时刻、最小动作、近端反馈与中断原因</text>
+      </g>
+
+      <line x1="48" y1="508" x2="1056" y2="508" stroke="rgba(45,49,66,.12)" stroke-width=".8"/>
+      <text x="48" y="528" fill="#7a8399" font-size="8" font-family="Geist Mono, monospace" letter-spacing=".12em">LEGEND · 四层为书镜重构，编号与承诺名称来自原书</text>
+    </svg></button><small>点击放大配图</small></figure>
+<p class="caption">图1-1｜十条承诺管理的四个层次。分组是书镜讲解重构；承诺名称与主要动作来自原书。</p>
+<p>第一层是<strong>看见并启动</strong>：承诺1盘点重复行为，承诺7让下一步及时发生。第二层是<strong>把方向变成日程</strong>：承诺2拆目标，承诺3固定学习。第三层是<strong>保护承载行动的条件</strong>：承诺4处理健康，承诺5维护关系，承诺6控制过度消耗。第四层是<strong>让长期结果可累积</strong>：承诺8管理注意力与解释，承诺9形成资金缓冲，承诺10在情绪到行动之间加一道判断。</p>
+<p>实施时每次只改一到三项，并写下四个字段：触发时刻、具体动作、最小完成量、近端反馈。例如“工作日8:30打开行业资料，读10分钟，记一条能在今天使用的做法”。这比“提升自我价值”更容易执行和复盘。</p>
+<p>十条承诺不是财富公式。它们主要作用在时间、技能、关系、健康、支出与决策这些中间变量上；最终收入还受起点资源、行业、制度、家庭责任和随机事件影响。</p>
+<h2 id="section-19">检验理解</h2>
+<p><strong>情形</strong>：一位负债者同时设定每天运动、读书、联系五人、记账、冥想和早起，连续四天后全部停止。</p>
+<p><strong>问题</strong>：按本章四层结构，怎样重新设计第一周？</p>
+<h3 id="section-20">核对思路（先作答再看）</h3>
+<p>先盘点最影响现金与执行的一条枢纽问题，例如冲动消费或从不查看账单；把动作缩到固定时刻记录一笔支出，并设置自动转入很小的安全金额。健康或学习可以保留一个最小动作。第一周的目标是形成可观察、可恢复的重复，不是一次通过十项考试。</p>
+<h2 id="section-21">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 42—66页。</li>
+<li>源文件 SHA-256：<code>397897b4647e69ba569a1f31bdc2a374246d32c4f1ba5c24c7cd2fd2c1d7f167</code>。</li>
+<li>原书标题保留：四种运气、十条“富有的习惯承诺”，以及当日、当月、年度、长期目标与正面肯定等小节。</li>
+<li>PDF 53—54页为体重、运动和热量跟踪表，已通过页面渲染与macOS Vision OCR复核。</li>
+<li>医疗、运动、心理和财务数字均只按作者建议呈现；本卡没有把它们升级为专业处方。</li>
+<li>下一章开始逐人回看十条承诺怎样被放进生活；这属于寓言式应用，不是临床或财务试验。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../p1-04/index.html">上一篇 · 会计师</a><a href="../p1-06/index.html">下一篇 · 那位“元老级”客户</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

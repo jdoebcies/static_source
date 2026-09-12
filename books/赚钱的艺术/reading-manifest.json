@@ -1,0 +1,63 @@
+{
+  "book_title": "赚钱的艺术：心酸不必对人言，多挣钱多自由",
+  "content_generator_skill_version": "8.2.3",
+  "html_generator_skill_version": "8.2.3",
+  "html_format": "reading-package-v1",
+  "source_sha256": "3da69c326afcf7724a4bd413577f3c9f2175ad7109fa6d1e21cf979634247613",
+  "units": [
+    {
+      "id": "01-money-and-business",
+      "label": "第一部",
+      "title": "金钱与商业",
+      "source_location": "PDF 7—64页，“金钱与商业”分部，完整覆盖18篇文章",
+      "source_markdown_sha256": "279d313806caea61d1ca08d4334fe8575f6077c7c988e0e03e594d1062437eb4",
+      "html": "chapters/01-money-and-business/index.html",
+      "markdown": "chapters/01-money-and-business/chapter.md"
+    },
+    {
+      "id": "02-creation-and-writing",
+      "label": "第二部",
+      "title": "创作与写作",
+      "source_location": "PDF 66—99页，“创作与写作”分部，完整覆盖9篇文章",
+      "source_markdown_sha256": "ba2ac1e22c96f035228b701a3a79b49e16660aecf0417819f54dea80a776e0aa",
+      "html": "chapters/02-creation-and-writing/index.html",
+      "markdown": "chapters/02-creation-and-writing/chapter.md"
+    },
+    {
+      "id": "03-travel-and-cultural-exchange",
+      "label": "第三部",
+      "title": "旅行与文化交流",
+      "source_location": "PDF 101—146页，“旅行与文化交流”分部，完整覆盖14篇文章",
+      "source_markdown_sha256": "26cb9f6d71d040d4a1998ea89b9846f6c0a32be642e73e05b936edfea3f6feb2",
+      "html": "chapters/03-travel-and-cultural-exchange/index.html",
+      "markdown": "chapters/03-travel-and-cultural-exchange/chapter.md"
+    },
+    {
+      "id": "04-art-and-creativity",
+      "label": "第四部",
+      "title": "艺术与创意",
+      "source_location": "PDF 148—186页，“艺术与创意”分部，完整覆盖13篇文章",
+      "source_markdown_sha256": "49a258eafbb8aaa736994411065fb567400954f5f893e66f74c786d7e96cb9cb",
+      "html": "chapters/04-art-and-creativity/index.html",
+      "markdown": "chapters/04-art-and-creativity/chapter.md"
+    },
+    {
+      "id": "05-food-and-life",
+      "label": "第五部",
+      "title": "美食与生活",
+      "source_location": "PDF 188—223页，“美食与生活”分部，完整覆盖11篇文章",
+      "source_markdown_sha256": "d794ff2c293b4ad6e117d73690cf5df3f6b5277a740fd447139d73b9020550b7",
+      "html": "chapters/05-food-and-life/index.html",
+      "markdown": "chapters/05-food-and-life/chapter.md"
+    },
+    {
+      "id": "06-media-and-social",
+      "label": "第六部",
+      "title": "媒体与社交",
+      "source_location": "PDF 225—234页，“媒体与社交”分部，完整覆盖3篇文章",
+      "source_markdown_sha256": "4542b8819d923d44e95c273fe3211e234500815831f56b50e2bff36a49319866",
+      "html": "chapters/06-media-and-social/index.html",
+      "markdown": "chapters/06-media-and-social/chapter.md"
+    }
+  ]
+}

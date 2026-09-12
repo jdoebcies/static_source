@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《富有的习惯》Part1导言｜从账本转向日常行为 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
+  margin: 0 0 12px auto;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>富有的习惯 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样改变提问方式</a><a class="sub" href="#section-2">从一组强主张开始</a><a class="sub" href="#section-3">传统检查没有找到答案</a><a class="sub" href="#section-4">一个晚间问题打开新的观察面</a><a class="sub" href="#section-5">用两组回答形成对照</a><a class="" href="#section-6">二、主题讲解：先把“结果问题”拆出可观察的日常变量</a><a class="" href="#section-7">检验理解</a><a class="sub" href="#section-8">核对思路（先作答再看）</a><a class="" href="#section-9">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">Part1 导言</p><h1>从账本转向日常行为</h1>
+<p>本章要回答：作者为什么认为，只检查收入、成本和流程还不足以解释一个人的财务困境？</p>
+<h2 id="section-1">一、原书回顾：作者怎样改变提问方式</h2>
+<h3 id="section-2">从一组强主张开始</h3>
+<p>作者开篇声称，只有5%的美国人真正实现了财务成功；学校不教人怎样“挣大钱”，多数人只能反复试错。他又断言，财富不只是运气、教育、勤奋工作或遗产继承的结果，并把本书定位为21世纪的财务成功蓝图。这里的比例、归因和“蓝图”都是作者在导言提出的强主张，当前两页没有给出来源或证明。</p>
+<p>接着，作者把Part1定义为一套“富有的习惯养成方案”。他的职业身份是注册会计师和理财规划师，长期为小企业和个人提供财务服务；最初，他也把客户的现金流问题当成账目或经营问题来查。</p>
+<h3 id="section-3">传统检查没有找到答案</h3>
+<p>一位客户生意不错，却总在发工资时周转困难。作者查了支出、生产流程、人工费率和同行数据，还向经营条件相近的富有客户请教，仍没有找到明显差异。</p>
+<h3 id="section-4">一个晚间问题打开新的观察面</h3>
+<p>午餐时，作者改问客户晚上做什么。客户提到喝酒、找女人和“管不住嘴”。作者由此意识到，看得见的财务问题之外还有看不见的深层问题，关键是问对问题。于是他设计20个问题，用五年向成功与不成功的客户、伙伴和熟人调查。</p>
+<h3 id="section-5">用两组回答形成对照</h3>
+<p>作者称两组人的回答存在很大差异，并据此把日常习惯当作解释财务成功的入口。导言到此只交代了发现路径，还没有证明这些习惯是原因，也没有排除教育、行业、家庭资源和健康等共同因素。</p>
+<h2 id="section-6">二、主题讲解：先把“结果问题”拆出可观察的日常变量</h2>
+<p>如果一家店月底总缺现金，检查账本当然必要；但若店主每周把营业款拿去赌博，账面分析只能看到钱少了，解释不了为什么同类问题反复出现。作者的提问转向有价值之处，是把一次结果拆成每天可观察、可改变的动作。</p>
+<p>作为书镜的分析框架，可以把可能需要检查的日常变量暂分为四类：时间花在哪里、是否能自我节制、关系怎样、每天重复什么。这四类不是导言公布的问卷题项，只是帮助读者把“深层问题”落到可观察处的检查框架。</p>
+<p>可以沿三层继续查：第一层是财务结果，第二层是业务动作，第三层是反复触发业务动作的生活习惯。越往下，越接近可以试验的具体行为；也越需要防止把复杂结果只归结为个人品格。</p>
+<h2 id="section-7">检验理解</h2>
+<p>一家小企业利润率正常，却经常发不出工资。你发现店主从不做应收账款跟进，同时行业回款周期也突然拉长。若只按“坏习惯”解释，会漏掉什么？</p>
+<h3 id="section-8">核对思路（先作答再看）</h3>
+<p>会漏掉外部行业变化。更完整的判断要同时保留个人可控变量和环境变量：跟进习惯可能加重问题，回款周期变化也会影响现金流。两者都要用数据检查，不能先选一个道德化答案。</p>
+<h2 id="section-9">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 14—15页，Part1导言。</li>
+<li>源文件 SHA-256：<code>397897b4647e69ba569a1f31bdc2a374246d32c4f1ba5c24c7cd2fd2c1d7f167</code>。</li>
+<li>原章未分小节；“传统检查—晚间问题—问卷对照”是对作者叙述阶段的回顾，不是原书小标题。</li>
+<li>下一章进入寓言式人物线：保险推销员菲尼克斯怎样被引到训练课程。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../preface/index.html">上一篇 · 序言与全书路线</a><a href="../p1-01/index.html">下一篇 · 保险推销员</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

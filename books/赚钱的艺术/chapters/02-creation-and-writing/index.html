@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《赚钱的艺术》第二部｜创作与写作 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
+  margin: 0 0 12px auto;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>赚钱的艺术：心酸不必对人言，多挣钱多自由 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：九篇文章怎样展开</a><a class="sub" href="#section-2">出版</a><a class="sub" href="#section-3">写作哲学</a><a class="sub" href="#section-4">活在疫情的日子</a><a class="sub" href="#section-5">玩疫情</a><a class="sub" href="#section-6">只限不会中文的老友</a><a class="sub" href="#section-7">如何成为专栏作家（上）</a><a class="sub" href="#section-8">如何成为专栏作家（下）</a><a class="sub" href="#section-9">喜欢的字句</a><a class="sub" href="#section-10">“厕所文学”</a><a class="" href="#section-11">二、主题讲解：稳定写作来自“材料—成稿—回读—读者—再编”的循环</a><a class="" href="#section-12">检验理解</a><a class="sub" href="#section-13">核对思路（先作答再看）</a><a class="" href="#section-14">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第二部</p><h1>创作与写作</h1>
+<p>本章要回答：蔡澜怎样把长期写作变成可出版的内容？“真、简、好看”分别指什么，又不能越过哪条事实边界？</p>
+<h2 id="section-1">一、原书回顾：九篇文章怎样展开</h2>
+<h3 id="section-2">出版</h3>
+<p>蔡澜回顾自己几十年写专栏、结集成书的过程：第一本《蔡澜的缘》来自《东方日报》“缘”专栏，后来大量作品由香港天地图书出版社出版。书名常取四字意境，父亲题字、苏美璐画封面，形式与家人记忆交织。</p>
+<p>他承认中文书版税不高，主要收入先来自报刊稿费，出书再赚一点；也谈不同地区的正版、盗版、重印和书店陈列。他对盗版既无奈又自嘲，但会在公共图书馆收到盗版书时发律师信。文章最后没有提出出版公式，只留下“持续写，才有东西持续出”。</p>
+<h3 id="section-3">写作哲学</h3>
+<p>作者从中学投稿赚稿费讲起，四十岁后因工作不顺开始写专栏。周石从饭局故事中发现他，倪匡推荐他给金庸；他用过去写给父亲和朋友的成箱信件作为题材储备，因此日更并非凭空生产。</p>
+<p>结构上，他常把“转”放到最后，借欧·亨利式结尾钉住文章；基本功则是广泛阅读和持续练习。他主张用聊天般的简单文字，让更多人读懂；一篇约700字的稿要写一两个小时，当天改一遍，隔夜再改。他不追求使命感或“留世”，把“保持一份真”和好看放在前面，最后引用“简要清通，先求平易后波澜”。</p>
+<h3 id="section-4">活在疫情的日子</h3>
+<p>自我隔离期间，蔡澜用书法、微博问答、音乐回忆、做菜、阅读毛姆、看电影和电视剧填满时间。马铃薯、洋葱和蒜头发芽也被他称为创作；写好的字可以拍卖，炒面比赛又能把个人活动变成与读者互动。</p>
+<p>文章把“创作”降到很低的门槛：做、看、学、分享都能让日子有内容。文中对口罩和外出等做法属于特定疫情阶段的个人行为，不能作为公共卫生建议。</p>
+<h3 id="section-5">玩疫情</h3>
+<p>作者继续把受限生活拆成项目：做雪糕、画扇、学《芥子园画谱》，再恢复香港小型咸鱼酱工厂。他强调先学基本笔法再写生，娱乐自己不必等到成为大师；办工厂则要重新找原料、厂房、同事，遵守卫生规定，从小量网上销售开始，避免超市高抽成和一次铺货。</p>
+<p>这篇把创作与制造放在同一条线上：想法必须经过材料、基本功、流程和合规，才会成为作品或商品。</p>
+<h3 id="section-6">只限不会中文的老友</h3>
+<p>蔡澜每天用英文写一两篇，苏美璐、贾尼丝·阿姆斯特朗和钟楚红的妹妹负责转递、润色和纠错。多人编辑有双重目标：一方面修正文法，另一方面把过度英语化的用词拉回作者所说的“东方色彩”，避免语言正确却把原来的气味抹平。有人把他的英文形容成电报：短、直接、少废话；这种声音也要保留。他承认自己语法基础不足，把文法修订交给更擅长的人，却没有把选词气质和电报式节奏一并交出去。</p>
+<p>跨文化编辑也会迫使他删掉只有中文语境才成立的笑话。他从52篇继续写到计划中的60篇，再按人物、旅行、饮食和电影筛选，避免一个主题过满。即使找不到出版社，也可小批自印送朋友；完成目标不以商业发行作为唯一标准。</p>
+<h3 id="section-7">如何成为专栏作家（上）</h3>
+<p>作者先讲香港专栏版的历史与报纸气质：十三妹、倪匡、亦舒、黄霑等作者形成日常陪伴，东南亚、欧美华文报纸后来也采用这种版面。专栏不只提供观点，更像每天在同一张饭桌上和读者说几句。</p>
+<p>文章还谈盗用稿件与稿费：早年华文报纸经营艰难，他看到现场后没有追钱；报社后来有能力时，就应支付。结尾用新编辑想改作者风格的场景说明，长期专栏已经形成一种读者关系，不能只当可替换的版面填充。</p>
+<h3 id="section-8">如何成为专栏作家（下）</h3>
+<p>蔡澜把专栏长期可读归为“不断吸收”和“真”。旅行、交友、阅读、戏剧、电影、绘画、音乐提供材料；只有小聪明却生活范围狭窄，很快会把招数用完。专栏作者每天暴露生活与判断，假装很难长期维持。</p>
+<p>给新人的方法很具体：先写十篇约500字、题材不同的文章，也可以十篇集中在一个专业主题；投稿前研究其他专栏为什么可读；版面要留白；即使籍籍无名，也先拿出一组可连续判断的作品。他还会想象一位具体老读者是否愿意看，用受众而非抽象“大众”校准题材。</p>
+<h3 id="section-9">喜欢的字句</h3>
+<p>为行草展准备内容时，作者避开用烂的鸡汤句，从辛弃疾、黄景仁、臧克家、戴望舒、苏东坡、郑板桥和禅诗中挑句，也会节录、改一两个字，让文字更像自己。他偏爱短句、吃喝和不端着的表达，并从网友批评“为五斗米折腰”改出“喜为五斗米折腰”。</p>
+<p>这篇展示的是选择、删减和再语境化。原句的出处、作者和改写边界仍要清楚，不能因“变活”而让改写冒充原文。</p>
+<h3 id="section-10">“厕所文学”</h3>
+<p>作者解释两百本书多来自专栏结集，不是为每本书重新写作。他对电影制作失去兴趣，因为电影是庞大团队；书虽然也有编辑、印刷和发行，作者身份却更集中。散文可以重新编排成不同选集，小说则不能随意拆装。</p>
+<p>他在正版、盗版、简体版、台湾版和日文版之间回看作品传播，也提出白页用于签名、反对浪费纸张的腰封。面对作品“真不真”的追问，他用“好看才能卖钱”回应，并把自己的短散文戏称为“厕所文学”。这句显示作者重可读性的姿态，却不能解除事实写作的真实性责任。</p>
+<h2 id="section-11">二、主题讲解：稳定写作来自“材料—成稿—回读—读者—再编”的循环</h2>
+<p>蔡澜的写作看似信手拈来，背后有五个重复动作：长期生活与书信积累材料；每天把一个对象写成短稿；隔夜回读和删改；用具体读者检查是否看得下去；最后再把已经经受过阅读的文章编成书。出版是循环的后段，不是写作起点。</p>
+<p>“真”至少有两层。第一层是声音真实：写自己确实看见、做过、喜欢或厌恶的东西，不扮成高深人物。第二层是事实可靠：人物、时间、数据和引用不能为了好看而编造。作者强调前一层，有时轻看后一层；书镜必须把两者补齐。幽默、夸张和自嘲可以存在，但读者要知道它是修辞还是事实声称。</p>
+<p>跨文化写作还多一轮：让目标语言读者读，找出幽默、背景和句法的断点；能解释就补，解释后仍拖累全文就删。把语法交给编辑，不等于把作者判断交出去。</p>
+<h2 id="section-12">检验理解</h2>
+<p><strong>情形</strong>：一位作者想出书，却还没有稳定写作，只花时间比较出版社、封面和营销。</p>
+<p><strong>问题</strong>：按本部的循环，他最先缺哪两步？</p>
+<h3 id="section-13">核对思路（先作答再看）</h3>
+<p>缺材料和成稿。先为一个具体读者连续写十篇，隔夜回读，观察哪些题材和结构能持续；有了经受过阅读的内容，再谈编排、编辑和渠道。</p>
+<h2 id="section-14">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 66—99页，“创作与写作”分部，完整覆盖9篇文章。</li>
+<li>源文件 SHA-256：<code>3da69c326afcf7724a4bd413577f3c9f2175ad7109fa6d1e21cf979634247613</code>。</li>
+<li>出版数量、版税、销量、平台和市场判断均按作者回忆保留，未作当前市场核验。</li>
+<li>疫情、健康和食品制造相关做法不构成公共卫生或食品安全建议。</li>
+<li>主题讲解把“声音真实”和“事实可靠”分开，避免把作者的“好看”姿态误读为可以编造事实。</li>
+<li>下一部进入旅行与文化交流，看旅行产品怎样由路线、时间、质量和在地经验共同构成。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../01-money-and-business/index.html">上一篇 · 金钱与商业</a><a href="../03-travel-and-cultural-exchange/index.html">下一篇 · 旅行与文化交流</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

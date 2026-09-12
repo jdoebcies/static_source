@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《赚钱的艺术》第六部｜媒体与社交 · 原书回顾与主题讲解</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
+  margin: 0 0 12px auto;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>赚钱的艺术：心酸不必对人言，多挣钱多自由 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：三篇文章怎样展开</a><a class="sub" href="#section-2">微博推销术</a><a class="sub" href="#section-3">网红人</a><a class="sub" href="#section-4">玩播客</a><a class="" href="#section-5">二、主题讲解：受众资产不是粉丝数，是可重复的信任动作</a><a class="" href="#section-6">检验理解</a><a class="sub" href="#section-7">核对思路（先作答再看）</a><a class="" href="#section-8">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">第六部</p><h1>媒体与社交</h1>
+<p>本章要回答：蔡澜怎样从长期回复积累受众，再把受众带到直播、产品与新节目？内容、平台、团队和商业化分别在什么位置？</p>
+<h2 id="section-1">一、原书回顾：三篇文章怎样展开</h2>
+<h3 id="section-2">微博推销术</h3>
+<p>作者说微博粉丝是多年逐个回答问题争取来的。私人入口不开放，由“护法”挡掉辱骂和无意义问题；自己有空时才限时开放。春节前为了网店宣传，他连续三周开放问答，一夜可能收到两三千条，于是在来回互动中插入产品照片，形成订单。</p>
+<p>文章大部分是短促玩笑：问煲汤、身高、减肥、酒量、求职、房价和人生意义，作者用“放手指”“吃长颈鹿”“麦当劳”等夸张回应。它们的功能是建立声音和娱乐，不是健康、职业或投资建议。较完整的判断出现在末段：守时、守诺、努力、把事情做好，像给生活抛下几个锚；房价不知道就承认不知道。</p>
+<h3 id="section-3">网红人</h3>
+<p>蔡澜与倪匡做《一五五会客室》直播，两集累计三百多万人次观看。作者把“能直播”与“有人看”分开：任何人都有手机，真正的入口是他自2009年持续发微博、回答问题形成的受众。</p>
+<p>平台打赏看起来热闹，兑换后收入很少；更可能的商业回报，是先用节目证明影响力，再获得宣传合作。第三集准备在马来西亚旅行中直播，把榴莲、食物、网友产品和自己的罗汉果茶放进真实路线。文章中的观看数、平台规则、商品功效均属于写作当时信息。</p>
+<h3 id="section-4">玩播客</h3>
+<p>疫情期间，作者决定做播客/视频节目。先问“为什么有人看”，答案仍是内容；同时，他不接受蓬头垢面和随意灯光，认为出镜整理是对观众的尊重。刘绚强提供场地与灯光团队，两个女儿作为熟悉的对谈者，厨房和烘焙让谈话有动作和对象。</p>
+<p>语言选粤语以贴近香港观众，用字幕照顾其他读者；平台先考虑YouTube，再看是否需要第二个平台。他把一千万微博粉丝归于十一万条微博的长期投入，却也承认视频不是自己的强项、记忆可能出错，愿意从头学。最后的完成条件只是先开拍，而不是先保证大流量。</p>
+<h2 id="section-5">二、主题讲解：受众资产不是粉丝数，是可重复的信任动作</h2>
+<p>三篇文章连成一条很清楚的路径：先在擅长的文字渠道长期回答，形成可识别声音；再用现有受众测试直播；新节目则补场地、灯光、对谈者和字幕，把不擅长的环节交给团队。产品推广放在已经发生的互动里，而不是把每次回复写成广告。</p>
+<p>这条路径有四个边界：</p>
+<ol>
+<li><strong>入口边界</strong>：私人空间与公开问答分开，开放有时间窗口，辱骂可过滤。</li>
+<li><strong>内容边界</strong>：玩笑要让人知道是玩笑；健康、职业和商品功效不能靠幽默冒充证据。</li>
+<li><strong>平台边界</strong>：打赏、播放和粉丝是平台指标，不等同实际收入或长期关系。</li>
+<li><strong>能力边界</strong>：文字强不代表镜头强，记忆可能错就要留校正机制。</li>
+</ol>
+<p>真正可复用的资产，是读者知道你会持续出现、说话有辨识度、承认不知道、推广的东西愿意负责。粉丝数只是这组动作在某个平台上的一个结果。</p>
+<h2 id="section-6">检验理解</h2>
+<p><strong>情形</strong>：一个新账号每条内容都插入商品链接，却很少回答用户问题；播放数偶尔很高，复购和主动搜索都很低。</p>
+<p><strong>问题</strong>：按本部结构，它缺的是流量还是信任动作？下一步该观察什么？</p>
+<h3 id="section-7">核对思路（先作答再看）</h3>
+<p>更可能缺信任动作。应固定回答一个具体问题、说明不知道的边界，并追踪用户是否再次回来、主动提问、保存或购买；偶发播放只能说明一次分发。</p>
+<h2 id="section-8">来源、范围与阅读连接</h2>
+<ul>
+<li>原书定位：PDF 225—234页，“媒体与社交”分部，完整覆盖3篇文章。</li>
+<li>源文件 SHA-256：<code>3da69c326afcf7724a4bd413577f3c9f2175ad7109fa6d1e21cf979634247613</code>。</li>
+<li>微博数量、观看人数、平台收益和产品效果均按作者当时自述保留，未作当前平台或商品核验。</li>
+<li>文中关于身高、减肥、饮酒、求职等短答多为讽刺和玩笑，不构成可执行建议。</li>
+<li>至此六个分部完成：全书从钱与生意，经过写作、旅行、艺术、美食，回到媒体与受众，形成“兴趣—作品—关系—交易—生活边界”的循环。</li>
+</ul>
+<nav class="pagination" aria-label="章节翻页"><a href="../05-food-and-life/index.html">上一篇 · 美食与生活</a><span></span></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

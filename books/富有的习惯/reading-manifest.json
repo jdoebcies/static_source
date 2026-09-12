@@ -1,0 +1,180 @@
+{
+  "book_title": "富有的习惯",
+  "content_generator_skill_version": "8.2.3",
+  "html_generator_skill_version": "8.2.3",
+  "html_format": "reading-package-v1",
+  "source_sha256": "397897b4647e69ba569a1f31bdc2a374246d32c4f1ba5c24c7cd2fd2c1d7f167",
+  "units": [
+    {
+      "id": "preface",
+      "label": "全书导读",
+      "title": "序言与全书路线",
+      "source_location": "PDF 4—11页，序言",
+      "source_markdown_sha256": "00bfa1ba76ad66d9e5cb9488a03e900f6079eae9a3a3dde36b9dfee2a38d3541",
+      "html": "chapters/preface/index.html",
+      "markdown": "chapters/preface/chapter.md"
+    },
+    {
+      "id": "p1-intro",
+      "label": "Part1 导言",
+      "title": "从账本转向日常行为",
+      "source_location": "PDF 14—15页，Part1导言",
+      "source_markdown_sha256": "8b1dcb2a9612aaa7c191bc5c168849ca6550cc67a484825ac70f15ff6e63cae5",
+      "html": "chapters/p1-intro/index.html",
+      "markdown": "chapters/p1-intro/chapter.md"
+    },
+    {
+      "id": "p1-01",
+      "label": "Part1 第一章",
+      "title": "保险推销员",
+      "source_location": "PDF 16—24页",
+      "source_markdown_sha256": "a54eceb361d3628986606321c216af9ff8132a608b3e9d7ce3c6012d59ebc9f1",
+      "html": "chapters/p1-01/index.html",
+      "markdown": "chapters/p1-01/chapter.md"
+    },
+    {
+      "id": "p1-02",
+      "label": "Part1 第二章",
+      "title": "秘书",
+      "source_location": "PDF 25—30页",
+      "source_markdown_sha256": "d3840c3ffe28c146873d39512506d9c510509e850d5284428d8f755c8af7f851",
+      "html": "chapters/p1-02/index.html",
+      "markdown": "chapters/p1-02/chapter.md"
+    },
+    {
+      "id": "p1-03",
+      "label": "Part1 第三章",
+      "title": "汽车经销商",
+      "source_location": "PDF 31—36页",
+      "source_markdown_sha256": "c9d4373099a272baeda4bdadd84bc1a3b15e5ade2edecb0d8681fd8bd5d24a61",
+      "html": "chapters/p1-03/index.html",
+      "markdown": "chapters/p1-03/chapter.md"
+    },
+    {
+      "id": "p1-04",
+      "label": "Part1 第四章",
+      "title": "会计师",
+      "source_location": "PDF 37—41页",
+      "source_markdown_sha256": "8b6b172deae171604988181cc150bc311b0022de092e52fa1853307dfb688cce",
+      "html": "chapters/p1-04/index.html",
+      "markdown": "chapters/p1-04/chapter.md"
+    },
+    {
+      "id": "p1-05",
+      "label": "Part1 第五章",
+      "title": "富有的习惯养成方案",
+      "source_location": "PDF 42—66页",
+      "source_markdown_sha256": "1d092f34e58804b1894c6b204619aa6284f83d98b9a3e25bc9dfa0c8e2dd564a",
+      "html": "chapters/p1-05/index.html",
+      "markdown": "chapters/p1-05/chapter.md"
+    },
+    {
+      "id": "p1-06",
+      "label": "Part1 第六章",
+      "title": "那位“元老级”客户",
+      "source_location": "PDF 67—70页",
+      "source_markdown_sha256": "9b7b30b6333d74369f346c63e708fa7ebf85f6ae63e66efb52c21250dbd4167b",
+      "html": "chapters/p1-06/index.html",
+      "markdown": "chapters/p1-06/chapter.md"
+    },
+    {
+      "id": "p1-07",
+      "label": "Part1 第七章",
+      "title": "秘书的实际运用",
+      "source_location": "PDF 71—73页",
+      "source_markdown_sha256": "88126614513b3e2dcc8c65adb3fabfa07509f7287dfe5aee79bce1ec30339ae5",
+      "html": "chapters/p1-07/index.html",
+      "markdown": "chapters/p1-07/chapter.md"
+    },
+    {
+      "id": "p1-08",
+      "label": "Part1 第八章",
+      "title": "汽车经销商的实际运用",
+      "source_location": "PDF 74—75页",
+      "source_markdown_sha256": "8eee07fab036cf49cbd71488365522f0cfb48323a22a81cdcd591647887460e5",
+      "html": "chapters/p1-08/index.html",
+      "markdown": "chapters/p1-08/chapter.md"
+    },
+    {
+      "id": "p1-09",
+      "label": "Part1 第九章",
+      "title": "保险推销员的实际运用",
+      "source_location": "PDF 76—79页",
+      "source_markdown_sha256": "bcd9f913740ac24edd4153d87e4cdcbb798722d5fb87df6a5e25488e35a739a2",
+      "html": "chapters/p1-09/index.html",
+      "markdown": "chapters/p1-09/chapter.md"
+    },
+    {
+      "id": "p1-memorial",
+      "label": "Part1 尾声",
+      "title": "纪念J.C.乔布斯",
+      "source_location": "PDF 80—81页",
+      "source_markdown_sha256": "f6f74fd71d5babc74c2dd2012f421d7aaff5d9476a55f26f7ca5a6c5d147f694",
+      "html": "chapters/p1-memorial/index.html",
+      "markdown": "chapters/p1-memorial/chapter.md"
+    },
+    {
+      "id": "p2-intro",
+      "label": "Part2 导言",
+      "title": "改变习惯，重塑人生",
+      "source_location": "PDF 83—84页，Part2导言",
+      "source_markdown_sha256": "f717a15db43e90b589c1dd7e5876b83e56c833d0a12e2e0e1e88c658d7ebdd6a",
+      "html": "chapters/p2-intro/index.html",
+      "markdown": "chapters/p2-intro/chapter.md"
+    },
+    {
+      "id": "p2-01",
+      "label": "Part2 第一章",
+      "title": "认识习惯",
+      "source_location": "PDF 85—106页",
+      "source_markdown_sha256": "d435be614e0cc0ad6ed9a1262bfb8e3c451cf2b0d4fef59b8c7b7be3aaaafbde",
+      "html": "chapters/p2-01/index.html",
+      "markdown": "chapters/p2-01/chapter.md"
+    },
+    {
+      "id": "p2-02",
+      "label": "Part2 第二章",
+      "title": "习惯的种类",
+      "source_location": "PDF 107—163页",
+      "source_markdown_sha256": "841403d2b9eecbc851aac632ba2bc5efe8407ba3c1c743a0ade6aa38c6f3e293",
+      "html": "chapters/p2-02/index.html",
+      "markdown": "chapters/p2-02/chapter.md"
+    },
+    {
+      "id": "p2-03",
+      "label": "Part2 第三章",
+      "title": "围绕梦想和目标培养习惯",
+      "source_location": "PDF 164—169页",
+      "source_markdown_sha256": "21af5ba01ad423232dd8eab4f6068de69f0e6526fe967b1a5712c3055d52b899",
+      "html": "chapters/p2-03/index.html",
+      "markdown": "chapters/p2-03/chapter.md"
+    },
+    {
+      "id": "p2-04",
+      "label": "Part2 第四章",
+      "title": "改变习惯",
+      "source_location": "PDF 170—191页",
+      "source_markdown_sha256": "cb91106dd6b9e52c41bf149e75e120cfbf73290b86f08c11fd5332192f32f607",
+      "html": "chapters/p2-04/index.html",
+      "markdown": "chapters/p2-04/chapter.md"
+    },
+    {
+      "id": "afterword",
+      "label": "后记",
+      "title": "一本书背后的支持网络",
+      "source_location": "PDF 192页，后记",
+      "source_markdown_sha256": "95b9d439623f1ec33a96188ea57e617a96d4015c02013d986a1877eac3e6343d",
+      "html": "chapters/afterword/index.html",
+      "markdown": "chapters/afterword/chapter.md"
+    },
+    {
+      "id": "tracker",
+      "label": "书末工具",
+      "title": "富有的习惯跟进表",
+      "source_location": "PDF 193—195页",
+      "source_markdown_sha256": "8bc0d1a5dfec17c04451979af8f7ebfd488f0a54c6b64f0134876b1ef87accea",
+      "html": "chapters/tracker/index.html",
+      "markdown": "chapters/tracker/chapter.md"
+    }
+  ]
+}
