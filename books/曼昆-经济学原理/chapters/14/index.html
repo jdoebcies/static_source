@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第14章｜竞争市场上的企业 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">什么是竞争市场？</a><a class="sub" href="#section-3">利润最大化与竞争企业的供给曲线</a><a class="sub" href="#section-4">竞争市场的供给曲线</a><a class="sub" href="#section-5">结论：在供给曲线背后</a><a class="" href="#section-6">二、主题讲解：三个阈值回答三个问题</a><a class="sub" href="#section-7">P 与 MC 决定“多做一单位值不值”</a><a class="sub" href="#section-8">P 与 AVC 决定短期是否营业</a><a class="sub" href="#section-9">P 与 ATC 决定长期是否留下</a><a class="" href="#section-10">检验理解：亏损为什么还生产</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第14章｜竞争市场上的企业 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>竞争企业不能控制市场价格，它能决定的是生产多少、何时暂时停产，以及长期是否进入或退出。</p>
+<p><strong>本章要回答：</strong> 为什么利润最大化产量满足价格等于边际成本，短期停产与长期退出又为何不是同一决定？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="14-0-title">竞争企业在 P = MR = MC 处选产量</title><desc id="14-0-desc">短期停产和长期退出还要分别比较可变成本与总成本</desc>
+<defs>
+  <marker id="14-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="14-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="14-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="14-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">竞争企业在 P = MR = MC 处选产量</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">短期停产和长期退出还要分别比较可变成本与总成本</tspan></text><line x1="176" y1="612" x2="952" y2="612" stroke="#2d3142" stroke-width="2" marker-end="url(#14-0-arrow-ink)"/><line x1="176" y1="612" x2="176" y2="168" stroke="#2d3142" stroke-width="2" marker-end="url(#14-0-arrow-ink)"/><text x="960" y="636" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="960" dy="0">企业产量 q</tspan></text><text x="152" y="172" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="152" dy="0">价格 / 成本</tspan></text><line x1="224" y1="352" x2="896" y2="352" stroke="#2e5aa8" stroke-width="4"/><path d="M296 548 C420 520 568 432 824 216" fill="none" stroke="#eb6c36" stroke-width="4"/><text x="904" y="352" fill="#2e5aa8" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="904" dy="0">P = MR</tspan></text><text x="832" y="216" fill="#eb6c36" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="832" dy="0">MC</tspan></text><circle cx="656" cy="352" r="7" fill="#2d3142"/><line x1="656" y1="352" x2="656" y2="612" stroke="#4f5d75" stroke-dasharray="8 8"/><text x="656" y="640" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="656" dy="0">q*</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图14-1｜依据竞争企业模型重绘。水平线表示价格等于边际收益；与边际成本曲线交点给出利润最大化产量。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">什么是竞争市场？</h3>
+<p>完全竞争市场有许多买者和卖者，物品相同，企业可自由进入退出。单个企业相对市场很小，是价格接受者。其总收益等于价格乘数量，平均收益和边际收益都等于市场价格。</p>
+<h3 id="section-3">利润最大化与竞争企业的供给曲线</h3>
+<p>若边际收益大于边际成本，多生产一单位增加利润；若边际成本更大，应减产。最优产量满足边际收益等于边际成本。对价格接受者，边际收益就是价格，因此边际成本曲线向上部分给出不同价格下愿意供给的量。</p>
+<p>短期<strong>停止营业</strong>要比较总收益与可变成本。价格低于平均可变成本时，生产连可变成本都不能覆盖，停产损失更小。边际成本曲线高于平均可变成本的部分构成企业短期供给曲线。固定成本已经发生，是短期沉没成本。长期退出则比较收益与总成本；价格低于平均总成本时，企业最终退出。</p>
+<h3 id="section-4">竞争市场的供给曲线</h3>
+<p>短期市场供给是各企业供给水平相加，企业数量固定。长期中利润吸引进入、亏损推动退出；自由进入退出把经济利润推向零，价格趋向平均总成本最低的有效规模。若关键资源稀缺或新增企业成本上升，长期供给曲线也可能向上倾斜，处在成本边界的<strong>边际企业</strong>决定长期价格下限。</p>
+<h3 id="section-5">结论：在供给曲线背后</h3>
+<p>企业与市场供给来自边际决策。零经济利润包含所有机会成本得到补偿，不等于企业主没有收入或会无理由停业。</p>
+<h2 id="section-6">二、主题讲解：三个阈值回答三个问题</h2>
+<h3 id="section-7">P 与 MC 决定“多做一单位值不值”</h3>
+<p>市场价格是新增一单位带来的收入，边际成本是新增代价。两者比较决定产量方向，而平均利润不能告诉企业最后一单位是否值得生产。</p>
+<h3 id="section-8">P 与 AVC 决定短期是否营业</h3>
+<p>价格低于平均总成本但高于平均可变成本时，继续生产能支付全部可变成本并覆盖一部分固定成本，比完全停产更少亏损。短期停产不等于退出，设备和合同仍在。</p>
+<h3 id="section-9">P 与 ATC 决定长期是否留下</h3>
+<p>长期中固定投入可以调整，若价格持续不能覆盖总机会成本，资源会转向其他用途。进入退出过程也会改变市场供给和价格，所以单个企业的决定会反馈到行业均衡。</p>
+<h2 id="section-10">检验理解：亏损为什么还生产</h2>
+<p>一家酒店淡季房价低于每间房分摊的全年总成本，但高于清洁、洗涤和额外服务成本。继续接客是否一定不理性？</p>
+<p>核对思路：不一定。短期只要新增收入覆盖新增可变成本，营业能减少亏损；长期是否保留酒店仍看总成本与机会成本。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 293–313页，合并 PDF 293–313页；利润最大化、停产、退出、市场供给与零利润均保留。酒店是讲解用假设案例。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章取消价格接受假设，研究垄断。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../13/index.html">上一篇 · 《曼昆〈经济学原理〉》第13章｜生产成本 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../15/index.html">下一篇 · 《曼昆〈经济学原理〉》第15章｜垄断 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

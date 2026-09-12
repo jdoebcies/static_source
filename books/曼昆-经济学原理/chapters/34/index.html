@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第34章｜宏观经济政策的五个争论问题 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">请回答：货币与财政决策者应该努力稳定经济吗？</a><a class="sub" href="#section-3">请回答：货币政策应该按规则还是相机抉择？</a><a class="sub" href="#section-4">请回答：中央银行应该把零通货膨胀作为目标吗？</a><a class="sub" href="#section-5">请回答：政府应该平衡其预算吗？</a><a class="sub" href="#section-6">请回答：应该为了鼓励储蓄而修改税法吗？</a><a class="sub" href="#section-7">结论</a><a class="" href="#section-8">二、主题讲解：用同一张检查表拆政策争论</a><a class="sub" href="#section-9">先对齐目标与时间</a><a class="sub" href="#section-10">再写出政策传导和失败条件</a><a class="sub" href="#section-11">最后分开事实判断与价值判断</a><a class="" href="#section-12">检验理解：双方到底在争什么</a><a class="" href="#section-13">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第34章｜宏观经济政策的五个争论问题 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>全书最后一章没有给五个统一答案，而是把同一套模型交给正反双方。分歧往往来自时间尺度、制度可信度、分配价值与经验判断不同。</p>
+<p><strong>本章要回答：</strong> 面对稳定经济、货币规则、零通胀、平衡预算和储蓄税制争论，怎样辨认真正的分歧变量？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="34-0-title">政策争论要先对齐时间与约束</title><desc id="34-0-desc">同一目标在短期稳定、长期激励和制度可信度下会得到不同答案</desc>
+<defs>
+  <marker id="34-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="34-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="34-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="34-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">政策争论要先对齐时间与约束</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">同一目标在短期稳定、长期激励和制度可信度下会得到不同答案</tspan></text><line x1="560" y1="240" x2="560" y2="272" stroke="#4f5d75" stroke-width="2" marker-end="url(#34-0-arrow)"/><line x1="560" y1="344" x2="560" y2="376" stroke="#4f5d75" stroke-width="2" marker-end="url(#34-0-arrow)"/><line x1="560" y1="448" x2="560" y2="480" stroke="#4f5d75" stroke-width="2" marker-end="url(#34-0-arrow)"/><line x1="560" y1="552" x2="560" y2="584" stroke="#4f5d75" stroke-width="2" marker-end="url(#34-0-arrow)"/><rect x="268" y="176" width="584" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="208" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">明确问题与政策目标</tspan></text><rect x="236" y="280" width="648" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="312" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">区分短期波动和长期增长</tspan></text><rect x="284" y="384" width="552" height="64" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><text x="560" y="416" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">识别激励、分配与可信度约束</tspan></text><rect x="244" y="488" width="632" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="520" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">比较规则与相机抉择的制度代价</tspan></text><rect x="272" y="592" width="576" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="624" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">保留证据不足与价值判断的分界</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图34-1｜依据五组正反论证重绘。箭头表示形成政策判断前的检查顺序，不把五个问题压成同一答案。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">请回答：货币与财政决策者应该努力稳定经济吗？</h3>
+<p>赞成者主张<strong>积极稳定政策</strong>：私人消费与投资波动会造成不必要的衰退，政策可移动总需求并减少失业。反对者强调预测不准和长而不确定的时滞，干预可能到得太晚；自动稳定器或规则可能比临时决策可靠。争论不在政策是否“有影响”，而在能否及时、准确地使用。</p>
+<h3 id="section-3">请回答：货币政策应该按规则还是相机抉择？</h3>
+<p><strong>货币政策规则</strong>支持者担心政治性经济周期与<strong>时间不一致性</strong>：决策者承诺低通胀后仍有制造意外通胀的诱因，理性公众会预期这一点。相机抉择支持者认为经济冲击多样，固定规则可能无法应对大萧条、金融危机或制度变化；独立、可信的中央银行可能在保留灵活性的同时维持低通胀。</p>
+<h3 id="section-4">请回答：中央银行应该把零通货膨胀作为目标吗？</h3>
+<p>赞成者强调通胀扭曲计价、税制和长期合同，即使温和通胀也会累积成本。反对者指出把通胀降到零需要暂时失业与产出损失，温和且稳定的通胀成本可能有限。争论取决于长期收益与过渡成本比较。</p>
+<h3 id="section-5">请回答：政府应该平衡其预算吗？</h3>
+<p>赞成者认为赤字减少国民储蓄、挤出资本并把<strong>政府债务</strong>留给后代，平衡规则能约束政治激励；他们也承认战争和衰退可能需要例外。反对者认为年度平衡过于僵硬，债务应相对国民收入衡量，借款用于资本投资或代际受益项目可能合理。李嘉图等价还提醒，家庭若预期未来加税，可能提高私人储蓄；这需要强假设，不能自动消除代际负担。</p>
+<h3 id="section-6">请回答：应该为了鼓励储蓄而修改税法吗？</h3>
+<p>赞成者认为储蓄支撑资本与长期生产率，现行所得税对资本收益重复征税，消费税或优惠账户可改善激励。反对者强调收入效应可能抵消替代效应，优惠更多被高收入者使用，减税若扩大赤字会降低公共储蓄，私人储蓄增加未必超过公共储蓄下降。</p>
+<h3 id="section-7">结论</h3>
+<p>经济学提供因果链和边界，却不能消除所有价值分歧与经验不确定性。作者希望读者能识别双方最强论据，而不是只记住立场标签。</p>
+<h2 id="section-8">二、主题讲解：用同一张检查表拆政策争论</h2>
+<h3 id="section-9">先对齐目标与时间</h3>
+<p>“稳定经济”可能指降低本季失业，也可能指十年物价可信度；“平衡预算”可能指每年、整个周期或债务占收入稳定。时间定义不同，结论会直接冲突。</p>
+<h3 id="section-10">再写出政策传导和失败条件</h3>
+<p>一项刺激要经过决策、执行、收入、消费和产量；任何环节时滞过长都会使结果改变。货币规则要说明遇到异常冲击怎么办，相机抉择则要说明怎样约束短期诱惑。</p>
+<h3 id="section-11">最后分开事实判断与价值判断</h3>
+<p>储蓄对税率反应多大是经验问题，代际公平和收入分配权重是价值问题。数据可以改变前者，却不能替社会隐含选择后者。</p>
+<h2 id="section-12">检验理解：双方到底在争什么</h2>
+<p>一方主张衰退期允许赤字、繁荣期偿还；另一方要求每年平衡。请指出至少两个决定结论的变量。</p>
+<p>核对思路：自动稳定器与政策时滞、债务用途、债务占收入趋势、政治上能否在繁荣期实现盈余，以及代际分配都会改变判断。</p>
+<h2 id="section-13">来源、范围与阅读连接</h2>
+<p>原书范围：下册 PDF 393–415页，合并 PDF 786–808页；五组“请回答”及正反论证均保留。未把任一方扩写成作者最终立场。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。译后记从中文读者角度说明这本书的写作与翻译价值。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../33/index.html">上一篇 · 《曼昆〈经济学原理〉》第33章｜通货膨胀与失业之间的短期交替关系 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../afterword/index.html">下一篇 · 为什么用十大原理和现实案例写入门经济学</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

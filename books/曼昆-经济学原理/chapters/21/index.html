@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第21章｜消费者选择理论 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">预算约束：消费者买得起什么</a><a class="sub" href="#section-3">偏好：消费者想要什么</a><a class="sub" href="#section-4">最优化：消费者选择什么</a><a class="sub" href="#section-5">四种应用</a><a class="sub" href="#section-6">结论</a><a class="" href="#section-7">二、主题讲解：一项价格变化其实同时改变两件事</a><a class="sub" href="#section-8">替代效应改变相对价格</a><a class="sub" href="#section-9">收入效应改变实际购买力</a><a class="sub" href="#section-10">总效应方向取决于两者强弱</a><a class="" href="#section-11">检验理解：加薪后为什么有人少工作</a><a class="" href="#section-12">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第21章｜消费者选择理论 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>需求曲线把许多选择压成价格与数量关系。本章向内展开，说明预算约束、偏好和最优选择怎样生成需求反应。</p>
+<p><strong>本章要回答：</strong> 收入与价格变化为什么同时产生替代效应和收入效应，甚至可能让劳动供给或储蓄方向不确定？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="21-0-title">最优选择发生在预算线与最高可达无差异曲线相切处</title><desc id="21-0-desc">价格或收入变化通过收入效应与替代效应改变选择</desc>
+<defs>
+  <marker id="21-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="21-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="21-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="21-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">最优选择发生在预算线与最高可达无差异曲线相切处</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">价格或收入变化通过收入效应与替代效应改变选择</tspan></text><line x1="176" y1="612" x2="952" y2="612" stroke="#2d3142" stroke-width="2" marker-end="url(#21-0-arrow-ink)"/><line x1="176" y1="612" x2="176" y2="168" stroke="#2d3142" stroke-width="2" marker-end="url(#21-0-arrow-ink)"/><text x="960" y="636" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="960" dy="0">物品 X</tspan></text><text x="152" y="172" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="152" dy="0">物品 Y</tspan></text><line x1="248" y1="220" x2="880" y2="560" stroke="#2d3142" stroke-width="3"/><path d="M300 220 C380 300 480 344 560 388 C640 432 760 500 880 560" fill="none" stroke="#2e5aa8" stroke-width="4"/><path d="M360 204 C440 284 540 328 620 372 C700 416 820 484 920 532" fill="none" stroke="#7a8399" stroke-width="3" stroke-dasharray="10 8"/><circle cx="560" cy="388" r="7" fill="#eb6c36"/><text x="580" y="364" fill="#eb6c36" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="580" dy="0">最高可达切点</tspan></text><text x="860" y="532" fill="#2d3142" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="860" dy="0">预算线</tspan></text><text x="812" y="492" fill="#2e5aa8" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="812" dy="0">可达无差异曲线</tspan></text><text x="796" y="368" fill="#7a8399" font-size="15" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="796" dy="0">更高但不可达</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图21-1｜依据本章消费者最优选择重绘。切点表示在预算约束内达到最高可达偏好；图不假定所有偏好都能用同一曲线形状表示。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">预算约束：消费者买得起什么</h3>
+<p><strong>预算约束线</strong>给出收入和价格允许的消费组合。斜率等于两种物品价格之比，表示市场提供的交换率。收入变化平行移动预算线，一种物品价格变化则使预算线绕截距转动。</p>
+<h3 id="section-3">偏好：消费者想要什么</h3>
+<p>无差异曲线连接给消费者相同满足程度的组合。作者假设偏好可比较、可传递、偏好更多，并通常呈凸性。无差异曲线向右下方倾斜且不相交，其斜率的绝对值是<strong>边际替代率</strong>。完全替代品和完全互补品展示极端形状；效用只是给偏好排序的另一种语言。</p>
+<h3 id="section-4">最优化：消费者选择什么</h3>
+<p>最优点位于预算线与最高可达无差异曲线相切处，边际替代率等于相对价格。收入增加通常使正常物品消费增加，低档物品可能减少。价格下降既让该物品相对更便宜，产生替代效应；也提高实际购买力，产生收入效应。吉芬物品要求负收入效应大到超过替代效应，是特殊可能性。</p>
+<h3 id="section-5">四种应用</h3>
+<p>作者把模型用于需求曲线、工资与劳动供给、利率与储蓄、现金和实物转移。工资提高使闲暇更昂贵，替代效应增加劳动；也使人更富，若闲暇是正常物品，收入效应减少劳动。利率对储蓄同样有方向相反的效应。实物转移若超过家庭自愿消费量，会限制选择；否则可能与等额现金结果相同。</p>
+<h3 id="section-6">结论</h3>
+<p>消费者选择理论提供一致框架，却依赖稳定偏好和可描述约束。它解释选择怎样响应相对价格，不证明观察到的每个行为都来自完全计算。</p>
+<h2 id="section-7">二、主题讲解：一项价格变化其实同时改变两件事</h2>
+<h3 id="section-8">替代效应改变相对价格</h3>
+<p>公交降价后，相对打车更便宜，即使保持原购买力，消费者也会倾向多坐公交。这是沿原无差异曲线寻找新切点。</p>
+<h3 id="section-9">收入效应改变实际购买力</h3>
+<p>同样收入现在能买到更多出行服务，相当于实际收入提高。若打车是正常物品，消费者可能把部分省下的钱用于打车，抵消一部分替代效应。</p>
+<h3 id="section-10">总效应方向取决于两者强弱</h3>
+<p>对普通物品，替代效应让价格下降的物品消费增加；收入效应可能同向或反向。劳动与储蓄问题尤其容易出现方向不确定，不能只凭“回报更高”预测行为。</p>
+<h2 id="section-11">检验理解：加薪后为什么有人少工作</h2>
+<p>时薪提高后，一名员工减少工时。这个行为是否违反理性选择？</p>
+<p>核对思路：不一定。更高工资使闲暇机会成本上升，替代效应增加工作；也提高实际收入，收入效应可能让人购买更多闲暇。后者更强时，工时下降。</p>
+<h2 id="section-12">来源、范围与阅读连接</h2>
+<p>原书范围：下册 PDF 71–98页，合并 PDF 464–491页；预算约束、偏好、最优化、收入与替代效应及四类应用均保留。公交与打车是讲解用假设。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一篇转向宏观经济统计。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../20/index.html">上一篇 · 《曼昆〈经济学原理〉》第20章｜收入分配 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../22/index.html">下一篇 · 《曼昆〈经济学原理〉》第22章｜国民收入的衡量 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

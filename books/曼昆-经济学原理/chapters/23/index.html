@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第23章｜生活费用的衡量 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">消费物价指数</a><a class="sub" href="#section-3">根据通货膨胀的影响校正经济变量</a><a class="sub" href="#section-4">结论</a><a class="" href="#section-5">二、主题讲解：同一笔加薪要先过价格指数这一关</a><a class="sub" href="#section-6">名义上涨不等于购买力提高</a><a class="sub" href="#section-7">固定篮子会忽略人们换买法</a><a class="sub" href="#section-8">个人指数取决于自己的权重</a><a class="" href="#section-9">检验理解：存款利息为何越存越穷</a><a class="" href="#section-10">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第23章｜生活费用的衡量 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>消费物价指数试图回答：维持代表性生活方式的成本比过去提高了多少。固定篮子带来可比性，也带来替代、新产品和质量变化偏差。</p>
+<p><strong>本章要回答：</strong> CPI 怎样编制，为什么名义金额、实际购买力与实际利率必须分开？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="23-0-title">CPI 把价格变化压成同一指数</title><desc id="23-0-desc">固定篮子便于比较，也带来替代、新产品与质量变化偏差</desc>
+<defs>
+  <marker id="23-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="23-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="23-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="23-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">CPI 把价格变化压成同一指数</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">固定篮子便于比较，也带来替代、新产品与质量变化偏差</tspan></text><line x1="336" y1="296" x2="480" y2="364" stroke="#4f5d75" stroke-width="2" marker-end="url(#23-0-arrow)"/><line x1="784" y1="296" x2="640" y2="364" stroke="#4f5d75" stroke-width="2" marker-end="url(#23-0-arrow)"/><line x1="560" y1="436" x2="560" y2="492" stroke="#eb6c36" stroke-width="2" marker-end="url(#23-0-arrow-accent)"/><line x1="560" y1="556" x2="560" y2="612" stroke="#4f5d75" stroke-width="2" marker-end="url(#23-0-arrow)"/><rect x="112" y="216" width="320" height="96" rx="8" fill="#ffffff" stroke="#2d3142"/><rect x="688" y="216" width="320" height="96" rx="8" fill="#ffffff" stroke="#2d3142"/><rect x="368" y="356" width="384" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><rect x="320" y="492" width="480" height="64" rx="8" fill="#ffffff" stroke="#2d3142"/><rect x="280" y="612" width="560" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75"/><text x="272" y="264" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="272" dy="-12">消费篮子</tspan><tspan x="272" dy="24">物品数量与权重</tspan></text><text x="848" y="264" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="848" dy="-12">各期价格</tspan><tspan x="848" dy="24">同一批物品的报价</tspan></text><text x="560" y="396" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">计算各期篮子成本</tspan></text><text x="560" y="524" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">相对基年形成 CPI 与通胀率</tspan></text><text x="560" y="644" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">校正名义金额与名义利率</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图23-1｜依据本章 CPI 编制步骤重绘。箭头表示从代表性篮子到指数，再用于校正名义金额；每一步都可能引入测量边界。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">消费物价指数</h3>
+<p>统计机构先确定代表性消费篮子，收集各期价格，计算篮子成本，选择基年并形成指数，再计算百分比变化作为通货膨胀率。不同支出项目按家庭预算中的重要性加权。</p>
+<p>CPI 有三类主要问题。替代倾向意味着消费者会从涨价较多的物品转向替代品，固定篮子高估维持效用的成本；新产品扩大选择，相当于降低达到同等生活水平所需支出，却难及时进入篮子；无法衡量的质量提高会把一部分价值增长误记为纯涨价。GDP 平减指数覆盖国内生产的全部最终品，CPI 更贴近消费者购买并包含进口品，两者权重更新方式也不同；<strong>生产物价指数</strong>则衡量企业购买的一篮子物品与劳务成本。</p>
+<h3 id="section-3">根据通货膨胀的影响校正经济变量</h3>
+<p>物价指数可以把不同时期美元换成可比购买力。合同、税制和社会保障按指数调整称为指数化。名义利率表示账户余额增长，实际利率约等于名义利率减通货膨胀率，衡量购买力增长。预期与实际通胀不同还会在借贷双方之间重新分配财富。</p>
+<h3 id="section-4">结论</h3>
+<p>价格指数是有用近似，不是个人生活成本的精确读数。不同家庭消费篮子不同，官方平均指数与个人体验可能偏离。</p>
+<h2 id="section-5">二、主题讲解：同一笔加薪要先过价格指数这一关</h2>
+<h3 id="section-6">名义上涨不等于购买力提高</h3>
+<p>工资上涨5%，生活成本上涨4%，实际工资大约只提高1%。若只比较账户数字，会把普遍涨价误当成收入改善。</p>
+<h3 id="section-7">固定篮子会忽略人们换买法</h3>
+<p>牛肉涨价、鸡肉不变时，消费者可能少买牛肉。固定篮子继续假设原数量，会高估维持实际满足的成本；但替代也可能意味着被迫放弃偏好，不能简单说消费者没有受损。</p>
+<h3 id="section-8">个人指数取决于自己的权重</h3>
+<p>租房者与自有住房者、老人和年轻人的支出结构不同，同一物价变化影响不同。官方 CPI 服务总体合同和宏观比较，个人预算需要自己的篮子。</p>
+<h2 id="section-9">检验理解：存款利息为何越存越穷</h2>
+<p>存款名义利率3%，同期通胀率5%。账户余额增加，实际购买力怎样变化？</p>
+<p>核对思路：实际利率约为-2%，购买力下降。名义正收益不能证明实际变富。</p>
+<h2 id="section-10">来源、范围与阅读连接</h2>
+<p>原书范围：下册 PDF 119–138页，合并 PDF 512–531页；CPI步骤、测量问题、GDP平减指数、指数化与实际利率均保留。百分比为讲解用假设。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一篇研究长期生产率、储蓄投资和失业。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../22/index.html">上一篇 · 《曼昆〈经济学原理〉》第22章｜国民收入的衡量 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../24/index.html">下一篇 · 《曼昆〈经济学原理〉》第24章｜生产与增长 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第11章｜公共物品和共有资源 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">各种类型的物品</a><a class="sub" href="#section-3">公共物品</a><a class="sub" href="#section-4">共有资源</a><a class="sub" href="#section-5">结论</a><a class="" href="#section-6">二、主题讲解：先辨认问题结构，再选工具</a><a class="sub" href="#section-7">不排他导致“没人愿意先付”</a><a class="sub" href="#section-8">竞争性导致“每个人都多用一点”</a><a class="sub" href="#section-9">技术会移动边界</a><a class="" href="#section-10">检验理解：一条道路属于哪一类</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第11章｜公共物品和共有资源 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>有些物品难以向使用者收费，有些物品一人使用会减少别人可用量。把这两条边界分开，才能理解搭便车与公地悲剧为什么是两种不同问题。</p>
+<p><strong>本章要回答：</strong> 排他性和竞争性怎样决定市场能否提供、使用者会不会过度使用？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="11-0-title">两条边界区分四类物品</title><desc id="11-0-desc">排他性问能否阻止使用，竞争性问一人使用是否减少他人可用量</desc>
+<defs>
+  <marker id="11-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="11-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="11-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="11-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">两条边界区分四类物品</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">排他性问能否阻止使用，竞争性问一人使用是否减少他人可用量</tspan></text><line x1="560" y1="176" x2="560" y2="676" stroke="#2d3142" stroke-width="1.2" marker-start="url(#11-0-arrow-reverse)" marker-end="url(#11-0-arrow)"/><line x1="136" y1="412" x2="984" y2="412" stroke="#2d3142" stroke-width="1.2" marker-start="url(#11-0-arrow-reverse)" marker-end="url(#11-0-arrow)"/><text x="560" y="160" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">竞争</tspan></text><text x="560" y="696" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">不竞争</tspan></text><text x="120" y="412" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="end" dominant-baseline="middle"><tspan x="120" dy="0">不排他</tspan></text><text x="1000" y="412" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="1000" dy="0">排他</tspan></text><rect x="172" y="188" width="340" height="176" rx="8" fill="rgba(45,49,66,0.04)" stroke="#4f5d75" stroke-width="1"/><text x="342" y="276" fill="#2d3142" font-size="20" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="342" dy="-14">共有资源</tspan><tspan x="342" dy="28">不排他 · 竞争</tspan></text><rect x="608" y="188" width="340" height="176" rx="8" fill="rgba(45,49,66,0.04)" stroke="#4f5d75" stroke-width="1"/><text x="778" y="276" fill="#2d3142" font-size="20" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="778" dy="-14">私人物品</tspan><tspan x="778" dy="28">排他 · 竞争</tspan></text><rect x="172" y="424" width="340" height="176" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><text x="342" y="512" fill="#2d3142" font-size="20" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="342" dy="-14">公共物品</tspan><tspan x="342" dy="28">不排他 · 不竞争</tspan></text><rect x="608" y="424" width="340" height="176" rx="8" fill="rgba(45,49,66,0.04)" stroke="#4f5d75" stroke-width="1"/><text x="778" y="512" fill="#2d3142" font-size="20" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="778" dy="-14">自然垄断</tspan><tspan x="778" dy="28">排他 · 不竞争</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图11-1｜依据原书四类物品矩阵重绘。横轴表示排他性，纵轴表示竞争性；四类问题需要不同制度安排。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">各种类型的物品</h3>
+<p><strong>排他性</strong>问能否阻止未付费者使用，<strong>竞争性</strong>问一人使用是否减少别人可用量。两条轴组成四类：私人物品既排他又竞争；公共物品既不排他也不竞争；共有资源不排他但竞争；自然垄断所供物品排他但不竞争或边际成本很低。</p>
+<p>分类取决于情境。道路不拥挤时可能不竞争，拥挤后变成竞争性资源；收费技术也会改变排他性。物品名称不能永久决定它属于哪一格。</p>
+<h3 id="section-3">公共物品</h3>
+<p>公共物品的难题是<strong>搭便车者</strong>：无法排除未付费者时，个人会等待别人付款，私人市场可能提供不足。国防、基础研究和某些公共活动是作者的例子。政府可以通过税收提供，但仍要做成本—收益分析；公共收益难以观察，人的生命或环境价值也不能靠简单市场价格完全衡量。</p>
+<h3 id="section-4">共有资源</h3>
+<p>共有资源的难题是过度使用。每个使用者得到自己的收益，却只承担资源耗损的一小部分，于是总使用量过高，形成<strong>共有地悲剧</strong>。清洁空气、水、拥挤道路、鱼类和野生动物都可能出现这一结构。管制、税费、配额或产权安排可以改变使用者面对的成本。</p>
+<h3 id="section-5">结论</h3>
+<p>市场是否有效取决于物品特征与制度环境。政府介入也需要信息与执行；分类提供问题诊断，不自动给出唯一政策。</p>
+<h2 id="section-6">二、主题讲解：先辨认问题结构，再选工具</h2>
+<h3 id="section-7">不排他导致“没人愿意先付”</h3>
+<p>社区防洪一旦建成，很难只保护付费住户。即使每个人都需要，个体仍有动机等待别人出资。这里的问题是提供不足，收费困难是关键。</p>
+<h3 id="section-8">竞争性导致“每个人都多用一点”</h3>
+<p>公共草场上的牧民多放一头牛，得到完整收益，却只承担草场退化的一部分。所有人采用同一逻辑后，资源被过度消耗。这里的问题是使用过量，而不是没人愿意生产。</p>
+<h3 id="section-9">技术会移动边界</h3>
+<p>电子收费让道路更容易排他，拥堵监测让按时段定价成为可能；但技术成本、隐私与公平仍要评价。分类不是静态标签，而是制度设计前的一次现场测量。</p>
+<h2 id="section-10">检验理解：一条道路属于哪一类</h2>
+<p>一条空闲的收费高速公路和一条拥堵的免费道路分别更接近哪一类？</p>
+<p>核对思路：空闲收费路排他但暂不竞争，接近自然垄断型物品；拥堵免费路不排他但竞争，接近共有资源。时间与收费制度变化会移动分类。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 228–246页，合并 PDF 228–246页；四类物品、搭便车、成本—收益与公地悲剧均保留。防洪和草场沿用本章结构作讲解。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章讨论政府为公共职能筹资时怎样设计税制。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../10/index.html">上一篇 · 《曼昆〈经济学原理〉》第10章｜外部性 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../12/index.html">下一篇 · 《曼昆〈经济学原理〉》第12章｜税制的设计 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

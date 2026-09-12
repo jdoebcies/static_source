@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第5章｜弹性及其应用 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">需求弹性</a><a class="sub" href="#section-3">供给弹性</a><a class="sub" href="#section-4">供给、需求和弹性的三种应用</a><a class="sub" href="#section-5">结论</a><a class="" href="#section-6">二、主题讲解：先确定时间和替代品，再谈弹性</a><a class="sub" href="#section-7">短期离不开，长期可以换</a><a class="sub" href="#section-8">总收益取决于两股力量谁更大</a><a class="sub" href="#section-9">政策要看反应，不只看目标</a><a class="" href="#section-10">检验理解：收入为何下降</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第5章｜弹性及其应用 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>供求曲线告诉我们变化方向，弹性继续追问变化幅度。它用百分比而不是原单位比较，让汽油、门票和小麦等不同市场进入同一尺度。</p>
+<p><strong>本章要回答：</strong> 什么决定买者和卖者对价格或收入变化反应得强还是弱？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="05-0-title">弹性衡量反应幅度</title><desc id="05-0-desc">同样的价格变化，会引起不同大小的数量反应</desc>
+<defs>
+  <marker id="05-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="05-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="05-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="05-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">弹性衡量反应幅度</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">同样的价格变化，会引起不同大小的数量反应</tspan></text><line x1="176" y1="612" x2="952" y2="612" stroke="#2d3142" stroke-width="2" marker-end="url(#05-0-arrow-ink)"/><line x1="176" y1="612" x2="176" y2="168" stroke="#2d3142" stroke-width="2" marker-end="url(#05-0-arrow-ink)"/><text x="960" y="636" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="960" dy="0">数量变动</tspan></text><text x="152" y="172" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="152" dy="0">价格变动</tspan></text><path d="M480 220 L640 556" fill="none" stroke="#2e5aa8" stroke-width="4"/><path d="M280 320 L840 456" fill="none" stroke="#eb6c36" stroke-width="4"/><line x1="256" y1="340" x2="864" y2="340" stroke="#4f5d75" stroke-width="1" stroke-dasharray="8 8"/><line x1="256" y1="436" x2="864" y2="436" stroke="#4f5d75" stroke-width="1" stroke-dasharray="8 8"/><line x1="232" y1="340" x2="232" y2="436" stroke="#2d3142" stroke-width="2" marker-start="url(#05-0-arrow-reverse)" marker-end="url(#05-0-arrow-ink)"/><line x1="536" y1="484" x2="592" y2="484" stroke="#2e5aa8" stroke-width="2" marker-start="url(#05-0-arrow-reverse)" marker-end="url(#05-0-arrow-ink)"/><line x1="360" y1="520" x2="760" y2="520" stroke="#eb6c36" stroke-width="2" marker-start="url(#05-0-arrow-reverse)" marker-end="url(#05-0-arrow-ink)"/><text x="208" y="388" fill="#4f5d75" font-size="15" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="208" dy="0">同一 ΔP</tspan></text><text x="564" y="476" fill="#2e5aa8" font-size="15" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="564" dy="0">较小 ΔQ</tspan></text><text x="560" y="544" fill="#eb6c36" font-size="15" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">较大 ΔQ</tspan></text><text x="560" y="284" fill="#4f5d75" font-size="15" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">两条曲线通过同一比较点；弹性仍按百分比计算</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图5-1｜依据需求价格弹性重绘。图只表达相同价格变化下数量反应的相对大小；曲线斜率与弹性相关，但不能在单位改变后直接画等号。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">需求弹性</h3>
+<p>需求价格弹性等于需求量变动百分比除以价格变动百分比。相近替代品多、属于奢侈品、市场定义窄且调整时间长的物品，需求通常更有弹性。中点法用两个端点的平均值作分母，避免从A到B与从B到A得到不同结果。</p>
+<p>需求缺乏弹性时，提高价格增加总收益，因为数量下降比例较小；需求富有弹性时，提高价格减少总收益。单位弹性处两种作用抵消。需求收入弹性则区分正常物品与低档物品，并衡量收入变化怎样影响需求。</p>
+<h3 id="section-3">供给弹性</h3>
+<p>供给价格弹性衡量供给量对价格的反应。卖者能否改变产量、可用产能与考察期限很重要。海边土地几乎不能增加，供给缺乏弹性；制造品长期中可以扩建或进入，供给通常更有弹性。供给曲线也可能在接近容量上限时由富有弹性变得缺乏弹性。</p>
+<h3 id="section-4">供给、需求和弹性的三种应用</h3>
+<p>作者把弹性用于农业好消息、石油市场和禁毒政策。技术进步使农产品供给增加，但食品需求缺乏弹性时，价格下降比例可能大于产量增加比例，农民总收入反而下降。石油短缺在短期影响大、长期影响小，因为消费者和生产者需要时间调整。打击毒品供给可能推高价格；若成瘾者需求缺乏弹性，总支出和相关犯罪动机反而可能上升。教育降低需求则沿另一条路径减少交易量和支出。</p>
+<h3 id="section-5">结论</h3>
+<p>弹性把“会变化”推进到“变化多大”。它依赖市场定义、时间范围和可替代性，同一物品没有脱离情境的永久弹性值。</p>
+<h2 id="section-6">二、主题讲解：先确定时间和替代品，再谈弹性</h2>
+<h3 id="section-7">短期离不开，长期可以换</h3>
+<p>通勤者明天很难因油价上涨立刻搬家或换车，所以短期汽油需求较缺乏弹性。几年内，人们可以换车型、调整住处或使用公共交通，需求反应会扩大。省略时间范围，任何“汽油需求弹性小”的判断都不完整。</p>
+<h3 id="section-8">总收益取决于两股力量谁更大</h3>
+<p>价格提高让每件商品收入增加，却使销量下降。弹性正是比较这两股力量。若数量下降5%、价格提高10%，总收益大致增加；若数量下降20%，总收益会减少。这个判断不等于利润判断，因为成本还没有进入。</p>
+<h3 id="section-9">政策要看反应，不只看目标</h3>
+<p>对需求缺乏弹性的物品征税，交易量减少较少，税收收入可能稳定，但负担会更多落到缺少替代选择的一方。后续第6章会说明，法定向谁征税并不能决定谁真正承担税负。</p>
+<h2 id="section-10">检验理解：收入为何下降</h2>
+<p>农业技术使小麦产量提高，但全行业收入下降。这个结果与“技术进步提高生产能力”矛盾吗？</p>
+<p>核对思路：不矛盾。供给右移压低价格；若小麦需求缺乏弹性，价格下降比例大于销量增加比例，总收益会下降。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 91–113页，合并 PDF 91–113页；需求弹性、供给弹性与三组应用均保留。通勤与比例数字是讲解用假设。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章观察政府直接改变价格或在买卖之间加入税收楔子时会发生什么。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../04/index.html">上一篇 · 《曼昆〈经济学原理〉》第4章｜供给与需求的市场力量 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../06/index.html">下一篇 · 《曼昆〈经济学原理〉》第6章｜供给、需求与政府政策 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

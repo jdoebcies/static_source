@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>曼昆《经济学原理》｜全书导读（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">第1篇 导言</a><a class="sub" href="#section-3">第2篇 供给与需求（Ⅰ）：市场如何运行</a><a class="sub" href="#section-4">第3篇 供给与需求（Ⅱ）：市场和福利</a><a class="sub" href="#section-5">第4篇 公共部门经济学</a><a class="sub" href="#section-6">第5篇 企业行为与产业组织</a><a class="sub" href="#section-7">第6篇 劳动市场经济学</a><a class="sub" href="#section-8">第7篇 高深的论题</a><a class="sub" href="#section-9">第8篇 宏观经济学的数据</a><a class="sub" href="#section-10">第9篇 长期中的实际经济</a><a class="sub" href="#section-11">第10篇 长期中的货币与物价</a><a class="sub" href="#section-12">第11篇 开放经济宏观经济学</a><a class="sub" href="#section-13">第12篇 短期经济波动</a><a class="sub" href="#section-14">第13篇 最后的思考</a><a class="" href="#section-15">二、主题讲解：怎样读这套书镜</a><a class="sub" href="#section-16">先读图，再走原书推理</a><a class="sub" href="#section-17">再读主题讲解，把模型放进新情形</a><a class="sub" href="#section-18">最后做迁移题</a><a class="" href="#section-19">检验理解：全书的四层关系</a><a class="" href="#section-20">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">全书导读</p><h1>34章如何组成一条判断链</h1>
+<p>这套扫描分册包含上册第1—17章、下册第18—34章，以及译后记。全书没有从术语百科出发，而是从稀缺与选择一路推进到市场、企业、增长、货币、开放经济和短期波动。</p>
+<p><strong>本书要回答：</strong> 个人和社会怎样在稀缺下选择，市场如何协调这些选择，何时会失灵，宏观经济又怎样增长与波动？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="guide-0-title">全书的判断链</title><desc id="guide-0-desc">从个人选择，经由市场协调，走向整体经济与政策权衡</desc>
+<defs>
+  <marker id="guide-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="guide-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="guide-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="guide-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">全书的判断链</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">从个人选择，经由市场协调，走向整体经济与政策权衡</tspan></text><line x1="560" y1="240" x2="560" y2="272" stroke="#4f5d75" stroke-width="2" marker-end="url(#guide-0-arrow)"/><line x1="560" y1="344" x2="560" y2="376" stroke="#4f5d75" stroke-width="2" marker-end="url(#guide-0-arrow)"/><line x1="560" y1="448" x2="560" y2="480" stroke="#4f5d75" stroke-width="2" marker-end="url(#guide-0-arrow)"/><line x1="560" y1="552" x2="560" y2="584" stroke="#4f5d75" stroke-width="2" marker-end="url(#guide-0-arrow)"/><rect x="268" y="176" width="584" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="208" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">稀缺迫使人们选择</tspan></text><rect x="236" y="280" width="648" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="312" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">价格与制度协调交易</tspan></text><rect x="284" y="384" width="552" height="64" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><text x="560" y="416" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">市场结果需要效率与公平判断</tspan></text><rect x="244" y="488" width="632" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="520" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">增长、货币与波动塑造整体经济</tspan></text><rect x="272" y="592" width="576" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="624" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">政策改变激励，也带来新的代价</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图导读-1｜依据13篇结构重绘。箭头表示理解依赖：个人选择构成交易，市场结果进入福利与政策，长期增长、货币和短期波动再扩展到整体经济。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">第1篇 导言</h3>
+<p>第1—3章建立十大原理、模型方法与比较优势。这里给出全书反复使用的判断语言：机会成本、边际量、激励、贸易、市场与宏观约束。</p>
+<h3 id="section-3">第2篇 供给与需求（Ⅰ）：市场如何运行</h3>
+<p>第4—6章从竞争市场供求进入弹性、价格控制和税收归宿，回答价格与数量如何形成，以及政策规则怎样改变行为。</p>
+<h3 id="section-4">第3篇 供给与需求（Ⅱ）：市场和福利</h3>
+<p>第7—9章用消费者剩余、生产者剩余和无谓损失评价市场、税收与国际贸易。</p>
+<h3 id="section-5">第4篇 公共部门经济学</h3>
+<p>第10—12章处理外部性、公共物品、共有资源和税制，说明市场价格漏掉第三方影响或无法排除使用者时，制度怎样介入。</p>
+<h3 id="section-6">第5篇 企业行为与产业组织</h3>
+<p>第13—17章从成本曲线走向竞争、垄断、寡头与垄断竞争，把企业的产量、进入、策略、广告和品牌放在不同市场结构中比较。</p>
+<h3 id="section-7">第6篇 劳动市场经济学</h3>
+<p>第18—20章把边际生产率连接到工资、收入差异、歧视、不平等与反贫困政策。</p>
+<h3 id="section-8">第7篇 高深的论题</h3>
+<p>第21章用预算约束和无差异曲线展开消费者选择，解释收入效应、替代效应及劳动、储蓄与转移支付。</p>
+<h3 id="section-9">第8篇 宏观经济学的数据</h3>
+<p>第22—23章建立 GDP、CPI、实际与名义变量，为后续增长、通胀和波动提供可比尺度。</p>
+<h3 id="section-10">第9篇 长期中的实际经济</h3>
+<p>第24—26章讨论生产率、储蓄投资、金融体系与自然失业率，说明长期生活水平和劳动力市场怎样形成。</p>
+<h3 id="section-11">第10篇 长期中的货币与物价</h3>
+<p>第27—28章从货币职能、银行创造货币进入数量论、货币中性和通胀成本。</p>
+<h3 id="section-12">第11篇 开放经济宏观经济学</h3>
+<p>第29—30章连接净出口、资本流动、实际汇率、可贷资金与外汇市场。</p>
+<h3 id="section-13">第12篇 短期经济波动</h3>
+<p>第31—33章用总需求—总供给和菲利普斯曲线解释衰退、政策传导、预期与反通胀成本。</p>
+<h3 id="section-14">第13篇 最后的思考</h3>
+<p>第34章把稳定政策、货币规则、零通胀、平衡预算和储蓄税制交给正反双方论证，要求读者自己辨认事实与价值分歧。</p>
+<h2 id="section-15">二、主题讲解：怎样读这套书镜</h2>
+<h3 id="section-16">先读图，再走原书推理</h3>
+<p>每章开头图只呈现一条主关系，用来定位变量和方向；“原书回顾”保留作者章节顺序、案例作用与边界，避免主题重组吞掉原书。</p>
+<h3 id="section-17">再读主题讲解，把模型放进新情形</h3>
+<p>主题讲解用一个更熟悉的情形运行同一机制，并说明何时会失效。假设案例只承担解释，不冒充原书事实或现实测量。</p>
+<h3 id="section-18">最后做迁移题</h3>
+<p>理解检查要求区分相近概念、追踪传导或判断边界。能说出结论还不够，需要给出理由，并能说回原书术语。</p>
+<h2 id="section-19">检验理解：全书的四层关系</h2>
+<p>请用“选择—市场—整体经济—政策”四层解释，一项能源税怎样从个人激励传到价格、产量、通胀与分配判断。</p>
+<p>核对思路：先写机会成本和行为反应，再走供求与弹性，接着区分相对价格与物价总水平，最后比较外部性、税负归宿、无谓损失和公平。</p>
+<h2 id="section-20">来源、范围与阅读连接</h2>
+<p>原书篇章页：上册 PDF 1、61、137、205、271页；下册 PDF 1、69、99、139、219、269、313、391页。正文覆盖34章与译后记；下册 PDF 416–435页为索引，登记但不另作正文。扫描分册缺少版权页，版次不作无证据补写；译后记落款为1999年8月15日。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。</p>
+<nav class="pagination" aria-label="章节翻页"><span></span><a href="../01/index.html">下一篇 · 《曼昆〈经济学原理〉》第1章｜经济学十大原理 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

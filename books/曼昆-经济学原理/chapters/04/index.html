@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第4章｜供给与需求的市场力量 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">市场与竞争</a><a class="sub" href="#section-3">需求</a><a class="sub" href="#section-4">供给</a><a class="sub" href="#section-5">供给与需求的结合</a><a class="sub" href="#section-6">结论：价格如何配置资源</a><a class="" href="#section-7">二、主题讲解：看到涨价时先别急着找一条曲线</a><a class="sub" href="#section-8">同样是涨价，原因可以相反</a><a class="sub" href="#section-9">“需求增加”与“需求量增加”要分开</a><a class="sub" href="#section-10">均衡是计划相容，不是道德最优</a><a class="" href="#section-11">检验理解：是哪条曲线动了</a><a class="" href="#section-12">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第4章｜供给与需求的市场力量 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>供给与需求模型把许多买者和卖者的分散决定压缩成两条曲线。关键不只是找到交点，还要分清“价格变化造成沿曲线移动”和“其他条件变化造成曲线移动”。</p>
+<p><strong>本章要回答：</strong> 市场价格怎样把买者愿意购买的量与卖者愿意出售的量协调起来？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="04-0-title">供给与需求共同决定均衡</title><desc id="04-0-desc">价格同时协调买者愿买的量和卖者愿卖的量</desc>
+<defs>
+  <marker id="04-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="04-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="04-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="04-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">供给与需求共同决定均衡</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">价格同时协调买者愿买的量和卖者愿卖的量</tspan></text><line x1="176" y1="612" x2="952" y2="612" stroke="#2d3142" stroke-width="2" marker-end="url(#04-0-arrow-ink)"/><line x1="176" y1="612" x2="176" y2="168" stroke="#2d3142" stroke-width="2" marker-end="url(#04-0-arrow-ink)"/><text x="960" y="636" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="960" dy="0">数量 Q</tspan></text><text x="152" y="172" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="152" dy="0">价格 P</tspan></text><path d="M240 224 C408 300 700 464 888 552" fill="none" stroke="#2e5aa8" stroke-width="4"/><path d="M240 552 C408 472 700 300 888 224" fill="none" stroke="#eb6c36" stroke-width="4"/><text x="904" y="552" fill="#2e5aa8" font-size="16" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="904" dy="0">D</tspan></text><text x="904" y="224" fill="#eb6c36" font-size="16" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="904" dy="0">S</tspan></text><circle cx="560" cy="388" r="7" fill="#eb6c36"/><text x="580" y="364" fill="#2d3142" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="580" dy="0">均衡</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图4-1｜依据本章供求模型重绘。蓝线表示需求，橙线表示供给；交点是计划购买量等于计划出售量的位置。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">市场与竞争</h3>
+<p>市场是一群特定物品或劳务的买者与卖者。作者先聚焦竞争市场：参与者很多，单个买者或卖者相对市场很小，只能接受市场形成的价格。完全竞争还要求交易物品相同且进入退出相对自由。后续章节会放松这些假设，研究市场势力。</p>
+<h3 id="section-3">需求</h3>
+<p>需求量是在某一价格下买者愿意且能够购买的数量。<strong>需求表</strong>列出价格与需求量，需求曲线把它画出来。其他条件相同时，价格下降通常使需求量增加，这构成需求规律和向右下方倾斜的需求曲线。市场需求由个人需求水平相加得到。</p>
+<p>收入、相关物品价格、嗜好、预期和买者数量变化，会使整条需求曲线移动。正常物品与低档物品对收入变化的反应方向不同；替代品与互补品则说明一个市场的变化怎样传到另一个市场。作者用香烟说明：改变偏好会移动需求曲线，直接提高香烟价格则是沿曲线移动。</p>
+<h3 id="section-4">供给</h3>
+<p>供给量是在某一价格下卖者愿意且能够出售的数量。<strong>供给表</strong>列出价格与供给量；价格提高通常扩大供给量，这就是<strong>供给规律</strong>。投入价格、技术、预期和卖者数量改变时，整条供给曲线移动。个人供给水平相加形成市场供给。</p>
+<h3 id="section-5">供给与需求的结合</h3>
+<p>均衡价格使供给量等于需求量，对应的成交量是<strong>均衡数量</strong>。价格高于均衡时出现<strong>超额供给</strong>，卖者降价；价格低于均衡时出现<strong>超额需求</strong>，买者竞争推动价格上升。供求规律描述价格怎样把市场推向均衡。分析事件时，作者给出三步：判断事件移动供给还是需求，判断移动方向，再做<strong>比较静态</strong>，比较新旧均衡的价格与数量。</p>
+<h3 id="section-6">结论：价格如何配置资源</h3>
+<p>价格不是一个孤立数字。它向买者传递稀缺程度，向卖者传递生产回报，并在两边的响应中配置资源。这个机制在竞争条件下有解释力；市场效率和失灵还需要后续章节判断。</p>
+<h2 id="section-7">二、主题讲解：看到涨价时先别急着找一条曲线</h2>
+<h3 id="section-8">同样是涨价，原因可以相反</h3>
+<p>演唱会门票价格和成交量同时上升，可能是歌手走红使需求右移；原材料短缺使供给左移时，价格也会上升，但成交量会下降。只有价格变化，不能单独告诉我们哪条曲线动了。数量方向和事件本身才是识别依据。</p>
+<h3 id="section-9">“需求增加”与“需求量增加”要分开</h3>
+<p>票价下降导致沿既定需求曲线移动，应说需求量增加。歌手走红导致每个价格下愿买的人都更多，才是需求增加、曲线右移。术语差异保存了因果信息；混用之后，分析会把结果误当成原因。</p>
+<h3 id="section-10">均衡是计划相容，不是道德最优</h3>
+<p>交点只说明买卖计划一致，不说明结果一定公平，也不说明没有外部成本、信息问题或市场势力。供求模型回答“价格与数量怎样调整”，福利分析再回答“这种结果是否有效率、谁得到什么”。</p>
+<h2 id="section-11">检验理解：是哪条曲线动了</h2>
+<p>芯片制造技术进步，同时智能设备更受欢迎。芯片均衡价格和数量会怎样变化？</p>
+<p>核对思路：技术进步使供给右移，偏好变化使需求右移，数量方向都向上；价格受到相反作用，仅凭这两个信息无法确定。</p>
+<h2 id="section-12">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 63–90页，合并 PDF 63–90页；市场、需求、供给、均衡与价格配置资源均保留。演唱会与芯片是讲解用假设案例。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章给“反应有多大”增加弹性尺度。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../03/index.html">上一篇 · 《曼昆〈经济学原理〉》第3章｜相互依存性与贸易的好处 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../05/index.html">下一篇 · 《曼昆〈经济学原理〉》第5章｜弹性及其应用 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

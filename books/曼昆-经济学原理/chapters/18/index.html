@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第18章｜生产要素市场 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">企业的劳动需求</a><a class="sub" href="#section-3">劳动市场的均衡</a><a class="sub" href="#section-4">其他生产要素：土地和资本</a><a class="sub" href="#section-5">结论</a><a class="" href="#section-6">二、主题讲解：企业买的不是“人”，而是新增产出价值</a><a class="sub" href="#section-7">边际产量与产品价格缺一不可</a><a class="sub" href="#section-8">其他要素会改变劳动价值</a><a class="sub" href="#section-9">均衡关系不是道德评价</a><a class="" href="#section-10">检验理解：产品价格为何影响工资</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第18章｜生产要素市场 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>劳动、土地和资本的需求并非独立产生。企业购买这些要素，是因为它们能帮助生产消费者愿意购买的产品。</p>
+<p><strong>本章要回答：</strong> 产品需求、边际产量与要素价格怎样连接，为什么竞争均衡中工资等于劳动的边际产量值？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="18-0-title">要素需求来自边际产量值</title><desc id="18-0-desc">产品价格 P 与劳动边际产量 MPL 共同形成 VMPL，企业雇佣到 VMPL = W</desc>
+<defs>
+  <marker id="18-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="18-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="18-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="18-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">要素需求来自边际产量值</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">产品价格 P 与劳动边际产量 MPL 共同形成 VMPL，企业雇佣到 VMPL = W</tspan></text><line x1="336" y1="296" x2="480" y2="364" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-0-arrow)"/><line x1="784" y1="296" x2="640" y2="364" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-0-arrow)"/><line x1="560" y1="436" x2="560" y2="492" stroke="#eb6c36" stroke-width="2" marker-end="url(#18-0-arrow-accent)"/><line x1="560" y1="556" x2="560" y2="612" stroke="#4f5d75" stroke-width="2" marker-end="url(#18-0-arrow)"/><rect x="112" y="216" width="320" height="96" rx="8" fill="#ffffff" stroke="#2d3142"/><rect x="688" y="216" width="320" height="96" rx="8" fill="#ffffff" stroke="#2d3142"/><rect x="368" y="356" width="384" height="80" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><rect x="320" y="492" width="480" height="64" rx="8" fill="#ffffff" stroke="#2d3142"/><rect x="280" y="612" width="560" height="64" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75"/><text x="272" y="264" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="272" dy="-12">产品市场</tspan><tspan x="272" dy="24">产品价格 P</tspan></text><text x="848" y="264" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="848" dy="-12">生产函数</tspan><tspan x="848" dy="24">边际产量 MPL</tspan></text><text x="560" y="396" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="-12">边际产量值</tspan><tspan x="560" dy="24">VMPL = P × MPL</tspan></text><text x="560" y="524" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">VMPL 曲线形成劳动需求</tspan></text><text x="560" y="644" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">劳动供求决定工资 W 与就业</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图18-1｜依据本章派生需求重绘。箭头表示产品价值经边际产量传到劳动需求，再由要素供求形成工资与其他要素收入。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">企业的劳动需求</h3>
+<p>劳动需求是<strong>派生需求</strong>。竞争企业既是产品市场的价格接受者，也是劳动市场的工资接受者。生产函数给出工人数量与产量的关系，<strong>边际产量递减</strong>使后加入工人的新增产出下降。劳动的边际产量值等于边际产量乘产品价格，表示多雇一名工人增加的收入。</p>
+<p>利润最大化企业比较边际产量值与工资：前者高于工资就继续雇佣，低于工资就减少用工，直到两者相等。劳动边际产量值曲线因此也是企业劳动需求曲线。产品价格、技术和其他要素供给变化会移动劳动需求。</p>
+<h3 id="section-3">劳动市场的均衡</h3>
+<p>市场劳动供给与劳动需求决定均衡工资和就业。劳动供给增加会降低工资并使企业扩大用工，直至新增工人的边际产量值降到新工资；劳动需求增加则同时提高工资与就业。原书用巴勒斯坦工人进入以色列受限说明劳动供给收缩怎样减少就业、提高留任者工资。竞争均衡中，每种要素得到其边际贡献的价值，作者把这套解释称为<strong>新古典分配理论</strong>。</p>
+<p>作者用跨国生产率与工资说明二者长期相关，但把完整增长解释留到后文。观察相关关系不意味着工资只由个人努力决定；资本、技术、制度和产品价格都会影响边际产量值。</p>
+<h3 id="section-4">其他生产要素：土地和资本</h3>
+<p>土地和资本也按供求形成价格。要素的<strong>租赁价格</strong>是某一时期使用它的价格，<strong>购买价格</strong>则是永久拥有它的价格。购买者关心当前和预期未来的租赁收入，而这些收入又取决于要素未来的边际产量值；两块当前租金相同的土地，若未来生产率预期不同，购买价格可以不同。资本既包括机器和建筑，也能通过利息、租金、股利等形式产生收入。要素互相影响：劳动减少可能提高剩余劳动的边际产量，却降低土地的边际产量。黑死病案例用这种变化解释工资上升与地租下降。</p>
+<h3 id="section-5">结论</h3>
+<p>要素收入来自边际生产率与产品价值。这个竞争基准还没有解释教育、工作条件、能力、歧视和制度造成的工资差异，下一章继续展开。</p>
+<h2 id="section-6">二、主题讲解：企业买的不是“人”，而是新增产出价值</h2>
+<h3 id="section-7">边际产量与产品价格缺一不可</h3>
+<p>一名工人每小时多做10件产品，并不自动说明他值多少工资。若每件产品只能卖1元，边际产量值是10元；若产品价格升到2元，同样生产率对应20元。劳动需求会随产品市场变化。</p>
+<h3 id="section-8">其他要素会改变劳动价值</h3>
+<p>给工人配更好的设备，可能提高每小时产量，从而把劳动需求曲线右移。反过来，缺少原料或场地会压低边际产量。把工资完全归因于个人能力，会漏掉互补要素。</p>
+<h3 id="section-9">均衡关系不是道德评价</h3>
+<p>竞争模型解释支付怎样与边际贡献相连，不证明所有实际收入都公平，也不证明市场已满足完全竞争。市场势力、歧视、谈判和信息问题会改变结果。</p>
+<h2 id="section-10">检验理解：产品价格为何影响工资</h2>
+<p>一家果园工人的采摘速度没有变化，但苹果售价持续下降。企业的劳动需求会怎样变化？</p>
+<p>核对思路：边际产量不变，边际产量值因产品价格下降而降低，劳动需求左移；均衡工资或就业可能下降。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<p>原书范围：下册 PDF 3–21页，合并 PDF 396–414页；劳动需求、劳动市场、土地与资本均保留。数量示例是讲解用假设。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章分析均衡工资为何仍有巨大差异。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../17/index.html">上一篇 · 《曼昆〈经济学原理〉》第17章｜垄断竞争 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../19/index.html">下一篇 · 《曼昆〈经济学原理〉》第19章｜收入与歧视 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

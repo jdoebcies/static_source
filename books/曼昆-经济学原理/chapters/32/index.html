@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第32章｜货币和财政政策对总需求的影响 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">货币政策如何影响总需求</a><a class="sub" href="#section-3">财政政策如何影响总需求</a><a class="sub" href="#section-4">运用政策来稳定经济</a><a class="sub" href="#section-5">长期与短期中的经济</a><a class="sub" href="#section-6">结论</a><a class="" href="#section-7">二、主题讲解：一笔政府支出有两条相反路径</a><a class="sub" href="#section-8">乘数路径把初始支出向外扩散</a><a class="sub" href="#section-9">挤出路径通过利率压低私人支出</a><a class="sub" href="#section-10">时滞决定好政策能否赶上问题</a><a class="" href="#section-11">检验理解：支出100亿元为何总需求不一定增加100亿元</a><a class="" href="#section-12">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第32章｜货币和财政政策对总需求的影响 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>政策不会从按钮直接跳到产量。货币供给、政府购买或税收先改变利率、财富与支出，再移动总需求，乘数和挤出效应决定幅度。</p>
+<p><strong>本章要回答：</strong> 货币与财政政策怎样传导，决策者为什么会在稳定作用、时滞和长期代价之间争论？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="32-0-title">政策通过总需求传到短期产量</title><desc id="32-0-desc">利率、乘数与挤出效应决定刺激规模，长期结果仍受供给约束</desc>
+<defs>
+  <marker id="32-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="32-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="32-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="32-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">政策通过总需求传到短期产量</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">利率、乘数与挤出效应决定刺激规模，长期结果仍受供给约束</tspan></text><line x1="560" y1="240" x2="560" y2="272" stroke="#4f5d75" stroke-width="2" marker-end="url(#32-0-arrow)"/><line x1="560" y1="344" x2="560" y2="376" stroke="#4f5d75" stroke-width="2" marker-end="url(#32-0-arrow)"/><line x1="560" y1="448" x2="560" y2="480" stroke="#4f5d75" stroke-width="2" marker-end="url(#32-0-arrow)"/><line x1="560" y1="552" x2="560" y2="584" stroke="#4f5d75" stroke-width="2" marker-end="url(#32-0-arrow)"/><rect x="268" y="176" width="584" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="208" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">货币供给、政府购买或税收改变</tspan></text><rect x="236" y="280" width="648" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="312" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">利率与可支配收入变化</tspan></text><rect x="284" y="384" width="552" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="416" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">消费、投资和净出口响应</tspan></text><rect x="244" y="488" width="632" height="64" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><text x="560" y="520" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">总需求移动</tspan></text><rect x="272" y="592" width="576" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="624" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">短期产量与物价变化，长期再调整</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图32-1｜依据本章政策传导重绘。箭头表示作用环节，最后一节点区分短期产量效应与长期再调整。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">货币政策如何影响总需求</h3>
+<p>流动偏好理论用货币供求决定短期利率。物价水平提高会增加交易所需货币，在货币供给既定时推高利率、压低投资，构成总需求曲线向下的一条原因。美联储增加货币供给会压低利率，促进投资与总需求；减少货币供给方向相反。现实中中央银行常以利率目标表达政策，但通过公开市场操作调整货币供给来实现。</p>
+<h3 id="section-3">财政政策如何影响总需求</h3>
+<p>政府购买直接进入总需求，还产生乘数效应：新增收入带来消费，消费又形成他人收入。边际消费倾向越高，简单乘数越大；投资随产量扩张而增加的反馈称为<strong>投资加速数</strong>。与此同时，政府支出提高收入和货币需求，推高利率并挤出部分私人投资。税收通过可支配收入与消费影响总需求，也可能改变劳动和投资激励，从供给侧产生长期影响。</p>
+<h3 id="section-4">运用政策来稳定经济</h3>
+<p>支持主动稳定者认为总需求会因凯恩斯所说的“<strong>动物本能</strong>”和投资波动而偏离，政策可减少衰退；反对者强调信息、决策和生效时滞，政策可能在经济自行恢复后才到达，反而扩大波动。自动稳定器如税收和失业保险会随经济变化自动改变总需求，减少另行决策时滞。肯尼迪时期减税案例用于说明凯恩斯主义者怎样用税收推动总需求，也提醒财政动作还会影响长期供给。原书把流动偏好与乘数分析对应到 IS–LM 框架，但本章正文主要沿总需求传导展开。</p>
+<h3 id="section-5">长期与短期中的经济</h3>
+<p>长期中利率使可贷资金平衡、物价使货币供求平衡，产量由要素与技术决定；短期中利率调节货币市场，产量响应总需求，物价与工资暂未完全调整。相同政策在两个时间尺度上回答不同问题。</p>
+<h3 id="section-6">结论</h3>
+<p>政策影响取决于传导强度、乘数、挤出和时滞。承认政策能移动总需求，不等于证明每次主动干预都及时而准确。</p>
+<h2 id="section-7">二、主题讲解：一笔政府支出有两条相反路径</h2>
+<h3 id="section-8">乘数路径把初始支出向外扩散</h3>
+<p>政府购买形成企业收入，企业向员工和供应商支付，后者再消费一部分。每轮漏出储蓄和税收后，新增支出逐渐减弱。</p>
+<h3 id="section-9">挤出路径通过利率压低私人支出</h3>
+<p>收入上升增加货币需求，利率提高，使部分企业投资和家庭耐用品消费退出。实际总需求增量等于两条路径的净结果，不能直接把政府支出乘以理论最大乘数。</p>
+<h3 id="section-10">时滞决定好政策能否赶上问题</h3>
+<p>识别衰退、形成方案、执行项目和支出落地都需要时间。若经济已恢复，原本逆周期政策可能变成顺周期刺激。自动稳定器牺牲针对性，换取更快响应。</p>
+<h2 id="section-11">检验理解：支出100亿元为何总需求不一定增加100亿元</h2>
+<p>请指出使总需求增量大于、等于或小于初始支出的机制。</p>
+<p>核对思路：乘数效应可使增量大于初始支出；利率上升挤出私人投资会缩小增量；两者恰好抵消一部分时可能接近或低于100亿元。</p>
+<h2 id="section-12">来源、范围与阅读连接</h2>
+<p>原书范围：下册 PDF 340–365页，合并 PDF 733–758页；流动偏好、货币传导、乘数、挤出、稳定争论与长短期均保留。金额为讲解用假设。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章分析通胀与失业的短期权衡怎样移动和消失。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../31/index.html">上一篇 · 《曼昆〈经济学原理〉》第31章｜总需求与总供给 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../33/index.html">下一篇 · 《曼昆〈经济学原理〉》第33章｜通货膨胀与失业之间的短期交替关系 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

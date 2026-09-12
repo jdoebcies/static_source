@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第1章｜经济学十大原理 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">人们如何作出决策</a><a class="sub" href="#section-3">人们如何相互交易</a><a class="sub" href="#section-4">整体经济如何运行</a><a class="sub" href="#section-5">结论</a><a class="" href="#section-6">二、主题讲解：怎样把十条原理用于一次真实选择</a><a class="sub" href="#section-7">先把选择写成“多一点什么，就少一点什么”</a><a class="sub" href="#section-8">再看边际变化与激励</a><a class="sub" href="#section-9">最后区分市场能协调什么、还漏掉什么</a><a class="" href="#section-10">检验理解：别把原理当口号</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第1章｜经济学十大原理 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>经济学从一个朴素事实开始：资源有限，而人的愿望没有同时被满足。作者没有先铺开术语体系，而是用十条原理搭起全书的判断骨架。</p>
+<p><strong>本章要回答：</strong> 面对选择、交易、市场与整体经济时，经济学家会反复追问哪些问题？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="01-0-title">十大原理不是十句口号</title><desc id="01-0-desc">三组问题共享稀缺性起点，但宏观主题不是市场失灵的后果</desc>
+<defs>
+  <marker id="01-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="01-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="01-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="01-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">十大原理不是十句口号</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">三组问题共享稀缺性起点，但宏观主题不是市场失灵的后果</tspan></text><rect x="96" y="248" width="304" height="152" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><text x="248" y="324" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="248" dy="-24">个人选择</tspan><tspan x="248" dy="24">交替关系 · 机会成本</tspan><tspan x="248" dy="24">边际变动 · 激励</tspan></text><rect x="408" y="248" width="304" height="152" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="324" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="-24">相互交易</tspan><tspan x="560" dy="24">贸易 · 市场协调</tspan><tspan x="560" dy="24">市场失灵 · 政府</tspan></text><rect x="720" y="248" width="304" height="152" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="872" y="324" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="872" dy="-24">整体经济</tspan><tspan x="872" dy="24">生产率 · 货币</tspan><tspan x="872" dy="24">短期通胀与失业</tspan></text><rect x="208" y="536" width="704" height="80" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75"/><text x="560" y="576" fill="#2d3142" font-size="17" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">三组原理在后续章节分别展开，再共同用于政策判断</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图1-1｜依据本章十条原理重组。三个方框是共享稀缺性起点的并列问题群；宏观主题不是市场失灵的直接后果。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">人们如何作出决策</h3>
+<p>作者先从<strong>稀缺性</strong>出发，把个人选择拆成四条原理。第一，人们面临交替关系：时间、收入和公共资源投向一处，就不能同时完整投向另一处。效率与平等也可能发生交替；更平均的分配能改善某些人的处境，却可能改变劳动与生产激励。作者借此提醒，承认取舍不等于已经知道该选哪一边。</p>
+<p>第二，某种东西的成本是为了得到它而放弃的东西，即<strong>机会成本</strong>。上大学的成本不只包括学费，也包括因不能全职工作而放弃的收入；原本无论如何都要支出的生活费用不能机械计入。第三，理性人考虑<strong>边际变动</strong>：决策通常是在现有安排上多做一点或少做一点，而不是在两个极端之间重选人生。航班临起飞仍有空位时，平均每位乘客成本不能决定是否卖候补票；只要新增票价高于新增服务成本，出售就可能增加利润。</p>
+<p>第四，人们会对<strong>激励</strong>作出反应。作者用安全带法规说明间接效果：安全装置降低每次事故伤害，也可能让谨慎驾驶的边际收益下降，驾驶行为、事故数量和行人风险随之变化。这个案例没有证明安全带无效，而是要求政策评价把直接保护和行为反应一起测量。</p>
+<h3 id="section-3">人们如何相互交易</h3>
+<p>接着，作者把镜头从个人移到人与人之间。贸易使各方能够专门从事自己相对擅长的活动，并通过交换得到更多种类的物品。这里的收益不要求一方在所有事情上都更强，第3章会用比较优势解释原因。</p>
+<p><strong>市场经济</strong>通常是组织经济活动的一种好方法。价格在分散的买者和卖者之间传递稀缺程度与行动信号，许多独立决定像被“<strong>看不见的手</strong>”协调起来。但“通常”不是“永远”：当产权不清、存在外部性或市场势力时，会出现<strong>市场失灵</strong>，私人决定可能偏离社会希望的结果，所以政府有时可以改善市场结果。作者也保留了另一层边界：政府并不天然拥有完美信息和完美激励。</p>
+<h3 id="section-4">整体经济如何运行</h3>
+<p>最后三条原理转向宏观经济。一国生活水平长期取决于生产物品与劳务的能力，即生产率；持续提高收入不能只靠多发货币。货币发行过多时，货币价值下降，物价总水平上升。短期中，社会还可能面临通货膨胀与失业之间的交替关系，后文称为<strong>菲利普斯曲线</strong>；作者明确把它限定为短期经验，而不是永久可选的政策菜单。</p>
+<h3 id="section-5">结论</h3>
+<p>十条原理不是全书结论的缩写，而是后续分析的入口。供求、福利、企业行为、增长、货币和波动各章会把这些直觉变成更具体的模型，并逐步补上适用条件。</p>
+<h2 id="section-6">二、主题讲解：怎样把十条原理用于一次真实选择</h2>
+<h3 id="section-7">先把选择写成“多一点什么，就少一点什么”</h3>
+<p>假设一座城市准备把新增预算用于地铁或公园。经济学分析不会从“哪个更重要”开始，而会先写出约束：同一笔钱不能重复使用，新增地铁意味着放弃多少公园、维护或其他服务。这一步把抽象争论变成机会成本，也暴露了真正需要比较的结果。</p>
+<h3 id="section-8">再看边际变化与激励</h3>
+<p>选择不是“要不要交通”与“要不要环境”的极端对抗。更实际的问题是：在现有网络上多修一段线路，能减少多少通勤时间；同样的钱多建一块绿地，能服务多少人。收费、补贴和使用规则还会改变居民行为。只比较工程本身，不观察人们如何响应，政策预测就少了一半。</p>
+<h3 id="section-9">最后区分市场能协调什么、还漏掉什么</h3>
+<p>票价可以协调一部分供求，却未必包含拥堵、污染、土地升值或低收入者可达性等影响。遗漏影响不自动推出“政府直接决定一切”；它要求继续比较产权、收费、补贴、管制或公共提供等方案各自需要的信息和可能造成的新激励。</p>
+<h2 id="section-10">检验理解：别把原理当口号</h2>
+<p>一家企业给销售人员提高提成后，销售额上升，但退货率也上升。请用机会成本、边际变动和激励解释发生了什么，并说明为什么“销售额上升”还不足以证明新制度更好。</p>
+<p>核对思路：提成改变了边际收益，销售人员会调整努力与客户选择；企业需要把新增销售的收益与退货、售后、声誉等机会成本放在一起比较。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 3–17页，合并 PDF 3–17页；四个原书阶段及十条原理均保留。城市预算与销售提成是讲解用假设案例。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章说明经济学家怎样用模型把这些问题变成可检验的分析。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../guide/index.html">上一篇 · 34章如何组成一条判断链</a><a href="../02/index.html">下一篇 · 《曼昆〈经济学原理〉》第2章｜像经济学家一样思考 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

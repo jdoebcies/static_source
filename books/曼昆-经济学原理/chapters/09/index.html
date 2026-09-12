@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第9章｜应用：国际贸易 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">贸易的决定因素</a><a class="sub" href="#section-3">贸易的赢家和输家</a><a class="sub" href="#section-4">各种限制贸易的观点</a><a class="sub" href="#section-5">结论</a><a class="" href="#section-6">二、主题讲解：总量变好以后，分配问题才刚开始</a><a class="sub" href="#section-7">先看国内价格朝哪边走</a><a class="sub" href="#section-8">补偿可能存在，不等于已经发生</a><a class="sub" href="#section-9">贸易限制也有二阶分配</a><a class="" href="#section-10">检验理解：进口限制保护了谁</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第9章｜应用：国际贸易 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>比较优势说明贸易能扩大总机会，本章把分析放进供求图，追踪开放后价格、产量、消费和剩余怎样变化。</p>
+<p><strong>本章要回答：</strong> 一国开放贸易后为什么总收益增加，同时仍会出现明确的赢家与输家？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="09-0-title">贸易把国内市场接到世界价格</title><desc id="09-0-desc">总收益增加不等于每个群体都获利</desc>
+<defs>
+  <marker id="09-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="09-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="09-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="09-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">贸易把国内市场接到世界价格</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">总收益增加不等于每个群体都获利</tspan></text><line x1="560" y1="240" x2="560" y2="272" stroke="#4f5d75" stroke-width="2" marker-end="url(#09-0-arrow)"/><line x1="560" y1="344" x2="560" y2="376" stroke="#4f5d75" stroke-width="2" marker-end="url(#09-0-arrow)"/><line x1="560" y1="448" x2="560" y2="480" stroke="#4f5d75" stroke-width="2" marker-end="url(#09-0-arrow)"/><line x1="560" y1="552" x2="560" y2="584" stroke="#4f5d75" stroke-width="2" marker-end="url(#09-0-arrow)"/><rect x="268" y="176" width="584" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="208" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">比较国内价格与世界价格</tspan></text><rect x="236" y="280" width="648" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="312" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">决定成为出口国或进口国</tspan></text><rect x="284" y="384" width="552" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="416" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">国内价格向世界价格靠拢</tspan></text><rect x="244" y="488" width="632" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="520" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">生产者与消费者收益重新分配</tspan></text><rect x="272" y="592" width="576" height="64" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><text x="560" y="624" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">总剩余增加，同时出现输家</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图9-1｜依据本章出口国与进口国分析重绘。箭头表示世界价格进入国内市场后的价格、数量和剩余变化；总剩余增加不代表每个群体都获利。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">贸易的决定因素</h3>
+<p>没有贸易时，国内供求决定价格。开放贸易后，作为<strong>小型经济</strong>的一国无法影响世界价格，是世界市场的<strong>价格接受者</strong>：若世界价格高于国内价，本国具有相对优势并出口；若世界价格低于国内价，本国进口。国内价格向世界价格调整，生产与消费不再相等，差额由贸易填补。</p>
+<h3 id="section-3">贸易的赢家和输家</h3>
+<p>出口国价格上升，生产者剩余增加，消费者剩余减少，但生产者所得超过消费者所失，总剩余增加。进口国价格下降，消费者获益、生产者受损，消费者所得超过生产者所失。贸易收益是总量判断，不是否认受损群体。</p>
+<p>关税提高进口品国内价格，保护国内生产者并给政府带来收入，却减少消费、扩大低成本国外生产被高成本国内生产替代的部分，形成无谓损失。进口限额通过<strong>进口许可证</strong>控制数量，效果相似，但形成的<strong>许可证剩余</strong>归谁取决于发放安排，不能自动当作政府收入。</p>
+<h3 id="section-4">各种限制贸易的观点</h3>
+<p>作者依次讨论就业、国家安全、<strong>幼稚产业论</strong>、不公平竞争和谈判筹码。就业论忽略劳动力会在行业间移动和贸易对其他行业的影响；国家安全可能成立，但行业有夸大自身战略性的激励；幼稚产业需要说明学习收益为何不能由私人投资承担；外国补贴可能伤害国内生产者，却也降低消费者成本；以关税威胁谈判可能成功，也可能引发报复。</p>
+<h3 id="section-5">结论</h3>
+<p>自由贸易提高总剩余的基准结论建立在小国、竞争市场和未计入其他外部影响等条件上。政策争论需要把总收益、国内分配、转型成本和非经济目标分开。</p>
+<h2 id="section-6">二、主题讲解：总量变好以后，分配问题才刚开始</h2>
+<h3 id="section-7">先看国内价格朝哪边走</h3>
+<p>若开放后进口更便宜，消费者购买价格下降，国内高成本生产者缩减。若本国能以更高世界价格出口，生产者扩张，国内消费者支付更多。判断赢家与输家，从价格方向开始最清楚。</p>
+<h3 id="section-8">补偿可能存在，不等于已经发生</h3>
+<p>总剩余增加意味着赢家理论上有能力补偿输家后仍有净收益，但现实政策未必完成补偿。工人转岗、地区衰退和技能不匹配可能持续多年。把“可以补偿”写成“已经没人受损”，就越过了原书结论。</p>
+<h3 id="section-9">贸易限制也有二阶分配</h3>
+<p>关税保护一个行业，会提高使用该投入的下游成本；配额创造的租金可能落到许可证持有人；报复关税会伤害出口行业。政策名称不能替代完整传导链。</p>
+<h2 id="section-10">检验理解：进口限制保护了谁</h2>
+<p>一国限制低价钢材进口。国内钢厂利润上升，能否推出本国整体福利上升？</p>
+<p>核对思路：还要计入钢材消费者和下游制造业成本、政府或配额持有者收益、交易量变化与报复风险。受保护行业获益只是分配的一部分。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 180–203页，合并 PDF 180–203页；出口、进口、关税、进口限额和限制贸易观点均保留。钢材例子是讲解用假设。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一篇开始研究市场价格没有计入的第三方影响。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../08/index.html">上一篇 · 《曼昆〈经济学原理〉》第8章｜应用：税收的代价 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../10/index.html">下一篇 · 《曼昆〈经济学原理〉》第10章｜外部性 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

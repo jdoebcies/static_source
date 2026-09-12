@@ -1,0 +1,333 @@
+{
+  "book_title": "曼昆《经济学原理》",
+  "content_generator_skill_version": "8.2.3",
+  "html_generator_skill_version": "8.2.3",
+  "html_format": "reading-package-v1",
+  "source_sha256": "8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692",
+  "units": [
+    {
+      "id": "guide",
+      "label": "全书导读",
+      "title": "34章如何组成一条判断链",
+      "source_location": null,
+      "source_markdown_sha256": "f733cbde111790a884f8843890d17d37b751f2ee7c63f944066364099938753c",
+      "html": "chapters/guide/index.html",
+      "markdown": "chapters/guide/chapter.md"
+    },
+    {
+      "id": "01",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第1章｜经济学十大原理 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "8c2753a7070ebeaa6a099853d036c5ab96fe7c349827e8a2461d4ded8a443bd6",
+      "html": "chapters/01/index.html",
+      "markdown": "chapters/01/chapter.md"
+    },
+    {
+      "id": "02",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第2章｜像经济学家一样思考 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "ac9b8fc10614bafc4c676db51544d44ee431a2a02e1c477316fff6288c0c9acb",
+      "html": "chapters/02/index.html",
+      "markdown": "chapters/02/chapter.md"
+    },
+    {
+      "id": "03",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第3章｜相互依存性与贸易的好处 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "33f32d22190176f269167fcce309ae3adfbd967100aec94d409355b02221b109",
+      "html": "chapters/03/index.html",
+      "markdown": "chapters/03/chapter.md"
+    },
+    {
+      "id": "04",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第4章｜供给与需求的市场力量 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "d9d1a8e3cfebc41335dde2e4546ddd13a2bb55b4583f41ffb23f8a53a4f64db0",
+      "html": "chapters/04/index.html",
+      "markdown": "chapters/04/chapter.md"
+    },
+    {
+      "id": "05",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第5章｜弹性及其应用 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "ed16e763026572eb8f67b9cb9e5c167c2a601120508153b039e177cf25fa0996",
+      "html": "chapters/05/index.html",
+      "markdown": "chapters/05/chapter.md"
+    },
+    {
+      "id": "06",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第6章｜供给、需求与政府政策 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "2d61417a8c7bd3dc5566511c541a94904a2e8bdb8f822d55a36fbf22244f585e",
+      "html": "chapters/06/index.html",
+      "markdown": "chapters/06/chapter.md"
+    },
+    {
+      "id": "07",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第7章｜消费者、生产者与市场效率 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "225acd2271315b55ebda97d4b32f1e0fb58313b2d975d14d1b362893c4cebc50",
+      "html": "chapters/07/index.html",
+      "markdown": "chapters/07/chapter.md"
+    },
+    {
+      "id": "08",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第8章｜应用：税收的代价 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "13fe5f8d9b509ad285e7c0dcddf155186afc3b5043e49fa8af4cbb05f7b4db21",
+      "html": "chapters/08/index.html",
+      "markdown": "chapters/08/chapter.md"
+    },
+    {
+      "id": "09",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第9章｜应用：国际贸易 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "f80c7c6a6ab15f851681e71ec3e5403e7fcccb8808b05c6b12b2a40f65a3eefe",
+      "html": "chapters/09/index.html",
+      "markdown": "chapters/09/chapter.md"
+    },
+    {
+      "id": "10",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第10章｜外部性 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "a69f2dc06f50bae97ff642389a49a11c26e09bce3fe71f550fd913db919fcc9b",
+      "html": "chapters/10/index.html",
+      "markdown": "chapters/10/chapter.md"
+    },
+    {
+      "id": "11",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第11章｜公共物品和共有资源 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "31cd4028abe1bc573fcb2d67c619a7fd5835cb8b8665c163e7ca62e295394c02",
+      "html": "chapters/11/index.html",
+      "markdown": "chapters/11/chapter.md"
+    },
+    {
+      "id": "12",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第12章｜税制的设计 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "d9e18175f8640ce52989a4ea8eea7baee7d1c6dbc9b97a71def1d3b3a324a207",
+      "html": "chapters/12/index.html",
+      "markdown": "chapters/12/chapter.md"
+    },
+    {
+      "id": "13",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第13章｜生产成本 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "3ce9a6eb94699afbbc8786bd27593ec3871d172b405922b710c362165c77c809",
+      "html": "chapters/13/index.html",
+      "markdown": "chapters/13/chapter.md"
+    },
+    {
+      "id": "14",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第14章｜竞争市场上的企业 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "2ffb473b7da35c40b3f5e88e49d53e8fd7ac8aed00a29b1a96b5f9ad23e8f64d",
+      "html": "chapters/14/index.html",
+      "markdown": "chapters/14/chapter.md"
+    },
+    {
+      "id": "15",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第15章｜垄断 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "541d1f555f80db7902e66fe35c0b34eca2deea4985d4cfeda98103b53035662b",
+      "html": "chapters/15/index.html",
+      "markdown": "chapters/15/chapter.md"
+    },
+    {
+      "id": "16",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第16章｜寡头 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "2e3328b0be7b6f472216ec6e7a1ab81ed0791f78e299c8481408e6bb6011daaa",
+      "html": "chapters/16/index.html",
+      "markdown": "chapters/16/chapter.md"
+    },
+    {
+      "id": "17",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第17章｜垄断竞争 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "21190a11bcb0b1bef678d6588bfd92d8ed6082d2fb28519b495199aa64ac7858",
+      "html": "chapters/17/index.html",
+      "markdown": "chapters/17/chapter.md"
+    },
+    {
+      "id": "18",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第18章｜生产要素市场 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "3348ee45beaadb08304281b2cdb24ca577249b6185253301ff9961013fb960a9",
+      "html": "chapters/18/index.html",
+      "markdown": "chapters/18/chapter.md"
+    },
+    {
+      "id": "19",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第19章｜收入与歧视 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "646d3b810d7c6f5839eb1e5409164beecdc7d2598ace64d8bdd1d5b6b0354590",
+      "html": "chapters/19/index.html",
+      "markdown": "chapters/19/chapter.md"
+    },
+    {
+      "id": "20",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第20章｜收入分配 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "b9b819db6a2b08cb96beca139c0ebd8cc435276388ac693134d51e6dbc36b2c1",
+      "html": "chapters/20/index.html",
+      "markdown": "chapters/20/chapter.md"
+    },
+    {
+      "id": "21",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第21章｜消费者选择理论 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "536f9c2429736d24218d380a279de46412d691cbe03bafdeb44c3f70d3648755",
+      "html": "chapters/21/index.html",
+      "markdown": "chapters/21/chapter.md"
+    },
+    {
+      "id": "22",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第22章｜国民收入的衡量 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "e1b6c7ad3b399f5d6df397194d0b6c2e3200a7cc802bf8e3eef0acd1c201d315",
+      "html": "chapters/22/index.html",
+      "markdown": "chapters/22/chapter.md"
+    },
+    {
+      "id": "23",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第23章｜生活费用的衡量 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "e76d9dd5d7588260ceedf65a66f95bbffc66db40d50f1d004831fa5459307fc8",
+      "html": "chapters/23/index.html",
+      "markdown": "chapters/23/chapter.md"
+    },
+    {
+      "id": "24",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第24章｜生产与增长 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "66a41ab6411212aa14a53b1dde75d324f27d84604a451ba34d528706d7b0d8f8",
+      "html": "chapters/24/index.html",
+      "markdown": "chapters/24/chapter.md"
+    },
+    {
+      "id": "25",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第25章｜储蓄、投资和金融体系 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "43694a05c1ca239b910482981662796993bc157bb399ab70bc29da0ded89959e",
+      "html": "chapters/25/index.html",
+      "markdown": "chapters/25/chapter.md"
+    },
+    {
+      "id": "26",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第26章｜自然失业率 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "0d3b706491f5490447f1f4eee1b4c0facd00ab1512da4de97946bd63625b2f23",
+      "html": "chapters/26/index.html",
+      "markdown": "chapters/26/chapter.md"
+    },
+    {
+      "id": "27",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第27章｜货币制度 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "9a8dc0a8557e677a7078f52898100195b3d8018a38fa663cb2d7a9e8cc00a5f2",
+      "html": "chapters/27/index.html",
+      "markdown": "chapters/27/chapter.md"
+    },
+    {
+      "id": "28",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第28章｜通货膨胀：原因与成本 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "7beba98cc2f0d4a617cc2a17597c56089eb6941dac9c3313117c291173d0a8dd",
+      "html": "chapters/28/index.html",
+      "markdown": "chapters/28/chapter.md"
+    },
+    {
+      "id": "29",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第29章｜开放经济宏观经济学：基本概念 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "59a8d3991b7fb2e117e62e82e61294078f5c08c5b3c4b8072827bfed8ca39c28",
+      "html": "chapters/29/index.html",
+      "markdown": "chapters/29/chapter.md"
+    },
+    {
+      "id": "30",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第30章｜开放经济的宏观经济理论 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "325cb4875bee78fe8d1474af20458f577e5bf16332bf5d47124c005b2dc080bc",
+      "html": "chapters/30/index.html",
+      "markdown": "chapters/30/chapter.md"
+    },
+    {
+      "id": "31",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第31章｜总需求与总供给 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "80a8ea975bcf515c8a71e4b2d0909445ce96c5f24f69589ac03d65a676f1f972",
+      "html": "chapters/31/index.html",
+      "markdown": "chapters/31/chapter.md"
+    },
+    {
+      "id": "32",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第32章｜货币和财政政策对总需求的影响 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "138040c3b30f3033f65a3643bf2a974c9a01af61c0a0c0637470975a6d0fd141",
+      "html": "chapters/32/index.html",
+      "markdown": "chapters/32/chapter.md"
+    },
+    {
+      "id": "33",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第33章｜通货膨胀与失业之间的短期交替关系 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "00cc3d97afbb0c6c12cfb1a40a34e9959faddbf16ac90242ed9c4876525beef9",
+      "html": "chapters/33/index.html",
+      "markdown": "chapters/33/chapter.md"
+    },
+    {
+      "id": "34",
+      "label": "阅读单元",
+      "title": "《曼昆〈经济学原理〉》第34章｜宏观经济政策的五个争论问题 · 原书回顾与主题讲解（书镜 V8.2）",
+      "source_location": null,
+      "source_markdown_sha256": "1e1a7669159e3c272569293da1444ed7c5b05c8a40c76597181014f84d6c0f34",
+      "html": "chapters/34/index.html",
+      "markdown": "chapters/34/chapter.md"
+    },
+    {
+      "id": "afterword",
+      "label": "译后记",
+      "title": "为什么用十大原理和现实案例写入门经济学",
+      "source_location": null,
+      "source_markdown_sha256": "c312a8750676c2912ed3e4898445a2c4257e1a35211da49f5f2271426ba54798",
+      "html": "chapters/afterword/index.html",
+      "markdown": "chapters/afterword/chapter.md"
+    }
+  ]
+}

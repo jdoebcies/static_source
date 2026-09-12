@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第10章｜外部性 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">外部性和市场无效率</a><a class="sub" href="#section-3">外部性的私人解决方法</a><a class="sub" href="#section-4">针对外部性的公共政策</a><a class="sub" href="#section-5">结论</a><a class="" href="#section-6">二、主题讲解：从“有人受影响”推进到可操作判断</a><a class="sub" href="#section-7">先确认影响是否在交易之外</a><a class="sub" href="#section-8">再比较协商与公共工具需要的信息</a><a class="sub" href="#section-9">工具要对准边际影响</a><a class="" href="#section-10">检验理解：邻居的抱怨一定是外部性吗</a><a class="" href="#section-11">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第10章｜外部性 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>当交易影响旁观者，而这部分影响没有进入买卖双方的价格时，私人均衡可能不再使社会总剩余最大。</p>
+<p><strong>本章要回答：</strong> 怎样识别外部性，并在私人协商、税补贴、许可证与管制之间判断？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="10-0-title">外部性使私人价格漏掉社会影响</title><desc id="10-0-desc">政策或协商要让决策者面对原先未计入的成本与收益</desc>
+<defs>
+  <marker id="10-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="10-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="10-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="10-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">外部性使私人价格漏掉社会影响</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">政策或协商要让决策者面对原先未计入的成本与收益</tspan></text><line x1="560" y1="240" x2="560" y2="272" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-0-arrow)"/><line x1="560" y1="344" x2="560" y2="376" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-0-arrow)"/><line x1="560" y1="448" x2="560" y2="480" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-0-arrow)"/><line x1="560" y1="552" x2="560" y2="584" stroke="#4f5d75" stroke-width="2" marker-end="url(#10-0-arrow)"/><rect x="268" y="176" width="584" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="208" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">个人或企业作出私人决策</tspan></text><rect x="236" y="280" width="648" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="312" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">影响落到交易之外的人</tspan></text><rect x="284" y="384" width="552" height="64" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="2"/><text x="560" y="416" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">私人边际量偏离社会边际量</tspan></text><rect x="244" y="488" width="632" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="520" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">协商、产权、税补贴或管制介入</tspan></text><rect x="272" y="592" width="576" height="64" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="560" y="624" fill="#2d3142" font-size="18" font-weight="600" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">产量向社会有效水平调整</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图10-1｜依据本章外部性分析重绘。箭头表示把交易之外的影响纳入决策；政策工具是否合适还取决于信息、交易成本和执行条件。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">外部性和市场无效率</h3>
+<p>生产铝造成污染时，社会成本高于企业私人成本，市场供给曲线漏掉外部成本，均衡产量高于<strong>社会最适量</strong>。若技术溢出使其他企业受益，社会价值高于买者私人价值，市场产量可能过低。把外部成本或收益加入边际决策，原书称为<strong>外部性的内在化</strong>。</p>
+<p>作者用负外部性、正外部性和技术政策说明，政策需要知道影响方向与大小。专利通过暂时产权让创新者获得更多收益，试图内部化知识溢出；但挑选特定产业需要政府识别真实溢出，信息要求很高。</p>
+<h3 id="section-3">外部性的私人解决方法</h3>
+<p>道德规范、慈善、企业合并和合同都可能内部化外部性。<strong>科斯定理</strong>指出，若各方能无成本谈判且产权明确，私人协商可以达到有效率结果，最初权利分配影响财富分配，却不必影响效率结果。</p>
+<p>私人方法并非总有效。参与者多、谈判成本高、信息不对称或各方互相等待时，协议可能无法达成。科斯定理提供判断基准，不是“任何污染都不用政府”的结论。</p>
+<h3 id="section-4">针对外部性的公共政策</h3>
+<p>政府可以用<strong>命令与控制政策</strong>直接管制行为，也可以用庇古税、补贴或可交易污染许可证改变激励。税把每单位外部成本加入私人决策；许可证限定总量并允许减排成本较低的企业出售权利。税确定价格、让数量调整，许可证确定数量、让价格调整；信息与不确定性决定哪一种更合适。</p>
+<h3 id="section-5">结论</h3>
+<p>外部性要求把旁观者纳入福利分析。解决办法的共同目标是让决策者面对完整社会成本或收益，不是单纯惩罚某个主体。</p>
+<h2 id="section-6">二、主题讲解：从“有人受影响”推进到可操作判断</h2>
+<h3 id="section-7">先确认影响是否在交易之外</h3>
+<p>餐厅味道不好只影响付费顾客，通常已进入交易；油烟影响邻居且没有补偿，才是候选外部性。价格高、企业赚钱或有人不喜欢某项活动，都不能单独证明外部性存在。</p>
+<h3 id="section-8">再比较协商与公共工具需要的信息</h3>
+<p>一户噪声影响一户邻居，产权清楚且沟通容易，调整时段或补偿可能足够。数千辆车共同造成拥堵和污染时，逐户谈判几乎不可行，收费、标准或许可证更可操作。</p>
+<h3 id="section-9">工具要对准边际影响</h3>
+<p>固定罚款若与排放量无关，企业减少最后一单位排放的激励可能不足。按单位收费能让企业比较减排成本与外部成本；但若损害高度依赖地点和时段，统一费率仍可能过粗。</p>
+<h2 id="section-10">检验理解：邻居的抱怨一定是外部性吗</h2>
+<p>一家咖啡馆开业后，隔壁商店人流增加但租金也上涨。哪些影响可能是外部性，哪些可能已经通过市场价格传递？</p>
+<p>核对思路：要追踪影响是否通过交易和产权价格被双方承担；仅有影响不够。若租金变化已经反映商业价值，它与未补偿的噪声、垃圾等影响性质不同。</p>
+<h2 id="section-11">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 207–227页，合并 PDF 207–227页；社会成本、私人解决、科斯定理、管制、庇古税与许可证均保留。餐厅、咖啡馆是讲解用假设案例。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章处理难以排除使用者的物品。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../09/index.html">上一篇 · 《曼昆〈经济学原理〉》第9章｜应用：国际贸易 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../11/index.html">下一篇 · 《曼昆〈经济学原理〉》第11章｜公共物品和共有资源 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

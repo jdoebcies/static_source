@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>曼昆《经济学原理》｜书镜8.2</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回书架</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">先知道全书怎样推进</a><a class="" href="#section-2">怎样读一章</a><a class="" href="#section-3">按原书顺序阅读</a><a class="sub" href="#section-4">进入本书</a><a class="sub" href="#section-5">第1篇 导言</a><a class="sub" href="#section-6">第2篇 供给与需求（Ⅰ）：市场如何运行</a><a class="sub" href="#section-7">第3篇 供给与需求（Ⅱ）：市场和福利</a><a class="sub" href="#section-8">第4篇 公共部门经济学</a><a class="sub" href="#section-9">第5篇 企业行为与产业组织</a><a class="sub" href="#section-10">第6篇 劳动市场经济学</a><a class="sub" href="#section-11">第7篇 高深的论题</a><a class="sub" href="#section-12">第8篇 宏观经济学的数据</a><a class="sub" href="#section-13">第9篇 长期中的实际经济</a><a class="sub" href="#section-14">第10篇 长期中的货币与物价</a><a class="sub" href="#section-15">第11篇 开放经济宏观经济学</a><a class="sub" href="#section-16">第12篇 短期经济波动</a><a class="sub" href="#section-17">第13篇 最后的思考</a><a class="sub" href="#section-18">译后记</a><a class="" href="#section-19">读完后怎样用</a></details></aside>
+<main><h1>曼昆《经济学原理》｜书镜 V8.2 全书导航</h1>
+<p>这套阅读包覆盖扫描分册的34章与译后记。每章保留原书小节顺序，再用一个具体情形运行同一模型，并给出迁移检查。</p>
+<h2 id="section-1">先知道全书怎样推进</h2>
+<p>全书从稀缺与个人选择出发，先建立供求与福利工具，再进入企业和劳动市场；宏观部分依次处理计量、长期增长、货币、开放经济和短期波动，最后用五组政策争论检验读者是否能自己判断。</p>
+<h2 id="section-2">怎样读一章</h2>
+<p>先看章首图定位变量和方向，再读原书回顾恢复作者推理，随后用主题讲解和迁移题检查自己能否说回原书术语。</p>
+<h2 id="section-3">按原书顺序阅读</h2>
+<h3 id="section-4">进入本书</h3>
+<p>先看34章怎样组成一条判断链。</p>
+<ul>
+<li><a href="chapters/guide/index.html">全书导读 · 34章如何组成一条判断链</a></li>
+</ul>
+<h3 id="section-5">第1篇 导言</h3>
+<p>选择、模型与比较优势。</p>
+<ul>
+<li><a href="chapters/01/index.html">阅读单元 · 《曼昆〈经济学原理〉》第1章｜经济学十大原理 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/02/index.html">阅读单元 · 《曼昆〈经济学原理〉》第2章｜像经济学家一样思考 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/03/index.html">阅读单元 · 《曼昆〈经济学原理〉》第3章｜相互依存性与贸易的好处 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-6">第2篇 供给与需求（Ⅰ）：市场如何运行</h3>
+<p>供求、弹性与政府政策。</p>
+<ul>
+<li><a href="chapters/04/index.html">阅读单元 · 《曼昆〈经济学原理〉》第4章｜供给与需求的市场力量 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/05/index.html">阅读单元 · 《曼昆〈经济学原理〉》第5章｜弹性及其应用 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/06/index.html">阅读单元 · 《曼昆〈经济学原理〉》第6章｜供给、需求与政府政策 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-7">第3篇 供给与需求（Ⅱ）：市场和福利</h3>
+<p>剩余、税收与国际贸易。</p>
+<ul>
+<li><a href="chapters/07/index.html">阅读单元 · 《曼昆〈经济学原理〉》第7章｜消费者、生产者与市场效率 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/08/index.html">阅读单元 · 《曼昆〈经济学原理〉》第8章｜应用：税收的代价 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/09/index.html">阅读单元 · 《曼昆〈经济学原理〉》第9章｜应用：国际贸易 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-8">第4篇 公共部门经济学</h3>
+<p>外部性、公共物品和税制。</p>
+<ul>
+<li><a href="chapters/10/index.html">阅读单元 · 《曼昆〈经济学原理〉》第10章｜外部性 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/11/index.html">阅读单元 · 《曼昆〈经济学原理〉》第11章｜公共物品和共有资源 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/12/index.html">阅读单元 · 《曼昆〈经济学原理〉》第12章｜税制的设计 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-9">第5篇 企业行为与产业组织</h3>
+<p>成本和四种市场结构。</p>
+<ul>
+<li><a href="chapters/13/index.html">阅读单元 · 《曼昆〈经济学原理〉》第13章｜生产成本 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/14/index.html">阅读单元 · 《曼昆〈经济学原理〉》第14章｜竞争市场上的企业 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/15/index.html">阅读单元 · 《曼昆〈经济学原理〉》第15章｜垄断 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/16/index.html">阅读单元 · 《曼昆〈经济学原理〉》第16章｜寡头 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/17/index.html">阅读单元 · 《曼昆〈经济学原理〉》第17章｜垄断竞争 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-10">第6篇 劳动市场经济学</h3>
+<p>要素收入、工资差异与分配。</p>
+<ul>
+<li><a href="chapters/18/index.html">阅读单元 · 《曼昆〈经济学原理〉》第18章｜生产要素市场 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/19/index.html">阅读单元 · 《曼昆〈经济学原理〉》第19章｜收入与歧视 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/20/index.html">阅读单元 · 《曼昆〈经济学原理〉》第20章｜收入分配 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-11">第7篇 高深的论题</h3>
+<p>消费者选择的内部机制。</p>
+<ul>
+<li><a href="chapters/21/index.html">阅读单元 · 《曼昆〈经济学原理〉》第21章｜消费者选择理论 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-12">第8篇 宏观经济学的数据</h3>
+<p>GDP、CPI与实际变量。</p>
+<ul>
+<li><a href="chapters/22/index.html">阅读单元 · 《曼昆〈经济学原理〉》第22章｜国民收入的衡量 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/23/index.html">阅读单元 · 《曼昆〈经济学原理〉》第23章｜生活费用的衡量 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-13">第9篇 长期中的实际经济</h3>
+<p>生产率、金融体系与自然失业。</p>
+<ul>
+<li><a href="chapters/24/index.html">阅读单元 · 《曼昆〈经济学原理〉》第24章｜生产与增长 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/25/index.html">阅读单元 · 《曼昆〈经济学原理〉》第25章｜储蓄、投资和金融体系 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/26/index.html">阅读单元 · 《曼昆〈经济学原理〉》第26章｜自然失业率 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-14">第10篇 长期中的货币与物价</h3>
+<p>银行、货币供给与通胀。</p>
+<ul>
+<li><a href="chapters/27/index.html">阅读单元 · 《曼昆〈经济学原理〉》第27章｜货币制度 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/28/index.html">阅读单元 · 《曼昆〈经济学原理〉》第28章｜通货膨胀：原因与成本 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-15">第11篇 开放经济宏观经济学</h3>
+<p>实物、资本和汇率共同均衡。</p>
+<ul>
+<li><a href="chapters/29/index.html">阅读单元 · 《曼昆〈经济学原理〉》第29章｜开放经济宏观经济学：基本概念 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/30/index.html">阅读单元 · 《曼昆〈经济学原理〉》第30章｜开放经济的宏观经济理论 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-16">第12篇 短期经济波动</h3>
+<p>AD–AS、政策传导与菲利普斯曲线。</p>
+<ul>
+<li><a href="chapters/31/index.html">阅读单元 · 《曼昆〈经济学原理〉》第31章｜总需求与总供给 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/32/index.html">阅读单元 · 《曼昆〈经济学原理〉》第32章｜货币和财政政策对总需求的影响 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+<li><a href="chapters/33/index.html">阅读单元 · 《曼昆〈经济学原理〉》第33章｜通货膨胀与失业之间的短期交替关系 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-17">第13篇 最后的思考</h3>
+<p>五组政策争论。</p>
+<ul>
+<li><a href="chapters/34/index.html">阅读单元 · 《曼昆〈经济学原理〉》第34章｜宏观经济政策的五个争论问题 · 原书回顾与主题讲解（书镜 V8.2）</a></li>
+</ul>
+<h3 id="section-18">译后记</h3>
+<p>中文读者的入口与教材的压缩方法。</p>
+<ul>
+<li><a href="chapters/afterword/index.html">译后记 · 为什么用十大原理和现实案例写入门经济学</a></li>
+</ul>
+<h2 id="section-19">读完后怎样用</h2>
+<p>遇到新的经济问题时，先写清约束、机会成本和激励，再判断供求、弹性、外部性或宏观传导；把效率、分配、时间尺度和证据强度分开。</p>
+<p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>

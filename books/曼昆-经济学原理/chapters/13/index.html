@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="book-mirror-html-format" content="reading-package-v1">
+<title>《曼昆〈经济学原理〉》第13章｜生产成本 · 原书回顾与主题讲解（书镜 V8.2）</title>
+<style>:root {
+  color-scheme: light;
+  --ink: #2d3142;
+  --muted: #4f5d75;
+  --line: #dadddf;
+  --accent: #b9481a;
+  --paper: #f5f5f5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.95 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+a:hover { color: #743214; }
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #eb6c36;
+  outline-offset: 4px;
+}
+
+header {
+  max-width: 1140px;
+  padding: 24px 32px 8px;
+  margin: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.shell {
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 48px;
+  margin: 12px auto 64px;
+  padding: 0 32px;
+}
+
+.shell.nav-page { max-width: 1080px; }
+
+aside {
+  font-size: 14px;
+  line-height: 1.6;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+aside a {
+  display: block;
+  color: var(--muted);
+  padding: 7px 0;
+  text-decoration: none;
+}
+
+aside .sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+aside summary {
+  cursor: pointer;
+  font-weight: 650;
+  margin-bottom: 16px;
+}
+
+main {
+  min-width: 0;
+  padding: 12px 0 48px;
+}
+
+.chapter-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 16px 0 0;
+}
+
+h1 {
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.4;
+  letter-spacing: -.03em;
+  margin: 18px 0 32px;
+  font-weight: 720;
+}
+
+h2 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 52px 0 22px;
+  padding-top: 18px;
+  border-top: 2px solid var(--ink);
+}
+
+h3 {
+  font-size: 21px;
+  line-height: 1.55;
+  margin: 32px 0 12px;
+}
+
+p { margin: 0 0 20px; }
+li { margin: 8px 0; }
+strong { font-weight: 650; }
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 20px;
+  border-left: 3px solid #eb6c36;
+  color: var(--muted);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .88em;
+  background: #e8e9eb;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  background: #e9ebed;
+  padding: 20px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: auto;
+  tab-size: 4;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 120px;
+}
+
+th {
+  background: #e9ebed;
+  font-weight: 650;
+}
+
+tr:last-child td { border: 0; }
+
+.figure { margin: 24px 0 12px; }
+
+button.diagram {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--paper);
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+button.diagram svg,
+button.diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  margin: 4px 0;
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+
+.pagination {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.pagination a { max-width: 48%; }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 52px 16px 16px;
+  width: 96vw;
+  max-width: 1500px;
+  max-height: 95vh;
+  background: var(--paper);
+  overflow: auto;
+}
+
+dialog::backdrop { background: #2d3142bb; }
+
+dialog button {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-top: -40px;
+  cursor: pointer;
+  border: 1px solid #bfc0c0;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+dialog svg,
+dialog img {
+  width: 100%;
+  height: auto;
+  min-width: 700px;
+  display: block;
+}
+
+.colophon {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 36px 0 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+@media (max-width: 850px) {
+  body { font-size: 17px; }
+  .shell,
+  .shell.nav-page {
+    display: block;
+    padding: 0 22px;
+    margin: 0 auto 40px;
+  }
+  header {
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+  }
+  aside {
+    position: static;
+    max-height: none;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  aside summary { margin: 0; }
+  h1 {
+    font-size: 29px;
+    margin-top: 12px;
+  }
+  h2 {
+    font-size: 23px;
+    margin-top: 40px;
+  }
+  h3 { font-size: 20px; }
+  th,
+  td {
+    padding: 10px 12px;
+    min-width: 110px;
+  }
+  dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .pagination { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  header,
+  aside,
+  .pagination,
+  dialog,
+  .figure small { display: none; }
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11pt;
+    background: white;
+  }
+  h1 { font-size: 24pt; }
+  h2 {
+    font-size: 17pt;
+    break-after: avoid;
+  }
+  h3 { break-after: avoid; }
+  button.diagram { border: 0; }
+  .figure,
+  table { break-inside: avoid; }
+  a { color: inherit; }
+}</style>
+</head>
+<body data-book-mirror-layout="reading-package-v1">
+<header><a href="../../index.html">返回全书目录</a><span>曼昆《经济学原理》 · 书镜 8.2</span></header>
+<div class="shell">
+<aside><details><summary>本页目录</summary><a class="" href="#section-1">一、原书回顾：作者怎样展开</a><a class="sub" href="#section-2">什么是成本</a><a class="sub" href="#section-3">生产与成本</a><a class="sub" href="#section-4">成本的各种衡量</a><a class="sub" href="#section-5">短期与长期成本</a><a class="sub" href="#section-6">结论</a><a class="" href="#section-7">二、主题讲解：先问“这项成本能否因当前决定而改变”</a><a class="sub" href="#section-8">沉没成本不应控制下一步</a><a class="sub" href="#section-9">平均成本不能替代边际选择</a><a class="sub" href="#section-10">规模经济有边界</a><a class="" href="#section-11">检验理解：什么时候该停产</a><a class="" href="#section-12">来源、范围与阅读连接</a></details></aside>
+<main><p class="chapter-label">阅读单元</p><h1>《曼昆〈经济学原理〉》第13章｜生产成本 · 原书回顾与主题讲解（书镜 V8.2）</h1>
+<p>企业会计记录花出去的钱，经济学还要追问自有资源放在这里而放弃了什么。随后，作者把生产函数、边际产量和一组成本曲线连起来。</p>
+<p><strong>本章要回答：</strong> 机会成本怎样进入企业决策，边际成本、平均成本与短长期选择分别说明什么？</p>
+<figure class="figure"><button type="button" class="diagram" aria-label="放大配图"><svg viewBox="0 0 1120 804" width="1120" height="804" role="img" aria-labelledby="title desc">
+<title id="13-0-title">边际成本与平均成本回答不同问题</title><desc id="13-0-desc">边际成本指导多生产一单位的选择，平均成本衡量单位产量的总负担</desc>
+<defs>
+  <marker id="13-0-arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#4f5d75"/></marker>
+  <marker id="13-0-arrow-accent" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#eb6c36"/></marker>
+  <marker id="13-0-arrow-ink" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto"><polygon points="0 0,12 4,0 8" fill="#2d3142"/></marker>
+  <marker id="13-0-arrow-reverse" markerWidth="12" markerHeight="8" refX="2" refY="4" orient="auto-start-reverse"><polygon points="12 0,0 4,12 8" fill="#2d3142"/></marker>
+</defs>
+<rect width="1120" height="804" fill="#f5f5f5"/>
+<text x="64" y="44" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">MANKIW · BOOK MIRROR 8.2</tspan></text><text x="64" y="88" fill="#2d3142" font-size="32" font-weight="400" font-family="'Instrument Serif','Songti SC',serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">边际成本与平均成本回答不同问题</tspan></text><text x="64" y="128" fill="#4f5d75" font-size="16" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">边际成本指导多生产一单位的选择，平均成本衡量单位产量的总负担</tspan></text><line x1="176" y1="612" x2="952" y2="612" stroke="#2d3142" stroke-width="2" marker-end="url(#13-0-arrow-ink)"/><line x1="176" y1="612" x2="176" y2="168" stroke="#2d3142" stroke-width="2" marker-end="url(#13-0-arrow-ink)"/><text x="960" y="636" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="960" dy="0">产量 Q</tspan></text><text x="152" y="172" fill="#4f5d75" font-size="14" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="152" dy="0">成本</tspan></text><path d="M280 300 Q560 596 840 300" fill="none" stroke="#2e5aa8" stroke-width="4"/><path d="M280 560 L840 336" fill="none" stroke="#eb6c36" stroke-width="4"/><text x="860" y="296" fill="#2e5aa8" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="860" dy="0">ATC</tspan></text><text x="848" y="328" fill="#eb6c36" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="start" dominant-baseline="middle"><tspan x="848" dy="0">MC</tspan></text><circle cx="560" cy="448" r="7" fill="#2d3142"/><text x="560" y="480" fill="#4f5d75" font-size="16" font-weight="500" font-family="'Geist','PingFang SC',sans-serif" text-anchor="middle" dominant-baseline="middle"><tspan x="560" dy="0">MC 穿过 ATC 最低点</tspan></text><line x1="64" y1="744" x2="1056" y2="744" stroke="#bfc0c0" stroke-width="1"/><text x="64" y="772" fill="#4f5d75" font-size="12" font-weight="400" font-family="'Geist Mono',monospace" text-anchor="start" dominant-baseline="middle"><tspan x="64" dy="0">SOURCE · 原书章节关系重绘</tspan></text><text x="1056" y="772" fill="#7a8399" font-size="12" font-weight="400" font-family="'Geist','PingFang SC',sans-serif" text-anchor="end" dominant-baseline="middle"><tspan x="1056" dy="0">箭头表示推理或传导方向</tspan></text>
+</svg></button><small>点击放大配图</small></figure>
+<p class="caption">图13-1｜依据本章典型成本曲线重绘。边际成本穿过平均总成本最低点；这是典型形状，不是每家企业都必须精确符合的测量模板。</p>
+<h2 id="section-1">一、原书回顾：作者怎样展开</h2>
+<h3 id="section-2">什么是成本</h3>
+<p>利润等于总收益减总成本。经济学成本包含显性成本和隐性成本：前者需要货币支出，后者是使用自有时间、资金或场所放弃的机会。会计利润通常只扣显性成本，经济利润还扣隐性成本。自有资本本可取得的利息也属于机会成本。</p>
+<h3 id="section-3">生产与成本</h3>
+<p>海伦的糕点厂贯穿本章：在厨房和设备暂时固定时，新增工人先带来分工收益，人员继续增加后开始互相拥挤，出现<strong>边际产量递减</strong>。为了增加同样一单位产量，企业需要投入更多劳动，边际成本因此上升。生产函数变平与总成本曲线变陡是同一机制的两种表示。</p>
+<h3 id="section-4">成本的各种衡量</h3>
+<p>总成本分为固定成本与可变成本。平均固定成本随产量增加下降，平均可变成本反映每单位可变投入，平均总成本是两者之和。边际成本衡量多生产一单位带来的总成本变化。当边际成本低于平均总成本时，平均值被拉低；高于平均值时，平均值被拉高，所以边际成本曲线穿过平均总成本最低点。</p>
+<h3 id="section-5">短期与长期成本</h3>
+<p>短期中部分投入固定，长期中企业可以改变工厂规模。长期平均总成本曲线由不同短期规模下可达到的最低平均成本组成。平均总成本最低的产量是<strong>有效规模</strong>。产量扩大使平均成本下降时存在规模经济，保持不变是规模收益不变，上升则是规模不经济；管理协调复杂性可能成为规模不经济来源。</p>
+<h3 id="section-6">结论</h3>
+<p>不同成本概念服务不同决策。是否继续多生产看边际成本，单位盈利能力看平均成本，是否退出还要纳入长期可避免的全部成本。</p>
+<h2 id="section-7">二、主题讲解：先问“这项成本能否因当前决定而改变”</h2>
+<h3 id="section-8">沉没成本不应控制下一步</h3>
+<p>一家餐馆已支付一年租金。今晚是否营业，要比较营业新增收入与食材、临时人工等可变成本；已经无法收回的租金不会因今晚关门消失。长期是否续租则不同，租金会重新变成可避免成本。</p>
+<h3 id="section-9">平均成本不能替代边际选择</h3>
+<p>平均每份餐成本40元，不代表多做一份也要40元。厨房有空余时，新增一份可能只增加食材与少量人工；接近容量上限时，加单可能需要加班或新设备，边际成本会陡增。</p>
+<h3 id="section-10">规模经济有边界</h3>
+<p>集中采购、专业分工能降低平均成本，但沟通和协调也会增长。观察到前一阶段平均成本下降，不能无限外推到所有产量。</p>
+<h2 id="section-11">检验理解：什么时候该停产</h2>
+<p>某工厂市场价格低于平均总成本，却高于平均可变成本。短期应立即停产吗？</p>
+<p>核对思路：短期继续生产仍能覆盖可变成本并分担部分固定成本，未必应停产；长期若价格不能覆盖平均总成本，企业会退出或调整规模。</p>
+<h2 id="section-12">来源、范围与阅读连接</h2>
+<p>原书范围：上册 PDF 273–292页，合并 PDF 273–292页；机会成本、生产函数、成本曲线与短长期成本均保留。餐馆和工厂是讲解用假设案例。源文件 SHA-256：<code>8cd3def98b1ea31ca9e0c248dd2199004f093fc86a3472b3b33b6e6bc0e66692</code>。下一章把这些成本放进竞争企业的产量选择。</p>
+<nav class="pagination" aria-label="章节翻页"><a href="../12/index.html">上一篇 · 《曼昆〈经济学原理〉》第12章｜税制的设计 · 原书回顾与主题讲解（书镜 V8.2）</a><a href="../14/index.html">下一篇 · 《曼昆〈经济学原理〉》第14章｜竞争市场上的企业 · 原书回顾与主题讲解（书镜 V8.2）</a></nav><p class="colophon">原书回顾保留作者论述顺序，主题讲解补足理解与应用。假设案例及来源范围见正文。</p></main>
+</div>
+<dialog aria-label="放大配图"><button type="button">关闭配图</button><div class="zoom-content"></div></dialog>
+<script>const menu = document.querySelector("aside details");
+if (menu) menu.open = innerWidth > 850;
+
+const dialog = document.querySelector("dialog");
+document.querySelectorAll("button.diagram").forEach((button) => {
+  button.addEventListener("click", () => {
+    dialog.querySelector(".zoom-content").innerHTML = button.innerHTML;
+    dialog.showModal();
+  });
+});
+
+dialog?.querySelector("button").addEventListener("click", () => dialog.close());
+dialog?.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});</script>
+</body>
+</html>
